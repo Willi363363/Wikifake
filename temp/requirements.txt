@@ -1,0 +1,7 @@
+langchain
+langchain-openai
+python-dotenv
+rich
+wikipedia
+requests
+beautifulsoup4
