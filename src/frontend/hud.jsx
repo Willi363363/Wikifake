@@ -841,8 +841,14 @@ function Debrief({ stats, onRestart, mode, allPlayers }) {
               width: 26, height: 26, borderRadius: 8,
               background: "linear-gradient(135deg, var(--accent), #2a7568)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              color: "white", fontFamily: "'Instrument Serif', serif", fontSize: 18, fontStyle: "italic",
-            }}>W</div>
+              overflow: "hidden",
+            }}>
+              <img src="/public/image.png" style={{
+                width: "100%", height: "100%",
+                objectFit: "cover",
+                borderRadius: 8,
+              }} alt="Wikifake logo" />
+            </div>
             <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: 20, color: "var(--ink)", whiteSpace: "nowrap" }}>Mission debrief</span>
           </div>
           <LabelMono>{stats.sessionId} · {new Date().toISOString().slice(0,10)}</LabelMono>
