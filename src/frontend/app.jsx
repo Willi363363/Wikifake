@@ -5,7 +5,7 @@
 
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
-const GAME_DURATION = 300; // 5 minutes
+const GAME_DURATION = 30; // 30 secondes (test)
 
 const ITEM_DEFS = {
   BLUR:        { icon: "👁",  name: "Brouillard",  description: "Floute l'écran d'un joueur 5s",    color: "#6b4e6f" },
@@ -695,7 +695,7 @@ function InnerApp({ sessionData, resetSession }) {
   const [marked, setMarked] = useState({});
   const [edited, setEdited] = useState({});
   const [hintUnlocks, setHintUnlocks] = useState({});
-  const [time, setTime] = useState(180);
+  const [time, setTime] = useState(30);
   const [timeFrozen, setTimeFrozen] = useState(false);
   const [revealAll, setRevealAll] = useState(false);
 

@@ -19,17 +19,17 @@ load_dotenv()
 app = FastAPI()
 game = FakeNewsGame()
 
-GAME_DURATION = 300  # 5 minutes
+GAME_DURATION = 30  # 30 secondes (test)
 
 ITEMS = [
-    {"id": "BLUR",        "name": "Brouillard",  "icon": "👁",  "description": "Floute l'écran d'un joueur pendant 5s",   "targetCount": 1, "weight": 10},
-    {"id": "FREEZE_TIME", "name": "Gel du temps", "icon": "⏸",  "description": "Fige le chrono d'un joueur pendant 10s",  "targetCount": 1, "weight": 10},
-    {"id": "SCORE_STEAL", "name": "Pillage",      "icon": "⚡",  "description": "Vole 50 pts à un joueur",                 "targetCount": 1, "weight": 8},
-    {"id": "HINT_LOCK",   "name": "Brouilleur",   "icon": "🔒", "description": "Bloque les hints d'un joueur pendant 20s", "targetCount": 1, "weight": 8},
-    {"id": "BLACKOUT",    "name": "Censure CIA",  "icon": "⬛", "description": "Censure le texte d'un joueur (5s)",        "targetCount": 1, "weight": 6},
-    {"id": "EARTHQUAKE",  "name": "Séisme",       "icon": "🌋", "description": "Fait trembler l'écran d'un joueur (5s)",   "targetCount": 1, "weight": 6},
-    {"id": "RICKROLL",    "name": "Pop-up Spam",  "icon": "🤡", "description": "Affiche un pop-up gênant à un joueur",     "targetCount": 1, "weight": 4},
-    {"id": "SCANNER",     "name": "Détecteur",    "icon": "🔎", "description": "Surligne un paragraphe contenant une erreur", "targetCount": 0, "weight": 2},
+    {"id": "HINT_LOCK",   "name": "Brouilleur",   "icon": "🔒", "description": "Bloque les hints d'un joueur pendant 20s", "targetCount": 1, "weight": 30},
+    {"id": "FREEZE_TIME", "name": "Gel du temps", "icon": "⏸",  "description": "Retire 10s au chrono d'un joueur",         "targetCount": 1, "weight": 25},
+    {"id": "SCORE_STEAL", "name": "Pillage",      "icon": "⚡",  "description": "Vole 50 pts à un joueur",                  "targetCount": 1, "weight": 20},
+    {"id": "EARTHQUAKE",  "name": "Séisme",       "icon": "🌋", "description": "Fait trembler l'écran d'un joueur (5s)",    "targetCount": 1, "weight": 12},
+    {"id": "BLACKOUT",    "name": "Censure CIA",  "icon": "⬛", "description": "Censure le texte d'un joueur (5s)",         "targetCount": 1, "weight": 8},
+    {"id": "BLUR",        "name": "Brouillard",   "icon": "👁",  "description": "Floute l'écran d'un joueur pendant 5s",    "targetCount": 1, "weight": 3},
+    {"id": "RICKROLL",    "name": "Pop-up Spam",  "icon": "🤡", "description": "Affiche un pop-up gênant à un joueur",      "targetCount": 1, "weight": 5},
+    {"id": "SCANNER",     "name": "Détecteur",    "icon": "🔎", "description": "Surligne un paragraphe contenant une erreur", "targetCount": 0, "weight": 15},
 ]
 
 # Global state for multiplayer rooms
@@ -65,10 +65,10 @@ def submit_answer(req: SubmitAnswerRequest):
 
 # Multiplayer Endpoints
 async def item_distribution_loop(room_code: str):
-    """Distributes one random item to each player every 60 seconds, 4 times (minutes 1–4)."""
+    """Distributes one random item to each player every 10 seconds, 2 times."""
     try:
-        for minute in range(1, 5):
-            await asyncio.sleep(60)
+        for minute in range(1, 3):
+            await asyncio.sleep(10)
             if room_code not in rooms or rooms[room_code]["state"] != "playing":
                 break
             room = rooms[room_code]
