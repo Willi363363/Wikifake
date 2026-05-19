@@ -19,7 +19,7 @@ load_dotenv()
 app = FastAPI()
 game = FakeNewsGame()
 
-GAME_DURATION = 30  # 30 secondes (test)
+GAME_DURATION = 300  # 5 minutes
 
 ITEMS = [
     {"id": "HINT_LOCK",   "name": "Brouilleur",   "icon": "🔒", "description": "Bloque les hints d'un joueur pendant 20s", "targetCount": 1, "weight": 30},
@@ -65,10 +65,10 @@ def submit_answer(req: SubmitAnswerRequest):
 
 # Multiplayer Endpoints
 async def item_distribution_loop(room_code: str):
-    """Distributes one random item to each player every 10 seconds, 2 times."""
+    """Distributes one random item to each player every 30 seconds (up to 9 times)."""
     try:
-        for minute in range(1, 3):
-            await asyncio.sleep(10)
+        for minute in range(1, 10):
+            await asyncio.sleep(30)
             if room_code not in rooms or rooms[room_code]["state"] != "playing":
                 break
             room = rooms[room_code]

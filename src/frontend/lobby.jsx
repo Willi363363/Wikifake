@@ -7,7 +7,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
   const [roomCode, setRoomCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [timeLimit, setTimeLimit] = useState(30); // 30s to 600s (10min)
+  const [timeLimit, setTimeLimit] = useState(180); // 30s to 600s (10min)
   
   // Multiplayer state
   const [players, setPlayers] = useState([]);
