@@ -5,6 +5,78 @@
 
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
+// ============ Web Audio API Sound Engine ============
+const SoundFX = {
+  ctx: null,
+  init() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  },
+  playTone(freq, type, duration, vol=0.1) {
+    if (typeof window === "undefined") return;
+    if (!this.ctx) this.init();
+    if (this.ctx.state === "suspended") this.ctx.resume();
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(this.ctx.currentTime + duration);
+  },
+  clickOn() { this.playTone(600, 'sine', 0.05, 0.05); },
+  clickOff() { this.playTone(400, 'sine', 0.05, 0.05); },
+  success() {
+    this.playTone(440, 'sine', 0.1, 0.08); 
+    setTimeout(() => this.playTone(554.37, 'sine', 0.2, 0.08), 80);
+  },
+  error() { this.playTone(150, 'sawtooth', 0.3, 0.1); },
+  hint() { this.playTone(880, 'sine', 0.15, 0.05); },
+  itemReceived() {
+    this.playTone(523.25, 'sine', 0.1, 0.06); // C5
+    setTimeout(() => this.playTone(659.25, 'sine', 0.2, 0.06), 100); // E5
+  },
+  itemUsed() {
+    this.playTone(300, 'triangle', 0.2, 0.08);
+    setTimeout(() => this.playTone(200, 'triangle', 0.2, 0.08), 100);
+  },
+  malus() {
+    this.playTone(100, 'sawtooth', 0.4, 0.15);
+    setTimeout(() => this.playTone(80, 'sawtooth', 0.4, 0.15), 150);
+  },
+  scanner() {
+    this.playTone(1200, 'sine', 0.05, 0.03);
+    setTimeout(() => this.playTone(1200, 'sine', 0.05, 0.03), 150);
+  },
+  start() {
+    this.playTone(440, 'square', 0.1, 0.05);
+    setTimeout(() => this.playTone(554.37, 'square', 0.1, 0.05), 100);
+    setTimeout(() => this.playTone(659.25, 'square', 0.2, 0.05), 200);
+  }
+};
+
+const playSound = (type) => {
+  try {
+    switch (type) {
+      case 'click_on': SoundFX.clickOn(); break;
+      case 'click_off': SoundFX.clickOff(); break;
+      case 'success': SoundFX.success(); break;
+      case 'game_over': SoundFX.error(); break;
+      case 'hint': SoundFX.hint(); break;
+      case 'item_receive': SoundFX.itemReceived(); break;
+      case 'item_use': SoundFX.itemUsed(); break;
+      case 'malus': SoundFX.malus(); break;
+      case 'scanner': SoundFX.scanner(); break;
+      case 'start': SoundFX.start(); break;
+      default: SoundFX.clickOn();
+    }
+  } catch (e) {
+    console.error("Audio block:", e);
+  }
+};
+
 const GAME_DURATION = 300; // 5 minutes
 
 const ITEM_DEFS = {
@@ -868,6 +940,7 @@ function App() {
     }));
     
     setSessionData({ ...data, timeLimit: timeLimit || GAME_DURATION });
+    playSound('start');
     setGameState("playing");
   };
 
@@ -951,6 +1024,7 @@ function InnerApp({ sessionData, resetSession }) {
   // Auto-submit / game over quand time atteint 0
   useEffect(() => {
     if (time === 0 && playing && !revealAll) {
+      playSound('game_over');
       onSubmit();
     }
   }, [time, playing, revealAll]);
@@ -980,9 +1054,11 @@ function InnerApp({ sessionData, resetSession }) {
           const me = sessionData.multiplayer.username;
           const myItem = msg.items[me];
           if (myItem) {
+            playSound('item_receive');
             setItems(prev => [...prev, myItem]);
           }
         } else if (msg.type === "item_effect") {
+          playSound('malus');
           const effectId = Date.now() + Math.random();
           const def = ITEM_DEFS[msg.item_id] || {};
           setActiveEffects(prev => [...prev, {
@@ -1048,6 +1124,7 @@ function InnerApp({ sessionData, resetSession }) {
       const unfoundFakes = [...fakeTokenIds].filter(id => !marked[id] && !edited[id] && !scannedParagraphs.has(id));
       if (unfoundFakes.length > 0) {
         const randomFake = unfoundFakes[Math.floor(Math.random() * unfoundFakes.length)];
+        playSound('scanner');
         setScannedParagraphs(prev => new Set([...prev, randomFake]));
       }
     }
@@ -1088,16 +1165,24 @@ function InnerApp({ sessionData, resetSession }) {
     if (t.mode === "expert") {
       setEdited(prev => {
         if (prev[id] !== undefined && prev[id] !== null) {
+          playSound('click_off');
           const { [id]: _, ...rest } = prev;
           return rest;
         }
+        playSound('click_on');
         return { ...prev, [id]: "" };
       });
       return;
     }
     setMarked(prev => {
       const next = { ...prev };
-      if (next[id]) delete next[id]; else next[id] = true;
+      if (next[id]) {
+        playSound('click_off');
+        delete next[id];
+      } else {
+        playSound('click_on');
+        next[id] = true;
+      }
       return next;
     });
   };
@@ -1110,6 +1195,7 @@ function InnerApp({ sessionData, resetSession }) {
   };
 
   const onUnlockHint = (fakeId, level) => {
+    playSound('hint');
     setHintUnlocks(prev => ({ ...prev, [fakeId]: Math.max(prev[fakeId] || 0, level) }));
   };
   const hintedTokenIds = useMemo(() => {
@@ -1151,6 +1237,7 @@ function InnerApp({ sessionData, resetSession }) {
     if (def.targetCount === 0) {
       if (!sessionData?.multiplayer) return;
       const socket = sessionData.multiplayer.socket;
+      playSound('item_use');
       socket.send(JSON.stringify({
         type: "use_item",
         instance_id: item.instance_id,
@@ -1165,6 +1252,7 @@ function InnerApp({ sessionData, resetSession }) {
   const confirmUseItem = useCallback((targetName) => {
     if (!itemModal || !sessionData?.multiplayer) return;
     const socket = sessionData.multiplayer.socket;
+    playSound('item_use');
     socket.send(JSON.stringify({
       type: "use_item",
       instance_id: itemModal.instance_id,
@@ -1175,6 +1263,7 @@ function InnerApp({ sessionData, resetSession }) {
   }, [itemModal, sessionData]);
 
   const onSubmit = () => {
+    playSound('success');
     if (sessionData && sessionData.multiplayer) {
       const socket = sessionData.multiplayer.socket;
       // Convert marked token IDs (e.g. "p0") to paragraph indices (1-based)
