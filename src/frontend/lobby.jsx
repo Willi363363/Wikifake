@@ -1,7 +1,7 @@
 const { useState, useEffect, useRef } = React;
 
 function Lobby({ onStart, onMultiplayerStart }) {
-  const [mode, setMode] = useState("solo"); // solo, host, join, lobby
+  const [mode, setMode] = useState("solo"); // solo, host, join, lobby, waiting, lobby-waiting
   const [category, setCategory] = useState("");
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
@@ -15,24 +15,22 @@ function Lobby({ onStart, onMultiplayerStart }) {
   const [withItems, setWithItems] = useState(true);
   const ws = useRef(null);
 
-  const handleSoloSubmit = async (e) => {
+  // Solo: go to waiting screen instead of fetching directly
+  const handleSoloSubmit = (e) => {
     e.preventDefault();
     if (!category) return;
-    setLoading(true);
     setError("");
-    try {
-      const res = await fetch("/api/game/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category })
-      });
-      if (!res.ok) throw new Error("Erreur de génération. Essayez un autre mot-clé.");
-      const data = await res.json();
-      onStart(data, timeLimit);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
+    setMode("waiting");
+  };
+
+  // Waiting screen callbacks
+  const handleWaitingReady = (data) => {
+    onStart(data, timeLimit);
+  };
+
+  const handleWaitingError = (msg) => {
+    setError(msg);
+    setMode("solo");
   };
 
   const handleHost = async (e) => {
@@ -78,10 +76,18 @@ function Lobby({ onStart, onMultiplayerStart }) {
       if (msg.type === "lobby_update") {
         setPlayers(msg.players);
       } else if (msg.type === "game_start") {
-        onMultiplayerStart(msg.data, socket, name, code, isHost);
+        // If in lobby-waiting, feed data to WaitingScreen
+        if (window.__waitingScreenReady) {
+          window.__waitingScreenReady(msg.data);
+          // Store the multiplayer info for after waiting screen transition
+          window.__multiplayerContext = { socket, name, code, isHost };
+        } else {
+          onMultiplayerStart(msg.data, socket, name, code, isHost);
+        }
       } else if (msg.type === "error") {
         setError(msg.message);
         setLoading(false);
+        setMode("lobby");
       }
     };
     
@@ -98,8 +104,48 @@ function Lobby({ onStart, onMultiplayerStart }) {
     }
     setLoading(true);
     ws.current.send(JSON.stringify({ type: "start_game", category, with_items: withItems, time_limit: timeLimit }));
+    // Transition to waiting screen inside lobby
+    setMode("lobby-waiting");
   };
 
+  // Multiplayer waiting: the WaitingScreen handles the transition
+  const handleMultiWaitingReady = (data) => {
+    const ctx = window.__multiplayerContext;
+    if (ctx) {
+      onMultiplayerStart(data, ctx.socket, ctx.name, ctx.code, ctx.isHost);
+      delete window.__multiplayerContext;
+    } else {
+      onStart(data);
+    }
+  };
+
+  // ---- SOLO WAITING ----
+  if (mode === "waiting") {
+    return (
+      <window.WaitingScreen
+        category={category}
+        onReady={handleWaitingReady}
+        onError={handleWaitingError}
+        isMultiplayer={false}
+      />
+    );
+  }
+
+  // ---- MULTIPLAYER LOBBY WAITING ----
+  if (mode === "lobby-waiting") {
+    return (
+      <window.WaitingScreen
+        category={category}
+        onReady={handleMultiWaitingReady}
+        onError={(msg) => { setError(msg); setMode("lobby"); setLoading(false); }}
+        isMultiplayer={true}
+        lobbyPlayers={players}
+        roomCode={roomCode}
+      />
+    );
+  }
+
+  // ---- MULTIPLAYER LOBBY ----
   if (mode === "lobby") {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "var(--bg-primary)" }}>
@@ -177,6 +223,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
     );
   }
 
+  // ---- MAIN LOBBY (solo/host/join selection) ----
   return (
     <>
       <style>{`
