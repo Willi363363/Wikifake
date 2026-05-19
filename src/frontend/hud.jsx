@@ -125,7 +125,7 @@ function Chip({ children, color = "var(--ink)", bg = "white", border = "var(--li
 }
 
 /* ============ Top Bar ============ */
-function TopBar({ mode, marked, total, time, onSubmit, target, progress, canSubmit, onOpenIntel, hintsUsed }) {
+function TopBar({ mode, marked, total, time, onSubmit, target, progress, canSubmit, waiting, onOpenIntel, hintsUsed }) {
   const min = Math.floor(time / 60);
   const sec = time % 60;
   return (
@@ -224,11 +224,13 @@ function TopBar({ mode, marked, total, time, onSubmit, target, progress, canSubm
         </div>
 
         {/* Submit */}
-        <button className="btn primary" onClick={onSubmit} disabled={!canSubmit}>
-          Submit
-          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-            <path d="M3 6.5h7M6.5 3l3.5 3.5L6.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+        <button className="btn primary" onClick={onSubmit} disabled={!canSubmit || waiting}>
+          {waiting ? "En attente..." : "Submit"}
+          {!waiting && (
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M3 6.5h7M6.5 3l3.5 3.5L6.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          )}
         </button>
       </div>
     </div>
@@ -591,9 +593,9 @@ function AnimatedRanking({ players }) {
     let score = 0;
     if (s >= 1) score += b.tp * 150;
     if (s >= 2) score -= b.fp * 80;
-    if (s >= 3) score -= b.hintsUsed * 50;
+    if (s >= 3) score -= (b.hintPenalty || 0);
     if (s >= 4) score += b.timeBonus || 0;
-    return Math.max(0, score);
+    return score;
   };
 
   // Animate displayed scores when stage changes
@@ -636,7 +638,7 @@ function AnimatedRanking({ players }) {
   const stageDelta = (b, s) => {
     if (s === 1) return { value: `+${b.tp * 150}`, color: "var(--green)" };
     if (s === 2) return { value: b.fp > 0 ? `−${b.fp * 80}` : `±0`, color: b.fp > 0 ? "var(--danger)" : "var(--muted)" };
-    if (s === 3) return { value: b.hintsUsed > 0 ? `−${b.hintsUsed * 50}` : `±0`, color: b.hintsUsed > 0 ? "var(--bronze)" : "var(--muted)" };
+    if (s === 3) return { value: (b.hintPenalty || 0) > 0 ? `−${b.hintPenalty}` : `±0`, color: (b.hintPenalty || 0) > 0 ? "var(--bronze)" : "var(--muted)" };
     if (s === 4) return { value: `+${b.timeBonus || 0}`, color: "var(--green)" };
     return null;
   };
@@ -802,7 +804,7 @@ function Debrief({ stats, onRestart, mode, allPlayers }) {
   const allScores = (allPlayers || []).map(p => {
     if (p.you) return playerScore;
     const b = p.breakdown;
-    return Math.max(0, b.tp * 150 - b.fp * 80 - b.hintsUsed * 50 + (b.timeBonus || 0));
+    return b.tp * 150 - b.fp * 80 - (b.hintPenalty || 0) + (b.timeBonus || 0);
   });
   const playerRank = (allPlayers || []).findIndex(p => p.you);
   const playerFinalScore = playerRank >= 0 ? allScores[playerRank] : playerScore;

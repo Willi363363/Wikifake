@@ -212,8 +212,16 @@ function App() {
     setGameState("playing");
   };
 
+  const startMultiplayerSession = (data, socket, username, roomCode, isHost) => {
+    startSession(data);
+    setSessionData(prev => ({
+      ...prev,
+      multiplayer: { socket, username, roomCode, isHost }
+    }));
+  };
+
   if (gameState === "lobby") {
-    return <window.Lobby onStart={startSession} />;
+    return <window.Lobby onStart={startSession} onMultiplayerStart={startMultiplayerSession} />;
   }
 
   // Restore the original inner App as InnerApp
@@ -256,8 +264,61 @@ function InnerApp({ sessionData, resetSession }) {
     return () => clearInterval(id);
   }, [playing]);
 
-  const bots = useBots(playing && t.multiplayer && t.showCursors, totalFakes);
+  // Multiplayer State
+  const [leaderboard, setLeaderboard] = useState(null);
+  const [waitingForOthers, setWaitingForOthers] = useState(false);
+  const [liveScores, setLiveScores] = useState({});
+  const [cursors, setCursors] = useState({});
 
+  useEffect(() => {
+    if (sessionData && sessionData.multiplayer) {
+      const socket = sessionData.multiplayer.socket;
+      
+      const handleMessage = (event) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "game_end") {
+          setLeaderboard(msg.leaderboard);
+          setRevealAll(true);
+          setTimeout(() => setTweak("gameState", "results"), 600);
+        } else if (msg.type === "live_score_update") {
+          setLiveScores(prev => ({
+            ...prev,
+            [msg.player]: msg.score
+          }));
+        } else if (msg.type === "cursor_update") {
+          setCursors(prev => ({
+            ...prev,
+            [msg.player]: { x: msg.x, y: msg.y }
+          }));
+        }
+      };
+      
+      socket.addEventListener("message", handleMessage);
+      return () => socket.removeEventListener("message", handleMessage);
+    }
+  }, [sessionData]);
+
+  // Sync cursor live
+  useEffect(() => {
+    if (!playing || !sessionData?.multiplayer) return;
+    const socket = sessionData.multiplayer.socket;
+    let lastTime = 0;
+    
+    const handleMouseMove = (e) => {
+      const now = performance.now();
+      if (now - lastTime > 60) {
+        lastTime = now;
+        socket.send(JSON.stringify({
+          type: "cursor",
+          x: e.clientX / window.innerWidth,
+          y: e.clientY / window.innerHeight
+        }));
+      }
+    };
+    
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, [playing, sessionData]);
   const restart = (kind) => {
     if (kind === "new") {
       if (typeof resetSession === "function") { resetSession(); }
@@ -320,7 +381,7 @@ function InnerApp({ sessionData, resetSession }) {
     const baseScore = tp * 150;
     const fpPenalty = fp * 80;
     const timeBonus = Math.max(0, Math.floor(time * 0.5));
-    const finalScore = Math.max(0, baseScore - fpPenalty - hintPenalty + timeBonus);
+    const finalScore = baseScore - fpPenalty - hintPenalty + timeBonus;
     return {
       truePositives: tp, falsePositives: fp, missed,
       f1, totalFakes, baseScore, fpPenalty, hintPenalty, timeBonus, finalScore,
@@ -330,21 +391,65 @@ function InnerApp({ sessionData, resetSession }) {
   }, [marked, edited, time, hintPenalty, totalFakes, t.sessionId]);
 
   const onSubmit = () => {
-    setRevealAll(true);
-    setTimeout(() => setTweak("gameState", "results"), 600);
+    if (sessionData && sessionData.multiplayer) {
+      const socket = sessionData.multiplayer.socket;
+      // Convert marked token IDs (e.g. "p0") to paragraph indices (1-based)
+      const answers = Object.keys(marked).map(k => parseInt(k.substring(1)) + 1);
+      socket.send(JSON.stringify({
+        type: "submit_answer",
+        answers: answers,
+        hintsUsed: hintsUsed,
+        hintPenalty: hintPenalty
+      }));
+      setWaitingForOthers(true);
+    } else {
+      setRevealAll(true);
+      setTimeout(() => setTweak("gameState", "results"), 600);
+    }
   };
 
   const youScore = useMemo(() => {
-    return Math.max(0, Object.keys(marked).length * 110 + Object.keys(edited).length * 130 - hintPenalty);
+    const markedCount = Object.keys(marked).length + Object.keys(edited).length;
+    return markedCount * 150 - hintPenalty;
   }, [marked, edited, hintPenalty]);
 
+  // Sync your score live
+  useEffect(() => {
+    if (sessionData && sessionData.multiplayer && t.gameState === "playing") {
+      sessionData.multiplayer.socket.send(JSON.stringify({
+        type: "live_score",
+        score: youScore
+      }));
+    }
+  }, [youScore, sessionData, t.gameState]);
+
   const players = useMemo(() => {
-    const all = [
-      { id: "you", name: "You", color: ACCENTS[t.accent]?.primary || "#1f574d", score: youScore, you: true },
-      ...bots,
+    if (leaderboard) {
+      return leaderboard.map(p => ({
+        ...p,
+        color: p.name === sessionData?.multiplayer?.username ? (ACCENTS[t.accent]?.primary || "#1f574d") : "#7a9460",
+        you: p.name === sessionData?.multiplayer?.username
+      }));
+    }
+    if (sessionData?.multiplayer && sessionData?.players) {
+      // Build real-time scoreboard during game
+      const me = sessionData.multiplayer.username;
+      const all = sessionData.players.map(p => {
+        const isMe = p === me;
+        return {
+          id: p,
+          name: p,
+          color: isMe ? (ACCENTS[t.accent]?.primary || "#1f574d") : "#7a9460",
+          score: isMe ? youScore : (liveScores[p] || 0),
+          you: isMe
+        };
+      });
+      return all.sort((a, b) => b.score - a.score);
+    }
+    return [
+      { id: "you", name: sessionData?.multiplayer?.username || "You", color: ACCENTS[t.accent]?.primary || "#1f574d", score: youScore, you: true },
     ];
-    return all.sort((a, b) => b.score - a.score);
-  }, [bots, youScore, t.accent]);
+  }, [leaderboard, youScore, t.accent, sessionData, liveScores]);
 
   const markedCount = Object.keys(marked).length + Object.keys(edited).length;
   const progress = Math.min(100, (markedCount / totalFakes) * 100);
@@ -359,7 +464,8 @@ function InnerApp({ sessionData, resetSession }) {
         onSubmit={onSubmit}
         target="Paris"
         progress={progress}
-        canSubmit={markedCount > 0 || revealAll}
+        canSubmit={(markedCount > 0 || revealAll) && !waitingForOthers}
+        waiting={waitingForOthers}
         onOpenIntel={() => setIntelOpen(true)}
         hintsUsed={hintsUsed}
       />
@@ -462,10 +568,12 @@ function InnerApp({ sessionData, resetSession }) {
             )}
           </div>
 
-          {/* Bot cursors */}
-          {t.multiplayer && t.showCursors && playing && bots.map(b => (
-            <BotCursor key={b.id} x={b.x} y={b.y} name={b.name} color={b.color} />
-          ))}
+          {/* Multiplayer cursors */}
+          {t.multiplayer && t.showCursors && playing && Object.entries(cursors).map(([name, cur]) => {
+            const playerInfo = players.find(p => p.name === name);
+            if (!playerInfo || playerInfo.you) return null;
+            return <window.BotCursor key={name} x={cur.x * window.innerWidth} y={cur.y * window.innerHeight} name={name} color={playerInfo.color} />;
+          })}
         </div>
 
         <Footer sessionId={t.sessionId} />
@@ -518,21 +626,19 @@ function InnerApp({ sessionData, resetSession }) {
           stats={stats}
           onRestart={restart}
           mode={t.mode}
-          allPlayers={[
-            {
-              id: "you", name: "You", color: ACCENTS[t.accent]?.primary || "#1f574d", you: true,
-              breakdown: {
-                tp: stats.truePositives,
-                fp: stats.falsePositives,
-                hintsUsed,
-                timeBonus: stats.timeBonus,
-              },
-            },
-            ...bots.map(b => ({
-              id: b.id, name: b.name, color: b.color, you: false,
-              breakdown: BOT_PROFILES[b.id],
-            })),
-          ]}
+          allPlayers={players.map(p => ({
+            id: p.id,
+            name: p.name,
+            color: p.color,
+            you: p.you,
+            breakdown: p.breakdown || {
+              tp: stats.truePositives,
+              fp: stats.falsePositives,
+              hintsUsed,
+              hintPenalty,
+              timeBonus: stats.timeBonus,
+            }
+          }))}
         />
       )}
 
