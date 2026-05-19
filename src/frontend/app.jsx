@@ -343,7 +343,7 @@ function App() {
   const [gameState, setGameState] = useState("lobby");
   const [sessionData, setSessionData] = useState(null);
 
-  const startSession = (data) => {
+  const startSession = (data, timeLimit) => {
     // Transform backend data to mock data format expected by the frontend
     const newBody = data.paragraphs.map((p, idx) => {
       // Find if this paragraph is a fake
@@ -380,7 +380,7 @@ function App() {
       hint: pos.hint
     }));
     
-    setSessionData(data);
+    setSessionData({ ...data, timeLimit: timeLimit || 180 });
     setGameState("playing");
   };
 
@@ -407,13 +407,17 @@ function InnerApp({ sessionData, resetSession }) {
   useEffect(() => {
     if (sessionData) {
       setTweak({ ...t, gameState: "playing" });
+      // Set time limit from session data
+      if (sessionData.timeLimit) {
+        setTime(sessionData.timeLimit);
+      }
     }
-  }, []);
+  }, [sessionData]);
 
   const [marked, setMarked] = useState({});
   const [edited, setEdited] = useState({});
   const [hintUnlocks, setHintUnlocks] = useState({});
-  const [time, setTime] = useState(GAME_DURATION);
+  const [time, setTime] = useState(180);
   const [timeFrozen, setTimeFrozen] = useState(false);
   const [revealAll, setRevealAll] = useState(false);
 
@@ -444,6 +448,13 @@ function InnerApp({ sessionData, resetSession }) {
     const id = setInterval(() => setTime(x => Math.max(0, x - 1)), 1000);
     return () => clearInterval(id);
   }, [playing, timeFrozen]);
+
+  // Auto-submit when time runs out
+  useEffect(() => {
+    if (time === 0 && playing && !revealAll) {
+      onSubmit();
+    }
+  }, [time, playing, revealAll]);
 
   // Multiplayer State
   const [leaderboard, setLeaderboard] = useState(null);

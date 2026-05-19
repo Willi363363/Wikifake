@@ -6,8 +6,9 @@ function Lobby({ onStart, onMultiplayerStart }) {
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
+  const [error, setEr30sror] = useState("");
+  const [timeLimit, setTimeLimit] = useState(180); // 30s to 600s (10min)
+  
   // Multiplayer state
   const [players, setPlayers] = useState([]);
   const [isHost, setIsHost] = useState(false);
@@ -27,7 +28,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
       });
       if (!res.ok) throw new Error("Erreur de génération. Essayez un autre mot-clé.");
       const data = await res.json();
-      onStart(data);
+      onStart(data, timeLimit);
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -117,7 +118,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
           </div>
           
           {isHost ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
               <input
                 type="text"
                 placeholder="Sujet Wikipédia (ex: Paris, Python...)"
@@ -126,6 +127,15 @@ function Lobby({ onStart, onMultiplayerStart }) {
                 style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc" }}
                 disabled={loading}
               />
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "var(--ink)" }}>
+                  Limite de temps: {timeLimit < 60 ? timeLimit + "s" : (timeLimit / 60).toFixed(1) + "min"}
+                </label>
+                <input type="range" min="30" max="600" step="30" value={timeLimit} onChange={(e) => setTimeLimit(Number(e.target.value))} style={{ width: "100%", padding: 0 }} disabled={loading} />
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--muted)", marginTop: "4px" }}>
+                  <span>30s</span>
+                  <span>10min</span>
+                </div>
               <div
                 onClick={() => setWithItems(v => !v)}
                 style={{
@@ -167,7 +177,55 @@ function Lobby({ onStart, onMultiplayerStart }) {
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "var(--bg-primary)" }}>
+    <>
+      <style>{`
+        input[type="range"] {
+          -webkit-appearance: none;
+          width: 100%;
+          height: 6px;
+          border-radius: 3px;
+          background: rgba(31, 87, 77, 0.12);
+          outline: none;
+          cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: var(--accent);
+          cursor: pointer;
+          box-shadow: 0 2px 8px rgba(31, 87, 77, 0.25);
+          transition: box-shadow 200ms ease, transform 200ms ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+          box-shadow: 0 4px 12px rgba(31, 87, 77, 0.35);
+          transform: scale(1.1);
+        }
+        input[type="range"]::-moz-range-thumb {
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: var(--accent);
+          cursor: pointer;
+          border: none;
+          box-shadow: 0 2px 8px rgba(31, 87, 77, 0.25);
+          transition: box-shadow 200ms ease, transform 200ms ease;
+        }
+        input[type="range"]::-moz-range-thumb:hover {
+          box-shadow: 0 4px 12px rgba(31, 87, 77, 0.35);
+          transform: scale(1.1);
+        }
+        input[type="range"]::-moz-range-track {
+          background: transparent;
+          border: none;
+        }
+        input[type="range"] disabled {
+          opacity: 0.5;
+        }
+      `}</style>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "var(--bg-primary)" }}>
       <div style={{ background: "white", padding: "40px", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxWidth: "450px", width: "100%" }}>
         <h2 style={{ marginBottom: "20px", color: "var(--text-primary)", textAlign: "center", fontFamily: "'Instrument Serif', serif", fontSize: "36px" }}>WikiFake</h2>
         
@@ -178,8 +236,18 @@ function Lobby({ onStart, onMultiplayerStart }) {
         </div>
 
         {mode === "solo" && (
-          <form onSubmit={handleSoloSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          <form onSubmit={handleSoloSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
             <input type="text" placeholder="Sujet Wikipédia (ex: Paris)" value={category} onChange={(e) => setCategory(e.target.value)} style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc" }} disabled={loading} />
+            <div>
+              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "var(--ink)" }}>
+                Limite de temps: {timeLimit < 60 ? timeLimit + "s" : (timeLimit / 60).toFixed(1) + "min"}
+              </label>
+              <input type="range" min="30" max="600" step="30" value={timeLimit} onChange={(e) => setTimeLimit(Number(e.target.value))} style={{ width: "100%", padding: 0 }} disabled={loading} />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--muted)", marginTop: "4px" }}>
+                <span>30s</span>
+                <span>10min</span>
+              </div>
+            </div>
             <button type="submit" disabled={loading || !category} style={{ padding: "12px", background: "var(--bronze)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}>
               {loading ? "Génération en cours..." : "Lancer en Solo"}
             </button>
@@ -207,7 +275,8 @@ function Lobby({ onStart, onMultiplayerStart }) {
 
         {error && <p style={{ color: "red", marginTop: "15px", textAlign: "center" }}>{error}</p>}
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 window.Lobby = Lobby;

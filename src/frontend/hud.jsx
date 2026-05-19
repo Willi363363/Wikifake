@@ -207,7 +207,7 @@ function TopBar({ mode, marked, total, time, onSubmit, target, progress, canSubm
             color: time < 30 ? "var(--danger)" : time < 90 ? "var(--warn)" : "var(--ink)",
             fontVariantNumeric: "tabular-nums",
             letterSpacing: "0.02em",
-          }}>{String(min).padStart(2,"0")}:{String(sec).padStart(2,"0")}</span>
+          }}>{String(Math.floor(time / 60)).padStart(2,"0")}:{String(time % 60).padStart(2,"0")}</span>
         </div>
 
         {/* Marked count */}
