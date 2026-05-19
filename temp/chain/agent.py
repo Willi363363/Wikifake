@@ -1,5 +1,5 @@
 from .scraper import get_wikipedia_content, extract_paragraphs
-from .misinformation import generate_misinformation, create_game_content
+from .misinformation import swap_paragraphs, build_game_content
 from .verification import check_answer, get_feedback
 from typing import Optional
 
@@ -34,8 +34,8 @@ class FakeNewsGame:
             return None
         
         # Générer les fausses infos
-        misinformations = generate_misinformation(wikipedia_data["text_content"], category)
-        if not misinformations:
+        modified_paragraphs, swaps = swap_paragraphs(paragraphs, wikipedia_data["title"])
+        if not swaps:
             return None
         
         # Modifier directement le DOM (soup)
@@ -46,20 +46,20 @@ class FakeNewsGame:
         raw_paragraphs = wikipedia_data["raw_paragraphs"]
         
         positions = []
-        selected_indices = random.sample(range(len(raw_paragraphs)), min(len(misinformations), len(raw_paragraphs)))
+        selected_indices = random.sample(range(len(raw_paragraphs)), min(len(swaps), len(raw_paragraphs)))
         
-        for idx, mis_info in enumerate(misinformations):
+        for idx, swap in enumerate(swaps):
             if idx < len(selected_indices):
                 para_idx = selected_indices[idx]
                 p_tag = raw_paragraphs[para_idx]
                 
                 # Remplacer entièrement le contenu du vrai paragraphe par le faux paragraphe généré par l'IA
                 p_tag.clear()
-                p_tag.append(soup.new_string(mis_info))
+                p_tag.append(soup.new_string(swap["swapped_text"]))
                 
                 positions.append({
                     "paragraph_index": para_idx + 1,
-                    "false_statement": mis_info,
+                    "false_statement": swap["swapped_text"],
                     "false_info_number": idx + 1
                 })
         
@@ -74,7 +74,7 @@ class FakeNewsGame:
         self.current_game = {
             "topic": wikipedia_data["title"],
             "html": final_html, # Le HTML prêt
-            "misinformations": misinformations,
+            "misinformations": swaps,
             "positions": positions,
             "total_false_statements": len(positions),
             "original_paragraphs": paragraphs,

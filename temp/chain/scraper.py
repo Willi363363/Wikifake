@@ -7,6 +7,7 @@ from langchain_core.output_parsers import StrOutputParser
 from config import MODEL_NAME
 import requests
 from bs4 import BeautifulSoup
+import re
 
 def get_topic_from_category(category: str, exclude_topics: list = None) -> str:
     """Demande à l'IA de trouver un sujet précis sur Wikipedia basé sur une catégorie."""
@@ -108,9 +109,18 @@ def get_wikipedia_content(category: str) -> Optional[dict]:
 
 
 def extract_paragraphs(content_data: dict) -> list:
-    """
-    Extrait le texte des paragraphes d'un contenu Wikipedia.
-    """
-    if "raw_paragraphs" in content_data:
-        return [p.get_text(strip=True) for p in content_data["raw_paragraphs"]]
-    return []
+    if "raw_paragraphs" not in content_data:
+        return []
+
+    result = []
+    for p in content_data["raw_paragraphs"]:
+        for tag in p.find_all(True):
+            if tag.string:
+                tag.string.replace_with(f" {tag.string} ")
+        text = p.get_text()
+        text = re.sub(r' +', ' ', text).strip()
+        text = re.sub(r' ([.,;:!?])', r'\1', text)
+        if text:
+            result.append(text)
+
+    return result
