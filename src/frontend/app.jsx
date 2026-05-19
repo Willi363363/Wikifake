@@ -452,6 +452,159 @@ function FogEffect({ active }) {
   );
 }
 
+function EarthquakeEffect({ active }) {
+  const debris = useMemo(() => Array.from({ length: 28 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    size: 3 + Math.random() * 9,
+    delay: -(Math.random() * 1.2),
+    dur: 0.3 + Math.random() * 0.5,
+    dx: ((Math.random() - 0.5) * 120).toFixed(0),
+    dy: ((Math.random() - 0.5) * 80).toFixed(0),
+  })), []);
+
+  if (!active) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", overflow: "hidden" }}>
+      {/* Dark red base flash */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "rgba(60,8,0,0.72)",
+        animation: "screen-flash 0.25s ease-in-out infinite",
+      }}/>
+      {/* Crack lines SVG */}
+      <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} viewBox="0 0 100 100" preserveAspectRatio="none">
+        <polyline points="50,50 38,30 44,18 35,0"   stroke="rgba(255,90,20,0.85)" strokeWidth="0.6" fill="none" style={{ animation: "lightning-zap 0.3s ease-in-out infinite" }}/>
+        <polyline points="50,50 62,28 58,12 68,0"   stroke="rgba(255,60,0,0.70)"  strokeWidth="0.5" fill="none" style={{ animation: "lightning-zap 0.3s 0.08s ease-in-out infinite" }}/>
+        <polyline points="50,50 20,48 8,55 0,50"    stroke="rgba(200,50,0,0.80)"  strokeWidth="0.55" fill="none" style={{ animation: "lightning-zap 0.3s 0.05s ease-in-out infinite" }}/>
+        <polyline points="50,50 80,52 92,45 100,50"  stroke="rgba(255,80,10,0.75)" strokeWidth="0.5" fill="none" style={{ animation: "lightning-zap 0.3s 0.12s ease-in-out infinite" }}/>
+        <polyline points="50,50 42,72 36,85 40,100"  stroke="rgba(180,40,0,0.70)"  strokeWidth="0.5" fill="none" style={{ animation: "lightning-zap 0.3s 0.09s ease-in-out infinite" }}/>
+        <polyline points="50,50 60,75 66,88 62,100"  stroke="rgba(230,70,0,0.65)"  strokeWidth="0.4" fill="none" style={{ animation: "lightning-zap 0.3s 0.15s ease-in-out infinite" }}/>
+        <polyline points="50,50 25,60 12,70 0,75"    stroke="rgba(255,40,0,0.60)"  strokeWidth="0.35" fill="none" style={{ animation: "lightning-zap 0.3s 0.18s ease-in-out infinite" }}/>
+        <polyline points="50,50 76,68 88,80 100,85"  stroke="rgba(200,60,10,0.60)" strokeWidth="0.35" fill="none" style={{ animation: "lightning-zap 0.3s 0.22s ease-in-out infinite" }}/>
+      </svg>
+      {/* Debris particles */}
+      {debris.map(d => (
+        <div key={d.id} style={{
+          position: "absolute",
+          left: `${d.x}%`, top: `${d.y}%`,
+          width: d.size, height: d.size * 0.4,
+          background: `rgba(${120 + Math.floor(Math.random()*80)},${40 + Math.floor(Math.random()*30)},0,0.85)`,
+          borderRadius: 1,
+          transform: `rotate(${Math.random() * 360}deg)`,
+          animation: `fog-drift ${d.dur}s ${d.delay}s ease-in-out infinite alternate`,
+          "--driftX": `${d.dx}px`,
+          "--driftY": `${d.dy}px`,
+        }}/>
+      ))}
+      {/* SÉISME text */}
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
+        <span style={{
+          fontSize: "clamp(16px, 4vw, 36px)",
+          fontFamily: "'Geist Mono', monospace",
+          fontWeight: 900, letterSpacing: "0.3em",
+          color: "rgba(255,80,10,0.95)",
+          textShadow: "0 0 20px rgba(255,60,0,0.9), 0 0 60px rgba(200,30,0,0.6)",
+          animation: "static-glitch 0.08s linear infinite",
+          userSelect: "none",
+        }}>🌋 SÉISME</span>
+        <span style={{
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "clamp(60px, 14vw, 110px)",
+          fontWeight: 900,
+          color: "rgba(255,70,10,0.98)",
+          textShadow: "0 0 30px rgba(255,80,0,0.9), 0 0 80px rgba(180,30,0,0.55), 0 6px 40px rgba(0,0,0,0.95)",
+          animation: "damage-pop 5s ease-out forwards",
+          letterSpacing: "-0.04em", userSelect: "none",
+        }}>-5s</span>
+      </div>
+      {/* Lava border glow */}
+      <div style={{
+        position: "absolute", inset: 0,
+        boxShadow: "inset 0 0 0 8px rgba(255,70,0,0.80), inset 0 0 80px rgba(200,40,0,0.45), inset 0 0 200px rgba(100,10,0,0.35)",
+      }}/>
+    </div>
+  );
+}
+
+function BlackoutEffect({ active }) {
+  const bars = useMemo(() => Array.from({ length: 7 }, (_, i) => ({
+    id: i,
+    top: 12 + i * 12,
+    width: 55 + Math.random() * 40,
+    left: Math.random() * 10,
+    delay: i * 0.07,
+  })), []);
+
+  if (!active) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", overflow: "hidden" }}>
+      {/* Dark base */}
+      <div style={{ position: "absolute", inset: 0, background: "rgba(4,4,4,0.82)" }}/>
+      {/* Scanlines */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: "repeating-linear-gradient(0deg, rgba(0,0,0,0.30) 0px, rgba(0,0,0,0.30) 1px, transparent 1px, transparent 3px)",
+      }}/>
+      {/* Redaction bars */}
+      {bars.map(b => (
+        <div key={b.id} style={{
+          position: "absolute",
+          top: `${b.top}%`, left: `${b.left}%`,
+          width: `${b.width}%`, height: "clamp(18px,2.5vw,28px)",
+          background: "#0a0a0a",
+          border: "1px solid rgba(255,255,255,0.06)",
+          animation: `stagger-in 0.3s ${b.delay}s both`,
+        }}/>
+      ))}
+      {/* CENTER STAMP */}
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
+        <div style={{
+          border: "5px solid rgba(200,0,0,0.85)",
+          padding: "12px 28px",
+          transform: "rotate(-8deg)",
+          boxShadow: "0 0 28px rgba(200,0,0,0.40)",
+        }}>
+          <span style={{
+            fontFamily: "'Geist Mono', monospace",
+            fontSize: "clamp(22px, 5vw, 48px)",
+            fontWeight: 900, letterSpacing: "0.25em",
+            color: "rgba(210,0,0,0.92)",
+            textShadow: "0 0 20px rgba(255,0,0,0.5)",
+            userSelect: "none",
+          }}>CENSURÉ</span>
+        </div>
+        <span style={{
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "clamp(9px, 1.8vw, 14px)",
+          letterSpacing: "0.4em",
+          color: "rgba(140,140,140,0.55)",
+          userSelect: "none",
+        }}>CLASSIFIÉ — ACCÈS RESTREINT</span>
+      </div>
+      {/* Red corner stamp */}
+      <div style={{
+        position: "absolute", top: 24, right: 32,
+        border: "3px solid rgba(200,0,0,0.7)",
+        padding: "4px 10px",
+        transform: "rotate(12deg)",
+      }}>
+        <span style={{
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: 11, letterSpacing: "0.2em",
+          color: "rgba(200,0,0,0.8)", userSelect: "none",
+        }}>TOP SECRET</span>
+      </div>
+      {/* Border */}
+      <div style={{
+        position: "absolute", inset: 0,
+        boxShadow: "inset 0 0 0 8px rgba(180,0,0,0.50), inset 0 0 80px rgba(100,0,0,0.30)",
+      }}/>
+    </div>
+  );
+}
+
 // ============ Item Bar ============
 
 function ItemCard({ item, onUse }) {
@@ -1186,6 +1339,8 @@ function InnerApp({ sessionData, resetSession }) {
       <LightningEffect active={lightningActive} />
       <StaticEffect active={hintLocked} />
       <FogEffect active={blurActive} />
+      <EarthquakeEffect active={earthquakeActive} />
+      <BlackoutEffect active={blackoutActive} />
 
       {/* ITEM BAR */}
       {playing && sessionData?.with_items && (
@@ -1240,24 +1395,50 @@ function InnerApp({ sessionData, resetSession }) {
         <div style={{
           position: "fixed", inset: 0, zIndex: 9999,
           display: "flex", alignItems: "center", justifyContent: "center",
-          background: "rgba(0,0,0,0.8)",
+          background: "rgba(0,0,0,0.88)",
+          animation: "screen-flash 1.2s ease-in-out infinite",
         }}>
+          {/* 3 fake popup windows offset behind */}
+          {[{ top: "28%", left: "18%", rot: "-6deg" }, { top: "32%", left: "58%", rot: "5deg" }, { top: "18%", left: "38%", rot: "-3deg" }].map((pos, i) => (
+            <div key={i} style={{
+              position: "absolute", top: pos.top, left: pos.left,
+              background: "#fffbe6", borderRadius: 12, padding: "16px 24px",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.35)", width: 220,
+              transform: `rotate(${pos.rot})`,
+              border: "2px solid rgba(255,180,0,0.5)",
+              opacity: 0.7,
+            }}>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>🤡</div>
+              <div style={{ fontFamily: "'Geist', sans-serif", fontSize: 11, fontWeight: 600, color: "#b58f3a" }}>PUBLICITÉ INTRUSIVE #{i+1}</div>
+              <div style={{ fontSize: 9, color: "#aaa", marginTop: 4 }}>Cliquez ici pour votre cadeau...</div>
+            </div>
+          ))}
+          {/* Main popup */}
           <div style={{
-            background: "white", padding: 40, borderRadius: 20, textAlign: "center",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.5)", maxWidth: 400,
-            animation: "shake 0.3s infinite"
+            position: "relative", zIndex: 10,
+            background: "linear-gradient(135deg, #fff 60%, #fff8e1)",
+            padding: "40px 44px", borderRadius: 20, textAlign: "center",
+            boxShadow: "0 24px 80px rgba(0,0,0,0.6)", maxWidth: 420,
+            border: "3px solid rgba(255,160,0,0.6)",
+            animation: "shake 0.18s infinite",
           }}>
-            <div style={{ fontSize: 60, marginBottom: 20 }}>🤡</div>
-            <h2 style={{ fontFamily: "'Geist', sans-serif", margin: "0 0 10px", color: "var(--danger)" }}>POP-UP SPAM !</h2>
-            <p style={{ color: "var(--ink-2)", marginBottom: 30, fontSize: 14 }}>
-              Félicitations, vous êtes l'heureux gagnant d'une perte de temps. Cliquez sur le bouton pour fermer cette publicité intrusive.
+            <div style={{ fontSize: 72, marginBottom: 12, animation: "shake 0.12s infinite", display: "inline-block" }}>🤡</div>
+            <h2 style={{
+              fontFamily: "'Geist', sans-serif", margin: "0 0 8px",
+              color: "#c0392b", fontSize: 22, letterSpacing: "-0.01em",
+            }}>POP-UP SPAM !</h2>
+            <p style={{ color: "#555", marginBottom: 8, fontSize: 13, lineHeight: 1.5 }}>
+              Félicitations ! Vous avez gagné une interruption gratuite offerte par votre adversaire.
             </p>
-            <button 
-              className="btn primary" 
+            <p style={{ color: "#b58f3a", fontSize: 11, marginBottom: 24, fontFamily: "'Geist Mono', monospace" }}>
+              ⚠ NE FERMEZ PAS CETTE FENÊTRE ⚠
+            </p>
+            <button
+              className="btn primary"
               onClick={() => setRickrollActive(false)}
-              style={{ fontSize: 16, padding: "12px 24px" }}
+              style={{ fontSize: 15, padding: "11px 28px", background: "#c0392b", borderColor: "#c0392b" }}
             >
-              Fermer (Désolé)
+              Fermer (si vous pouvez)
             </button>
           </div>
         </div>
