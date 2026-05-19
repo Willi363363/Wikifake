@@ -907,6 +907,7 @@ function InnerApp({ sessionData, resetSession }) {
       const handleMessage = (event) => {
         const msg = JSON.parse(event.data);
         if (msg.type === "game_end") {
+          setWaitingForOthers(false);
           setLeaderboard(msg.leaderboard);
           setRevealAll(true);
           setTimeout(() => setTweak("gameState", "results"), 600);
@@ -1181,7 +1182,7 @@ function InnerApp({ sessionData, resetSession }) {
         onUnsubmit={onUnsubmit}
         target="Paris"
         progress={progress}
-        canSubmit={(markedCount > 0 || revealAll) && !waitingForOthers}
+        canSubmit={markedCount > 0 && !waitingForOthers && !revealAll}
         waiting={waitingForOthers}
         onOpenIntel={() => setIntelOpen(true)}
         hintsUsed={hintsUsed}
