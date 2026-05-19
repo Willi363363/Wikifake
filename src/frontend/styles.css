@@ -112,6 +112,11 @@ body::after {
   100% { transform: translate(0, 0); }
 }
 
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 /* ============ ARTICLE (Wikipedia layer) ============ */
 .article-body {
   font-family: 'Spectral', Georgia, serif;

@@ -9,6 +9,7 @@ import random
 import string
 import json
 import time
+import asyncio
 
 # Import logic
 from src.backend.core.agent import FakeNewsGame
@@ -17,6 +18,15 @@ from src.backend.core.verification import check_answer
 load_dotenv()
 app = FastAPI()
 game = FakeNewsGame()
+
+GAME_DURATION = 300  # 5 minutes
+
+ITEMS = [
+    {"id": "BLUR",        "name": "Brouillard",  "icon": "👁",  "description": "Floute l'écran d'un joueur pendant 5s",   "targetCount": 1},
+    {"id": "FREEZE_TIME", "name": "Gel du temps", "icon": "⏸",  "description": "Fige le chrono d'un joueur pendant 10s",  "targetCount": 1},
+    {"id": "SCORE_STEAL", "name": "Pillage",      "icon": "⚡",  "description": "Vole 50 pts à un joueur",                 "targetCount": 1},
+    {"id": "HINT_LOCK",   "name": "Brouilleur",   "icon": "🔒", "description": "Bloque les hints d'un joueur pendant 20s", "targetCount": 1},
+]
 
 # Global state for multiplayer rooms
 rooms = {}
@@ -50,6 +60,29 @@ def submit_answer(req: SubmitAnswerRequest):
     return result
 
 # Multiplayer Endpoints
+async def item_distribution_loop(room_code: str):
+    """Distributes one random item to each player every 60 seconds, 4 times (minutes 1–4)."""
+    try:
+        for minute in range(1, 5):
+            await asyncio.sleep(60)
+            if room_code not in rooms or rooms[room_code]["state"] != "playing":
+                break
+            room = rooms[room_code]
+            distribution = {}
+            for pname in list(room["players"].keys()):
+                item = random.choice(ITEMS)
+                instance = {**item, "instance_id": f"{pname}_{minute}_{item['id']}"}
+                room["players"][pname].setdefault("items", []).append(instance)
+                distribution[pname] = instance
+            await broadcast(room_code, {
+                "type": "items_distributed",
+                "minute": minute,
+                "items": distribution,
+            })
+    except asyncio.CancelledError:
+        pass
+
+
 @app.post("/api/multiplayer/create")
 def create_room():
     code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -57,7 +90,8 @@ def create_room():
         "players": {},
         "game_data": None,
         "state": "waiting",
-        "start_time": 0
+        "start_time": 0,
+        "item_task": None,
     }
     return {"room_code": code}
 
@@ -86,6 +120,8 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
             
             if data["type"] == "start_game" and room["state"] == "waiting":
                 category = data.get("category")
+                with_items = data.get("with_items", True)
+                room["with_items"] = with_items
                 # Generate game
                 game_data = game.start_game(category)
                 if not game_data:
@@ -101,6 +137,13 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                     p["score"] = 0
                     p["answered"] = False
                     p["results"] = None
+                    p["items"] = []
+
+                # Start item distribution task (only if items mode is on)
+                if room["item_task"] and not room["item_task"].done():
+                    room["item_task"].cancel()
+                if with_items:
+                    room["item_task"] = asyncio.create_task(item_distribution_loop(room_code))
                 
                 # Broadcast start
                 payload = {
@@ -112,7 +155,8 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                         "positions": game_data["positions"],
                         "total_fakes": game_data["total_false_statements"],
                         "wikipedia_url": game_data.get("wikipedia_url", ""),
-                        "players": list(room["players"].keys())
+                        "players": list(room["players"].keys()),
+                        "with_items": with_items,
                     }
                 }
                 await broadcast(room_code, payload)
@@ -139,39 +183,73 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                         except:
                             pass
                             
+            elif data["type"] == "use_item" and room["state"] == "playing":
+                instance_id = data.get("instance_id")
+                targets = data.get("targets", [])
+                player_items = room["players"][player_name].get("items", [])
+                item_used = None
+                for i, it in enumerate(player_items):
+                    if it["instance_id"] == instance_id:
+                        item_used = player_items.pop(i)
+                        break
+                if item_used:
+                    for target in targets:
+                        if target in room["players"]:
+                            try:
+                                await room["players"][target]["socket"].send_text(json.dumps({
+                                    "type": "item_effect",
+                                    "item_id": item_used["id"],
+                                    "item_name": item_used["name"],
+                                    "item_icon": item_used["icon"],
+                                    "from": player_name,
+                                }))
+                            except:
+                                pass
+                    await broadcast(room_code, {
+                        "type": "item_used",
+                        "player": player_name,
+                        "item_id": item_used["id"],
+                        "item_name": item_used["name"],
+                        "item_icon": item_used["icon"],
+                        "targets": targets,
+                    })
+
             elif data["type"] == "submit_answer" and room["state"] == "playing":
                 indices = data.get("answers", [])
                 hints_used = data.get("hintsUsed", 0)
                 hint_penalty = data.get("hintPenalty", 0)
+                score_stolen = data.get("scoreStolen", 0)
                 time_taken = time.time() - room["start_time"]
-                
+
                 # Score logic
                 result = check_answer(indices, room["game_data"]["positions"])
                 tp = len(result["correct_found"])
                 fp = len(result["false_positives"])
-                
-                time_remaining = max(0, 180 - time_taken)
+
+                time_remaining = max(0, GAME_DURATION - time_taken)
                 time_bonus = int(time_remaining * 0.5)
-                
+
                 base_score = tp * 150
                 fp_penalty = fp * 80
-                
-                score = base_score - fp_penalty - hint_penalty + time_bonus
-                
+
+                score = base_score - fp_penalty - hint_penalty - score_stolen + time_bonus
+
                 room["players"][player_name]["answered"] = True
                 room["players"][player_name]["score"] = score
                 room["players"][player_name]["results"] = {
-                    "tp": tp, 
-                    "fp": fp, 
+                    "tp": tp,
+                    "fp": fp,
                     "timeBonus": time_bonus,
                     "hintsUsed": hints_used,
                     "hintPenalty": hint_penalty
                 }
-                
+
                 # Check if everyone answered
                 all_answered = all(p["answered"] for p in room["players"].values())
                 if all_answered:
                     room["state"] = "waiting"
+                    if room["item_task"] and not room["item_task"].done():
+                        room["item_task"].cancel()
                     leaderboard = [
                         {
                             "id": name,
@@ -196,8 +274,10 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
         if player_name in room["players"]:
             del room["players"][player_name]
             await broadcast_lobby(room_code)
-            
+
         if not room["players"]:
+            if room.get("item_task") and not room["item_task"].done():
+                room["item_task"].cancel()
             del rooms[room_code]
 
 async def broadcast_lobby(room_code: str):

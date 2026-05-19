@@ -5,6 +5,15 @@
 
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
+const GAME_DURATION = 300; // 5 minutes
+
+const ITEM_DEFS = {
+  BLUR:        { icon: "👁",  name: "Brouillard",  description: "Floute l'écran d'un joueur 5s",    color: "#6b4e6f" },
+  FREEZE_TIME: { icon: "⏸",  name: "Gel du temps", description: "Fige le chrono d'un joueur 10s",  color: "#1f3a5f" },
+  SCORE_STEAL: { icon: "⚡",  name: "Pillage",      description: "Vole 50 pts à un joueur",          color: "#8c6d36" },
+  HINT_LOCK:   { icon: "🔒", name: "Brouilleur",   description: "Bloque les hints 20s",              color: "#27272a" },
+};
+
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "mode": "normal",
   "difficulty": "medium",
@@ -165,6 +174,169 @@ function useBots(playing, totalFakes) {
   return bots;
 }
 
+// ============ Item Bar ============
+
+function ItemCard({ item, onUse }) {
+  const def = ITEM_DEFS[item.id] || {};
+  return (
+    <div
+      title={def.description}
+      onClick={() => onUse(item)}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+        padding: "8px 12px",
+        background: "white",
+        border: "1px solid var(--line)",
+        borderRadius: 12,
+        cursor: "pointer",
+        minWidth: 72,
+        boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+        transition: "transform 120ms, box-shadow 120ms",
+        userSelect: "none",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 16px rgba(0,0,0,0.12)"; }}
+      onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.07)"; }}
+    >
+      <span style={{ fontSize: 22 }}>{def.icon || "?"}</span>
+      <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--muted)", textAlign: "center" }}>
+        {def.name || item.id}
+      </span>
+    </div>
+  );
+}
+
+function ItemBar({ items, onUse, isMultiplayer }) {
+  if (!isMultiplayer || items.length === 0) return null;
+  return (
+    <div style={{
+      position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+      zIndex: 90,
+      display: "flex", alignItems: "center", gap: 8,
+      padding: "10px 16px",
+      background: "rgba(246,244,239,0.92)",
+      backdropFilter: "blur(20px)",
+      border: "1px solid var(--line)",
+      borderRadius: 18,
+      boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
+    }}>
+      <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted)", marginRight: 4 }}>
+        Items
+      </span>
+      {items.map(item => (
+        <ItemCard key={item.instance_id} item={item} onUse={onUse} />
+      ))}
+    </div>
+  );
+}
+
+function ItemTargetModal({ item, players, myName, onConfirm, onClose }) {
+  const def = ITEM_DEFS[item.id] || {};
+  const [selected, setSelected] = React.useState(null);
+  const targets = players.filter(p => !p.you && p.name !== myName);
+
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 200,
+      background: "rgba(0,0,0,0.35)",
+      backdropFilter: "blur(4px)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+    }} onClick={onClose}>
+      <div style={{
+        background: "white", borderRadius: 20,
+        padding: "28px 32px",
+        minWidth: 320, maxWidth: 400,
+        boxShadow: "0 16px 48px rgba(0,0,0,0.18)",
+      }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <span style={{ fontSize: 32 }}>{def.icon}</span>
+          <div>
+            <div style={{ fontFamily: "'Geist', sans-serif", fontWeight: 600, fontSize: 16 }}>{def.name}</div>
+            <div style={{ fontSize: 13, color: "var(--muted)", marginTop: 2 }}>{def.description}</div>
+          </div>
+        </div>
+
+        <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 10 }}>
+          Choisir une cible
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+          {targets.length === 0 && (
+            <div style={{ color: "var(--muted)", fontSize: 13, textAlign: "center", padding: "12px 0" }}>Aucun autre joueur disponible</div>
+          )}
+          {targets.map(p => (
+            <div
+              key={p.id}
+              onClick={() => setSelected(p.name)}
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "10px 14px", borderRadius: 10,
+                border: selected === p.name ? "2px solid var(--accent)" : "1px solid var(--line)",
+                background: selected === p.name ? "var(--accent-soft)" : "white",
+                cursor: "pointer",
+                transition: "all 120ms",
+              }}
+            >
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: p.color || "#7a9460", flexShrink: 0 }}/>
+              <span style={{ fontFamily: "'Geist', sans-serif", fontSize: 14, fontWeight: 500 }}>{p.name}</span>
+              <span style={{ marginLeft: "auto", fontFamily: "'Geist Mono', monospace", fontSize: 12, color: "var(--muted)" }}>{p.score ?? 0} pts</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            onClick={onClose}
+            style={{
+              flex: 1, padding: "10px 0", borderRadius: 10, border: "1px solid var(--line)",
+              background: "white", cursor: "pointer", fontFamily: "'Geist', sans-serif", fontSize: 13,
+            }}
+          >Annuler</button>
+          <button
+            disabled={!selected}
+            onClick={() => selected && onConfirm(selected)}
+            style={{
+              flex: 2, padding: "10px 0", borderRadius: 10, border: "none",
+              background: selected ? "var(--accent)" : "var(--line)",
+              color: selected ? "white" : "var(--muted)",
+              cursor: selected ? "pointer" : "default",
+              fontFamily: "'Geist', sans-serif", fontSize: 13, fontWeight: 600,
+              transition: "background 120ms",
+            }}
+          >Utiliser sur {selected || "..."}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ItemNotification({ effects }) {
+  if (effects.length === 0) return null;
+  return (
+    <div style={{
+      position: "fixed", top: 80, right: 24, zIndex: 300,
+      display: "flex", flexDirection: "column", gap: 8,
+      pointerEvents: "none",
+    }}>
+      {effects.map(e => (
+        <div key={e.id} style={{
+          display: "flex", alignItems: "center", gap: 10,
+          padding: "10px 16px",
+          background: "rgba(39,39,42,0.92)",
+          color: "white",
+          borderRadius: 12,
+          boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
+          animation: "slide-in-right 0.2s ease-out",
+          fontFamily: "'Geist', sans-serif",
+          fontSize: 13,
+        }}>
+          <span style={{ fontSize: 18 }}>{e.icon}</span>
+          <span><strong>{e.from}</strong> vous a lancé <strong>{e.name}</strong></span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ============ Main app ============
 
 function App() {
@@ -246,7 +418,16 @@ function InnerApp({ sessionData, resetSession }) {
   const [edited, setEdited] = useState({});
   const [hintUnlocks, setHintUnlocks] = useState({});
   const [time, setTime] = useState(180);
+  const [timeFrozen, setTimeFrozen] = useState(false);
   const [revealAll, setRevealAll] = useState(false);
+
+  // Item system
+  const [items, setItems] = useState([]);
+  const [itemModal, setItemModal] = useState(null); // { instance_id, item_id }
+  const [activeEffects, setActiveEffects] = useState([]); // [{id, icon, name, from, expiresAt}]
+  const [blurActive, setBlurActive] = useState(false);
+  const [hintLocked, setHintLocked] = useState(false);
+  const [scoreStolen, setScoreStolen] = useState(0);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [intelOpen, setIntelOpen] = useState(false);
   const articleRef = useRef(null);
@@ -263,10 +444,10 @@ function InnerApp({ sessionData, resetSession }) {
   const totalFakes = window.WIKIFAKE_FAKES.length;
 
   useEffect(() => {
-    if (!playing) return;
+    if (!playing || timeFrozen) return;
     const id = setInterval(() => setTime(x => Math.max(0, x - 1)), 1000);
     return () => clearInterval(id);
-  }, [playing]);
+  }, [playing, timeFrozen]);
 
   // Auto-submit when time runs out
   useEffect(() => {
@@ -284,7 +465,7 @@ function InnerApp({ sessionData, resetSession }) {
   useEffect(() => {
     if (sessionData && sessionData.multiplayer) {
       const socket = sessionData.multiplayer.socket;
-      
+
       const handleMessage = (event) => {
         const msg = JSON.parse(event.data);
         if (msg.type === "game_end") {
@@ -292,18 +473,41 @@ function InnerApp({ sessionData, resetSession }) {
           setRevealAll(true);
           setTimeout(() => setTweak("gameState", "results"), 600);
         } else if (msg.type === "live_score_update") {
-          setLiveScores(prev => ({
-            ...prev,
-            [msg.player]: msg.score
-          }));
+          setLiveScores(prev => ({ ...prev, [msg.player]: msg.score }));
         } else if (msg.type === "cursor_update") {
-          setCursors(prev => ({
-            ...prev,
-            [msg.player]: { x: msg.x, y: msg.y }
-          }));
+          setCursors(prev => ({ ...prev, [msg.player]: { x: msg.x, y: msg.y } }));
+        } else if (msg.type === "items_distributed") {
+          const me = sessionData.multiplayer.username;
+          const myItem = msg.items[me];
+          if (myItem) {
+            setItems(prev => [...prev, myItem]);
+          }
+        } else if (msg.type === "item_effect") {
+          const effectId = Date.now() + Math.random();
+          const def = ITEM_DEFS[msg.item_id] || {};
+          setActiveEffects(prev => [...prev, {
+            id: effectId,
+            icon: msg.item_icon || def.icon,
+            name: msg.item_name || def.name,
+            from: msg.from,
+          }]);
+          setTimeout(() => setActiveEffects(prev => prev.filter(e => e.id !== effectId)), 4000);
+
+          if (msg.item_id === "BLUR") {
+            setBlurActive(true);
+            setTimeout(() => setBlurActive(false), 5000);
+          } else if (msg.item_id === "FREEZE_TIME") {
+            setTimeFrozen(true);
+            setTimeout(() => setTimeFrozen(false), 10000);
+          } else if (msg.item_id === "HINT_LOCK") {
+            setHintLocked(true);
+            setTimeout(() => setHintLocked(false), 20000);
+          } else if (msg.item_id === "SCORE_STEAL") {
+            setScoreStolen(prev => prev + 50);
+          }
         }
       };
-      
+
       socket.addEventListener("message", handleMessage);
       return () => socket.removeEventListener("message", handleMessage);
     }
@@ -392,14 +596,31 @@ function InnerApp({ sessionData, resetSession }) {
     const baseScore = tp * 150;
     const fpPenalty = fp * 80;
     const timeBonus = Math.max(0, Math.floor(time * 0.5));
-    const finalScore = baseScore - fpPenalty - hintPenalty + timeBonus;
+    const finalScore = baseScore - fpPenalty - hintPenalty - scoreStolen + timeBonus;
+    const elapsed = GAME_DURATION - time;
     return {
       truePositives: tp, falsePositives: fp, missed,
       f1, totalFakes, baseScore, fpPenalty, hintPenalty, timeBonus, finalScore,
-      timeStr: `${String(Math.floor((180 - time) / 60)).padStart(2,"0")}:${String((180 - time) % 60).padStart(2,"0")}`,
+      timeStr: `${String(Math.floor(elapsed / 60)).padStart(2,"0")}:${String(elapsed % 60).padStart(2,"0")}`,
       sessionId: t.sessionId,
     };
   }, [marked, edited, time, hintPenalty, totalFakes, t.sessionId]);
+
+  const useItem = useCallback((item) => {
+    setItemModal(item);
+  }, []);
+
+  const confirmUseItem = useCallback((targetName) => {
+    if (!itemModal || !sessionData?.multiplayer) return;
+    const socket = sessionData.multiplayer.socket;
+    socket.send(JSON.stringify({
+      type: "use_item",
+      instance_id: itemModal.instance_id,
+      targets: [targetName],
+    }));
+    setItems(prev => prev.filter(it => it.instance_id !== itemModal.instance_id));
+    setItemModal(null);
+  }, [itemModal, sessionData]);
 
   const onSubmit = () => {
     if (sessionData && sessionData.multiplayer) {
@@ -410,7 +631,8 @@ function InnerApp({ sessionData, resetSession }) {
         type: "submit_answer",
         answers: answers,
         hintsUsed: hintsUsed,
-        hintPenalty: hintPenalty
+        hintPenalty: hintPenalty,
+        scoreStolen: scoreStolen,
       }));
       setWaitingForOthers(true);
     } else {
@@ -499,6 +721,10 @@ function InnerApp({ sessionData, resetSession }) {
             padding: "32px 44px 44px",
             boxShadow: "var(--shadow-md)",
             position: "relative",
+            filter: blurActive ? "blur(6px)" : "none",
+            transition: "filter 300ms",
+            userSelect: blurActive ? "none" : "auto",
+            pointerEvents: blurActive ? "none" : "auto",
           }}
         >
           <div style={{
@@ -622,14 +848,53 @@ function InnerApp({ sessionData, resetSession }) {
         <FloatingLeaderboard players={players.slice(0, 4)} />
       )}
 
+      {/* ITEM BAR */}
+      {playing && sessionData?.with_items && (
+        <ItemBar
+          items={items}
+          onUse={useItem}
+          isMultiplayer={!!sessionData?.multiplayer}
+        />
+      )}
+
+      {/* ITEM TARGET MODAL */}
+      {itemModal && (
+        <ItemTargetModal
+          item={itemModal}
+          players={players}
+          myName={sessionData?.multiplayer?.username}
+          onConfirm={confirmUseItem}
+          onClose={() => setItemModal(null)}
+        />
+      )}
+
+      {/* ITEM EFFECT NOTIFICATIONS */}
+      <ItemNotification effects={activeEffects} />
+
       {/* INTEL OVERLAY */}
       <IntelOverlay
-        open={intelOpen}
+        open={intelOpen && !hintLocked}
         onClose={() => setIntelOpen(false)}
         targets={window.WIKIFAKE_FAKES}
         unlocked={hintUnlocks}
         onUnlock={onUnlockHint}
       />
+      {hintLocked && intelOpen && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 200,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,0.4)",
+        }} onClick={() => setIntelOpen(false)}>
+          <div style={{
+            background: "white", borderRadius: 16, padding: "28px 36px",
+            textAlign: "center", boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+          }}>
+            <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
+            <div style={{ fontFamily: "'Geist', sans-serif", fontWeight: 600, fontSize: 16, marginBottom: 6 }}>Intel verrouillé</div>
+            <div style={{ color: "var(--muted)", fontSize: 13 }}>Un joueur vous a bloqué l'accès aux hints temporairement.</div>
+          </div>
+        </div>
+      )}
 
       {/* Results modal */}
       {t.gameState === "results" && (
