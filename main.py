@@ -49,6 +49,10 @@ INTERFACE_DIR = os.path.join(BASE_DIR, "src", "frontend")
 def index():
     return FileResponse(os.path.join(INTERFACE_DIR, "WikiFake.html"))
 
+# Serve public assets (images, etc.)
+PUBLIC_DIR = os.path.join(BASE_DIR, "src", "public")
+app.mount("/public", StaticFiles(directory=PUBLIC_DIR), name="public")
+
 app.mount("/", StaticFiles(directory=INTERFACE_DIR), name="static")
 
 if __name__ == "__main__":

@@ -151,13 +151,15 @@ function TopBar({ mode, marked, total, time, onSubmit, target, progress, canSubm
             borderRadius: 12,
             background: "linear-gradient(135deg, var(--accent), #2a7568)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            color: "white",
-            fontFamily: "'Instrument Serif', serif",
-            fontSize: 30, fontStyle: "italic",
-            fontWeight: 400,
-            lineHeight: 1,
+            overflow: "hidden",
             boxShadow: "0 4px 12px rgba(31, 87, 77, 0.22), inset 0 1px 0 rgba(255,255,255,0.18)",
-          }}>W</div>
+          }}>
+            <img src="/public/image.png" style={{
+              width: "100%", height: "100%",
+              objectFit: "cover",
+              borderRadius: 12,
+            }} alt="Wikifake logo" />
+          </div>
           <span style={{
             fontFamily: "'Instrument Serif', serif",
             fontSize: 30,
