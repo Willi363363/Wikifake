@@ -177,43 +177,63 @@ function useBots(playing, totalFakes) {
 // ============ Visual Effects ============
 
 function BlizzardEffect({ active }) {
-  const flakes = useMemo(() => Array.from({ length: 80 }, (_, i) => ({
+  const flakes = useMemo(() => Array.from({ length: 120 }, (_, i) => ({
     id: i,
     left: Math.random() * 100,
-    delay: -(Math.random() * 6),
-    duration: 3 + Math.random() * 4,
-    size: 10 + Math.random() * 16,
-    opacity: 0.5 + Math.random() * 0.5,
-    drift: ((Math.random() - 0.5) * 80).toFixed(0),
+    delay: -(Math.random() * 5),
+    duration: 1.5 + Math.random() * 2.5,
+    size: 8 + Math.random() * 18,
+    opacity: 0.75 + Math.random() * 0.25,
+    drift: ((Math.random() - 0.5) * 100).toFixed(0),
   })), []);
 
   if (!active) return null;
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", overflow: "hidden" }}>
+      {/* Dark blue-black base */}
       <div style={{
         position: "absolute", inset: 0,
-        background: "rgba(100,180,255,0.10)",
-        animation: "frost-pulse 2s ease-in-out infinite",
+        background: "rgba(0,8,35,0.60)",
+        animation: "frost-pulse 1.4s ease-in-out infinite",
       }}/>
+      {/* Heavy radial frost */}
       <div style={{
         position: "absolute", inset: 0,
-        background: "radial-gradient(ellipse at center, transparent 25%, rgba(120,190,255,0.40) 100%)",
-        boxShadow: "inset 0 0 80px rgba(140,210,255,0.45)",
+        background: "radial-gradient(ellipse at center, rgba(0,20,80,0.15) 15%, rgba(0,5,50,0.80) 100%)",
+        boxShadow: "inset 0 0 140px rgba(10,60,200,0.65), inset 0 0 0 10px rgba(80,160,255,0.5)",
       }}/>
+      {/* Dense fast snowflakes */}
       {flakes.map(f => (
         <span key={f.id} style={{
           position: "absolute", left: `${f.left}%`, top: "-30px",
           fontSize: `${f.size}px`,
           opacity: f.opacity,
-          color: "rgba(210,240,255,0.95)",
-          textShadow: "0 0 8px rgba(120,200,255,0.9), 0 0 20px rgba(80,160,255,0.5)",
+          color: "rgba(180,225,255,1)",
+          textShadow: "0 0 10px rgba(120,200,255,1), 0 0 28px rgba(60,140,255,0.8)",
           animation: `snowfall ${f.duration}s ${f.delay}s linear infinite`,
           "--drift": `${f.drift}px`,
         }}>❄</span>
       ))}
+      {/* -10s damage indicator */}
       <div style={{
         position: "absolute", inset: 0,
-        boxShadow: "inset 0 0 0 6px rgba(160,220,255,0.5), inset 0 0 0 12px rgba(120,190,255,0.2)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <span style={{
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "clamp(60px, 14vw, 120px)",
+          fontWeight: 900,
+          color: "rgba(160,225,255,0.95)",
+          textShadow: "0 0 30px rgba(80,180,255,0.9), 0 0 80px rgba(40,120,255,0.55), 0 6px 40px rgba(0,0,0,0.9)",
+          animation: "damage-pop 3s ease-out forwards",
+          letterSpacing: "-0.04em",
+          userSelect: "none",
+        }}>-10s</span>
+      </div>
+      {/* Ice crack border */}
+      <div style={{
+        position: "absolute", inset: 0,
+        boxShadow: "inset 0 0 0 10px rgba(100,190,255,0.65), inset 0 0 0 20px rgba(40,110,255,0.25)",
       }}/>
     </div>
   );
@@ -223,28 +243,50 @@ function LightningEffect({ active }) {
   if (!active) return null;
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", overflow: "hidden" }}>
+      {/* Near-black flash */}
       <div style={{
         position: "absolute", inset: 0,
-        background: "rgba(255,220,0,0.07)",
-        animation: "screen-flash 0.6s ease-in-out infinite",
+        background: "rgba(8,4,0,0.70)",
+        animation: "screen-flash 0.45s ease-in-out infinite",
       }}/>
+      {/* Bolts */}
       <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
            viewBox="0 0 100 100" preserveAspectRatio="none">
-        <polyline points="18,0 13,38 24,38 8,100" stroke="rgba(255,230,50,0.9)" strokeWidth="0.4" fill="none"
-                  style={{ animation: "lightning-zap 0.7s ease-in-out infinite" }}/>
-        <polyline points="82,0 88,32 76,32 92,100" stroke="rgba(255,245,100,0.8)" strokeWidth="0.35" fill="none"
-                  style={{ animation: "lightning-zap 0.7s 0.18s ease-in-out infinite" }}/>
-        <polyline points="50,0 44,28 56,28 38,65 62,65 50,100" stroke="rgba(255,255,180,0.95)" strokeWidth="0.5" fill="none"
-                  style={{ animation: "lightning-zap 0.7s 0.09s ease-in-out infinite" }}/>
-        <polyline points="30,0 26,45 34,45 22,100" stroke="rgba(200,180,255,0.7)" strokeWidth="0.3" fill="none"
-                  style={{ animation: "lightning-zap 0.7s 0.35s ease-in-out infinite" }}/>
-        <polyline points="70,0 75,40 65,40 80,100" stroke="rgba(255,210,80,0.75)" strokeWidth="0.3" fill="none"
-                  style={{ animation: "lightning-zap 0.7s 0.27s ease-in-out infinite" }}/>
+        <polyline points="15,0 9,33 23,33 4,100" stroke="rgba(255,235,60,1)" strokeWidth="0.7" fill="none"
+                  filter="url(#glow)" style={{ animation: "lightning-zap 0.45s ease-in-out infinite" }}/>
+        <polyline points="86,0 92,28 77,28 96,100" stroke="rgba(255,250,120,0.95)" strokeWidth="0.55" fill="none"
+                  style={{ animation: "lightning-zap 0.45s 0.13s ease-in-out infinite" }}/>
+        <polyline points="50,0 42,24 58,24 34,58 66,58 47,100" stroke="rgba(255,255,190,1)" strokeWidth="0.8" fill="none"
+                  style={{ animation: "lightning-zap 0.45s 0.07s ease-in-out infinite" }}/>
+        <polyline points="27,0 22,44 38,44 16,100" stroke="rgba(230,170,255,0.9)" strokeWidth="0.45" fill="none"
+                  style={{ animation: "lightning-zap 0.45s 0.28s ease-in-out infinite" }}/>
+        <polyline points="73,0 79,40 64,40 83,100" stroke="rgba(255,195,55,0.85)" strokeWidth="0.45" fill="none"
+                  style={{ animation: "lightning-zap 0.45s 0.20s ease-in-out infinite" }}/>
+        <polyline points="38,0 33,52 44,52 28,100" stroke="rgba(255,230,90,0.7)" strokeWidth="0.35" fill="none"
+                  style={{ animation: "lightning-zap 0.45s 0.38s ease-in-out infinite" }}/>
+        <polyline points="62,0 68,46 57,46 74,100" stroke="rgba(210,185,255,0.7)" strokeWidth="0.35" fill="none"
+                  style={{ animation: "lightning-zap 0.45s 0.33s ease-in-out infinite" }}/>
       </svg>
+      {/* -50pts damage indicator */}
       <div style={{
         position: "absolute", inset: 0,
-        background: "radial-gradient(ellipse at center, transparent 40%, rgba(180,130,0,0.25) 100%)",
-        boxShadow: "inset 0 0 0 4px rgba(255,200,0,0.4), inset 0 0 60px rgba(255,180,0,0.15)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <span style={{
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "clamp(60px, 14vw, 120px)",
+          fontWeight: 900,
+          color: "rgba(255,220,40,0.98)",
+          textShadow: "0 0 30px rgba(255,160,0,0.95), 0 0 80px rgba(255,80,0,0.55), 0 6px 40px rgba(0,0,0,0.95)",
+          animation: "damage-pop 3s ease-out forwards",
+          letterSpacing: "-0.04em",
+          userSelect: "none",
+        }}>-50pts</span>
+      </div>
+      {/* Electric border */}
+      <div style={{
+        position: "absolute", inset: 0,
+        boxShadow: "inset 0 0 0 7px rgba(255,210,0,0.75), inset 0 0 80px rgba(255,140,0,0.35), inset 0 0 160px rgba(200,80,0,0.20)",
       }}/>
     </div>
   );
@@ -263,28 +305,38 @@ function StaticEffect({ active }) {
 
     const draw = (now) => {
       frame = requestAnimationFrame(draw);
-      if (now - last < 50) return; // ~20 fps
+      if (now - last < 40) return; // ~25 fps
       last = now;
       const w = canvas.width = window.innerWidth;
       const h = canvas.height = window.innerHeight;
       const imageData = ctx.createImageData(w, h);
       const data = imageData.data;
       for (let i = 0; i < data.length; i += 4) {
-        const v = Math.random() > 0.5 ? Math.floor(Math.random() * 255) : 0;
-        data[i] = v; data[i+1] = v; data[i+2] = v;
-        data[i+3] = Math.floor(Math.random() * 140);
+        const r = Math.random();
+        if (r < 0.45) {
+          data[i] = 0; data[i+1] = 0; data[i+2] = 0; data[i+3] = 230;
+        } else if (r < 0.02 + 0.45) {
+          data[i] = 200; data[i+1] = 0; data[i+2] = 0; data[i+3] = 160;
+        } else if (r < 0.02 + 0.02 + 0.45) {
+          data[i] = 0; data[i+1] = 80; data[i+2] = 220; data[i+3] = 120;
+        } else {
+          const v = Math.floor(140 + Math.random() * 115);
+          data[i] = v; data[i+1] = v; data[i+2] = v;
+          data[i+3] = Math.floor(160 + Math.random() * 95);
+        }
       }
-      // Occasional horizontal tear
-      if (Math.random() < 0.15) {
+      // Horizontal glitch tears (more frequent, bigger)
+      const tearCount = Math.random() < 0.4 ? Math.floor(1 + Math.random() * 4) : 0;
+      for (let t = 0; t < tearCount; t++) {
         const y = Math.floor(Math.random() * h);
-        const tearH = Math.floor(2 + Math.random() * 8);
+        const tearH = Math.floor(4 + Math.random() * 14);
+        const shift = Math.floor((Math.random() - 0.5) * 80);
         for (let row = y; row < Math.min(y + tearH, h); row++) {
-          const shift = Math.floor((Math.random() - 0.5) * 40);
           for (let x = 0; x < w; x++) {
             const src = (row * w + Math.max(0, Math.min(w - 1, x + shift))) * 4;
             const dst = (row * w + x) * 4;
             data[dst] = data[src]; data[dst+1] = data[src+1];
-            data[dst+2] = data[src+2]; data[dst+3] = 180;
+            data[dst+2] = data[src+2]; data[dst+3] = 240;
           }
         }
       }
@@ -298,61 +350,96 @@ function StaticEffect({ active }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", overflow: "hidden" }}>
       <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}/>
+      {/* Dark overlay */}
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.50)" }}/>
+      {/* Heavy scanlines */}
       <div style={{
         position: "absolute", inset: 0,
-        backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.12) 3px, rgba(0,0,0,0.12) 4px)",
+        backgroundImage: "repeating-linear-gradient(0deg, rgba(0,0,0,0.45) 0px, rgba(0,0,0,0.45) 2px, transparent 2px, transparent 4px)",
       }}/>
+      {/* INTEL BLOQUÉ */}
       <div style={{
-        position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+        position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", gap: 14,
       }}>
         <span style={{
-          fontFamily: "'Geist Mono', monospace", fontSize: "clamp(18px, 4vw, 36px)",
-          fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase",
-          color: "rgba(255,255,255,0.18)",
-          textShadow: "2px 0 0 rgba(255,0,0,0.3), -2px 0 0 rgba(0,100,255,0.3)",
-          animation: "static-glitch 0.15s linear infinite",
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "clamp(16px, 3.5vw, 30px)",
+          fontWeight: 700, letterSpacing: "0.35em", textTransform: "uppercase",
+          color: "rgba(255,40,40,0.95)",
+          textShadow: "4px 0 0 rgba(0,220,255,0.55), -4px 0 0 rgba(255,0,0,0.55), 0 0 24px rgba(255,0,0,0.5)",
+          animation: "static-glitch 0.1s linear infinite",
+          userSelect: "none",
+        }}>⚠ INTEL BLOQUÉ ⚠</span>
+        <span style={{
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "clamp(10px, 2vw, 17px)",
+          fontWeight: 500, letterSpacing: "0.28em",
+          color: "rgba(160,160,160,0.55)",
+          animation: "static-glitch 0.18s 0.06s linear infinite",
           userSelect: "none",
         }}>NO SIGNAL</span>
       </div>
+      {/* Heavy border vignette */}
       <div style={{
         position: "absolute", inset: 0,
-        boxShadow: "inset 0 0 0 5px rgba(80,80,80,0.6), inset 0 0 80px rgba(0,0,0,0.4)",
+        boxShadow: "inset 0 0 0 10px rgba(10,10,10,0.95), inset 0 0 140px rgba(0,0,0,0.75)",
       }}/>
     </div>
   );
 }
 
 function FogEffect({ active }) {
-  const blobs = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
+  const blobs = useMemo(() => Array.from({ length: 16 }, (_, i) => ({
     id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    size: 200 + Math.random() * 300,
+    x: Math.random() * 110 - 5,
+    y: Math.random() * 110 - 5,
+    size: 260 + Math.random() * 380,
     delay: -(Math.random() * 8),
-    duration: 6 + Math.random() * 6,
-    driftX: ((Math.random() - 0.5) * 120).toFixed(0),
-    driftY: ((Math.random() - 0.5) * 60).toFixed(0),
+    duration: 3.5 + Math.random() * 4,
+    driftX: ((Math.random() - 0.5) * 150).toFixed(0),
+    driftY: ((Math.random() - 0.5) * 90).toFixed(0),
   })), []);
 
   if (!active) return null;
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", overflow: "hidden" }}>
+      {/* Near-black base */}
+      <div style={{ position: "absolute", inset: 0, background: "rgba(2,2,2,0.68)" }}/>
+      {/* Dark charcoal fog blobs */}
       {blobs.map(b => (
         <div key={b.id} style={{
           position: "absolute",
           left: `${b.x}%`, top: `${b.y}%`,
           width: b.size, height: b.size,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(240,240,240,0.55) 0%, rgba(220,220,220,0.15) 60%, transparent 100%)",
+          background: "radial-gradient(circle, rgba(28,28,28,0.80) 0%, rgba(8,8,8,0.50) 55%, transparent 100%)",
           transform: "translate(-50%, -50%)",
           animation: `fog-drift ${b.duration}s ${b.delay}s ease-in-out infinite alternate`,
           "--driftX": `${b.driftX}px`,
           "--driftY": `${b.driftY}px`,
         }}/>
       ))}
+      {/* BROUILLARD text */}
       <div style={{
         position: "absolute", inset: 0,
-        background: "rgba(230,230,230,0.15)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <span style={{
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "clamp(18px, 5vw, 48px)",
+          fontWeight: 700, letterSpacing: "0.45em",
+          color: "rgba(70,70,70,0.45)",
+          textTransform: "uppercase",
+          userSelect: "none",
+          animation: "frost-pulse 2.2s ease-in-out infinite",
+        }}>BROUILLARD</span>
+      </div>
+      {/* Dark vignette */}
+      <div style={{
+        position: "absolute", inset: 0,
+        background: "radial-gradient(ellipse at center, transparent 10%, rgba(0,0,0,0.75) 75%)",
+        boxShadow: "inset 0 0 0 8px rgba(0,0,0,0.95)",
       }}/>
     </div>
   );
@@ -628,12 +715,12 @@ function InnerApp({ sessionData, resetSession }) {
   const playing = t.gameState === "playing" && !revealAll;
   const totalFakes = window.WIKIFAKE_FAKES.length;
 
-  // Timer — décrémente chaque seconde
+  // Timer — décrémente chaque seconde (jamais bloqué)
   useEffect(() => {
-    if (!playing || timeFrozen) return;
+    if (!playing) return;
     const id = setInterval(() => setTime(x => Math.max(0, x - 1)), 1000);
     return () => clearInterval(id);
-  }, [playing, timeFrozen]);
+  }, [playing]);
 
   // Auto-submit / game over quand time atteint 0
   useEffect(() => {
@@ -683,8 +770,9 @@ function InnerApp({ sessionData, resetSession }) {
             setBlurActive(true);
             setTimeout(() => setBlurActive(false), 5000);
           } else if (msg.item_id === "FREEZE_TIME") {
+            setTime(prev => Math.max(0, prev - 10));
             setTimeFrozen(true);
-            setTimeout(() => setTimeFrozen(false), 10000);
+            setTimeout(() => setTimeFrozen(false), 3000); // visuel 3s seulement
           } else if (msg.item_id === "HINT_LOCK") {
             setHintLocked(true);
             setTimeout(() => setHintLocked(false), 20000);

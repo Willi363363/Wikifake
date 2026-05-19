@@ -158,6 +158,15 @@ body::after {
   100% { transform: translateX(0); }
 }
 
+/* Damage pop (freeze -10s, lightning -50pts) */
+@keyframes damage-pop {
+  0%   { transform: scale(0.4) translateY(20px); opacity: 0; }
+  12%  { transform: scale(1.25) translateY(0);   opacity: 1; }
+  25%  { transform: scale(1.0)  translateY(0);   opacity: 1; }
+  75%  { transform: scale(1.0)  translateY(0);   opacity: 0.85; }
+  100% { transform: scale(0.95) translateY(-30px); opacity: 0; }
+}
+
 /* Fog */
 @keyframes fog-drift {
   0%   { transform: translate(-50%, -50%) translateX(0) translateY(0); opacity: 0.3; }
