@@ -125,7 +125,7 @@ function Chip({ children, color = "var(--ink)", bg = "white", border = "var(--li
 }
 
 /* ============ Top Bar ============ */
-function TopBar({ mode, marked, total, time, onSubmit, target, progress, canSubmit, waiting, onOpenIntel, hintsUsed }) {
+function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, hintsUsed }) {
   const min = Math.floor(time / 60);
   const sec = time % 60;
   return (
@@ -224,14 +224,18 @@ function TopBar({ mode, marked, total, time, onSubmit, target, progress, canSubm
         </div>
 
         {/* Submit */}
-        <button className="btn primary" onClick={onSubmit} disabled={!canSubmit || waiting}>
-          {waiting ? "En attente..." : "Submit"}
-          {!waiting && (
+        {waiting ? (
+          <button className="btn ghost" onClick={onUnsubmit} style={{ color: "var(--danger)", borderColor: "var(--danger-soft)", padding: "9px 20px" }}>
+            Annuler
+          </button>
+        ) : (
+          <button className="btn primary" onClick={onSubmit} disabled={!canSubmit}>
+            Submit
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
               <path d="M3 6.5h7M6.5 3l3.5 3.5L6.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-          )}
-        </button>
+          </button>
+        )}
       </div>
     </div>
   );

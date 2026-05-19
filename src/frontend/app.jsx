@@ -12,6 +12,10 @@ const ITEM_DEFS = {
   FREEZE_TIME: { icon: "⏸",  name: "Gel du temps", description: "Fige le chrono d'un joueur 10s",  color: "#1f3a5f" },
   SCORE_STEAL: { icon: "⚡",  name: "Pillage",      description: "Vole 50 pts à un joueur",          color: "#8c6d36" },
   HINT_LOCK:   { icon: "🔒", name: "Brouilleur",   description: "Bloque les hints 20s",              color: "#27272a" },
+  BLACKOUT:    { icon: "⬛", name: "Censure CIA",  description: "Censure le texte d'un joueur 5s",   color: "#18181b" },
+  EARTHQUAKE:  { icon: "🌋", name: "Séisme",       description: "Fait trembler l'écran d'un joueur 5s", color: "#a64b48" },
+  RICKROLL:    { icon: "🤡", name: "Pop-up Spam",  description: "Affiche un pop-up gênant",          color: "#b58f3a" },
+  SCANNER:     { icon: "🔎", name: "Détecteur",    description: "Surligne un paragraphe contenant une erreur", color: "#4a7a52", targetCount: 0 },
 };
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -33,7 +37,7 @@ const ACCENTS = {
 };
 
 // ============ Token renderer ============
-function ArticleToken({ id, text, fakeId, state, expertValue, mode, onClick, onEdit, status, hinted }) {
+function ArticleToken({ id, text, fakeId, state, expertValue, mode, onClick, onEdit, status, hinted, scanned }) {
   const cls = ["token"];
   if (status === "found") cls.push("found");
   else if (status === "missed") cls.push("missed");
@@ -41,6 +45,7 @@ function ArticleToken({ id, text, fakeId, state, expertValue, mode, onClick, onE
   else if (state === "selected") cls.push("selected");
   else if (state === "edited") cls.push("edited");
   if (hinted && !status) cls.push("hinted");
+  if (scanned && !status) cls.push("scanned");
 
   if (mode === "expert" && state === "edited") {
     return (
@@ -79,7 +84,7 @@ function ArticleToken({ id, text, fakeId, state, expertValue, mode, onClick, onE
 }
 
 // ============ Render article body ============
-function ArticleBody({ marked, edited, mode, hintedTokenIds, onTokenClick, onTokenEdit, revealAll }) {
+function ArticleBody({ marked, edited, mode, hintedTokenIds, scannedParagraphs, onTokenClick, onTokenEdit, revealAll }) {
   return (
     <>
       {window.WIKIFAKE_BODY.map((block, bi) => (
@@ -105,6 +110,7 @@ function ArticleBody({ marked, edited, mode, hintedTokenIds, onTokenClick, onTok
                     else if (m || (ed !== undefined && ed !== null)) status = "false-positive";
                   }
                   const hinted = isFake && hintedTokenIds.has(seg.id) && !m && !ed;
+                  const scanned = isFake && scannedParagraphs.has(seg.id) && !m && !ed;
 
                   return (
                     <ArticleToken
@@ -119,6 +125,7 @@ function ArticleBody({ marked, edited, mode, hintedTokenIds, onTokenClick, onTok
                       onEdit={onTokenEdit}
                       status={status}
                       hinted={hinted}
+                      scanned={scanned}
                     />
                   );
                 }
@@ -699,9 +706,10 @@ function InnerApp({ sessionData, resetSession }) {
   const [blurActive, setBlurActive] = useState(false);
   const [hintLocked, setHintLocked] = useState(false);
   const [scoreStolen, setScoreStolen] = useState(0);
-  const [lightningActive, setLightningActive] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [intelOpen, setIntelOpen] = useState(false);
+  const [scannerTrigger, setScannerTrigger] = useState(0);
+  const [scannedParagraphs, setScannedParagraphs] = useState(new Set());
   const articleRef = useRef(null);
 
   // Apply accent color via CSS vars
@@ -778,8 +786,6 @@ function InnerApp({ sessionData, resetSession }) {
             setTimeout(() => setHintLocked(false), 20000);
           } else if (msg.item_id === "SCORE_STEAL") {
             setScoreStolen(prev => prev + 50);
-            setLightningActive(true);
-            setTimeout(() => setLightningActive(false), 3000);
           }
         }
       };
@@ -788,6 +794,18 @@ function InnerApp({ sessionData, resetSession }) {
       return () => socket.removeEventListener("message", handleMessage);
     }
   }, [sessionData]);
+
+  // Scanner logic
+  useEffect(() => {
+    if (scannerTrigger > 0) {
+      const fakeTokenIds = new Set(window.WIKIFAKE_FAKES.map(f => f.tokenId));
+      const unfoundFakes = [...fakeTokenIds].filter(id => !marked[id] && !edited[id] && !scannedParagraphs.has(id));
+      if (unfoundFakes.length > 0) {
+        const randomFake = unfoundFakes[Math.floor(Math.random() * unfoundFakes.length)];
+        setScannedParagraphs(prev => new Set([...prev, randomFake]));
+      }
+    }
+  }, [scannerTrigger]);
 
   // Sync cursor live
   useEffect(() => {
@@ -883,8 +901,20 @@ function InnerApp({ sessionData, resetSession }) {
   }, [marked, edited, time, hintPenalty, totalFakes, t.sessionId]);
 
   const useItem = useCallback((item) => {
-    setItemModal(item);
-  }, []);
+    const def = ITEM_DEFS[item.id] || {};
+    if (def.targetCount === 0) {
+      if (!sessionData?.multiplayer) return;
+      const socket = sessionData.multiplayer.socket;
+      socket.send(JSON.stringify({
+        type: "use_item",
+        instance_id: item.instance_id,
+        targets: [sessionData.multiplayer.username],
+      }));
+      setItems(prev => prev.filter(it => it.instance_id !== item.instance_id));
+    } else {
+      setItemModal(item);
+    }
+  }, [sessionData]);
 
   const confirmUseItem = useCallback((targetName) => {
     if (!itemModal || !sessionData?.multiplayer) return;
@@ -914,6 +944,14 @@ function InnerApp({ sessionData, resetSession }) {
     } else {
       setRevealAll(true);
       setTimeout(() => setTweak("gameState", "results"), 600);
+    }
+  };
+
+  const onUnsubmit = () => {
+    if (sessionData && sessionData.multiplayer) {
+      const socket = sessionData.multiplayer.socket;
+      socket.send(JSON.stringify({ type: "unsubmit_answer" }));
+      setWaitingForOthers(false);
     }
   };
 
@@ -971,6 +1009,7 @@ function InnerApp({ sessionData, resetSession }) {
         total={totalFakes}
         time={time}
         onSubmit={onSubmit}
+        onUnsubmit={onUnsubmit}
         target="Paris"
         progress={progress}
         canSubmit={(markedCount > 0 || revealAll) && !waitingForOthers}
@@ -990,6 +1029,7 @@ function InnerApp({ sessionData, resetSession }) {
         {/* Article — Wikipedia white card */}
         <div
           ref={articleRef}
+          className={earthquakeActive ? "earthquake-active" : ""}
           style={{
             background: "white",
             border: "1px solid var(--line)",
@@ -1020,7 +1060,7 @@ function InnerApp({ sessionData, resetSession }) {
 
           <Brief mode={t.mode} />
 
-          <div className="article-body">
+          <div className={`article-body ${blackoutActive ? "blackout-active" : ""}`}>
             <h1>{window.WIKIFAKE_ARTICLE.title}</h1>
             <p style={{ fontStyle: "italic", color: "#54595d", fontSize: 14.5, margin: "0 0 22px 0" }}>
               {window.WIKIFAKE_ARTICLE.subtitle}.
@@ -1046,6 +1086,7 @@ function InnerApp({ sessionData, resetSession }) {
               edited={edited}
               mode={t.mode}
               hintedTokenIds={hintedTokenIds}
+              scannedParagraphs={scannedParagraphs}
               onTokenClick={onTokenClick}
               onTokenEdit={onTokenEdit}
               revealAll={revealAll}
@@ -1174,6 +1215,34 @@ function InnerApp({ sessionData, resetSession }) {
             <div style={{ fontSize: 40, marginBottom: 12 }}>🔒</div>
             <div style={{ fontFamily: "'Geist', sans-serif", fontWeight: 600, fontSize: 16, marginBottom: 6 }}>Intel verrouillé</div>
             <div style={{ color: "var(--muted)", fontSize: 13 }}>Un joueur vous a bloqué l'accès aux hints temporairement.</div>
+          </div>
+        </div>
+      )}
+
+      {/* RICKROLL MODAL */}
+      {rickrollActive && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9999,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: "rgba(0,0,0,0.8)",
+        }}>
+          <div style={{
+            background: "white", padding: 40, borderRadius: 20, textAlign: "center",
+            boxShadow: "0 20px 60px rgba(0,0,0,0.5)", maxWidth: 400,
+            animation: "shake 0.3s infinite"
+          }}>
+            <div style={{ fontSize: 60, marginBottom: 20 }}>🤡</div>
+            <h2 style={{ fontFamily: "'Geist', sans-serif", margin: "0 0 10px", color: "var(--danger)" }}>POP-UP SPAM !</h2>
+            <p style={{ color: "var(--ink-2)", marginBottom: 30, fontSize: 14 }}>
+              Félicitations, vous êtes l'heureux gagnant d'une perte de temps. Cliquez sur le bouton pour fermer cette publicité intrusive.
+            </p>
+            <button 
+              className="btn primary" 
+              onClick={() => setRickrollActive(false)}
+              style={{ fontSize: 16, padding: "12px 24px" }}
+            >
+              Fermer (Désolé)
+            </button>
           </div>
         </div>
       )}

@@ -22,10 +22,14 @@ game = FakeNewsGame()
 GAME_DURATION = 300  # 5 minutes
 
 ITEMS = [
-    {"id": "BLUR",        "name": "Brouillard",  "icon": "👁",  "description": "Floute l'écran d'un joueur pendant 5s",   "targetCount": 1},
-    {"id": "FREEZE_TIME", "name": "Gel du temps", "icon": "⏸",  "description": "Fige le chrono d'un joueur pendant 10s",  "targetCount": 1},
-    {"id": "SCORE_STEAL", "name": "Pillage",      "icon": "⚡",  "description": "Vole 50 pts à un joueur",                 "targetCount": 1},
-    {"id": "HINT_LOCK",   "name": "Brouilleur",   "icon": "🔒", "description": "Bloque les hints d'un joueur pendant 20s", "targetCount": 1},
+    {"id": "BLUR",        "name": "Brouillard",  "icon": "👁",  "description": "Floute l'écran d'un joueur pendant 5s",   "targetCount": 1, "weight": 10},
+    {"id": "FREEZE_TIME", "name": "Gel du temps", "icon": "⏸",  "description": "Fige le chrono d'un joueur pendant 10s",  "targetCount": 1, "weight": 10},
+    {"id": "SCORE_STEAL", "name": "Pillage",      "icon": "⚡",  "description": "Vole 50 pts à un joueur",                 "targetCount": 1, "weight": 8},
+    {"id": "HINT_LOCK",   "name": "Brouilleur",   "icon": "🔒", "description": "Bloque les hints d'un joueur pendant 20s", "targetCount": 1, "weight": 8},
+    {"id": "BLACKOUT",    "name": "Censure CIA",  "icon": "⬛", "description": "Censure le texte d'un joueur (5s)",        "targetCount": 1, "weight": 6},
+    {"id": "EARTHQUAKE",  "name": "Séisme",       "icon": "🌋", "description": "Fait trembler l'écran d'un joueur (5s)",   "targetCount": 1, "weight": 6},
+    {"id": "RICKROLL",    "name": "Pop-up Spam",  "icon": "🤡", "description": "Affiche un pop-up gênant à un joueur",     "targetCount": 1, "weight": 4},
+    {"id": "SCANNER",     "name": "Détecteur",    "icon": "🔎", "description": "Surligne un paragraphe contenant une erreur", "targetCount": 0, "weight": 2},
 ]
 
 # Global state for multiplayer rooms
@@ -70,7 +74,8 @@ async def item_distribution_loop(room_code: str):
             room = rooms[room_code]
             distribution = {}
             for pname in list(room["players"].keys()):
-                item = random.choice(ITEMS)
+                weights = [i.get("weight", 10) for i in ITEMS]
+                item = random.choices(ITEMS, weights=weights, k=1)[0]
                 instance = {**item, "instance_id": f"{pname}_{minute}_{item['id']}"}
                 room["players"][pname].setdefault("items", []).append(instance)
                 distribution[pname] = instance
@@ -213,6 +218,10 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                         "item_icon": item_used["icon"],
                         "targets": targets,
                     })
+
+            elif data["type"] == "unsubmit_answer" and room["state"] == "playing":
+                room["players"][player_name]["answered"] = False
+                await broadcast_lobby(room_code)
 
             elif data["type"] == "submit_answer" and room["state"] == "playing":
                 indices = data.get("answers", [])
