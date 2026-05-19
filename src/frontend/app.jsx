@@ -706,6 +706,8 @@ function InnerApp({ sessionData, resetSession }) {
   const [blurActive, setBlurActive] = useState(false);
   const [hintLocked, setHintLocked] = useState(false);
   const [scoreStolen, setScoreStolen] = useState(0);
+  const [lightningActive, setLightningActive] = useState(false);
+  const [earthquakeActive, setEarthquakeActive] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [intelOpen, setIntelOpen] = useState(false);
   const [scannerTrigger, setScannerTrigger] = useState(0);
@@ -786,6 +788,8 @@ function InnerApp({ sessionData, resetSession }) {
             setTimeout(() => setHintLocked(false), 20000);
           } else if (msg.item_id === "SCORE_STEAL") {
             setScoreStolen(prev => prev + 50);
+            setLightningActive(true);
+            setTimeout(() => setLightningActive(false), 3000);
           }
         }
       };
