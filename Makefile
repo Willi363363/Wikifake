@@ -1,4 +1,4 @@
-.PHONY: clean clean-build build run check-env help
+.PHONY: clean clean-build build run check-env help test
 
 VENV   = venv
 PYTHON = $(VENV)/bin/python
@@ -10,6 +10,7 @@ help:
 	@echo "  make run         → lancer le projet (venv existant)"
 	@echo "  make clean       → tout nettoyer"
 	@echo "  make clean-build → supprimer les artefacts de build"
+	@echo "  make test        → lancer les tests"
 
 check-env:
 	@if [ ! -f .env ]; then \
@@ -36,6 +37,10 @@ $(VENV)/bin/activate:
 run: check-env
 	@echo "🚀 Lancement de main.py..."
 	$(PYTHON) main.py
+
+test: $(VENV)/bin/activate check-env
+	@echo "🧪 Lancement des tests..."
+	$(PYTHON) -m pytest tests/ -v
 clean:
 	@echo "🧹 Suppression des fichiers Python compilés..."
 	find . -type d -name __pycache__ -exec rm -rf {} +
