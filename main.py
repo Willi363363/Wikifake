@@ -22,14 +22,19 @@ game = FakeNewsGame()
 GAME_DURATION = 300  # 5 minutes
 
 ITEMS = [
-    {"id": "HINT_LOCK",   "name": "Brouilleur",   "icon": "🔒", "description": "Bloque les hints d'un joueur pendant 20s", "targetCount": 1, "weight": 30},
-    {"id": "FREEZE_TIME", "name": "Gel du temps", "icon": "⏸",  "description": "Retire 10s au chrono d'un joueur",         "targetCount": 1, "weight": 25},
-    {"id": "SCORE_STEAL", "name": "Pillage",      "icon": "⚡",  "description": "Vole 50 pts à un joueur",                  "targetCount": 1, "weight": 20},
-    {"id": "EARTHQUAKE",  "name": "Séisme",       "icon": "🌋", "description": "Fait trembler l'écran d'un joueur (5s)",    "targetCount": 1, "weight": 12},
-    {"id": "BLACKOUT",    "name": "Censure CIA",  "icon": "⬛", "description": "Censure le texte d'un joueur (5s)",         "targetCount": 1, "weight": 8},
-    {"id": "BLUR",        "name": "Brouillard",   "icon": "👁",  "description": "Floute l'écran d'un joueur pendant 5s",    "targetCount": 1, "weight": 3},
-    {"id": "RICKROLL",    "name": "Pop-up Spam",  "icon": "🤡", "description": "Affiche un pop-up gênant à un joueur",      "targetCount": 1, "weight": 5},
-    {"id": "SCANNER",     "name": "Détecteur",    "icon": "🔎", "description": "Surligne un paragraphe contenant une erreur", "targetCount": 0, "weight": 15},
+    {"id": "HINT_LOCK",   "name": "Brouilleur",    "icon": "🔒", "description": "Bloque les hints d'un joueur pendant 20s",   "targetCount": 1},
+    {"id": "FREEZE_TIME", "name": "Gel du temps",  "icon": "⏸",  "description": "Retire 10s au chrono d'un joueur",            "targetCount": 1},
+    {"id": "SCORE_STEAL", "name": "Pillage",       "icon": "⚡",  "description": "Vole 50 pts à un joueur",                     "targetCount": 1},
+    {"id": "EARTHQUAKE",  "name": "Séisme",        "icon": "🌋", "description": "Fait trembler l'écran d'un joueur (5s)",       "targetCount": 1},
+    {"id": "BLACKOUT",    "name": "Censure CIA",   "icon": "⬛", "description": "Censure le texte d'un joueur (5s)",            "targetCount": 1},
+    {"id": "BLUR",        "name": "Brouillard",    "icon": "👁",  "description": "Floute l'écran d'un joueur pendant 5s",       "targetCount": 1},
+    {"id": "RICKROLL",    "name": "Pop-up Spam",   "icon": "🤡", "description": "Affiche un pop-up gênant à un joueur",         "targetCount": 1},
+    {"id": "SCANNER",     "name": "Détecteur",     "icon": "🔎", "description": "Surligne un paragraphe contenant une erreur",  "targetCount": 0},
+    {"id": "MIRROR",      "name": "Miroir",        "icon": "🪞", "description": "Inverse le texte de l'article (6s)",           "targetCount": 1},
+    {"id": "TINY",        "name": "Loupe cassée",  "icon": "🔬", "description": "Rend le texte minuscule (8s)",                 "targetCount": 1},
+    {"id": "SPIN",        "name": "Tournis",       "icon": "🌀", "description": "Fait tourner l'article (4s)",                  "targetCount": 1},
+    {"id": "CONFETTI",    "name": "Fête surprise", "icon": "🎊", "description": "Explosion de confettis sur l'écran (6s)",      "targetCount": 1},
+    {"id": "INVERT",      "name": "Négatif",       "icon": "🌑", "description": "Inverse les couleurs de l'écran (5s)",         "targetCount": 1},
 ]
 
 # Global state for multiplayer rooms
@@ -74,8 +79,7 @@ async def item_distribution_loop(room_code: str):
             room = rooms[room_code]
             distribution = {}
             for pname in list(room["players"].keys()):
-                weights = [i.get("weight", 10) for i in ITEMS]
-                item = random.choices(ITEMS, weights=weights, k=1)[0]
+                item = random.choice(ITEMS)
                 instance = {**item, "instance_id": f"{pname}_{minute}_{item['id']}"}
                 room["players"][pname].setdefault("items", []).append(instance)
                 distribution[pname] = instance

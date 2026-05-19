@@ -192,6 +192,20 @@ body::after {
   transform-origin: center center;
 }
 
+@keyframes article-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.spin-active {
+  animation: article-spin 1.2s linear infinite;
+  transform-origin: center center;
+}
+
+.tiny-active, .tiny-active * {
+  font-size: 4px !important;
+  line-height: 1.2 !important;
+}
+
 .blackout-active p {
   position: relative;
 }

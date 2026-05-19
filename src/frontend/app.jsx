@@ -8,14 +8,19 @@ const { useState, useEffect, useRef, useMemo, useCallback } = React;
 const GAME_DURATION = 300; // 5 minutes
 
 const ITEM_DEFS = {
-  BLUR:        { icon: "👁",  name: "Brouillard",  description: "Floute l'écran d'un joueur 5s",    color: "#6b4e6f" },
-  FREEZE_TIME: { icon: "⏸",  name: "Gel du temps", description: "Fige le chrono d'un joueur 10s",  color: "#1f3a5f" },
-  SCORE_STEAL: { icon: "⚡",  name: "Pillage",      description: "Vole 50 pts à un joueur",          color: "#8c6d36" },
-  HINT_LOCK:   { icon: "🔒", name: "Brouilleur",   description: "Bloque les hints 20s",              color: "#27272a" },
-  BLACKOUT:    { icon: "⬛", name: "Censure CIA",  description: "Censure le texte d'un joueur 5s",   color: "#18181b" },
-  EARTHQUAKE:  { icon: "🌋", name: "Séisme",       description: "Fait trembler l'écran d'un joueur 5s", color: "#a64b48" },
-  RICKROLL:    { icon: "🤡", name: "Pop-up Spam",  description: "Affiche un pop-up gênant",          color: "#b58f3a" },
-  SCANNER:     { icon: "🔎", name: "Détecteur",    description: "Surligne un paragraphe contenant une erreur", color: "#4a7a52", targetCount: 0 },
+  BLUR:        { icon: "👁",  name: "Brouillard",   description: "Floute l'écran d'un joueur 5s",    color: "#6b4e6f" },
+  FREEZE_TIME: { icon: "⏸",  name: "Gel du temps",  description: "Retire 10s au chrono d'un joueur", color: "#1f3a5f" },
+  SCORE_STEAL: { icon: "⚡",  name: "Pillage",       description: "Vole 50 pts à un joueur",          color: "#8c6d36" },
+  HINT_LOCK:   { icon: "🔒", name: "Brouilleur",    description: "Bloque les hints 20s",              color: "#27272a" },
+  BLACKOUT:    { icon: "⬛", name: "Censure CIA",   description: "Censure le texte d'un joueur 5s",   color: "#18181b" },
+  EARTHQUAKE:  { icon: "🌋", name: "Séisme",        description: "Fait trembler l'écran 5s",          color: "#a64b48" },
+  RICKROLL:    { icon: "🤡", name: "Pop-up Spam",   description: "Affiche un pop-up gênant",          color: "#b58f3a" },
+  SCANNER:     { icon: "🔎", name: "Détecteur",     description: "Surligne un paragraphe suspect",    color: "#4a7a52", targetCount: 0 },
+  MIRROR:      { icon: "🪞", name: "Miroir",        description: "Inverse le texte de l'article 6s",  color: "#4a6b8c" },
+  TINY:        { icon: "🔬", name: "Loupe cassée",  description: "Rend le texte minuscule 8s",        color: "#7a5248" },
+  SPIN:        { icon: "🌀", name: "Tournis",       description: "Fait tourner l'article 4s",         color: "#4a6b8c" },
+  CONFETTI:    { icon: "🎊", name: "Fête surprise", description: "Explosion de confettis 6s",         color: "#8c6d36" },
+  INVERT:      { icon: "🌑", name: "Négatif",       description: "Inverse les couleurs 5s",           color: "#27272a" },
 };
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -605,6 +610,57 @@ function BlackoutEffect({ active }) {
   );
 }
 
+function ConfettiEffect({ active }) {
+  const pieces = useMemo(() => Array.from({ length: 80 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: -(Math.random() * 3),
+    duration: 1.2 + Math.random() * 2,
+    size: 8 + Math.random() * 14,
+    color: ["#ff4d6d","#ffd166","#06d6a0","#118ab2","#a64ac9","#ff9a3c","#4cc9f0","#f72585"][i % 8],
+    rotate: Math.random() * 360,
+    drift: ((Math.random() - 0.5) * 120).toFixed(0),
+    shape: i % 3 === 0 ? "circle" : i % 3 === 1 ? "rect" : "triangle",
+  })), []);
+
+  if (!active) return null;
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 160, pointerEvents: "none", overflow: "hidden" }}>
+      {pieces.map(p => (
+        <div key={p.id} style={{
+          position: "absolute",
+          left: `${p.left}%`, top: "-20px",
+          width: p.shape === "rect" ? p.size * 1.6 : p.size,
+          height: p.shape === "triangle" ? 0 : p.size,
+          background: p.shape === "triangle" ? "transparent" : p.color,
+          borderRadius: p.shape === "circle" ? "50%" : p.shape === "rect" ? 2 : 0,
+          borderLeft: p.shape === "triangle" ? `${p.size/2}px solid transparent` : undefined,
+          borderRight: p.shape === "triangle" ? `${p.size/2}px solid transparent` : undefined,
+          borderBottom: p.shape === "triangle" ? `${p.size}px solid ${p.color}` : undefined,
+          opacity: 0.92,
+          animation: `snowfall ${p.duration}s ${p.delay}s linear infinite`,
+          "--drift": `${p.drift}px`,
+          transform: `rotate(${p.rotate}deg)`,
+        }}/>
+      ))}
+      <div style={{
+        position: "absolute", inset: 0,
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <span style={{
+          fontFamily: "'Geist Mono', monospace",
+          fontSize: "clamp(28px, 6vw, 56px)",
+          fontWeight: 900, letterSpacing: "0.1em",
+          color: "rgba(255,255,255,0.92)",
+          textShadow: "0 0 20px rgba(255,80,160,0.8), 0 0 60px rgba(255,200,0,0.5), 0 4px 20px rgba(0,0,0,0.7)",
+          animation: "damage-pop 6s ease-out forwards",
+          userSelect: "none",
+        }}>🎊 FÊTE SURPRISE !</span>
+      </div>
+    </div>
+  );
+}
+
 // ============ Item Bar ============
 
 function ItemCard({ item, onUse }) {
@@ -863,6 +919,11 @@ function InnerApp({ sessionData, resetSession }) {
   const [earthquakeActive, setEarthquakeActive] = useState(false);
   const [blackoutActive, setBlackoutActive] = useState(false);
   const [rickrollActive, setRickrollActive] = useState(false);
+  const [mirrorActive, setMirrorActive] = useState(false);
+  const [tinyActive, setTinyActive] = useState(false);
+  const [spinActive, setSpinActive] = useState(false);
+  const [confettiActive, setConfettiActive] = useState(false);
+  const [invertActive, setInvertActive] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [intelOpen, setIntelOpen] = useState(false);
   const [scannerTrigger, setScannerTrigger] = useState(0);
@@ -956,6 +1017,21 @@ function InnerApp({ sessionData, resetSession }) {
             setRickrollActive(true);
           } else if (msg.item_id === "SCANNER") {
             setScannerTrigger(prev => prev + 1);
+          } else if (msg.item_id === "MIRROR") {
+            setMirrorActive(true);
+            setTimeout(() => setMirrorActive(false), 6000);
+          } else if (msg.item_id === "TINY") {
+            setTinyActive(true);
+            setTimeout(() => setTinyActive(false), 8000);
+          } else if (msg.item_id === "SPIN") {
+            setSpinActive(true);
+            setTimeout(() => setSpinActive(false), 4000);
+          } else if (msg.item_id === "CONFETTI") {
+            setConfettiActive(true);
+            setTimeout(() => setConfettiActive(false), 6000);
+          } else if (msg.item_id === "INVERT") {
+            setInvertActive(true);
+            setTimeout(() => setInvertActive(false), 5000);
           }
         }
       };
@@ -1199,7 +1275,10 @@ function InnerApp({ sessionData, resetSession }) {
         {/* Article — Wikipedia white card */}
         <div
           ref={articleRef}
-          className={earthquakeActive ? "earthquake-active" : ""}
+          className={[
+            earthquakeActive ? "earthquake-active" : "",
+            spinActive      ? "spin-active"       : "",
+          ].filter(Boolean).join(" ")}
           style={{
             background: "white",
             border: "1px solid var(--line)",
@@ -1207,8 +1286,13 @@ function InnerApp({ sessionData, resetSession }) {
             padding: "32px 44px 44px",
             boxShadow: "var(--shadow-md)",
             position: "relative",
-            filter: blurActive ? "blur(6px)" : "none",
-            transition: "filter 300ms",
+            filter: [
+              blurActive   ? "blur(6px)"   : "",
+              invertActive ? "invert(1) hue-rotate(180deg)" : "",
+              mirrorActive ? "" : "",
+            ].filter(Boolean).join(" ") || "none",
+            transform: mirrorActive ? "scaleX(-1)" : undefined,
+            transition: "filter 300ms, transform 300ms",
             userSelect: blurActive ? "none" : "auto",
             pointerEvents: blurActive ? "none" : "auto",
           }}
@@ -1230,7 +1314,11 @@ function InnerApp({ sessionData, resetSession }) {
 
           <Brief mode={t.mode} />
 
-          <div className={`article-body ${blackoutActive ? "blackout-active" : ""}`}>
+          <div className={[
+            "article-body",
+            blackoutActive ? "blackout-active" : "",
+            tinyActive     ? "tiny-active"     : "",
+          ].filter(Boolean).join(" ")}>
             <h1>{window.WIKIFAKE_ARTICLE.title}</h1>
             <p style={{ fontStyle: "italic", color: "#54595d", fontSize: 14.5, margin: "0 0 22px 0" }}>
               {window.WIKIFAKE_ARTICLE.subtitle}.
@@ -1342,6 +1430,7 @@ function InnerApp({ sessionData, resetSession }) {
       <FogEffect active={blurActive} />
       <EarthquakeEffect active={earthquakeActive} />
       <BlackoutEffect active={blackoutActive} />
+      <ConfettiEffect active={confettiActive} />
 
       {/* ITEM BAR */}
       {playing && sessionData?.with_items && (
