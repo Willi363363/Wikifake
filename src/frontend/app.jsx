@@ -708,6 +708,8 @@ function InnerApp({ sessionData, resetSession }) {
   const [scoreStolen, setScoreStolen] = useState(0);
   const [lightningActive, setLightningActive] = useState(false);
   const [earthquakeActive, setEarthquakeActive] = useState(false);
+  const [blackoutActive, setBlackoutActive] = useState(false);
+  const [rickrollActive, setRickrollActive] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [intelOpen, setIntelOpen] = useState(false);
   const [scannerTrigger, setScannerTrigger] = useState(0);
