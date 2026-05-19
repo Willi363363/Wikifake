@@ -254,7 +254,7 @@ function SubjectCard({ facts, fakesTotal, fakesMarked, fakesFound, revealed }) {
           <span style={{
             fontFamily: "'Instrument Serif', serif",
             fontSize: 24, color: "var(--muted)", fontStyle: "italic",
-          }}>P</span>
+          }}>{(facts?.[0]?.value || "W").charAt(0).toUpperCase()}</span>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <LabelMono>Subject</LabelMono>
@@ -264,10 +264,10 @@ function SubjectCard({ facts, fakesTotal, fakesMarked, fakesFound, revealed }) {
             fontSize: 26, fontWeight: 400, letterSpacing: "-0.012em",
             lineHeight: 1.05,
             color: "var(--ink)",
-          }}>Paris</h3>
+          }}>{facts?.[0]?.value || "Sujet"}</h3>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <Chip color="var(--muted)" bg="white">City</Chip>
-            <Chip color="var(--muted)" bg="white">EU · FR</Chip>
+            <Chip color="var(--muted)" bg="white">Wiki</Chip>
+            <Chip color="var(--muted)" bg="white">Article</Chip>
           </div>
         </div>
       </div>

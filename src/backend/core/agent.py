@@ -1,5 +1,5 @@
 from .scraper import get_wikipedia_content, extract_paragraphs
-from .misinformation import swap_paragraphs, build_game_content
+from .misinformation import swap_paragraphs
 from .verification import check_answer, get_feedback
 from typing import Optional
 
@@ -60,7 +60,9 @@ class FakeNewsGame:
                 positions.append({
                     "paragraph_index": para_idx + 1,
                     "false_statement": swap["swapped_text"],
-                    "false_info_number": idx + 1
+                    "false_info_number": idx + 1,
+                    "explanation": swap.get("explanation", "Explication manquante."),
+                    "hint": swap.get("hint", "Vérifiez cette information.")
                 })
         
         # Injection de la balise base pour conserver les styles
@@ -77,7 +79,7 @@ class FakeNewsGame:
             "misinformations": swaps,
             "positions": positions,
             "total_false_statements": len(positions),
-            "original_paragraphs": paragraphs,
+            "paragraphs": modified_paragraphs,
             "wikipedia_url": wikipedia_data.get("url", "")
         }
         

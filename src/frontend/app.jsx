@@ -1,7 +1,7 @@
 /* WIKIFAKE — refined main app */
 /* global React, ReactDOM, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakToggle, TweakSlider, TweakButton, TweakSelect, TweakColor */
 /* global TopBar, SubjectCard, MissionCard, Leaderboard, BotCursor, HintsPanel, Brief, Footer, Debrief, LabelMono, Chip, HairProgress, PulseDot, SideDrawer, FloatingLeaderboard, IntelOverlay */
-/* global WIKIFAKE_ARTICLE, WIKIFAKE_BODY, WIKIFAKE_INFOBOX, WIKIFAKE_FAKES */
+/* global WIKIFAKE_ARTICLE, WIKIFAKE_BODY, WIKIFAKE_INFOBOX, window.WIKIFAKE_FAKES */
 
 const { useState, useEffect, useRef, useMemo, useCallback } = React;
 
@@ -73,7 +73,7 @@ function ArticleToken({ id, text, fakeId, state, expertValue, mode, onClick, onE
 function ArticleBody({ marked, edited, mode, hintedTokenIds, onTokenClick, onTokenEdit, revealAll }) {
   return (
     <>
-      {WIKIFAKE_BODY.map((block, bi) => (
+      {window.WIKIFAKE_BODY.map((block, bi) => (
         <div key={bi}>
           {block.heading && <h2>{block.heading}</h2>}
           {block.paragraphs.map((p, pi) => (
@@ -166,8 +166,69 @@ function useBots(playing, totalFakes) {
 }
 
 // ============ Main app ============
+
 function App() {
+  const [gameState, setGameState] = useState("lobby");
+  const [sessionData, setSessionData] = useState(null);
+
+  const startSession = (data) => {
+    // Transform backend data to mock data format expected by the frontend
+    const newBody = data.paragraphs.map((p, idx) => {
+      // Find if this paragraph is a fake
+      const isFake = data.positions.find(pos => pos.paragraph_index === idx + 1);
+      
+      if (isFake) {
+        return [
+          { kind: "token", id: "p" + idx, text: p, fake: { id: "F" + idx, truth: isFake.explanation || "A identifier", hint: isFake.hint || "Vérifiez cette information" } }
+        ];
+      } else {
+        return [
+          { kind: "token", id: "p" + idx, text: p, fake: null }
+        ];
+      }
+    });
+
+    
+    window.WIKIFAKE_ARTICLE = { title: data.topic, subtitle: "Wikipedia" };
+    // Create generic infobox from Wikipedia URL or topic
+    window.WIKIFAKE_INFOBOX = [
+      { label: "DESIGNATION", value: data.topic },
+      { label: "SOURCE", value: data.wikipedia_url || "Wikipedia" },
+      { label: "FAKES INJECTED", value: data.total_fakes.toString() },
+      { label: "STATUS", value: "LIVE", live: true }
+    ];
+    window.WIKIFAKE_BODY = [{ kind: "lead", paragraphs: newBody }];
+
+    window.WIKIFAKE_FAKES = data.positions.map((pos, i) => ({
+      id: "F" + (pos.paragraph_index - 1),
+      tokenId: "p" + (pos.paragraph_index - 1),
+      text: pos.false_statement,
+      level: 1,
+      truth: pos.explanation,
+      hint: pos.hint
+    }));
+    
+    setSessionData(data);
+    setGameState("playing");
+  };
+
+  if (gameState === "lobby") {
+    return <window.Lobby onStart={startSession} />;
+  }
+
+  // Restore the original inner App as InnerApp
+  return <InnerApp sessionData={sessionData} resetSession={() => setGameState("lobby")} />;
+}
+
+function InnerApp({ sessionData, resetSession }) {
+
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+  useEffect(() => {
+    if (sessionData) {
+      setTweak({ ...t, gameState: "playing" });
+    }
+  }, []);
 
   const [marked, setMarked] = useState({});
   const [edited, setEdited] = useState({});
@@ -187,7 +248,7 @@ function App() {
   }, [t.accent]);
 
   const playing = t.gameState === "playing" && !revealAll;
-  const totalFakes = WIKIFAKE_FAKES.length;
+  const totalFakes = window.WIKIFAKE_FAKES.length;
 
   useEffect(() => {
     if (!playing) return;
@@ -199,12 +260,9 @@ function App() {
 
   const restart = (kind) => {
     if (kind === "new") {
-      setMarked({}); setEdited({}); setHintUnlocks({});
-      setTime(174);
-      setRevealAll(false);
-      setTweak("gameState", "playing");
+      if (typeof resetSession === "function") { resetSession(); }
     } else {
-      setTweak("gameState", "playing");
+      setTweak({ ...t, gameState: "playing" });
       setRevealAll(true);
     }
   };
@@ -240,7 +298,7 @@ function App() {
   };
   const hintedTokenIds = useMemo(() => {
     const s = new Set();
-    for (const f of WIKIFAKE_FAKES) {
+    for (const f of window.WIKIFAKE_FAKES) {
       if ((hintUnlocks[f.id] || 0) >= 1) s.add(f.tokenId);
     }
     return s;
@@ -251,7 +309,7 @@ function App() {
   const stats = useMemo(() => {
     const markedTokens = new Set([...Object.keys(marked), ...Object.keys(edited)]);
     let tp = 0, fp = 0;
-    const fakeTokenIds = new Set(WIKIFAKE_FAKES.map(f => f.tokenId));
+    const fakeTokenIds = new Set(window.WIKIFAKE_FAKES.map(f => f.tokenId));
     for (const id of markedTokens) {
       if (fakeTokenIds.has(id)) tp++; else fp++;
     }
@@ -344,9 +402,9 @@ function App() {
           <Brief mode={t.mode} />
 
           <div className="article-body">
-            <h1>{WIKIFAKE_ARTICLE.title}</h1>
+            <h1>{window.WIKIFAKE_ARTICLE.title}</h1>
             <p style={{ fontStyle: "italic", color: "#54595d", fontSize: 14.5, margin: "0 0 22px 0" }}>
-              {WIKIFAKE_ARTICLE.subtitle}. This article is part of a series on French cities.
+              {window.WIKIFAKE_ARTICLE.subtitle}.
             </p>
 
             <div style={{
@@ -357,9 +415,9 @@ function App() {
             }}>
               <div style={{ fontWeight: 600, marginBottom: 4 }}>Contents <span style={{ color: "#54595d", fontSize: 11, fontWeight: 400 }}>[hide]</span></div>
               <ol style={{ margin: 0, paddingLeft: 20, color: "#0645ad", lineHeight: 1.75 }}>
-                <li>Geography</li>
-                <li>History</li>
-                <li>Demographics</li>
+                <li>Article body</li>
+                <li>Details</li>
+                <li>More information</li>
                 <li>Culture and Landmarks</li>
               </ol>
             </div>
@@ -380,10 +438,10 @@ function App() {
                   Post-mission dossier · Corrected values
                 </LabelMono>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {WIKIFAKE_FAKES.map((f, i) => (
+                  {window.WIKIFAKE_FAKES.map((f, i) => (
                     <div key={f.id} style={{
                       paddingBottom: 10,
-                      borderBottom: i < WIKIFAKE_FAKES.length - 1 ? "1px dashed var(--line)" : "none",
+                      borderBottom: i < window.WIKIFAKE_FAKES.length - 1 ? "1px dashed var(--line)" : "none",
                       fontFamily: "'Geist', sans-serif", fontSize: 13.5,
                     }}>
                       <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
@@ -416,7 +474,7 @@ function App() {
       {/* SIDE DRAWER */}
       <SideDrawer open={drawerOpen} onToggle={() => setDrawerOpen(o => !o)}>
         <SubjectCard
-          facts={WIKIFAKE_INFOBOX}
+          facts={window.WIKIFAKE_INFOBOX}
           fakesTotal={totalFakes}
           fakesMarked={markedCount}
           fakesFound={stats.truePositives}
@@ -449,7 +507,7 @@ function App() {
       <IntelOverlay
         open={intelOpen}
         onClose={() => setIntelOpen(false)}
-        targets={WIKIFAKE_FAKES}
+        targets={window.WIKIFAKE_FAKES}
         unlocked={hintUnlocks}
         onUnlock={onUnlockHint}
       />

@@ -5,3 +5,5 @@ rich
 wikipedia
 requests
 beautifulsoup4
+uvicorn
+fastapi
