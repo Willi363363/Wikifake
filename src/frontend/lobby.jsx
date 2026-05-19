@@ -6,7 +6,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setEr30sror] = useState("");
+  const [error, setError] = useState("");
   const [timeLimit, setTimeLimit] = useState(180); // 30s to 600s (10min)
   
   // Multiplayer state
@@ -136,6 +136,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
                   <span>30s</span>
                   <span>10min</span>
                 </div>
+              </div>
               <div
                 onClick={() => setWithItems(v => !v)}
                 style={{
