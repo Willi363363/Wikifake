@@ -8,3 +8,5 @@ beautifulsoup4
 uvicorn
 fastapi
 websockets
+pytest
+httpx
