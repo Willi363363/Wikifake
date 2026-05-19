@@ -3,8 +3,8 @@ import threading
 import time
 import random
 import string
-from src.backend.core.agent import FakeNewsGame
-from src.backend.core.verification import check_answer
+from src.core.agent import FakeNewsGame
+from src.core.verification import check_answer
 from .protocol import send_message, receive_message
 
 class MultiplayerServer:

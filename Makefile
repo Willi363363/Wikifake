@@ -26,7 +26,7 @@ check-env:
 build: $(VENV)/bin/activate check-env
 	@echo "📦 Installation des dépendances..."
 	$(PIP) install --upgrade pip -q
-	$(PIP) install -r requirements.txt -q
+	$(PIP) install -r backend/requirements.txt -q
 	@echo "✅ Build terminé"
 	@$(MAKE) run
 
@@ -40,7 +40,7 @@ run: check-env
 
 test: $(VENV)/bin/activate check-env
 	@echo "🧪 Lancement des tests..."
-	$(PYTHON) -m pytest tests/ -v
+	$(PYTHON) -m pytest backend/tests/ -v
 clean:
 	@echo "🧹 Suppression des fichiers Python compilés..."
 	find . -type d -name __pycache__ -exec rm -rf {} +
