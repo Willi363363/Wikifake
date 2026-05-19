@@ -872,7 +872,7 @@ function App() {
   };
 
   const startMultiplayerSession = (data, socket, username, roomCode, isHost) => {
-    startSession(data);
+    startSession(data, data.time_limit);
     setSessionData(prev => ({
       ...prev,
       multiplayer: { socket, username, roomCode, isHost }
