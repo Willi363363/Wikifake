@@ -101,6 +101,7 @@ def create_room():
         "state": "waiting",
         "start_time": 0,
         "item_task": None,
+        "time_limit": GAME_DURATION,
     }
     return {"room_code": code}
 
@@ -130,7 +131,9 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
             if data["type"] == "start_game" and room["state"] == "waiting":
                 category = data.get("category")
                 with_items = data.get("with_items", True)
+                time_limit = int(data.get("time_limit", GAME_DURATION))
                 room["with_items"] = with_items
+                room["time_limit"] = time_limit
                 # Generate game
                 game_data = game.start_game(category)
                 if not game_data:
@@ -166,6 +169,7 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                         "wikipedia_url": game_data.get("wikipedia_url", ""),
                         "players": list(room["players"].keys()),
                         "with_items": with_items,
+                        "time_limit": time_limit,
                     }
                 }
                 await broadcast(room_code, payload)
@@ -239,7 +243,7 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                 tp = len(result["correct_found"])
                 fp = len(result["false_positives"])
 
-                time_remaining = max(0, GAME_DURATION - time_taken)
+                time_remaining = max(0, room["time_limit"] - time_taken)
                 time_bonus = int(time_remaining * 0.5)
 
                 base_score = tp * 150

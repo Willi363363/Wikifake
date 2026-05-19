@@ -103,7 +103,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
       return;
     }
     setLoading(true);
-    ws.current.send(JSON.stringify({ type: "start_game", category, with_items: withItems }));
+    ws.current.send(JSON.stringify({ type: "start_game", category, with_items: withItems, time_limit: timeLimit }));
     // Transition to waiting screen inside lobby
     setMode("lobby-waiting");
   };
