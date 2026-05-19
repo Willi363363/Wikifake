@@ -1,4 +1,4 @@
-.PHONY: clean clean-pyc clean-build build run check-env help
+.PHONY: clean clean-build build run check-env help
 
 VENV   = venv
 PYTHON = $(VENV)/bin/python
@@ -9,7 +9,6 @@ help:
 	@echo "  make build       → créer le venv, installer les dépendances et lancer"
 	@echo "  make run         → lancer le projet (venv existant)"
 	@echo "  make clean       → tout nettoyer"
-	@echo "  make clean-pyc   → supprimer les fichiers Python compilés"
 	@echo "  make clean-build → supprimer les artefacts de build"
 
 check-env:
@@ -37,11 +36,7 @@ $(VENV)/bin/activate:
 run: check-env
 	@echo "🚀 Lancement de main.py..."
 	$(PYTHON) main.py
-
-clean: clean-pyc clean-build
-	@echo "✅ Projet nettoyé"
-
-clean-pyc:
+clean:
 	@echo "🧹 Suppression des fichiers Python compilés..."
 	find . -type d -name __pycache__ -exec rm -rf {} +
 	find . -name "*.pyc" -delete
@@ -50,7 +45,7 @@ clean-pyc:
 	find . -name ".pytest_cache" -exec rm -rf {} +
 	find . -name "*.egg-info" -exec rm -rf {} +
 
-clean-build:
+clean-build: clean
 	@echo "🧹 Suppression des artefacts de build..."
 	find . -type d -name dist -not -path "./venv/*" -exec rm -rf {} +
 	find . -type d -name build -not -path "./venv/*" -exec rm -rf {} +
@@ -58,3 +53,5 @@ clean-build:
 	find . -name "Thumbs.db" -delete
 	find . -name "*.log" -delete
 	find . -name "*.tmp" -delete
+	find . -name "*.bak" -delete
+	$(RM) -r venv
