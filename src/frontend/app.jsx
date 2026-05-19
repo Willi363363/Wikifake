@@ -792,6 +792,16 @@ function InnerApp({ sessionData, resetSession }) {
             setScoreStolen(prev => prev + 50);
             setLightningActive(true);
             setTimeout(() => setLightningActive(false), 3000);
+          } else if (msg.item_id === "BLACKOUT") {
+            setBlackoutActive(true);
+            setTimeout(() => setBlackoutActive(false), 5000);
+          } else if (msg.item_id === "EARTHQUAKE") {
+            setEarthquakeActive(true);
+            setTimeout(() => setEarthquakeActive(false), 5000);
+          } else if (msg.item_id === "RICKROLL") {
+            setRickrollActive(true);
+          } else if (msg.item_id === "SCANNER") {
+            setScannerTrigger(prev => prev + 1);
           }
         }
       };
