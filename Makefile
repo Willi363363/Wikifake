@@ -1,4 +1,4 @@
-.PHONY: clean clean-pyc clean-build build run help
+.PHONY: clean clean-pyc clean-build build run check-env help
 
 VENV   = venv
 PYTHON = $(VENV)/bin/python
@@ -12,7 +12,18 @@ help:
 	@echo "  make clean-pyc   → supprimer les fichiers Python compilés"
 	@echo "  make clean-build → supprimer les artefacts de build"
 
-build: $(VENV)/bin/activate
+check-env:
+	@if [ ! -f .env ]; then \
+		echo "❌ Fichier .env introuvable — copie .env.example et remplis ta clé"; \
+		exit 1; \
+	fi
+	@if ! grep -q "OPENAI_API_KEY=." .env; then \
+		echo "❌ OPENAI_API_KEY est vide dans le .env — ajoute ta clé avant de lancer"; \
+		exit 1; \
+	fi
+	@echo "✅ Clé API détectée"
+
+build: $(VENV)/bin/activate check-env
 	@echo "📦 Installation des dépendances..."
 	$(PIP) install --upgrade pip -q
 	$(PIP) install -r requirements.txt -q
@@ -23,7 +34,7 @@ $(VENV)/bin/activate:
 	@echo "🐍 Création du virtual environment..."
 	python3 -m venv $(VENV)
 
-run:
+run: check-env
 	@echo "🚀 Lancement de main.py..."
 	$(PYTHON) main.py
 
