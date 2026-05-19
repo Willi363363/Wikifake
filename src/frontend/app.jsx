@@ -258,11 +258,20 @@ function InnerApp({ sessionData, resetSession }) {
   const playing = t.gameState === "playing" && !revealAll;
   const totalFakes = window.WIKIFAKE_FAKES.length;
 
+  // Timer — décrémente chaque seconde
   useEffect(() => {
     if (!playing) return;
     const id = setInterval(() => setTime(x => Math.max(0, x - 1)), 1000);
     return () => clearInterval(id);
   }, [playing]);
+
+  // Game over quand time atteint 0
+  useEffect(() => {
+    if (time === 0 && t.gameState === "playing" && !revealAll) {
+      setRevealAll(true);
+      setTweak("gameState", "results");
+    }
+  }, [time]);
 
   // Multiplayer State
   const [leaderboard, setLeaderboard] = useState(null);
