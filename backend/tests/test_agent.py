@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from src.backend.core.agent import FakeNewsGame
+from src.core.agent import FakeNewsGame
 
 @pytest.fixture
 def fake_game():
@@ -11,15 +11,15 @@ def test_game_init(fake_game):
     assert fake_game.current_topic is None
     assert fake_game.get_current_game() is None
 
-@patch('src.backend.core.agent.get_wikipedia_content')
+@patch('src.core.agent.get_wikipedia_content')
 def test_start_game_no_wiki_data(mock_get_wiki, fake_game):
     mock_get_wiki.return_value = None
     result = fake_game.start_game("Cat")
     assert result is None
 
-@patch('src.backend.core.agent.swap_paragraphs')
-@patch('src.backend.core.agent.extract_paragraphs')
-@patch('src.backend.core.agent.get_wikipedia_content')
+@patch('src.core.agent.swap_paragraphs')
+@patch('src.core.agent.extract_paragraphs')
+@patch('src.core.agent.get_wikipedia_content')
 def test_start_game_success(mock_get_wiki, mock_extract, mock_swap, fake_game):
     # Setup mock returns
     mock_get_wiki.return_value = {
@@ -47,9 +47,9 @@ def test_submit_answers_no_game(fake_game):
     result = fake_game.submit_answers([1, 2])
     assert "error" in result
 
-@patch('src.backend.core.agent.get_wikipedia_content')
-@patch('src.backend.core.agent.extract_paragraphs')
-@patch('src.backend.core.agent.swap_paragraphs')
+@patch('src.core.agent.get_wikipedia_content')
+@patch('src.core.agent.extract_paragraphs')
+@patch('src.core.agent.swap_paragraphs')
 def test_submit_answers_with_game(mock_swap, mock_extract, mock_wiki, fake_game):
     mock_wiki.return_value = {
         "title": "Dog",

@@ -30,7 +30,7 @@ def test_websocket_join_invalid_room():
         with client.websocket_connect("/ws/INVALID/player1") as websocket:
             websocket.receive_json()
 
-@patch('src.backend.core.agent.get_wikipedia_content')
+@patch('src.core.agent.get_wikipedia_content')
 def test_websocket_start_game_error(mock_wiki):
     mock_wiki.return_value = None  # simulate not found
     res = client.post("/api/multiplayer/create")

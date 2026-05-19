@@ -1,5 +1,5 @@
 import pytest
-from src.backend.core.verification import check_answer, get_feedback
+from src.core.verification import check_answer, get_feedback
 
 def test_check_answer_perfect_score():
     user_answers = [1, 3]
