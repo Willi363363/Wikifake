@@ -42,14 +42,10 @@ def main_game_loop():
         console.print()
         time.sleep(1)
         print_solutions(game_content)
-        play_again = console.input("[cyan]Voulez-vous générer un autre article avec des fausses informations ? (oui/non/exit)[/cyan] ").strip().lower()
+        play_again = console.input("[cyan]Voulez-vous générer un autre article avec des fausses informations ? (oui/non)[/cyan] ").strip().lower()
         if play_again not in ["oui", "o", "yes", "y"]:
             print_goodbye()
             break
-        if play_again in ["exit", "e"]:
-            print_goodbye()
-            break
-        
         game.reset_game()
         console.print("\n" * 2)
 
