@@ -349,3 +349,630 @@ body::after {
   caret-color: var(--bronze);
 }
 .expert-input:focus { box-shadow: 0 0 0 3px rgba(140, 109, 54, 0.12); }
+
+/* ============ WAITING SCREEN ============ */
+.waiting-container {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  transition: opacity 500ms cubic-bezier(.2,.6,.2,1), transform 500ms cubic-bezier(.2,.6,.2,1);
+}
+.waiting-container.fade-out {
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+}
+
+.waiting-card {
+  width: 100%;
+  max-width: 580px;
+  background: var(--glass-strong);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: waiting-card-in 600ms cubic-bezier(.2,.6,.2,1) both;
+}
+@keyframes waiting-card-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.waiting-header {
+  padding: 28px 32px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.waiting-header .waiting-logo {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), #2a7568);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(31, 87, 77, 0.22);
+  flex-shrink: 0;
+}
+.waiting-header .waiting-logo img {
+  width: 100%; height: 100%;
+  object-fit: cover; border-radius: 12px;
+}
+.waiting-header .waiting-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+.waiting-header .waiting-topic {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* Progress section */
+.waiting-progress {
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--line);
+}
+.waiting-progress-bar {
+  width: 100%;
+  height: 4px;
+  background: rgba(24, 24, 27, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.waiting-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), #2a9585);
+  transition: width 800ms cubic-bezier(.2,.6,.2,1);
+  position: relative;
+}
+.waiting-progress-fill::after {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 40px; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4));
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+.waiting-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.waiting-status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse-dot 1.4s ease-in-out infinite;
+}
+.waiting-status-label {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 500;
+  transition: opacity 300ms ease;
+}
+.waiting-status-pct {
+  margin-left: auto;
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============ BACKGROUND ANIMATION ============ */
+.data-stream-animation {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  opacity: 0.15;
+  pointer-events: none;
+}
+.ds-line {
+  position: absolute;
+  background: var(--accent);
+  border-radius: 999px;
+  animation: ds-flow linear infinite;
+}
+@keyframes ds-flow {
+  0% { transform: translateY(-100%); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* ============ GAME LAUNCHER ============ */
+.game-launcher-container {
+  padding: 0;
+  position: relative;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+.launcher-toggle-btn {
+  margin: 20px auto;
+  font-family: 'Geist', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  padding: 10px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 200ms ease;
+}
+.launcher-toggle-btn:hover {
+  background: rgba(31, 87, 77, 0.15);
+  transform: translateY(-1px);
+}
+.launcher-toggle-btn.expanded {
+  background: white;
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.launcher-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 0 32px 32px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fade-up 300ms cubic-bezier(.2,.6,.2,1) forwards;
+}
+@keyframes fade-up {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.game-card {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 200ms ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.game-card:hover {
+  background: white;
+  border-color: var(--accent-line);
+  box-shadow: 0 4px 12px rgba(31, 87, 77, 0.08);
+  transform: translateY(-2px);
+}
+.game-card .game-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.game-card-title {
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.active-game-container {
+  padding: 16px 32px 24px;
+  animation: fade-up 300ms cubic-bezier(.2,.6,.2,1) forwards;
+}
+.back-to-launcher {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  transition: color 200ms;
+}
+.back-to-launcher:hover { color: var(--ink); }
+
+/* ============ TIC-TAC-TOE ============ */
+.ttt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 200px;
+  margin: 0 auto;
+}
+.ttt-cell {
+  aspect-ratio: 1;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.6);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Instrument Serif', serif;
+  font-size: 32px;
+  font-style: italic;
+  color: var(--ink);
+  transition: all 160ms ease;
+  user-select: none;
+}
+.ttt-cell:hover:not(.taken) {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  transform: scale(1.04);
+}
+.ttt-cell.taken { cursor: default; }
+.ttt-cell .x-mark { color: var(--accent); }
+.ttt-cell .o-mark { color: var(--bronze); }
+.ttt-cell.win-cell {
+  background: var(--green-soft);
+  border-color: rgba(74, 122, 82, 0.3);
+}
+.ttt-status {
+  text-align: center;
+  margin-top: 14px;
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  color: var(--ink-2);
+  min-height: 22px;
+}
+.ttt-score {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 8px;
+}
+.ttt-score span {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ============ REACTION SPEED ============ */
+.reaction-area {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  border-radius: 14px;
+  background: rgba(24, 24, 27, 0.02);
+  border: 1px dashed var(--line-strong);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 200ms;
+}
+.reaction-area:hover { border-color: var(--accent-line); }
+.reaction-area.waiting-click { cursor: crosshair; }
+.reaction-target {
+  position: absolute;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translate(-50%, -50%) scale(0);
+  animation: reaction-pop 300ms cubic-bezier(.2,.8,.2,1.2) forwards;
+  cursor: pointer;
+  box-shadow: 0 0 0 0 rgba(31, 87, 77, 0.3);
+}
+@keyframes reaction-pop {
+  0% { transform: translate(-50%, -50%) scale(0); box-shadow: 0 0 0 0 rgba(31, 87, 77, 0.3); }
+  70% { transform: translate(-50%, -50%) scale(1.1); }
+  100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 12px rgba(31, 87, 77, 0); }
+}
+.reaction-target::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.5);
+}
+.reaction-result {
+  text-align: center;
+  margin-top: 12px;
+  min-height: 48px;
+}
+.reaction-time {
+  font-family: 'Instrument Serif', serif;
+  font-size: 36px;
+  color: var(--ink);
+  line-height: 1;
+}
+.reaction-time small {
+  font-family: 'Geist Mono', monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 4px;
+}
+.reaction-best {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  margin-top: 4px;
+}
+.reaction-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* ============ MEMORY FLIP CARDS ============ */
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 260px;
+  margin: 0 auto;
+}
+.memory-card {
+  aspect-ratio: 1;
+  perspective: 600px;
+  cursor: pointer;
+}
+.memory-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 400ms cubic-bezier(.4,.0,.2,1);
+  transform-style: preserve-3d;
+}
+.memory-card.flipped .memory-card-inner,
+.memory-card.matched .memory-card-inner {
+  transform: rotateY(180deg);
+}
+.memory-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+}
+.memory-card-front {
+  background: linear-gradient(135deg, rgba(31, 87, 77, 0.08), rgba(31, 87, 77, 0.03));
+  color: var(--accent);
+  font-size: 16px;
+}
+.memory-card-front::after {
+  content: '?';
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: var(--accent);
+  opacity: 0.5;
+}
+.memory-card-back {
+  background: white;
+  transform: rotateY(180deg);
+  font-size: 26px;
+  user-select: none;
+}
+.memory-card.matched .memory-card-face {
+  border-color: rgba(74, 122, 82, 0.3);
+}
+.memory-card.matched .memory-card-back {
+  background: var(--green-soft);
+}
+.memory-card:hover:not(.matched):not(.flipped) .memory-card-inner {
+  transform: rotateY(8deg);
+}
+.memory-status {
+  text-align: center;
+  margin-top: 14px;
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.memory-moves {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  text-align: center;
+}
+
+/* ============ PATTERN MATCH ============ */
+.pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  width: 220px;
+  margin: 0 auto;
+}
+.pattern-cell {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+.pattern-cell:hover:not(.locked) {
+  border-color: var(--accent-line);
+  background: rgba(31, 87, 77, 0.04);
+}
+.pattern-cell.highlighted {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(31, 87, 77, 0.25);
+}
+.pattern-cell.selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.pattern-cell.correct {
+  background: var(--green-soft);
+  border-color: rgba(74, 122, 82, 0.3);
+}
+.pattern-cell.wrong {
+  background: var(--danger-soft);
+  border-color: rgba(166, 75, 72, 0.3);
+}
+.pattern-cell.locked {
+  cursor: default;
+}
+.pattern-info {
+  text-align: center;
+  margin-top: 14px;
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  color: var(--ink-2);
+  min-height: 22px;
+}
+.pattern-score {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  text-align: center;
+}
+
+/* ============ MULTIPLAYER WAITING ============ */
+.waiting-players {
+  padding: 16px 32px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.waiting-player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid var(--line);
+  font-family: 'Geist', sans-serif;
+  font-size: 12px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.waiting-player-avatar {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+/* ============ SNAKE ============ */
+.snake-board {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.snake-cell {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 2px;
+}
+.snake-food {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: var(--danger);
+  border-radius: 50%;
+}
+.snake-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+/* ============ DINO ============ */
+.dino-board {
+  position: relative;
+  width: 320px;
+  height: 120px;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  margin: 0 auto;
+  overflow: hidden;
+  cursor: pointer;
+}
+.dino-ground {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--line-strong);
+}
+.dino-player {
+  position: absolute;
+  bottom: 22px;
+  left: 30px;
+  width: 20px;
+  height: 20px;
+  background: var(--accent);
+  border-radius: 4px;
+}
+.dino-obstacle {
+  position: absolute;
+  bottom: 22px;
+  width: 12px;
+  height: 24px;
+  background: var(--danger);
+  border-radius: 2px;
+}
