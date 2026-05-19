@@ -39,6 +39,9 @@ run: check-env
 	$(PYTHON) main.py
 
 test: $(VENV)/bin/activate check-env
+	@echo "📦 Installation des dépendances..."
+	$(PIP) install --upgrade pip -q
+	$(PIP) install -r backend/requirements.txt -q
 	@echo "🧪 Lancement des tests..."
 	$(PYTHON) -m pytest backend/tests/ -v
 clean:
