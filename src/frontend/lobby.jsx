@@ -136,6 +136,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
                   <span>30s</span>
                   <span>10min</span>
                 </div>
+              </div>
               <div
                 onClick={() => setWithItems(v => !v)}
                 style={{
