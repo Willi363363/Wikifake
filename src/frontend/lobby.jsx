@@ -7,10 +7,11 @@ function Lobby({ onStart, onMultiplayerStart }) {
   const [roomCode, setRoomCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
+
   // Multiplayer state
   const [players, setPlayers] = useState([]);
   const [isHost, setIsHost] = useState(false);
+  const [withItems, setWithItems] = useState(true);
   const ws = useRef(null);
 
   const handleSoloSubmit = async (e) => {
@@ -95,7 +96,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
       return;
     }
     setLoading(true);
-    ws.current.send(JSON.stringify({ type: "start_game", category }));
+    ws.current.send(JSON.stringify({ type: "start_game", category, with_items: withItems }));
   };
 
   if (mode === "lobby") {
@@ -125,6 +126,33 @@ function Lobby({ onStart, onMultiplayerStart }) {
                 style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc" }}
                 disabled={loading}
               />
+              <div
+                onClick={() => setWithItems(v => !v)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "space-between",
+                  padding: "10px 14px",
+                  border: "1px solid #ccc", borderRadius: "4px",
+                  cursor: "pointer", userSelect: "none",
+                  background: withItems ? "var(--accent-soft)" : "#f5f5f5",
+                  transition: "background 150ms",
+                }}
+              >
+                <span style={{ fontSize: "14px", color: "var(--ink)" }}>
+                  🎁 Jouer avec les items
+                </span>
+                <span style={{
+                  width: 36, height: 20, borderRadius: 999,
+                  background: withItems ? "var(--accent)" : "#ccc",
+                  position: "relative", transition: "background 150ms", flexShrink: 0,
+                }}>
+                  <span style={{
+                    position: "absolute", top: 3, left: withItems ? 19 : 3,
+                    width: 14, height: 14, borderRadius: "50%",
+                    background: "white", transition: "left 150ms",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+                  }}/>
+                </span>
+              </div>
               <button onClick={handleStartMulti} disabled={loading || !category} style={{ padding: "12px", background: "var(--accent)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontWeight: "bold" }}>
                 {loading ? "Génération en cours..." : "Démarrer la partie"}
               </button>
