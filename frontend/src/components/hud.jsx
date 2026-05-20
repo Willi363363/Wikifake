@@ -145,7 +145,13 @@ function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progr
         gap: 24,
       }}>
         {/* Big logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div
+          onClick={onLogoClick || undefined}
+          style={{
+            display: "flex", alignItems: "center", gap: 14,
+            cursor: onLogoClick ? "pointer" : "default",
+          }}
+        >
           <div style={{
             width: 44, height: 44,
             borderRadius: 12,

@@ -1562,6 +1562,7 @@ function InnerApp({ sessionData, resetSession }) {
         hintsUsed={hintsUsed}
         round={roundInfo.current}
         maxRounds={roundInfo.max}
+        onLogoClick={revealAll ? resetSession : undefined}
       />
 
       {briefOpen && (
