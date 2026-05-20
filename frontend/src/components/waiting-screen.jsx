@@ -615,6 +615,8 @@ function WaitingScreen({ category, onReady, onError, isMultiplayer, lobbyPlayers
   const [launcherState, setLauncherState] = useState("closed"); // "closed", "selector", or game_id
   const progressRef = useRef(null);
   const fetchDone = useRef(false);
+  const onReadyRef = useRef(onReady);
+  useEffect(() => { onReadyRef.current = onReady; }, [onReady]);
 
   // Simulated progress
   useEffect(() => {
@@ -684,10 +686,10 @@ function WaitingScreen({ category, onReady, onError, isMultiplayer, lobbyPlayers
   useEffect(() => {
     if (dataReady && progress >= 100) {
       const t1 = setTimeout(() => setFadingOut(true), 700);
-      const t2 = setTimeout(() => onReady(dataReady), 1200);
+      const t2 = setTimeout(() => onReadyRef.current(dataReady), 1200);
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }
-  }, [dataReady, progress, onReady]);
+  }, [dataReady, progress]);
 
   const toggleLauncher = () => {
     setLauncherState(prev => prev === "closed" ? "selector" : "closed");
