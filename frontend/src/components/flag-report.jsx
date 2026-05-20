@@ -34,9 +34,9 @@ function FlagButton({ onClick, count, disabled }) {
       title="Signaler une erreur factuelle"
       style={{
         position: "fixed",
-        bottom: 28,
-        right: 28,
-        zIndex: 200,
+        bottom: 88,
+        right: 24,
+        zIndex: 10000,
         width: 48,
         height: 48,
         borderRadius: "50%",
