@@ -660,12 +660,23 @@ function WaitingScreen({ category, onReady, onError, isMultiplayer, lobbyPlayers
 
   // Expose ready callback for multiplayer
   useEffect(() => {
-    window.__waitingScreenReady = (data) => {
+    const trigger = (data) => {
       fetchDone.current = true;
       clearInterval(progressRef.current);
       setProgress(100);
       setDataReady(data);
     };
+
+    window.__waitingScreenReady = trigger;
+
+    // Handle race condition: round_start may have arrived BEFORE this component mounted.
+    // If so, the data was stored in window.__pendingRoundData by the InnerApp handler.
+    if (window.__pendingRoundData) {
+      const data = window.__pendingRoundData;
+      delete window.__pendingRoundData;
+      trigger(data);
+    }
+
     return () => { delete window.__waitingScreenReady; };
   }, []);
 

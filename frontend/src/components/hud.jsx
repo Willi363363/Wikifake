@@ -412,7 +412,7 @@ function Leaderboard({ players }) {
 function BotCursor({ x, y, name, color }) {
   return (
     <div style={{
-      position: "absolute", left: x, top: y, zIndex: 50, pointerEvents: "none",
+      position: "fixed", left: x, top: y, zIndex: 500, pointerEvents: "none",
       transition: "left 1.6s cubic-bezier(.4,.2,.2,1), top 1.6s cubic-bezier(.4,.2,.2,1)",
     }}>
       <svg width="16" height="16" viewBox="0 0 16 16" style={{ filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.15))` }}>
