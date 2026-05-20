@@ -13,6 +13,7 @@ import asyncio
 
 from src.core.agent import FakeNewsGame
 from src.core.verification import check_answer
+from typing import Optional
 
 load_dotenv()
 app = FastAPI()
@@ -89,8 +90,9 @@ class CreateRoomRequest(BaseModel):
     max_rounds: int = 1
 
 @app.post("/api/multiplayer/create")
-def create_room(req: CreateRoomRequest):
+def create_room(req: Optional[CreateRoomRequest] = None):
     code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    max_rounds = req.max_rounds if req is not None else 1
     rooms[code] = {
         "players": {},
         "game_data": None,
@@ -98,7 +100,7 @@ def create_room(req: CreateRoomRequest):
         "start_time": 0,
         "item_task": None,
         "time_limit": GAME_DURATION,
-        "max_rounds": max(1, min(req.max_rounds, 10)),
+        "max_rounds": max(1, min(max_rounds, 10)),
         "current_round": 0,
         "voting_themes": {},
     }
@@ -168,11 +170,46 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                     await websocket.send_text(json.dumps({"type": "error", "message": "Personne n'a encore proposé de thème."}))
 
             elif data["type"] == "start_game" and room["state"] == "waiting":
-                if "with_items" in data:
-                    room["with_items"] = data["with_items"]
-                if "time_limit" in data:
-                    room["time_limit"] = int(data["time_limit"])
-                await start_theme_voting(room_code)
+                category = data.get("category")
+                with_items = data.get("with_items", True)
+                time_limit = int(data.get("time_limit", GAME_DURATION))
+                room["with_items"] = with_items
+                room["time_limit"] = time_limit
+
+                game_data = game.start_game(category)
+                if not game_data:
+                    await websocket.send_text(json.dumps({"type": "error", "message": "Mot-clé introuvable."}))
+                    continue
+
+                room["game_data"] = game_data
+                room["state"] = "playing"
+                room["start_time"] = time.time()
+
+                for p in room["players"].values():
+                    p["score"] = 0
+                    p["answered"] = False
+                    p["results"] = None
+                    p["items"] = []
+
+                if room["item_task"] and not room["item_task"].done():
+                    room["item_task"].cancel()
+                if with_items:
+                    room["item_task"] = asyncio.create_task(item_distribution_loop(room_code))
+
+                await broadcast(room_code, {
+                    "type": "game_start",
+                    "data": {
+                        "topic": game_data["topic"],
+                        "paragraphs": game_data["paragraphs"],
+                        "misinformations": game_data["misinformations"],
+                        "positions": game_data["positions"],
+                        "total_fakes": game_data["total_false_statements"],
+                        "wikipedia_url": game_data.get("wikipedia_url", ""),
+                        "players": list(room["players"].keys()),
+                        "with_items": with_items,
+                        "time_limit": time_limit,
+                    }
+                })
 
             elif data["type"] == "live_score" and room["state"] == "playing":
                 await broadcast(room_code, {
