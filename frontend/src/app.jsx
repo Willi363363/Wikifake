@@ -1035,6 +1035,14 @@ function InnerApp({ sessionData, resetSession }) {
   const [liveScores, setLiveScores] = useState({});
   const [cursors, setCursors] = useState({});
 
+  // Round and Theme Voting State
+  const [roundEndData, setRoundEndData] = useState(null);
+  const [themeVoting, setThemeVoting] = useState(null);
+  const [myVoteTheme, setMyVoteTheme] = useState("");
+  const [myVoteSubmitted, setMyVoteSubmitted] = useState(false);
+  const [themeSelected, setThemeSelected] = useState(null);
+  const [roundInfo, setRoundInfo] = useState({ current: 1, max: 1 });
+
   useEffect(() => {
     if (sessionData && sessionData.multiplayer) {
       const socket = sessionData.multiplayer.socket;
@@ -1046,6 +1054,60 @@ function InnerApp({ sessionData, resetSession }) {
           setLeaderboard(msg.leaderboard);
           setRevealAll(true);
           setTimeout(() => setTweak("gameState", "results"), 600);
+        } else if (msg.type === "round_end") {
+          setWaitingForOthers(false);
+          setRoundEndData(msg);
+        } else if (msg.type === "theme_vote_start") {
+          setRoundEndData(null);
+          setThemeVoting({ round: msg.round, maxRounds: msg.max_rounds, submitted: [], total: players.length || 1 });
+          setMyVoteSubmitted(false);
+          setMyVoteTheme("");
+          setThemeSelected(null);
+        } else if (msg.type === "theme_vote_update") {
+          setThemeVoting(prev => prev ? { ...prev, submitted: msg.submitted, total: msg.total } : null);
+        } else if (msg.type === "theme_selected") {
+          setThemeSelected(msg);
+        } else if (msg.type === "round_start") {
+          setThemeVoting(null);
+          setThemeSelected(null);
+          setRoundInfo({ current: msg.round, max: msg.max_rounds });
+          
+          // Inject new data
+          const data = msg.data;
+          const newBody = data.paragraphs.map((p, idx) => {
+            const isFake = data.positions.find(pos => pos.paragraph_index === idx + 1);
+            if (isFake) {
+              return [{ kind: "token", id: "p" + idx, text: p, fake: { id: "F" + idx, truth: isFake.explanation || "A identifier", hint: isFake.hint || "Vérifiez cette information" } }];
+            } else {
+              return [{ kind: "token", id: "p" + idx, text: p, fake: null }];
+            }
+          });
+          window.WIKIFAKE_ARTICLE = { title: data.topic, subtitle: "Wikipedia" };
+          window.WIKIFAKE_INFOBOX = [
+            { label: "DESIGNATION", value: data.topic },
+            { label: "SOURCE", value: data.wikipedia_url || "Wikipedia" },
+            { label: "FAKES INJECTED", value: data.total_fakes.toString() },
+            { label: "STATUS", value: "LIVE", live: true }
+          ];
+          window.WIKIFAKE_BODY = [{ kind: "lead", paragraphs: newBody }];
+          window.WIKIFAKE_FAKES = data.positions.map((pos, i) => ({
+            id: "F" + (pos.paragraph_index - 1),
+            tokenId: "p" + (pos.paragraph_index - 1),
+            text: pos.false_statement,
+            level: 1,
+            truth: pos.explanation,
+            hint: pos.hint
+          }));
+          
+          // Reset states
+          setMarked({});
+          setEdited({});
+          setHintUnlocks({});
+          setTime(data.time_limit || 180);
+          setRevealAll(false);
+          setLeaderboard(null);
+          setItems([]);
+          setActiveEffects([]);
         } else if (msg.type === "live_score_update") {
           setLiveScores(prev => ({ ...prev, [msg.player]: msg.score }));
         } else if (msg.type === "cursor_update") {
@@ -1338,6 +1400,151 @@ function InnerApp({ sessionData, resetSession }) {
 
   return (
     <div style={{ minHeight: "100vh", position: "relative" }}>
+      {/* ── Theme Voting Overlay (Inter-Round) ── */}
+      {themeVoting && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 600,
+          background: "rgba(246,244,239,0.97)",
+          backdropFilter: "blur(20px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexDirection: "column", gap: 24,
+          fontFamily: "'Geist', sans-serif",
+          animation: "fade-in 300ms ease",
+        }}>
+          <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 48, margin: 0 }}>Vote de Thème (Round {themeVoting.round}/{themeVoting.maxRounds})</h2>
+          
+          {!myVoteSubmitted ? (
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              if (!myVoteTheme.trim()) return;
+              sessionData.multiplayer.socket.send(JSON.stringify({ type: "submit_theme", theme: myVoteTheme }));
+              setMyVoteSubmitted(true);
+            }} style={{ display: "flex", gap: 10 }}>
+              <input 
+                type="text" 
+                placeholder="Ex: Napoléon, Pizza..." 
+                value={myVoteTheme}
+                onChange={e => setMyVoteTheme(e.target.value)}
+                style={{ padding: "12px 18px", borderRadius: 10, border: "1px solid var(--line)", fontSize: 15, width: 260 }}
+                autoFocus
+              />
+              <button 
+                type="submit"
+                disabled={!myVoteTheme.trim()}
+                style={{ 
+                  padding: "12px 20px", borderRadius: 10, border: "none",
+                  background: myVoteTheme.trim() ? "var(--accent)" : "#ccc",
+                  color: "white", fontWeight: 700, cursor: myVoteTheme.trim() ? "pointer" : "not-allowed",
+                  fontSize: 15, transition: "all 180ms",
+                }}
+              >Voter</button>
+            </form>
+          ) : (
+            <div style={{ padding: "12px 24px", background: "var(--green-soft)", borderRadius: 10, color: "var(--green)", fontWeight: 600 }}>
+              ✓ Thème soumis : <strong>"{myVoteTheme}"</strong>
+            </div>
+          )}
+
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 8 }}>
+              {themeVoting.submitted.length} / {themeVoting.total} joueurs ont voté
+            </div>
+            <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+              {Array.from({ length: themeVoting.total }).map((_, i) => (
+                <div key={i} style={{
+                  width: 10, height: 10, borderRadius: "50%",
+                  background: i < themeVoting.submitted.length ? "var(--green)" : "var(--line-strong)",
+                  transition: "background 300ms",
+                }} />
+              ))}
+            </div>
+          </div>
+
+          {sessionData?.multiplayer?.isHost && themeVoting.submitted.length > 0 && (
+            <button
+              onClick={() => sessionData.multiplayer.socket.send(JSON.stringify({ type: "force_pick" }))}
+              style={{
+                padding: "10px 20px", borderRadius: 8, border: "1px solid var(--line)",
+                background: "white", color: "var(--ink)", fontWeight: 600, cursor: "pointer", fontSize: 14,
+              }}
+            >
+              ⚡ Choisir maintenant ({themeVoting.submitted.length} thème{themeVoting.submitted.length > 1 ? "s" : ""})
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── Theme Selected Overlay ── */}
+      {themeSelected && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 600,
+          background: "rgba(246,244,239,0.97)",
+          backdropFilter: "blur(20px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexDirection: "column", gap: 20,
+          fontFamily: "'Geist', sans-serif",
+          animation: "fade-in 300ms ease",
+        }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600, marginBottom: 12 }}>🎲 Thème sélectionné</div>
+            <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 52, margin: 0, color: "var(--accent)", letterSpacing: "-0.02em" }}>
+              {themeSelected.theme}
+            </h1>
+            <p style={{ color: "var(--muted)", marginTop: 12, fontSize: 14 }}>
+              Proposé par <strong>{themeSelected.proposer}</strong> · La partie commence dans {themeSelected.countdown}s…
+            </p>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", maxWidth: 480 }}>
+            {Object.entries(themeSelected.all_themes || {}).map(([name, theme]) => (
+              <span key={name} style={{
+                padding: "5px 14px", borderRadius: 999, fontSize: 13,
+                background: theme === themeSelected.theme ? "var(--accent)" : "white",
+                color: theme === themeSelected.theme ? "white" : "var(--ink-2)",
+                border: "1px solid var(--line)",
+                fontWeight: theme === themeSelected.theme ? 700 : 400,
+              }}>{theme} <span style={{ opacity: 0.6, fontSize: 11 }}>({name})</span></span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Inter-round overlay */}
+      {roundEndData && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 500,
+          background: "rgba(246,244,239,0.95)",
+          backdropFilter: "blur(18px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          flexDirection: "column", gap: 24,
+          fontFamily: "'Geist', sans-serif",
+          animation: "fade-in 300ms ease",
+        }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 12, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600, marginBottom: 8 }}>Round terminé</div>
+            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 40, margin: 0 }}>
+              Round {roundEndData.round} / {roundEndData.max_rounds}
+            </h2>
+            <p style={{ color: "var(--muted)", marginTop: 8, fontSize: 14 }}>
+              Vote du thème commence dans <strong style={{ color: "var(--accent)" }}>{roundEndData.countdown}s</strong>…
+            </p>
+          </div>
+          <div style={{ width: "min(420px, 90vw)", background: "white", borderRadius: 14, border: "1px solid var(--line)", overflow: "hidden" }}>
+            {(roundEndData.leaderboard || []).map((p, i) => (
+              <div key={i} style={{
+                display: "flex", alignItems: "center", gap: 12, padding: "12px 18px",
+                borderBottom: i < roundEndData.leaderboard.length - 1 ? "1px solid var(--line)" : "none",
+                background: p.name === sessionData?.multiplayer?.username ? "rgba(31,87,77,0.04)" : "white",
+              }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: "var(--muted)", width: 20 }}>#{i+1}</span>
+                <span style={{ width: 10, height: 10, borderRadius: "50%", background: p.color || "var(--ink)", flexShrink: 0 }} />
+                <span style={{ flex: 1, fontWeight: 500 }}>{p.name}</span>
+                <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 14, fontWeight: 600, color: "var(--accent)" }}>+{p.score}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <TopBar
         mode={t.mode}
         marked={markedCount}
@@ -1347,10 +1554,12 @@ function InnerApp({ sessionData, resetSession }) {
         onUnsubmit={onUnsubmit}
         target="Paris"
         progress={progress}
-        canSubmit={markedCount > 0 && !waitingForOthers && !revealAll}
+        canSubmit={markedCount > 0 && !waitingForOthers && !revealAll && !roundEndData}
         waiting={waitingForOthers}
         onOpenIntel={() => setIntelOpen(true)}
         hintsUsed={hintsUsed}
+        round={roundInfo.current}
+        maxRounds={roundInfo.max}
       />
 
       {/* Main: article fills viewport */}

@@ -8,6 +8,12 @@ function Lobby({ onStart, onMultiplayerStart }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [timeLimit, setTimeLimit] = useState(180); // 30s to 600s (10min)
+  const [maxRounds, setMaxRounds] = useState(1);
+  const [isReady, setIsReady] = useState(false);
+  const [themeVoting, setThemeVoting] = useState(null);
+  const [myVoteTheme, setMyVoteTheme] = useState("");
+  const [myVoteSubmitted, setMyVoteSubmitted] = useState(false);
+  const [themeSelected, setThemeSelected] = useState(null);
   
   // Multiplayer state
   const [players, setPlayers] = useState([]);
@@ -39,7 +45,11 @@ function Lobby({ onStart, onMultiplayerStart }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/multiplayer/create", { method: "POST" });
+      const res = await fetch("/api/multiplayer/create", { 
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ max_rounds: maxRounds })
+      });
       if (!res.ok) throw new Error("Erreur serveur.");
       const data = await res.json();
       setRoomCode(data.room_code);
@@ -75,11 +85,21 @@ function Lobby({ onStart, onMultiplayerStart }) {
       const msg = JSON.parse(event.data);
       if (msg.type === "lobby_update") {
         setPlayers(msg.players);
+      } else if (msg.type === "theme_vote_start") {
+        setThemeVoting({
+          round: msg.round, maxRounds: msg.max_rounds, submitted: [], total: players.length || 1
+        });
+        setMyVoteSubmitted(false);
+        setMyVoteTheme("");
+        setThemeSelected(null);
+        setMode("theme-voting");
+      } else if (msg.type === "theme_vote_update") {
+        setThemeVoting(prev => prev ? { ...prev, submitted: msg.submitted, total: msg.total } : null);
+      } else if (msg.type === "theme_selected") {
+        setThemeSelected(msg);
       } else if (msg.type === "game_start") {
-        // If in lobby-waiting, feed data to WaitingScreen
         if (window.__waitingScreenReady) {
           window.__waitingScreenReady(msg.data);
-          // Store the multiplayer info for after waiting screen transition
           window.__multiplayerContext = { socket, name, code, isHost };
         } else {
           onMultiplayerStart(msg.data, socket, name, code, isHost);
@@ -97,15 +117,15 @@ function Lobby({ onStart, onMultiplayerStart }) {
     };
   };
 
-  const handleStartMulti = () => {
-    if (!category) {
-      setError("Veuillez entrer un sujet.");
-      return;
-    }
+  const handleToggleReady = () => {
+    const nextReady = !isReady;
+    setIsReady(nextReady);
+    ws.current.send(JSON.stringify({ type: "set_ready", ready: nextReady, with_items: withItems, time_limit: timeLimit }));
+  };
+
+  const handleForceStart = () => {
     setLoading(true);
-    ws.current.send(JSON.stringify({ type: "start_game", category, with_items: withItems, time_limit: timeLimit }));
-    // Transition to waiting screen inside lobby
-    setMode("lobby-waiting");
+    ws.current.send(JSON.stringify({ type: "force_start", with_items: withItems, time_limit: timeLimit }));
   };
 
   // Multiplayer waiting: the WaitingScreen handles the transition
@@ -135,13 +155,61 @@ function Lobby({ onStart, onMultiplayerStart }) {
   if (mode === "lobby-waiting") {
     return (
       <window.WaitingScreen
-        category={category}
+        category="Un thème..."
         onReady={handleMultiWaitingReady}
         onError={(msg) => { setError(msg); setMode("lobby"); setLoading(false); }}
         isMultiplayer={true}
         lobbyPlayers={players}
         roomCode={roomCode}
       />
+    );
+  }
+
+  // ---- MULTIPLAYER THEME VOTING ----
+  if (mode === "theme-voting") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "var(--bg-primary)" }}>
+        <div style={{ background: "white", padding: "40px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxWidth: "500px", width: "100%" }}>
+          {themeSelected ? (
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 12, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>Thème sélectionné</div>
+              <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 48, margin: "10px 0", color: "var(--accent)" }}>{themeSelected.theme}</h2>
+              <p style={{ color: "var(--muted)" }}>Proposé par {themeSelected.proposer}</p>
+              <p style={{ marginTop: 20 }}>Lancement dans {themeSelected.countdown}s...</p>
+            </div>
+          ) : (
+            <div style={{ textAlign: "center" }}>
+              <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 36, marginBottom: 10 }}>Phase de Vote</h2>
+              <p style={{ color: "var(--muted)", marginBottom: 20 }}>Round {themeVoting?.round} / {themeVoting?.maxRounds}</p>
+              
+              {!myVoteSubmitted ? (
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!myVoteTheme.trim()) return;
+                  ws.current.send(JSON.stringify({ type: "submit_theme", theme: myVoteTheme }));
+                  setMyVoteSubmitted(true);
+                }} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <input type="text" placeholder="Proposer un thème..." value={myVoteTheme} onChange={e => setMyVoteTheme(e.target.value)} style={{ padding: 12, borderRadius: 8, border: "1px solid #ccc" }} />
+                  <button type="submit" style={{ padding: 12, background: "var(--accent)", color: "white", borderRadius: 8, border: "none", fontWeight: "bold" }}>Soumettre le thème</button>
+                </form>
+              ) : (
+                <div style={{ padding: 12, background: "var(--green-soft)", borderRadius: 8, color: "var(--green)", fontWeight: "bold" }}>
+                  Thème soumis : {myVoteTheme}
+                </div>
+              )}
+              
+              <div style={{ marginTop: 20 }}>
+                <p>{themeVoting?.submitted.length} / {themeVoting?.total} joueurs ont voté</p>
+                {isHost && themeVoting?.submitted.length > 0 && (
+                  <button onClick={() => ws.current.send(JSON.stringify({ type: "force_pick" }))} style={{ marginTop: 10, padding: "8px 16px", background: "white", border: "1px solid var(--line)", borderRadius: 8, cursor: "pointer" }}>
+                    Choisir maintenant
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     );
   }
 
@@ -165,14 +233,16 @@ function Lobby({ onStart, onMultiplayerStart }) {
           
           {isHost ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-              <input
-                type="text"
-                placeholder="Sujet Wikipédia (ex: Paris, Python...)"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc" }}
-                disabled={loading}
-              />
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "var(--ink)" }}>
+                  Nombre de rounds: {maxRounds}
+                </label>
+                <input type="range" min="1" max="10" step="1" value={maxRounds} onChange={(e) => setMaxRounds(Number(e.target.value))} style={{ width: "100%", padding: 0 }} disabled={loading} />
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--muted)", marginTop: "4px" }}>
+                  <span>1</span>
+                  <span>10</span>
+                </div>
+              </div>
               <div>
                 <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "var(--ink)" }}>
                   Limite de temps: {timeLimit < 60 ? timeLimit + "s" : (timeLimit / 60).toFixed(1) + "min"}
@@ -210,12 +280,22 @@ function Lobby({ onStart, onMultiplayerStart }) {
                   }}/>
                 </span>
               </div>
-              <button onClick={handleStartMulti} disabled={loading || !category} style={{ padding: "12px", background: "var(--accent)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontWeight: "bold" }}>
-                {loading ? "Génération en cours..." : "Démarrer la partie"}
-              </button>
+              <div style={{ display: "flex", gap: "10px" }}>
+                <button onClick={handleToggleReady} disabled={loading} style={{ flex: 1, padding: "12px", background: isReady ? "var(--green)" : "var(--bronze)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontWeight: "bold" }}>
+                  {isReady ? "Prêt !" : "Je suis prêt"}
+                </button>
+                <button onClick={handleForceStart} disabled={loading} style={{ flex: 1, padding: "12px", background: "var(--accent)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontWeight: "bold" }}>
+                  Forcer Démarrage
+                </button>
+              </div>
             </div>
           ) : (
-            <p style={{ textAlign: "center", fontStyle: "italic", color: "var(--muted)" }}>En attente de l'hôte pour lancer la partie...</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+              <p style={{ textAlign: "center", fontStyle: "italic", color: "var(--muted)" }}>En attente de l'hôte pour lancer la partie...</p>
+              <button onClick={handleToggleReady} disabled={loading} style={{ width: "100%", padding: "12px", background: isReady ? "var(--green)" : "var(--bronze)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontWeight: "bold" }}>
+                {isReady ? "Prêt !" : "Je suis prêt"}
+              </button>
+            </div>
           )}
           {error && <p style={{ color: "red", marginTop: "10px", textAlign: "center" }}>{error}</p>}
         </div>

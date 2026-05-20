@@ -85,8 +85,11 @@ async def item_distribution_loop(room_code: str):
     except asyncio.CancelledError:
         pass
 
+class CreateRoomRequest(BaseModel):
+    max_rounds: int = 1
+
 @app.post("/api/multiplayer/create")
-def create_room():
+def create_room(req: CreateRoomRequest):
     code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
     rooms[code] = {
         "players": {},
@@ -95,6 +98,9 @@ def create_room():
         "start_time": 0,
         "item_task": None,
         "time_limit": GAME_DURATION,
+        "max_rounds": max(1, min(req.max_rounds, 10)),
+        "current_round": 0,
+        "voting_themes": {},
     }
     return {"room_code": code}
 
@@ -110,7 +116,8 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
         "socket": websocket,
         "score": 0,
         "answered": False,
-        "results": None
+        "results": None,
+        "ready": False
     }
 
     await broadcast_lobby(room_code)
@@ -120,47 +127,52 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
             data_str = await websocket.receive_text()
             data = json.loads(data_str)
 
-            if data["type"] == "start_game" and room["state"] == "waiting":
-                category = data.get("category")
-                with_items = data.get("with_items", True)
-                time_limit = int(data.get("time_limit", GAME_DURATION))
-                room["with_items"] = with_items
-                room["time_limit"] = time_limit
+            if data["type"] == "set_ready":
+                room["players"][player_name]["ready"] = data.get("ready", True)
+                if "with_items" in data:
+                    room["with_items"] = data["with_items"]
+                if "time_limit" in data:
+                    room["time_limit"] = int(data["time_limit"])
+                await broadcast_lobby(room_code)
+                # Auto-start (go to theme voting) when all connected players are ready
+                connected_players = [p for p in room["players"].values() if p.get("connected", True)]
+                if len(connected_players) >= 1 and all(p["ready"] for p in connected_players):
+                    await start_theme_voting(room_code)
 
-                game_data = game.start_game(category)
-                if not game_data:
-                    await websocket.send_text(json.dumps({"type": "error", "message": "Mot-clé introuvable."}))
-                    continue
+            elif data["type"] == "force_start" and room["state"] == "waiting":
+                if "with_items" in data:
+                    room["with_items"] = data["with_items"]
+                if "time_limit" in data:
+                    room["time_limit"] = int(data["time_limit"])
+                await start_theme_voting(room_code)
 
-                room["game_data"] = game_data
-                room["state"] = "playing"
-                room["start_time"] = time.time()
+            elif data["type"] == "submit_theme" and room["state"] == "theme_voting":
+                theme = data.get("theme", "").strip()
+                if theme:
+                    room["voting_themes"][player_name] = theme
+                    connected_players = [n for n, p in room["players"].items() if p.get("connected", True)]
+                    submitted = list(room["voting_themes"].keys())
+                    await broadcast(room_code, {
+                        "type": "theme_vote_update",
+                        "submitted": submitted,
+                        "total": len(connected_players)
+                    })
+                    # If everyone voted, pick a random theme and start
+                    if all(n in room["voting_themes"] for n in connected_players):
+                        await pick_and_start(room_code)
 
-                for p in room["players"].values():
-                    p["score"] = 0
-                    p["answered"] = False
-                    p["results"] = None
-                    p["items"] = []
+            elif data["type"] == "force_pick" and room["state"] == "theme_voting":
+                if room["voting_themes"]:
+                    await pick_and_start(room_code)
+                else:
+                    await websocket.send_text(json.dumps({"type": "error", "message": "Personne n'a encore proposé de thème."}))
 
-                if room["item_task"] and not room["item_task"].done():
-                    room["item_task"].cancel()
-                if with_items:
-                    room["item_task"] = asyncio.create_task(item_distribution_loop(room_code))
-
-                await broadcast(room_code, {
-                    "type": "game_start",
-                    "data": {
-                        "topic": game_data["topic"],
-                        "paragraphs": game_data["paragraphs"],
-                        "misinformations": game_data["misinformations"],
-                        "positions": game_data["positions"],
-                        "total_fakes": game_data["total_false_statements"],
-                        "wikipedia_url": game_data.get("wikipedia_url", ""),
-                        "players": list(room["players"].keys()),
-                        "with_items": with_items,
-                        "time_limit": time_limit,
-                    }
-                })
+            elif data["type"] == "start_game" and room["state"] == "waiting":
+                if "with_items" in data:
+                    room["with_items"] = data["with_items"]
+                if "time_limit" in data:
+                    room["time_limit"] = int(data["time_limit"])
+                await start_theme_voting(room_code)
 
             elif data["type"] == "live_score" and room["state"] == "playing":
                 await broadcast(room_code, {
@@ -248,26 +260,61 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
 
                 all_answered = all(p["answered"] for p in room["players"].values())
                 if all_answered:
-                    room["state"] = "waiting"
+                    max_rounds = room.get("max_rounds", 1)
+                    current_round = room.get("current_round", 0)
+                    
                     if room["item_task"] and not room["item_task"].done():
                         room["item_task"].cancel()
-                    leaderboard = [
+
+                    round_leaderboard = [
                         {
                             "id": name,
                             "name": name,
                             "score": p["score"],
-                            "breakdown": {
-                                "tp": p["results"]["tp"],
-                                "fp": p["results"]["fp"],
-                                "timeBonus": p["results"]["timeBonus"],
-                                "hintsUsed": p["results"]["hintsUsed"],
-                                "hintPenalty": p["results"]["hintPenalty"]
-                            }
+                            "color": p.get("color"),
+                            "breakdown": p["results"],
                         }
                         for name, p in room["players"].items()
                     ]
-                    leaderboard.sort(key=lambda x: x["score"], reverse=True)
-                    await broadcast(room_code, {"type": "game_end", "leaderboard": leaderboard})
+                    round_leaderboard.sort(key=lambda x: x["score"], reverse=True)
+
+                    for name, p in room["players"].items():
+                        p["total_score"] = p.get("total_score", 0) + p["score"]
+
+                    if current_round < max_rounds - 1:
+                        next_round = current_round + 1
+                        room["current_round"] = next_round
+
+                        await broadcast(room_code, {
+                            "type": "round_end",
+                            "round": current_round + 1,
+                            "max_rounds": max_rounds,
+                            "leaderboard": round_leaderboard,
+                            "next_round": next_round + 1,
+                            "countdown": 5
+                        })
+
+                        import asyncio
+                        await asyncio.sleep(5)
+                        room["state"] = "waiting"
+                        await start_theme_voting(room_code)
+                    else:
+                        room["state"] = "waiting"
+                        room["current_round"] = 0
+                        final_leaderboard = [
+                            {
+                                "id": name,
+                                "name": name,
+                                "score": p.get("total_score", p["score"]),
+                                "color": p.get("color"),
+                                "breakdown": p["results"],
+                            }
+                            for name, p in room["players"].items()
+                        ]
+                        final_leaderboard.sort(key=lambda x: x["score"], reverse=True)
+                        for p in room["players"].values():
+                            p["total_score"] = 0
+                        await broadcast(room_code, {"type": "game_end", "leaderboard": final_leaderboard})
                 else:
                     await broadcast_lobby(room_code)
 
@@ -284,7 +331,7 @@ async def broadcast_lobby(room_code: str):
     if room_code not in rooms:
         return
     room = rooms[room_code]
-    players_data = [{"name": name, "answered": p["answered"]} for name, p in room["players"].items()]
+    players_data = [{"name": name, "answered": p["answered"], "ready": p.get("ready", False)} for name, p in room["players"].items()]
     await broadcast(room_code, {"type": "lobby_update", "players": players_data})
 
 async def broadcast(room_code: str, message: dict):
@@ -296,6 +343,116 @@ async def broadcast(room_code: str, message: dict):
             await p["socket"].send_text(msg_str)
         except:
             pass
+
+async def start_theme_voting(room_code: str):
+    room = rooms[room_code]
+    room["state"] = "theme_voting"
+    room["voting_themes"] = {}
+    
+    current_round = room.get("current_round", 0)
+    max_rounds = room.get("max_rounds", 1)
+    
+    await broadcast(room_code, {
+        "type": "theme_vote_start",
+        "round": current_round + 1,
+        "max_rounds": max_rounds
+    })
+
+async def pick_and_start(room_code: str):
+    room = rooms[room_code]
+    themes = list(room["voting_themes"].values())
+    fallback_themes = ["Paris", "Chat", "Chocolat", "Football", "Soleil", "Lune", "Château", "Pizza", "Japon", "Cinéma"]
+    
+    success = False
+    chosen = ""
+    proposer = "Système"
+    game_data = None
+    
+    available_themes = list(set(themes))
+    random.shuffle(available_themes)
+    
+    for theme in available_themes:
+        data = game.start_game(theme)
+        if data:
+            chosen = theme
+            proposers = [n for n, t in room["voting_themes"].items() if t == theme]
+            proposer = proposers[0] if proposers else "Système"
+            game_data = data
+            success = True
+            break
+            
+    if not success:
+        random.shuffle(fallback_themes)
+        for theme in fallback_themes:
+            data = game.start_game(theme)
+            if data:
+                chosen = theme
+                proposer = "Système"
+                game_data = data
+                success = True
+                break
+                
+    if not success:
+        await broadcast(room_code, {"type": "error", "message": "Erreur critique : Impossible de charger un sujet Wikipédia."})
+        room["state"] = "waiting"
+        await broadcast_lobby(room_code)
+        return
+    
+    await broadcast(room_code, {
+        "type": "theme_selected",
+        "theme": chosen,
+        "proposer": proposer,
+        "all_themes": room["voting_themes"],
+        "countdown": 3
+    })
+    
+    import asyncio
+    await asyncio.sleep(3)
+    await start_game_in_room(room_code, chosen, is_new_round=(room.get("current_round", 0) > 0), preloaded_game_data=game_data)
+
+async def start_game_in_room(room_code: str, category: str, is_new_round: bool = False, preloaded_game_data=None):
+    room = rooms[room_code]
+    game_data = preloaded_game_data or game.start_game(category)
+    if not game_data:
+        return False
+    
+    room["game_data"] = game_data
+    room["state"] = "playing"
+    room["start_time"] = time.time()
+    
+    for p in room["players"].values():
+        p["score"] = 0
+        p["answered"] = False
+        p["results"] = None
+        p["ready"] = False
+        p["items"] = []
+    
+    if room.get("item_task") and not room["item_task"].done():
+        room["item_task"].cancel()
+    if room.get("with_items", True):
+        room["item_task"] = asyncio.create_task(item_distribution_loop(room_code))
+    
+    current_round = room.get("current_round", 0)
+    max_rounds = room.get("max_rounds", 1)
+    
+    event_type = "round_start" if is_new_round else "game_start"
+    payload = {
+        "type": event_type,
+        "round": current_round + 1,
+        "max_rounds": max_rounds,
+        "data": {
+            "topic": game_data["topic"],
+            "paragraphs": game_data["paragraphs"],
+            "misinformations": game_data["misinformations"],
+            "positions": game_data["positions"],
+            "total_fakes": game_data["total_false_statements"],
+            "wikipedia_url": game_data.get("wikipedia_url", ""),
+            "players": list(room["players"].keys()),
+            "with_items": room.get("with_items", True),
+            "time_limit": room.get("time_limit", GAME_DURATION),
+        }
+    }
+    await broadcast(room_code, payload)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INTERFACE_DIR = os.path.join(BASE_DIR, "frontend", "src")

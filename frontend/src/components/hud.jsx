@@ -125,7 +125,7 @@ function Chip({ children, color = "var(--ink)", bg = "white", border = "var(--li
 }
 
 /* ============ Top Bar ============ */
-function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, hintsUsed }) {
+function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, hintsUsed, round, maxRounds }) {
   const min = Math.floor(time / 60);
   const sec = time % 60;
   return (
@@ -176,6 +176,11 @@ function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progr
             <PulseDot color="var(--accent)" size={5} />
             {mode === "expert" ? "Expert" : "Normal"}
           </Chip>
+          {round && maxRounds && (
+            <Chip color="var(--ink)" bg="white" border="var(--line-strong)">
+              Round {round}/{maxRounds}
+            </Chip>
+          )}
         </div>
 
         <span />
