@@ -9,7 +9,6 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [timeLimit, setTimeLimit] = useState(180); // 30s to 600s (10min)
-  const [maxRounds, setMaxRounds] = useState(1);
   const [isReady, setIsReady] = useState(false);
   const [themeVoting, setThemeVoting] = useState(null);
   const [myVoteTheme, setMyVoteTheme] = useState("");
@@ -45,7 +44,7 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
         setPlayers(msg.players);
       } else if (msg.type === "theme_vote_start") {
         setThemeVoting({
-          round: msg.round, maxRounds: msg.max_rounds, submitted: [], total: msg.players ? msg.players.length : (players.length || 1)
+          submitted: [], total: msg.players ? msg.players.length : (players.length || 1)
         });
         setMyVoteSubmitted(false);
         setMyVoteTheme("");
@@ -110,7 +109,7 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
       const res = await fetch("/api/multiplayer/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ max_rounds: maxRounds })
+        body: JSON.stringify({})
       });
       if (!res.ok) throw new Error("Erreur serveur.");
       const data = await res.json();
@@ -169,12 +168,12 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
   const handleToggleReady = () => {
     const nextReady = !isReady;
     setIsReady(nextReady);
-    ws.current.send(JSON.stringify({ type: "set_ready", ready: nextReady, with_items: withItems, time_limit: timeLimit, max_rounds: maxRounds }));
+    ws.current.send(JSON.stringify({ type: "set_ready", ready: nextReady, with_items: withItems, time_limit: timeLimit }));
   };
 
   const handleForceStart = () => {
     setLoading(true);
-    ws.current.send(JSON.stringify({ type: "force_start", with_items: withItems, time_limit: timeLimit, max_rounds: maxRounds }));
+    ws.current.send(JSON.stringify({ type: "force_start", with_items: withItems, time_limit: timeLimit }));
   };
 
   // Multiplayer waiting: the WaitingScreen handles the transition
@@ -245,7 +244,7 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
         <div style={{ background: "white", padding: "40px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxWidth: "500px", width: "100%" }}>
           <div style={{ textAlign: "center" }}>
             <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 36, marginBottom: 10 }}>Phase de Vote</h2>
-            <p style={{ color: "var(--muted)", marginBottom: 20 }}>Round {themeVoting?.round} / {themeVoting?.maxRounds}</p>
+            <p style={{ color: "var(--muted)", marginBottom: 20 }}>Proposez un thème pour la partie</p>
             
             {!myVoteSubmitted ? (
               <form onSubmit={(e) => {
@@ -312,16 +311,6 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
 
           {isHost ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-              <div>
-                <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "var(--ink)" }}>
-                  Nombre de rounds: {maxRounds}
-                </label>
-                <input type="range" min="1" max="10" step="1" value={maxRounds} onChange={(e) => setMaxRounds(Number(e.target.value))} style={{ width: "100%", padding: 0 }} disabled={loading} />
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--muted)", marginTop: "4px" }}>
-                  <span>1</span>
-                  <span>10</span>
-                </div>
-              </div>
               <div>
                 <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "var(--ink)" }}>
                   Limite de temps: {timeLimit < 60 ? timeLimit + "s" : (timeLimit / 60).toFixed(1) + "min"}
