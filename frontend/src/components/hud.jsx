@@ -125,7 +125,7 @@ function Chip({ children, color = "var(--ink)", bg = "white", border = "var(--li
 }
 
 /* ============ Top Bar ============ */
-function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, hintsUsed, round, maxRounds }) {
+function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, hintsUsed, round, maxRounds, onLogoClick }) {
   const min = Math.floor(time / 60);
   const sec = time % 60;
   return (
@@ -145,7 +145,13 @@ function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progr
         gap: 24,
       }}>
         {/* Big logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div
+          onClick={onLogoClick || undefined}
+          style={{
+            display: "flex", alignItems: "center", gap: 14,
+            cursor: onLogoClick ? "pointer" : "default",
+          }}
+        >
           <div style={{
             width: 44, height: 44,
             borderRadius: 12,
