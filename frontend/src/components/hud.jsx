@@ -794,7 +794,7 @@ function AnimatedRanking({ players }) {
 }
 
 /* ============ Debrief / results modal ============ */
-function Debrief({ stats, onRestart, mode, allPlayers }) {
+function Debrief({ stats, onRestart, mode, allPlayers, onExit }) {
   const [revealStats, setRevealStats] = useState(false);
 
   // After the ranking finishes (~5.1s), reveal personal stats
@@ -811,6 +811,7 @@ function Debrief({ stats, onRestart, mode, allPlayers }) {
   // Get player's final rank
   const playerScore = stats.finalScore;
   const allScores = (allPlayers || []).map(p => {
+    if (p.score !== undefined) return p.score;
     if (p.you) return playerScore;
     const b = p.breakdown;
     return b.tp * 150 - b.fp * 80 - (b.hintPenalty || 0) + (b.timeBonus || 0);
@@ -954,6 +955,11 @@ function Debrief({ stats, onRestart, mode, allPlayers }) {
           transition: "opacity 360ms ease 280ms",
         }}>
           <button className="btn ghost" onClick={() => onRestart("review")}>Review article</button>
+          {onExit && (
+            <button className="btn ghost" onClick={onExit} style={{ color: "var(--danger)" }}>
+              Quitter la salle
+            </button>
+          )}
           <button className="btn primary" onClick={() => onRestart("new")}>
             New mission
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
