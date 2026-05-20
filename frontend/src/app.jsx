@@ -1084,16 +1084,50 @@ function InnerApp({ sessionData, resetSession, onLeave }) {
           setThemeSelected(msg);
           setShowWaitingScreen(true);
         } else if (msg.type === "round_start") {
+          const rdata = msg.data;
+          // Inject new article data immediately — never rely on WaitingScreen's onReady for this
+          const newBody = rdata.paragraphs.map((p, idx) => {
+            const isFake = rdata.positions.find(pos => pos.paragraph_index === idx + 1);
+            if (isFake) {
+              return [{ kind: "token", id: "p" + idx, text: p, fake: { id: "F" + idx, truth: isFake.explanation || "À identifier", hint: isFake.hint || "Vérifiez cette information" } }];
+            }
+            return [{ kind: "token", id: "p" + idx, text: p, fake: null }];
+          });
+          window.WIKIFAKE_ARTICLE = { title: rdata.topic, subtitle: "Wikipedia" };
+          window.WIKIFAKE_INFOBOX = [
+            { label: "DESIGNATION", value: rdata.topic },
+            { label: "SOURCE", value: rdata.wikipedia_url || "Wikipedia" },
+            { label: "FAKES INJECTED", value: String(rdata.total_fakes) },
+            { label: "STATUS", value: "LIVE", live: true },
+          ];
+          window.WIKIFAKE_BODY = [{ kind: "lead", paragraphs: newBody }];
+          window.WIKIFAKE_FAKES = rdata.positions.map((pos) => ({
+            id: "F" + (pos.paragraph_index - 1),
+            tokenId: "p" + (pos.paragraph_index - 1),
+            text: pos.false_statement,
+            level: 1,
+            truth: pos.explanation,
+            hint: pos.hint,
+          }));
+          setMarked({});
+          setEdited({});
+          setHintUnlocks({});
+          setTime(rdata.time_limit || 180);
+          setRevealAll(false);
+          setLeaderboard(null);
+          setItems([]);
+          setActiveEffects([]);
           setRoundInfo({ current: msg.round, max: msg.max_rounds });
           setThemeVoting(null);
           setRoundEndData(null);
           setWaitingForOthers(false);
-          setRevealAll(false);
           setTweak("gameState", "playing");
-          window.__pendingRoundData = msg.data;
+          // Signal WaitingScreen to finish its animation, or hide it directly
           if (window.__waitingScreenReady) {
-            window.__waitingScreenReady(msg.data);
-            delete window.__pendingRoundData;
+            window.__waitingScreenReady(rdata);
+          } else {
+            setShowWaitingScreen(false);
+            setThemeSelected(null);
           }
         } else if (msg.type === "live_score_update") {
           setLiveScores(prev => ({ ...prev, [msg.player]: msg.score }));
@@ -1471,41 +1505,8 @@ function InnerApp({ sessionData, resetSession, onLeave }) {
             isMultiplayer={true}
             lobbyPlayers={players}
             roomCode={sessionData?.multiplayer?.roomCode}
-            onReady={(data) => {
-              // Inject the new round data
-              const newBody = data.paragraphs.map((p, idx) => {
-                const isFake = data.positions.find(pos => pos.paragraph_index === idx + 1);
-                if (isFake) {
-                  return [{ kind: "token", id: "p" + idx, text: p, fake: { id: "F" + idx, truth: isFake.explanation || "A identifier", hint: isFake.hint || "Vérifiez cette information" } }];
-                } else {
-                  return [{ kind: "token", id: "p" + idx, text: p, fake: null }];
-                }
-              });
-              window.WIKIFAKE_ARTICLE = { title: data.topic, subtitle: "Wikipedia" };
-              window.WIKIFAKE_INFOBOX = [
-                { label: "DESIGNATION", value: data.topic },
-                { label: "SOURCE", value: data.wikipedia_url || "Wikipedia" },
-                { label: "FAKES INJECTED", value: data.total_fakes.toString() },
-                { label: "STATUS", value: "LIVE", live: true }
-              ];
-              window.WIKIFAKE_BODY = [{ kind: "lead", paragraphs: newBody }];
-              window.WIKIFAKE_FAKES = data.positions.map((pos) => ({
-                id: "F" + (pos.paragraph_index - 1),
-                tokenId: "p" + (pos.paragraph_index - 1),
-                text: pos.false_statement,
-                level: 1,
-                truth: pos.explanation,
-                hint: pos.hint
-              }));
-              setMarked({});
-              setEdited({});
-              setHintUnlocks({});
-              setTime(data.time_limit || 180);
-              setRevealAll(false);
-              setLeaderboard(null);
-              setItems([]);
-              setActiveEffects([]);
-              setThemeVoting(null);
+            onReady={() => {
+              // Data already injected by round_start handler — just close the screen
               setThemeSelected(null);
               setShowWaitingScreen(false);
             }}
