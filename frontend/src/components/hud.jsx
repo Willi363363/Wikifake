@@ -125,7 +125,7 @@ function Chip({ children, color = "var(--ink)", bg = "white", border = "var(--li
 }
 
 /* ============ Top Bar ============ */
-function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, onOpenBrief, hintsUsed, round, maxRounds }) {
+function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, onOpenBrief, hintsUsed, round, maxRounds, onLogoClick }) {
   const min = Math.floor(time / 60);
   const sec = time % 60;
   return (
