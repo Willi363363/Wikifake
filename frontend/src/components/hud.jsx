@@ -24,22 +24,22 @@ function PulseDot({ color = "var(--green)", size = 6 }) {
         position: "absolute", inset: 0,
         background: color, borderRadius: "50%",
         animation: "pulse-dot 1.8s ease-in-out infinite",
-      }}/>
+      }} />
       <span style={{
         position: "absolute", inset: -3,
         background: color, borderRadius: "50%",
         opacity: 0.18,
         animation: "pulse-dot 1.8s ease-in-out infinite",
         animationDelay: "0.4s",
-      }}/>
+      }} />
     </span>
   );
 }
 
 function Divider({ vertical, style }) {
   return vertical
-    ? <span style={{ width: 1, height: 18, background: "var(--line)", display: "inline-block", ...style }}/>
-    : <hr style={{ height: 1, border: 0, background: "var(--line)", margin: "12px 0", ...style }}/>;
+    ? <span style={{ width: 1, height: 18, background: "var(--line)", display: "inline-block", ...style }} />
+    : <hr style={{ height: 1, border: 0, background: "var(--line)", margin: "12px 0", ...style }} />;
 }
 
 /* Subtle data row */
@@ -79,7 +79,7 @@ function HairProgress({ value, max = 100, color = "var(--accent)", height = 3 })
         background: color,
         borderRadius: 999,
         transition: "width 600ms cubic-bezier(.2,.6,.2,1)",
-      }}/>
+      }} />
     </div>
   );
 }
@@ -92,10 +92,10 @@ function Ring({ value, max = 100, size = 44, stroke = 3, color = "var(--accent)"
   return (
     <div style={{ position: "relative", width: size, height: size }}>
       <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-        <circle cx={size/2} cy={size/2} r={r} stroke={track} strokeWidth={stroke} fill="none" />
-        <circle cx={size/2} cy={size/2} r={r} stroke={color} strokeWidth={stroke} fill="none"
-                strokeDasharray={c} strokeDashoffset={c * (1 - pct)} strokeLinecap="round"
-                style={{ transition: "stroke-dashoffset 600ms cubic-bezier(.2,.6,.2,1)" }}/>
+        <circle cx={size / 2} cy={size / 2} r={r} stroke={track} strokeWidth={stroke} fill="none" />
+        <circle cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none"
+          strokeDasharray={c} strokeDashoffset={c * (1 - pct)} strokeLinecap="round"
+          style={{ transition: "stroke-dashoffset 600ms cubic-bezier(.2,.6,.2,1)" }} />
       </svg>
       <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
         {children}
@@ -125,7 +125,7 @@ function Chip({ children, color = "var(--ink)", bg = "white", border = "var(--li
 }
 
 /* ============ Top Bar ============ */
-function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, hintsUsed, round, maxRounds, onLogoClick }) {
+function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, onOpenBrief, hintsUsed, round, maxRounds }) {
   const min = Math.floor(time / 60);
   const sec = time % 60;
   return (
@@ -194,7 +194,7 @@ function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progr
         {/* Intel button */}
         <button className="btn ghost" onClick={onOpenIntel} style={{ position: "relative", padding: "7px 14px" }}>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M7 1.5v1m4.2 1.6l-.7.7M12.5 8h-1m-1.5 3.4l-.7-.7M4.4 11.8l.7-.7M2.5 8h-1m1.7-3.9l.7.7M3.5 7.5a3.5 3.5 0 117 0c0 1.1-.6 2-1.5 2.5v.7H5v-.7A3.5 3.5 0 013.5 7.5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            <path d="M7 1.5v1m4.2 1.6l-.7.7M12.5 8h-1m-1.5 3.4l-.7-.7M4.4 11.8l.7-.7M2.5 8h-1m1.7-3.9l.7.7M3.5 7.5a3.5 3.5 0 117 0c0 1.1-.6 2-1.5 2.5v.7H5v-.7A3.5 3.5 0 013.5 7.5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
           </svg>
           Intel
           {hintsUsed > 0 && (
@@ -209,6 +209,16 @@ function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progr
           )}
         </button>
 
+        {/* Brief button */}
+        {onOpenBrief && (
+          <button className="btn ghost" onClick={onOpenBrief} style={{ padding: "7px 14px" }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 3h10M2 7h10M2 11h6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            </svg>
+            Brief
+          </button>
+        )}
+
         {/* Timer */}
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0, minWidth: 56 }}>
           <LabelMono style={{ fontSize: 9 }}>Time</LabelMono>
@@ -218,7 +228,7 @@ function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progr
             color: time < 30 ? "var(--danger)" : time < 90 ? "var(--warn)" : "var(--ink)",
             fontVariantNumeric: "tabular-nums",
             letterSpacing: "0.02em",
-          }}>{String(Math.floor(time / 60)).padStart(2,"0")}:{String(time % 60).padStart(2,"0")}</span>
+          }}>{String(Math.floor(time / 60)).padStart(2, "0")}:{String(time % 60).padStart(2, "0")}</span>
         </div>
 
         {/* Marked count */}
@@ -243,7 +253,7 @@ function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progr
           <button className="btn primary" onClick={onSubmit} disabled={!canSubmit}>
             Submit
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <path d="M3 6.5h7M6.5 3l3.5 3.5L6.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3 6.5h7M6.5 3l3.5 3.5L6.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         )}
@@ -342,8 +352,8 @@ function MissionCard({ difficulty, mode, room, total }) {
         display: "flex", gap: 10, alignItems: "flex-start",
       }}>
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ marginTop: 2, flexShrink: 0 }}>
-          <circle cx="7" cy="7" r="5.5" stroke="var(--accent)" strokeWidth="1.2"/>
-          <path d="M7 4v3.5M7 9.5v.1" stroke="var(--accent)" strokeWidth="1.2" strokeLinecap="round"/>
+          <circle cx="7" cy="7" r="5.5" stroke="var(--accent)" strokeWidth="1.2" />
+          <path d="M7 4v3.5M7 9.5v.1" stroke="var(--accent)" strokeWidth="1.2" strokeLinecap="round" />
         </svg>
         <span>This article contains <b style={{ color: "var(--accent)", fontWeight: 600 }}>{total} deliberate falsifications</b>. Click any word to mark it as suspect.</span>
       </div>
@@ -359,7 +369,7 @@ function Leaderboard({ players }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
         <LabelMono>Live ranking</LabelMono>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-          <PulseDot color="var(--accent)" size={5}/>
+          <PulseDot color="var(--accent)" size={5} />
           <LabelMono style={{ fontSize: 9 }}>{players.length} agents</LabelMono>
         </span>
       </div>
@@ -369,7 +379,7 @@ function Leaderboard({ players }) {
             display: "grid", gridTemplateColumns: "20px 28px 1fr auto", gap: 10, alignItems: "center",
           }}>
             <span className="mono" style={{ fontSize: 11, color: i === 0 ? "var(--bronze)" : "var(--muted)", fontWeight: 600 }}>
-              {String(i+1).padStart(2,"0")}
+              {String(i + 1).padStart(2, "0")}
             </span>
             <span style={{
               width: 24, height: 24, borderRadius: "50%",
@@ -386,7 +396,7 @@ function Leaderboard({ players }) {
                 color: "var(--ink)",
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>{p.name}{p.you && <span style={{ color: "var(--muted)", marginLeft: 4 }}>· you</span>}</span>
-              <HairProgress value={(p.score/max)*100} color={p.you ? "var(--accent)" : p.color} height={2}/>
+              <HairProgress value={(p.score / max) * 100} color={p.you ? "var(--accent)" : p.color} height={2} />
             </div>
             <span className="mono" style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", fontVariantNumeric: "tabular-nums" }}>
               {p.score}
@@ -406,7 +416,7 @@ function BotCursor({ x, y, name, color }) {
       transition: "left 1.6s cubic-bezier(.4,.2,.2,1), top 1.6s cubic-bezier(.4,.2,.2,1)",
     }}>
       <svg width="16" height="16" viewBox="0 0 16 16" style={{ filter: `drop-shadow(0 2px 4px rgba(0,0,0,0.15))` }}>
-        <path d="M2 2 L2 12 L5 9 L7 14 L9 13 L7 8.5 L11 8.5 Z" fill={color} stroke="white" strokeWidth="1" strokeLinejoin="round"/>
+        <path d="M2 2 L2 12 L5 9 L7 14 L9 13 L7 8.5 L11 8.5 Z" fill={color} stroke="white" strokeWidth="1" strokeLinejoin="round" />
       </svg>
       <span style={{
         position: "absolute", top: 14, left: 10,
@@ -435,7 +445,7 @@ function HintsPanel({ targets, unlocked, onUnlock }) {
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <path d="M6.5 1.5v1m4 1.5l-.7.7m1.7 3.8h-1m-1.5 3.4l-.7-.7M4.4 11.8l.7-.7M2.5 7.5h-1m1.7-3.8l.7.7M3.5 7.5a3 3 0 016 0c0 1-.5 1.8-1.2 2.3v.7H4.7v-.7A2.9 2.9 0 013.5 7.5z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+              <path d="M6.5 1.5v1m4 1.5l-.7.7m1.7 3.8h-1m-1.5 3.4l-.7-.7M4.4 11.8l.7-.7M2.5 7.5h-1m1.7-3.8l.7.7M3.5 7.5a3 3 0 016 0c0 1-.5 1.8-1.2 2.3v.7H4.7v-.7A2.9 2.9 0 013.5 7.5z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
             </svg>
           </span>
           <div>
@@ -468,12 +478,12 @@ function HintsPanel({ targets, unlocked, onUnlock }) {
             }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                 <LabelMono style={{ fontSize: 9, color: u > 0 ? "var(--bronze)" : "var(--muted)" }}>
-                  #{String(i+1).padStart(2,"0")}
+                  #{String(i + 1).padStart(2, "0")}
                 </LabelMono>
                 <span style={{
                   width: 6, height: 6, borderRadius: "50%",
                   background: u === 2 ? "var(--danger)" : u === 1 ? "var(--bronze)" : "var(--line-strong)",
-                }}/>
+                }} />
               </div>
               <div style={{
                 fontSize: 12, color: u > 0 ? "var(--ink-2)" : "var(--muted-2)",
@@ -508,41 +518,6 @@ function HintsPanel({ targets, unlocked, onUnlock }) {
   );
 }
 
-/* ============ Instruction banner ============ */
-function Brief({ mode }) {
-  return (
-    <div style={{
-      display: "flex", alignItems: "center", gap: 14,
-      padding: "12px 18px",
-      background: "linear-gradient(90deg, var(--accent-soft), rgba(232, 240, 237, 0.4))",
-      border: "1px solid var(--accent-line)",
-      borderRadius: 12,
-      marginBottom: 22,
-    }}>
-      <span style={{
-        width: 28, height: 28, flexShrink: 0,
-        borderRadius: "50%",
-        background: "var(--accent)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        color: "white",
-      }}>
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M7 1l1.5 4.5L13 7l-4.5 1.5L7 13l-1.5-4.5L1 7l4.5-1.5L7 1z" fill="currentColor"/>
-        </svg>
-      </span>
-      <div style={{ flex: 1 }}>
-        <LabelMono style={{ color: "var(--accent)", fontSize: 9 }}>Briefing</LabelMono>
-        <div style={{ fontSize: 13.5, color: "var(--ink)", lineHeight: 1.5, marginTop: 2 }}>
-          {mode === "expert"
-            ? <>Source document below has been tampered with. In <b>Expert mode</b>, click any token and type the value you believe is correct.</>
-            : <>Source document below has been tampered with. Mark every suspect word by clicking — hover for a crosshair preview.</>}
-        </div>
-      </div>
-      <Chip color="var(--accent)" bg="white" border="var(--accent-line)">Press ⎵ to pause</Chip>
-    </div>
-  );
-}
-
 /* ============ Footer ============ */
 function Footer({ sessionId }) {
   return (
@@ -567,10 +542,10 @@ function Footer({ sessionId }) {
       </div>
       <LabelMono>Intelligence System · v2.0.1</LabelMono>
       <LabelMono>Session {sessionId}</LabelMono>
-      <span style={{ flex: 1 }}/>
+      <span style={{ flex: 1 }} />
       <LabelMono>© 2026 · An exercise in disinformation literacy</LabelMono>
       <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-        <PulseDot color="var(--green)" size={5}/>
+        <PulseDot color="var(--green)" size={5} />
         <LabelMono style={{ fontSize: 9 }}>Active</LabelMono>
       </span>
     </div>
@@ -688,7 +663,7 @@ function AnimatedRanking({ players }) {
                 borderRadius: 2,
                 background: i < stage ? "var(--accent)" : "var(--line-strong)",
                 transition: "all 320ms cubic-bezier(.2,.6,.2,1)",
-              }}/>
+              }} />
             ))}
           </div>
           <span style={{ fontSize: 11, color: "var(--muted)", fontStyle: "italic" }}>{phase.note}</span>
@@ -761,7 +736,7 @@ function AnimatedRanking({ players }) {
                     borderRadius: 999,
                     transition: "width 600ms cubic-bezier(.2,.6,.2,1), background 200ms",
                     boxShadow: isLeader ? `0 0 8px ${p.color}55` : "none",
-                  }}/>
+                  }} />
                 </div>
               </div>
 
@@ -810,9 +785,9 @@ function Debrief({ stats, onRestart, mode, allPlayers, onExit }) {
   }, []);
 
   const grade = stats.f1 >= 0.95 ? { label: "Outstanding", note: "Expert detective", color: "var(--green)", bg: "var(--green-soft)" }
-              : stats.f1 >= 0.75 ? { label: "Strong", note: "Field agent",       color: "var(--accent)", bg: "var(--accent-soft)" }
-              : stats.f1 >= 0.50 ? { label: "Promising", note: "Trainee",        color: "var(--bronze)", bg: "var(--bronze-soft)" }
-              :                    { label: "Compromised", note: "Recalibrate",  color: "var(--danger)", bg: "var(--danger-soft)" };
+    : stats.f1 >= 0.75 ? { label: "Strong", note: "Field agent", color: "var(--accent)", bg: "var(--accent-soft)" }
+      : stats.f1 >= 0.50 ? { label: "Promising", note: "Trainee", color: "var(--bronze)", bg: "var(--bronze-soft)" }
+        : { label: "Compromised", note: "Recalibrate", color: "var(--danger)", bg: "var(--danger-soft)" };
 
   // Get player's final rank
   const playerScore = stats.finalScore;
@@ -867,7 +842,7 @@ function Debrief({ stats, onRestart, mode, allPlayers, onExit }) {
             </div>
             <span style={{ fontFamily: "'Instrument Serif', serif", fontSize: 20, color: "var(--ink)", whiteSpace: "nowrap" }}>Mission debrief</span>
           </div>
-          <LabelMono>{stats.sessionId} · {new Date().toISOString().slice(0,10)}</LabelMono>
+          <LabelMono>{stats.sessionId} · {new Date().toISOString().slice(0, 10)}</LabelMono>
         </div>
 
         {/* ANIMATED LIVE RANKING */}
@@ -908,7 +883,7 @@ function Debrief({ stats, onRestart, mode, allPlayers, onExit }) {
                   fontVariantNumeric: "tabular-nums",
                 }}>{finalRank}<span style={{ fontSize: 14, color: "var(--muted)" }}> / {allPlayers?.length || 1}</span></div>
               </div>
-              <div style={{ width: 1, height: 36, background: "var(--line)" }}/>
+              <div style={{ width: 1, height: 36, background: "var(--line)" }} />
               <div style={{ textAlign: "right" }}>
                 <LabelMono>Final score</LabelMono>
                 <div style={{
@@ -969,7 +944,7 @@ function Debrief({ stats, onRestart, mode, allPlayers, onExit }) {
           <button className="btn primary" onClick={() => onRestart("new")}>
             New mission
             <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
-              <path d="M3 6.5h7M6.5 3l3.5 3.5L6.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3 6.5h7M6.5 3l3.5 3.5L6.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         </div>
@@ -978,95 +953,55 @@ function Debrief({ stats, onRestart, mode, allPlayers, onExit }) {
   );
 }
 
-/* ============ Side Drawer (Subject + Mission) ============ */
-function SideDrawer({ open, onToggle, children }) {
+/* ============ Brief Modal ============ */
+function Brief({ onClose, children }) {
   return (
-    <>
-      {/* Tab handle — always visible on right edge */}
-      <button
-        onClick={onToggle}
-        aria-label={open ? "Close panel" : "Open panel"}
-        style={{
-          position: "fixed",
-          top: "50%",
-          right: open ? 360 : 0,
-          transform: "translateY(-50%)",
-          width: 28, height: 84,
-          background: "rgba(255, 255, 255, 0.86)",
-          backdropFilter: "blur(20px) saturate(180%)",
-          WebkitBackdropFilter: "blur(20px) saturate(180%)",
-          border: "1px solid var(--line)",
-          borderRight: open ? "1px solid var(--line)" : "none",
-          borderRadius: open ? "10px 0 0 10px" : "10px 0 0 10px",
-          cursor: "pointer",
-          zIndex: 70,
-          padding: 0,
-          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-          gap: 4,
-          color: "var(--muted)",
-          transition: "right 360ms cubic-bezier(.2,.6,.2,1), background 200ms, color 140ms",
-          boxShadow: "-4px 0 12px -8px rgba(24,24,27,0.12)",
-        }}
-        onMouseEnter={(e) => { e.currentTarget.style.color = "var(--accent)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.color = "var(--muted)"; }}
-      >
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 360ms" }}>
-          <path d="M3.5 1.5l3 3.5-3 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        <span style={{
-          fontFamily: "'Geist Mono', monospace",
-          fontSize: 9,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          fontWeight: 500,
-          writingMode: "vertical-rl",
-          transform: "rotate(180deg)",
-        }}>Brief</span>
-      </button>
-
-      {/* Drawer panel */}
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 200,
+      background: "rgba(0,0,0,0.4)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      animation: "fade-in 200ms ease",
+    }} onClick={onClose}>
       <div style={{
-        position: "fixed",
-        top: 0, bottom: 0,
-        right: open ? 0 : -360,
-        width: 360,
-        background: "rgba(246, 244, 239, 0.78)",
-        backdropFilter: "blur(28px) saturate(180%)",
-        WebkitBackdropFilter: "blur(28px) saturate(180%)",
-        borderLeft: "1px solid var(--line)",
-        boxShadow: open ? "-12px 0 40px -16px rgba(24,24,27,0.18)" : "none",
-        zIndex: 60,
-        transition: "right 360ms cubic-bezier(.2,.6,.2,1), box-shadow 200ms",
-        display: "flex", flexDirection: "column",
-        overflow: "hidden",
-      }}>
-        <div style={{
-          padding: "20px 22px 14px",
-          borderBottom: "1px solid var(--line)",
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          gap: 12,
-        }}>
-          <div style={{ minWidth: 0 }}>
-            <LabelMono style={{ fontSize: 9 }}>Briefing panel</LabelMono>
-            <div style={{ fontFamily: "'Instrument Serif', serif", fontSize: 22, color: "var(--ink)", marginTop: 2, lineHeight: 1.1, letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>
-              Mission overview
+        background: "white",
+        borderRadius: 16,
+        padding: "24px 32px",
+        width: 440,
+        maxHeight: "85vh",
+        overflowY: "auto",
+        boxShadow: "0 12px 40px rgba(0,0,0,0.2)",
+        display: "flex", flexDirection: "column", gap: 24,
+      }} onClick={e => e.stopPropagation()}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{
+              width: 32, height: 32, flexShrink: 0,
+              borderRadius: "50%",
+              background: "var(--accent)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              color: "white",
+            }}>
+              <svg width="16" height="16" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1l1.5 4.5L13 7l-4.5 1.5L7 13l-1.5-4.5L1 7l4.5-1.5L7 1z" fill="currentColor"/>
+              </svg>
+            </span>
+            <div>
+              <LabelMono style={{ color: "var(--accent)", fontSize: 10 }}>Briefing</LabelMono>
+              <div style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", lineHeight: 1.2 }}>
+                Objectif & Intel
+              </div>
             </div>
           </div>
-          <button onClick={onToggle} className="btn-icon" aria-label="Close">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-            </svg>
+          <button className="btn ghost" onClick={onClose} style={{ padding: 6 }}>
+             <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8m0-8l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </button>
         </div>
-        <div style={{
-          flex: 1, overflowY: "auto",
-          padding: "18px 22px 24px",
-          display: "flex", flexDirection: "column", gap: 14,
-        }}>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {children}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -1107,7 +1042,7 @@ function FloatingLeaderboard({ players }) {
         transition: "border-color 200ms",
       }}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-          <PulseDot color="var(--accent)" size={5}/>
+          <PulseDot color="var(--accent)" size={5} />
           <LabelMono>Ranking · {players.length}</LabelMono>
         </span>
         {!hovered && top && (
@@ -1145,7 +1080,7 @@ function FloatingLeaderboard({ players }) {
               transition: `opacity 280ms ease ${i * 30}ms, transform 280ms cubic-bezier(.2,.6,.2,1) ${i * 30}ms`,
             }}>
               <span className="mono" style={{ fontSize: 11, color: i === 0 ? "var(--bronze)" : "var(--muted)", fontWeight: 600 }}>
-                {String(i+1).padStart(2,"0")}
+                {String(i + 1).padStart(2, "0")}
               </span>
               <span style={{
                 width: 20, height: 20, borderRadius: "50%",
@@ -1162,7 +1097,7 @@ function FloatingLeaderboard({ players }) {
                   color: "var(--ink)",
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                 }}>{p.name}{p.you && <span style={{ color: "var(--muted)", marginLeft: 4, fontSize: 10 }}>· you</span>}</span>
-                <HairProgress value={(p.score/max)*100} color={p.you ? "var(--accent)" : p.color} height={2}/>
+                <HairProgress value={(p.score / max) * 100} color={p.you ? "var(--accent)" : p.color} height={2} />
               </div>
               <span className="mono" style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)", fontVariantNumeric: "tabular-nums" }}>
                 {p.score}
@@ -1215,7 +1150,7 @@ function IntelOverlay({ open, onClose, targets, unlocked, onUnlock }) {
               display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                <path d="M9 2v1.4m5.7 2.1l-1 1M16 10h-1.4m-2.1 4.6l-1-1M5.4 14.6l1-1M3.4 10H2m2.3-4.5l1 1M5 10a4 4 0 118 0c0 1.5-.8 2.7-2 3.4v1H7v-1A4 4 0 015 10z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                <path d="M9 2v1.4m5.7 2.1l-1 1M16 10h-1.4m-2.1 4.6l-1-1M5.4 14.6l1-1M3.4 10H2m2.3-4.5l1 1M5 10a4 4 0 118 0c0 1.5-.8 2.7-2 3.4v1H7v-1A4 4 0 015 10z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
               </svg>
             </span>
             <div>
@@ -1230,7 +1165,7 @@ function IntelOverlay({ open, onClose, targets, unlocked, onUnlock }) {
             <Chip color="var(--danger)" bg="white" border="rgba(166,75,72,0.20)">Reveal −200</Chip>
             <button onClick={onClose} className="btn-icon" aria-label="Close">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                <path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
               </svg>
             </button>
           </div>
@@ -1255,12 +1190,12 @@ function IntelOverlay({ open, onClose, targets, unlocked, onUnlock }) {
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <LabelMono style={{ fontSize: 9, color: u > 0 ? "var(--bronze)" : "var(--muted)" }}>
-                    Target #{String(i+1).padStart(2,"0")}
+                    Target #{String(i + 1).padStart(2, "0")}
                   </LabelMono>
                   <span style={{
                     width: 6, height: 6, borderRadius: "50%",
                     background: u === 2 ? "var(--danger)" : u === 1 ? "var(--bronze)" : "var(--line-strong)",
-                  }}/>
+                  }} />
                 </div>
                 <div style={{
                   fontSize: 12.5, color: u > 0 ? "var(--ink-2)" : "var(--muted-2)",
@@ -1300,5 +1235,5 @@ Object.assign(window, {
   LabelMono, PulseDot, Divider, DataRow, HairProgress, Ring, Chip,
   TopBar, SubjectCard, MissionCard, Leaderboard, BotCursor,
   HintsPanel, Brief, Footer, Debrief, AnimatedRanking,
-  SideDrawer, FloatingLeaderboard, IntelOverlay,
+  FloatingLeaderboard, IntelOverlay,
 });
