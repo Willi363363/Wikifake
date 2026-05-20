@@ -45,6 +45,10 @@ class StartGameRequest(BaseModel):
 class SubmitAnswerRequest(BaseModel):
     paragraph_indices: list[int]
 
+@app.get("/ping")
+def ping():
+    return {"status": "alive"}
+
 @app.post("/api/game/start")
 def start_game(req: StartGameRequest):
     game_data = game.start_game(req.category)
