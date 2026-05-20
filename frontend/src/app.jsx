@@ -1008,6 +1008,12 @@ function InnerApp({ sessionData, resetSession, onLeave }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [intelOpen, setIntelOpen] = useState(false);
   const [briefOpen, setBriefOpen] = useState(false);
+
+  // Flag-for-review feature
+  const [flaggedItems, setFlaggedItems] = useState([]);
+  const [flagModalOpen, setFlagModalOpen] = useState(false);
+  const [showFlagToast, setShowFlagToast] = useState(false);
+  const [flagReportDone, setFlagReportDone] = useState(false);
   const [scannerTrigger, setScannerTrigger] = useState(0);
   const [scannedParagraphs, setScannedParagraphs] = useState(new Set());
   const articleRef = useRef(null);
@@ -1656,6 +1662,38 @@ function InnerApp({ sessionData, resetSession, onLeave }) {
               timeBonus: stats.timeBonus,
             }
           }))}
+        />
+      )}
+
+      {/* FLAG FOR REVIEW */}
+      {playing && (
+        <window.FlagButton
+          onClick={() => setFlagModalOpen(true)}
+          count={flaggedItems.length}
+        />
+      )}
+      {flagModalOpen && (
+        <window.FlagCaptureModal
+          articleTitle={window.WIKIFAKE_ARTICLE?.title}
+          onSubmit={(item) => {
+            setFlaggedItems(prev => [...prev, item]);
+            setFlagModalOpen(false);
+            setShowFlagToast(true);
+          }}
+          onClose={() => setFlagModalOpen(false)}
+        />
+      )}
+      {showFlagToast && <window.FlagToast onDone={() => setShowFlagToast(false)} />}
+      {t.gameState === "results" && flaggedItems.length > 0 && !flagReportDone && (
+        <window.FlagReportForm
+          flaggedItems={flaggedItems}
+          articleTitle={window.WIKIFAKE_ARTICLE?.title}
+          articleUrl={window.WIKIFAKE_INFOBOX?.find(f => f.label === "SOURCE")?.value || ""}
+          sessionContext={{
+            roomCode: sessionData?.multiplayer?.roomCode || "solo",
+            playerName: sessionData?.multiplayer?.username || "anonymous",
+          }}
+          onDone={() => setFlagReportDone(true)}
         />
       )}
 

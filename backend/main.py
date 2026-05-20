@@ -13,7 +13,8 @@ import asyncio
 
 from src.core.agent import FakeNewsGame
 from src.core.verification import check_answer
-from typing import Optional
+from src.core.flag_verifier import verify_and_save
+from typing import Optional, List
 
 load_dotenv()
 app = FastAPI()
@@ -47,6 +48,17 @@ class StartGameRequest(BaseModel):
 class SubmitAnswerRequest(BaseModel):
     paragraph_indices: list[int]
 
+class FlagReportRequest(BaseModel):
+    article_title: str
+    article_url: str = ""
+    flagged_claim: str
+    quick_note: str = ""
+    proposed_correction: str
+    explanation: str = ""
+    sources: List[str] = []
+    player_id: str = "anonymous"
+    room_code: str = ""
+
 @app.get("/ping")
 def ping():
     return {"status": "alive"}
@@ -69,6 +81,15 @@ def start_game(req: StartGameRequest):
 def submit_answer(req: SubmitAnswerRequest):
     result = game.submit_answers(req.paragraph_indices)
     return result
+
+@app.post("/api/flag-report")
+async def submit_flag_report(req: FlagReportRequest):
+    record = await verify_and_save(req.model_dump())
+    return {
+        "id": record["id"],
+        "status": record["status"],
+        "verification": record["verification"],
+    }
 
 async def item_distribution_loop(room_code: str):
     """Distributes one random item to each player every 30 seconds (up to 9 times)."""
