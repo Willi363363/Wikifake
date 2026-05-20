@@ -1,7 +1,8 @@
 const { useState, useEffect, useRef } = React;
 
-function Lobby({ onStart, onMultiplayerStart }) {
-  const [mode, setMode] = useState("solo"); // solo, host, join, lobby, waiting, lobby-waiting
+function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
+  const [mode, setMode] = useState(existingMultiplayer ? "lobby" : "solo"); // solo, host, join, lobby, waiting, lobby-waiting
+
   const [category, setCategory] = useState("");
   const [username, setUsername] = useState("");
   const [roomCode, setRoomCode] = useState("");
@@ -17,9 +18,70 @@ function Lobby({ onStart, onMultiplayerStart }) {
   
   // Multiplayer state
   const [players, setPlayers] = useState([]);
-  const [isHost, setIsHost] = useState(false);
+  const [isHost, setIsHost] = useState(existingMultiplayer?.isHost || false);
   const [withItems, setWithItems] = useState(true);
-  const ws = useRef(null);
+  const ws = useRef(existingMultiplayer?.socket || null);
+
+  // Reset ready state every time we mount with an existing session (returning from a game)
+  useEffect(() => {
+    if (existingMultiplayer?.socket) {
+      setIsReady(false);
+      setRoomCode(existingMultiplayer.roomCode);
+      setUsername(existingMultiplayer.username);
+      setMode("lobby");
+      existingMultiplayer.socket.send(JSON.stringify({ type: "get_lobby" }));
+    }
+  }, []);  // runs once on mount only
+
+  // When mounting with an existing multiplayer session or when players/state changes,
+  // we must attach/update the socket listeners so they don't close over old state.
+  useEffect(() => {
+    if (!ws.current) return;
+    const socket = ws.current;
+    
+    socket.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      if (msg.type === "lobby_update") {
+        setPlayers(msg.players);
+      } else if (msg.type === "theme_vote_start") {
+        setThemeVoting({
+          round: msg.round, maxRounds: msg.max_rounds, submitted: [], total: msg.players ? msg.players.length : (players.length || 1)
+        });
+        setMyVoteSubmitted(false);
+        setMyVoteTheme("");
+        setThemeSelected(null);
+        setMode("theme-voting");
+      } else if (msg.type === "theme_vote_update") {
+        setThemeVoting(prev => prev ? { ...prev, submitted: msg.submitted, total: msg.total } : null);
+      } else if (msg.type === "theme_selected") {
+        setThemeSelected(msg);
+      } else if (msg.type === "game_start" || msg.type === "round_start") {
+        if (window.__waitingScreenReady) {
+          window.__waitingScreenReady(msg.data);
+          window.__multiplayerContext = { socket, name: username, code: roomCode, isHost };
+        } else {
+          onMultiplayerStart(msg.data, socket, username, roomCode, isHost);
+        }
+      } else if (msg.type === "error") {
+        setError(msg.message);
+        setLoading(false);
+        setMode("lobby");
+      }
+    };
+
+    socket.onclose = () => {
+      setError("Déconnecté de la salle.");
+      setMode("join");
+    };
+
+    // If we just mounted with an existing session, we should ask for a lobby update
+    // to refresh the player list (e.g. to see who is ready/connected)
+    if (existingMultiplayer && players.length === 0) {
+      setRoomCode(existingMultiplayer.roomCode);
+      setUsername(existingMultiplayer.username);
+    }
+  }, [existingMultiplayer, username, roomCode, isHost, players.length]);
+
 
   // Solo: go to waiting screen instead of fetching directly
   const handleSoloSubmit = (e) => {
@@ -79,31 +141,18 @@ function Lobby({ onStart, onMultiplayerStart }) {
       setLoading(false);
       setMode("lobby");
       ws.current = socket;
+      // We trigger a state update for roomCode and username, which will fire the useEffect above
+      // to attach the correct listeners.
+      setRoomCode(code);
+      setUsername(name);
     };
-    
+
+    // Attach initial listeners immediately to avoid race conditions 
+    // before the useEffect attaches the final ones.
     socket.onmessage = (event) => {
       const msg = JSON.parse(event.data);
       if (msg.type === "lobby_update") {
         setPlayers(msg.players);
-      } else if (msg.type === "theme_vote_start") {
-        setThemeVoting({
-          round: msg.round, maxRounds: msg.max_rounds, submitted: [], total: players.length || 1
-        });
-        setMyVoteSubmitted(false);
-        setMyVoteTheme("");
-        setThemeSelected(null);
-        setMode("theme-voting");
-      } else if (msg.type === "theme_vote_update") {
-        setThemeVoting(prev => prev ? { ...prev, submitted: msg.submitted, total: msg.total } : null);
-      } else if (msg.type === "theme_selected") {
-        setThemeSelected(msg);
-      } else if (msg.type === "game_start") {
-        if (window.__waitingScreenReady) {
-          window.__waitingScreenReady(msg.data);
-          window.__multiplayerContext = { socket, name, code, isHost };
-        } else {
-          onMultiplayerStart(msg.data, socket, name, code, isHost);
-        }
       } else if (msg.type === "error") {
         setError(msg.message);
         setLoading(false);
@@ -120,12 +169,12 @@ function Lobby({ onStart, onMultiplayerStart }) {
   const handleToggleReady = () => {
     const nextReady = !isReady;
     setIsReady(nextReady);
-    ws.current.send(JSON.stringify({ type: "set_ready", ready: nextReady, with_items: withItems, time_limit: timeLimit }));
+    ws.current.send(JSON.stringify({ type: "set_ready", ready: nextReady, with_items: withItems, time_limit: timeLimit, max_rounds: maxRounds }));
   };
 
   const handleForceStart = () => {
     setLoading(true);
-    ws.current.send(JSON.stringify({ type: "force_start", with_items: withItems, time_limit: timeLimit }));
+    ws.current.send(JSON.stringify({ type: "force_start", with_items: withItems, time_limit: timeLimit, max_rounds: maxRounds }));
   };
 
   // Multiplayer waiting: the WaitingScreen handles the transition
@@ -167,47 +216,59 @@ function Lobby({ onStart, onMultiplayerStart }) {
 
   // ---- MULTIPLAYER THEME VOTING ----
   if (mode === "theme-voting") {
+    // Once theme is selected, show WaitingScreen so players can play mini-games
+    // while the backend generates the game data in the background.
+    if (themeSelected) {
+      return (
+        <window.WaitingScreen
+          category={themeSelected.theme}
+          isMultiplayer={true}
+          lobbyPlayers={players}
+          roomCode={roomCode}
+          onReady={(data) => {
+            const socket = ws.current;
+            onMultiplayerStart(data, socket, username, roomCode, isHost);
+          }}
+          onError={(msg) => {
+            setError(msg);
+            setMode("lobby");
+          }}
+        />
+      );
+    }
+
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "var(--bg-primary)" }}>
         <div style={{ background: "white", padding: "40px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxWidth: "500px", width: "100%" }}>
-          {themeSelected ? (
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 12, color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600 }}>Thème sélectionné</div>
-              <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 48, margin: "10px 0", color: "var(--accent)" }}>{themeSelected.theme}</h2>
-              <p style={{ color: "var(--muted)" }}>Proposé par {themeSelected.proposer}</p>
-              <p style={{ marginTop: 20 }}>Lancement dans {themeSelected.countdown}s...</p>
-            </div>
-          ) : (
-            <div style={{ textAlign: "center" }}>
-              <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 36, marginBottom: 10 }}>Phase de Vote</h2>
-              <p style={{ color: "var(--muted)", marginBottom: 20 }}>Round {themeVoting?.round} / {themeVoting?.maxRounds}</p>
-              
-              {!myVoteSubmitted ? (
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  if (!myVoteTheme.trim()) return;
-                  ws.current.send(JSON.stringify({ type: "submit_theme", theme: myVoteTheme }));
-                  setMyVoteSubmitted(true);
-                }} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <input type="text" placeholder="Proposer un thème..." value={myVoteTheme} onChange={e => setMyVoteTheme(e.target.value)} style={{ padding: 12, borderRadius: 8, border: "1px solid #ccc" }} />
-                  <button type="submit" style={{ padding: 12, background: "var(--accent)", color: "white", borderRadius: 8, border: "none", fontWeight: "bold" }}>Soumettre le thème</button>
-                </form>
-              ) : (
-                <div style={{ padding: 12, background: "var(--green-soft)", borderRadius: 8, color: "var(--green)", fontWeight: "bold" }}>
-                  Thème soumis : {myVoteTheme}
-                </div>
-              )}
-              
-              <div style={{ marginTop: 20 }}>
-                <p>{themeVoting?.submitted.length} / {themeVoting?.total} joueurs ont voté</p>
-                {isHost && themeVoting?.submitted.length > 0 && (
-                  <button onClick={() => ws.current.send(JSON.stringify({ type: "force_pick" }))} style={{ marginTop: 10, padding: "8px 16px", background: "white", border: "1px solid var(--line)", borderRadius: 8, cursor: "pointer" }}>
-                    Choisir maintenant
-                  </button>
-                )}
+          <div style={{ textAlign: "center" }}>
+            <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 36, marginBottom: 10 }}>Phase de Vote</h2>
+            <p style={{ color: "var(--muted)", marginBottom: 20 }}>Round {themeVoting?.round} / {themeVoting?.maxRounds}</p>
+            
+            {!myVoteSubmitted ? (
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (!myVoteTheme.trim()) return;
+                ws.current.send(JSON.stringify({ type: "submit_theme", theme: myVoteTheme }));
+                setMyVoteSubmitted(true);
+              }} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <input type="text" placeholder="Proposer un thème..." value={myVoteTheme} onChange={e => setMyVoteTheme(e.target.value)} style={{ padding: 12, borderRadius: 8, border: "1px solid #ccc" }} />
+                <button type="submit" style={{ padding: 12, background: "var(--accent)", color: "white", borderRadius: 8, border: "none", fontWeight: "bold" }}>Soumettre le thème</button>
+              </form>
+            ) : (
+              <div style={{ padding: 12, background: "var(--green-soft)", borderRadius: 8, color: "var(--green)", fontWeight: "bold" }}>
+                Thème soumis : {myVoteTheme}
               </div>
+            )}
+            
+            <div style={{ marginTop: 20 }}>
+              <p>{themeVoting?.submitted.length} / {themeVoting?.total} joueurs ont voté</p>
+              {isHost && themeVoting?.submitted.length > 0 && (
+                <button onClick={() => ws.current.send(JSON.stringify({ type: "force_pick" }))} style={{ marginTop: 10, padding: "8px 16px", background: "white", border: "1px solid var(--line)", borderRadius: 8, cursor: "pointer" }}>
+                  Choisir maintenant
+                </button>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     );
@@ -216,16 +277,30 @@ function Lobby({ onStart, onMultiplayerStart }) {
   // ---- MULTIPLAYER LOBBY ----
   if (mode === "lobby") {
     return (
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "var(--bg-primary)" }}>
-        <div style={{ background: "white", padding: "40px", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxWidth: "500px", width: "100%" }}>
-          <h2 style={{ textAlign: "center", fontFamily: "'Instrument Serif', serif", fontSize: "32px" }}>Salle: {roomCode}</h2>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", backgroundColor: "var(--bg-primary)", padding: 20 }}>
+        <div style={{ background: "white", padding: "40px", borderRadius: "12px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxWidth: "500px", width: "100%", position: "relative" }}>
+          {onLeave && (
+            <button onClick={onLeave} style={{ position: "absolute", top: 16, right: 16, background: "transparent", border: "none", color: "var(--danger)", cursor: "pointer", fontWeight: 600, fontSize: 13 }}>
+              Quitter
+            </button>
+          )}
+          <h2 style={{ textAlign: "center", fontFamily: "'Instrument Serif', serif", fontSize: "32px", margin: "0 0 4px" }}>Salle: {roomCode}</h2>
           <div style={{ margin: "20px 0" }}>
             <h3 style={{ fontSize: "16px", color: "var(--ink)", marginBottom: "10px" }}>Joueurs ({players.length}) :</h3>
             <ul style={{ listStyle: "none", padding: 0 }}>
               {players.map((p, i) => (
-                <li key={i} style={{ padding: "8px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between" }}>
-                  <span>{p.name} {i === 0 ? "👑" : ""}</span>
-                  {p.answered && <span style={{color: "green"}}>Prêt</span>}
+                <li key={i} style={{ padding: "8px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: p.color || "#ccc" }} />
+                    <span style={{ fontWeight: 500, color: "var(--ink)" }}>{p.name} {i === 0 ? "👑" : ""}</span>
+                  </div>
+                  <span style={{
+                    fontSize: "12px", fontWeight: "600", padding: "3px 10px", borderRadius: "999px",
+                    background: p.ready ? "var(--green-soft)" : "#f3f3f3",
+                    color: p.ready ? "var(--green)" : "var(--muted)",
+                  }}>
+                    {p.ready ? "✓ Prêt" : "En attente"}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -280,13 +355,25 @@ function Lobby({ onStart, onMultiplayerStart }) {
                   }}/>
                 </span>
               </div>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button onClick={handleToggleReady} disabled={loading} style={{ flex: 1, padding: "12px", background: isReady ? "var(--green)" : "var(--bronze)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontWeight: "bold" }}>
-                  {isReady ? "Prêt !" : "Je suis prêt"}
-                </button>
-                <button onClick={handleForceStart} disabled={loading} style={{ flex: 1, padding: "12px", background: "var(--accent)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontWeight: "bold" }}>
-                  Forcer Démarrage
-                </button>
+              <div style={{ display: "flex", gap: "10px", flexDirection: "column" }}>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button onClick={handleToggleReady} disabled={loading} style={{ flex: 1, padding: "12px", background: isReady ? "var(--green)" : "var(--bronze)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontWeight: "bold" }}>
+                    {isReady ? "Prêt ! — Annuler" : "Je suis prêt"}
+                  </button>
+                  {(!players.every(p => p.ready) || players.length === 0) && (
+                    <button onClick={handleForceStart} disabled={loading} style={{ flex: 1, padding: "12px", background: "white", color: "var(--ink)", border: "1px solid var(--line)", borderRadius: "4px", cursor: "pointer", fontWeight: "bold" }}>
+                      ⚡ Force Start
+                    </button>
+                  )}
+                </div>
+                {(players.every(p => p.ready) && players.length > 0) && (
+                  <button onClick={handleForceStart} disabled={loading} style={{
+                    width: "100%", padding: "14px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "bold", fontSize: "16px",
+                    background: "linear-gradient(135deg, var(--accent), #2a7568)", color: "white", boxShadow: "0 4px 18px rgba(31,87,77,0.25)"
+                  }}>
+                    {loading ? "Génération en cours..." : "🚀 Lancer la partie !"}
+                  </button>
+                )}
               </div>
             </div>
           ) : (

@@ -37,6 +37,8 @@ ITEMS = [
     {"id": "INVERT",      "name": "Négatif",       "icon": "🌑", "description": "Inverse les couleurs de l'écran (5s)",         "targetCount": 1},
 ]
 
+AVAILABLE_COLORS = ["#e63946", "#f4a261", "#2a9d8f", "#264653", "#8338ec", "#ff006e", "#3a0ca3", "#fb5607"]
+
 rooms = {}
 
 class StartGameRequest(BaseModel):
@@ -107,6 +109,8 @@ def create_room(req: Optional[CreateRoomRequest] = None):
         "max_rounds": max(1, min(max_rounds, 10)),
         "current_round": 0,
         "voting_themes": {},
+        "between_rounds": False,
+        "picking_theme": False,
     }
     return {"room_code": code}
 
@@ -118,13 +122,24 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
         return
 
     room = rooms[room_code]
-    room["players"][player_name] = {
-        "socket": websocket,
-        "score": 0,
-        "answered": False,
-        "results": None,
-        "ready": False
-    }
+    
+    if player_name in room["players"]:
+        room["players"][player_name]["socket"] = websocket
+        room["players"][player_name]["connected"] = True
+    else:
+        used_colors = [p.get("color") for p in room["players"].values()]
+        available = [c for c in AVAILABLE_COLORS if c not in used_colors]
+        color = available[0] if available else random.choice(AVAILABLE_COLORS)
+        
+        room["players"][player_name] = {
+            "socket": websocket,
+            "score": 0,
+            "answered": False,
+            "results": None,
+            "ready": False,
+            "color": color,
+            "connected": True
+        }
 
     await broadcast_lobby(room_code)
 
@@ -139,17 +154,21 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                     room["with_items"] = data["with_items"]
                 if "time_limit" in data:
                     room["time_limit"] = int(data["time_limit"])
+                if "max_rounds" in data:
+                    room["max_rounds"] = max(1, min(int(data["max_rounds"]), 10))
                 await broadcast_lobby(room_code)
-                # Auto-start (go to theme voting) when all connected players are ready
-                connected_players = [p for p in room["players"].values() if p.get("connected", True)]
-                if len(connected_players) >= 1 and all(p["ready"] for p in connected_players):
-                    await start_theme_voting(room_code)
+
+            elif data["type"] == "get_lobby":
+                # Player is returning to the lobby after a game, refresh their state
+                await broadcast_lobby(room_code)
 
             elif data["type"] == "force_start" and room["state"] == "waiting":
                 if "with_items" in data:
                     room["with_items"] = data["with_items"]
                 if "time_limit" in data:
                     room["time_limit"] = int(data["time_limit"])
+                if "max_rounds" in data:
+                    room["max_rounds"] = max(1, min(int(data["max_rounds"]), 10))
                 await start_theme_voting(room_code)
 
             elif data["type"] == "submit_theme" and room["state"] == "theme_voting":
@@ -301,6 +320,10 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
 
                 all_answered = all(p["answered"] for p in room["players"].values())
                 if all_answered:
+                    # Ignore duplicate end-of-round processing while transitioning
+                    if room.get("between_rounds") or room.get("picking_theme"):
+                        continue
+
                     max_rounds = room.get("max_rounds", 1)
                     current_round = room.get("current_round", 0)
                     
@@ -325,6 +348,7 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                     if current_round < max_rounds - 1:
                         next_round = current_round + 1
                         room["current_round"] = next_round
+                        room["between_rounds"] = True
 
                         await broadcast(room_code, {
                             "type": "round_end",
@@ -335,13 +359,16 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                             "countdown": 5
                         })
 
-                        import asyncio
+                        # Inter-round flow:
+                        # 1) show the round_end overlay for a short moment
+                        # 2) open a theme voting phase for the next round
                         await asyncio.sleep(5)
-                        room["state"] = "waiting"
-                        await start_theme_voting(room_code)
+                        if room_code in rooms and room.get("between_rounds"):
+                            await start_theme_voting(room_code)
                     else:
                         room["state"] = "waiting"
                         room["current_round"] = 0
+                        # Build final leaderboard BEFORE resetting total_score
                         final_leaderboard = [
                             {
                                 "id": name,
@@ -353,7 +380,9 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                             for name, p in room["players"].items()
                         ]
                         final_leaderboard.sort(key=lambda x: x["score"], reverse=True)
+                        # Reset all players' ready state and scores for the next game
                         for p in room["players"].values():
+                            p["ready"] = False
                             p["total_score"] = 0
                         await broadcast(room_code, {"type": "game_end", "leaderboard": final_leaderboard})
                 else:
@@ -372,7 +401,7 @@ async def broadcast_lobby(room_code: str):
     if room_code not in rooms:
         return
     room = rooms[room_code]
-    players_data = [{"name": name, "answered": p["answered"], "ready": p.get("ready", False)} for name, p in room["players"].items()]
+    players_data = [{"name": name, "answered": p.get("answered", False), "ready": p.get("ready", False), "color": p.get("color")} for name, p in room["players"].items()]
     await broadcast(room_code, {"type": "lobby_update", "players": players_data})
 
 async def broadcast(room_code: str, message: dict):
@@ -387,6 +416,8 @@ async def broadcast(room_code: str, message: dict):
 
 async def start_theme_voting(room_code: str):
     room = rooms[room_code]
+    if room["state"] == "theme_voting":
+        return
     room["state"] = "theme_voting"
     room["voting_themes"] = {}
     
@@ -399,57 +430,66 @@ async def start_theme_voting(room_code: str):
         "max_rounds": max_rounds
     })
 
-async def pick_and_start(room_code: str):
+async def pick_and_start(room_code: str, use_votes: bool = True):
     room = rooms[room_code]
-    themes = list(room["voting_themes"].values())
-    fallback_themes = ["Paris", "Chat", "Chocolat", "Football", "Soleil", "Lune", "Château", "Pizza", "Japon", "Cinéma"]
-    
-    success = False
-    chosen = ""
-    proposer = "Système"
-    game_data = None
-    
-    available_themes = list(set(themes))
-    random.shuffle(available_themes)
-    
-    for theme in available_themes:
-        data = game.start_game(theme)
-        if data:
-            chosen = theme
-            proposers = [n for n, t in room["voting_themes"].items() if t == theme]
-            proposer = proposers[0] if proposers else "Système"
-            game_data = data
-            success = True
-            break
-            
-    if not success:
-        random.shuffle(fallback_themes)
-        for theme in fallback_themes:
-            data = game.start_game(theme)
-            if data:
-                chosen = theme
-                proposer = "Système"
-                game_data = data
-                success = True
-                break
-                
-    if not success:
-        await broadcast(room_code, {"type": "error", "message": "Erreur critique : Impossible de charger un sujet Wikipédia."})
-        room["state"] = "waiting"
-        await broadcast_lobby(room_code)
+    if room.get("picking_theme"):
         return
-    
+    room["picking_theme"] = True
+    fallback_themes = ["Paris", "Chat", "Chocolat", "Football", "Soleil", "Lune", "Château", "Pizza", "Japon", "Cinéma"]
+
+    if use_votes:
+        themes = list(room["voting_themes"].values())
+        available_themes = list(set(themes))
+        random.shuffle(available_themes)
+        all_candidates = available_themes + fallback_themes
+        first_candidate = all_candidates[0] if all_candidates else "Général"
+        proposers = [n for n, t in room["voting_themes"].items() if t == first_candidate]
+        proposer_name = proposers[0] if proposers else "Système"
+        all_themes_dict = room["voting_themes"]
+    else:
+        all_candidates = fallback_themes
+        first_candidate = all_candidates[0] if all_candidates else "Général"
+        proposer_name = "Système"
+        all_themes_dict = {}
+
+    # Step 1: immediately pick a candidate theme and broadcast it
     await broadcast(room_code, {
         "type": "theme_selected",
-        "theme": chosen,
-        "proposer": proposer,
-        "all_themes": room["voting_themes"],
-        "countdown": 3
+        "theme": first_candidate,
+        "proposer": proposer_name,
+        "all_themes": all_themes_dict,
+        "loading": True  # signal the frontend to show the waiting screen immediately
     })
-    
+
+    # Step 2: generate the game data in a background thread so WebSocket stays alive
     import asyncio
-    await asyncio.sleep(3)
-    await start_game_in_room(room_code, chosen, is_new_round=(room.get("current_round", 0) > 0), preloaded_game_data=game_data)
+
+    def generate_game():
+        for theme in all_candidates:
+            data = game.start_game(theme)
+            if data:
+                if use_votes:
+                    p_list = [n for n, t in room["voting_themes"].items() if t == theme]
+                    p = p_list[0] if p_list else "Système"
+                else:
+                    p = "Système"
+                return theme, p, data
+        return None, None, None
+
+    chosen, proposer, game_data = await asyncio.to_thread(generate_game)
+
+    if not game_data:
+        room["picking_theme"] = False
+        await broadcast(room_code, {"type": "error", "message": "Erreur critique : Impossible de charger un sujet Wikipédia."})
+        room["state"] = "waiting"
+        room["between_rounds"] = False
+        await broadcast_lobby(room_code)
+        return
+
+    try:
+        await start_game_in_room(room_code, chosen, is_new_round=(room.get("current_round", 0) > 0), preloaded_game_data=game_data)
+    finally:
+        room["picking_theme"] = False
 
 async def start_game_in_room(room_code: str, category: str, is_new_round: bool = False, preloaded_game_data=None):
     room = rooms[room_code]
@@ -459,6 +499,7 @@ async def start_game_in_room(room_code: str, category: str, is_new_round: bool =
     
     room["game_data"] = game_data
     room["state"] = "playing"
+    room["between_rounds"] = False
     room["start_time"] = time.time()
     
     for p in room["players"].values():
@@ -488,7 +529,7 @@ async def start_game_in_room(room_code: str, category: str, is_new_round: bool =
             "positions": game_data["positions"],
             "total_fakes": game_data["total_false_statements"],
             "wikipedia_url": game_data.get("wikipedia_url", ""),
-            "players": list(room["players"].keys()),
+            "players": [{"name": n, "color": p.get("color")} for n, p in room["players"].items()],
             "with_items": room.get("with_items", True),
             "time_limit": room.get("time_limit", GAME_DURATION),
         }

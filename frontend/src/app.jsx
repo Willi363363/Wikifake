@@ -902,6 +902,14 @@ function App() {
   const [gameState, setGameState] = useState("lobby");
   const [sessionData, setSessionData] = useState(null);
 
+  const handleLeaveRoom = () => {
+    if (sessionData?.multiplayer?.socket) {
+      sessionData.multiplayer.socket.close();
+    }
+    setSessionData(null);
+    setGameState("lobby");
+  };
+
   const startSession = (data, timeLimit) => {
     // Transform backend data to mock data format expected by the frontend
     const newBody = data.paragraphs.map((p, idx) => {
@@ -953,14 +961,14 @@ function App() {
   };
 
   if (gameState === "lobby") {
-    return <window.Lobby onStart={startSession} onMultiplayerStart={startMultiplayerSession} />;
+    return <window.Lobby onStart={startSession} onMultiplayerStart={startMultiplayerSession} existingMultiplayer={sessionData?.multiplayer} onLeave={handleLeaveRoom} />;
   }
 
   // Restore the original inner App as InnerApp
-  return <InnerApp sessionData={sessionData} resetSession={() => setGameState("lobby")} />;
+  return <InnerApp sessionData={sessionData} resetSession={() => setGameState("lobby")} onLeave={handleLeaveRoom} />;
 }
 
-function InnerApp({ sessionData, resetSession }) {
+function InnerApp({ sessionData, resetSession, onLeave }) {
 
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
@@ -1042,6 +1050,7 @@ function InnerApp({ sessionData, resetSession }) {
   const [myVoteSubmitted, setMyVoteSubmitted] = useState(false);
   const [themeSelected, setThemeSelected] = useState(null);
   const [roundInfo, setRoundInfo] = useState({ current: 1, max: 1 });
+  const [showWaitingScreen, setShowWaitingScreen] = useState(false);
 
   useEffect(() => {
     if (sessionData && sessionData.multiplayer) {
@@ -1059,6 +1068,9 @@ function InnerApp({ sessionData, resetSession }) {
           setRoundEndData(msg);
         } else if (msg.type === "theme_vote_start") {
           setRoundEndData(null);
+          setShowWaitingScreen(false);
+          setRevealAll(false);
+          setWaitingForOthers(false);
           setThemeVoting({ round: msg.round, maxRounds: msg.max_rounds, submitted: [], total: players.length || 1 });
           setMyVoteSubmitted(false);
           setMyVoteTheme("");
@@ -1066,48 +1078,22 @@ function InnerApp({ sessionData, resetSession }) {
         } else if (msg.type === "theme_vote_update") {
           setThemeVoting(prev => prev ? { ...prev, submitted: msg.submitted, total: msg.total } : null);
         } else if (msg.type === "theme_selected") {
-          setThemeSelected(msg);
-        } else if (msg.type === "round_start") {
           setThemeVoting(null);
-          setThemeSelected(null);
+          setRoundEndData(null);
+          setThemeSelected(msg);
+          setShowWaitingScreen(true);
+        } else if (msg.type === "round_start") {
           setRoundInfo({ current: msg.round, max: msg.max_rounds });
-          
-          // Inject new data
-          const data = msg.data;
-          const newBody = data.paragraphs.map((p, idx) => {
-            const isFake = data.positions.find(pos => pos.paragraph_index === idx + 1);
-            if (isFake) {
-              return [{ kind: "token", id: "p" + idx, text: p, fake: { id: "F" + idx, truth: isFake.explanation || "A identifier", hint: isFake.hint || "Vérifiez cette information" } }];
-            } else {
-              return [{ kind: "token", id: "p" + idx, text: p, fake: null }];
-            }
-          });
-          window.WIKIFAKE_ARTICLE = { title: data.topic, subtitle: "Wikipedia" };
-          window.WIKIFAKE_INFOBOX = [
-            { label: "DESIGNATION", value: data.topic },
-            { label: "SOURCE", value: data.wikipedia_url || "Wikipedia" },
-            { label: "FAKES INJECTED", value: data.total_fakes.toString() },
-            { label: "STATUS", value: "LIVE", live: true }
-          ];
-          window.WIKIFAKE_BODY = [{ kind: "lead", paragraphs: newBody }];
-          window.WIKIFAKE_FAKES = data.positions.map((pos, i) => ({
-            id: "F" + (pos.paragraph_index - 1),
-            tokenId: "p" + (pos.paragraph_index - 1),
-            text: pos.false_statement,
-            level: 1,
-            truth: pos.explanation,
-            hint: pos.hint
-          }));
-          
-          // Reset states
-          setMarked({});
-          setEdited({});
-          setHintUnlocks({});
-          setTime(data.time_limit || 180);
+          setThemeVoting(null);
+          setRoundEndData(null);
+          setWaitingForOthers(false);
           setRevealAll(false);
-          setLeaderboard(null);
-          setItems([]);
-          setActiveEffects([]);
+          setTweak("gameState", "playing");
+          window.__pendingRoundData = msg.data;
+          if (window.__waitingScreenReady) {
+            window.__waitingScreenReady(msg.data);
+            delete window.__pendingRoundData;
+          }
         } else if (msg.type === "live_score_update") {
           setLiveScores(prev => ({ ...prev, [msg.player]: msg.score }));
         } else if (msg.type === "cursor_update") {
@@ -1371,7 +1357,7 @@ function InnerApp({ sessionData, resetSession }) {
     if (leaderboard) {
       return leaderboard.map(p => ({
         ...p,
-        color: p.name === sessionData?.multiplayer?.username ? (ACCENTS[t.accent]?.primary || "#1f574d") : "#7a9460",
+        color: p.color || (p.name === sessionData?.multiplayer?.username ? (ACCENTS[t.accent]?.primary || "#1f574d") : "#7a9460"),
         you: p.name === sessionData?.multiplayer?.username
       }));
     }
@@ -1379,12 +1365,14 @@ function InnerApp({ sessionData, resetSession }) {
       // Build real-time scoreboard during game
       const me = sessionData.multiplayer.username;
       const all = sessionData.players.map(p => {
-        const isMe = p === me;
+        const pName = typeof p === 'string' ? p : p.name;
+        const pColor = typeof p === 'string' ? null : p.color;
+        const isMe = pName === me;
         return {
-          id: p,
-          name: p,
-          color: isMe ? (ACCENTS[t.accent]?.primary || "#1f574d") : "#7a9460",
-          score: isMe ? youScore : (liveScores[p] || 0),
+          id: pName,
+          name: pName,
+          color: pColor || (isMe ? (ACCENTS[t.accent]?.primary || "#1f574d") : "#7a9460"),
+          score: isMe ? youScore : (liveScores[pName] || 0),
           you: isMe
         };
       });
@@ -1474,37 +1462,58 @@ function InnerApp({ sessionData, resetSession }) {
         </div>
       )}
 
-      {/* ── Theme Selected Overlay ── */}
-      {themeSelected && (
-        <div style={{
-          position: "fixed", inset: 0, zIndex: 600,
-          background: "rgba(246,244,239,0.97)",
-          backdropFilter: "blur(20px)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          flexDirection: "column", gap: 20,
-          fontFamily: "'Geist', sans-serif",
-          animation: "fade-in 300ms ease",
-        }}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 11, color: "var(--muted)", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 600, marginBottom: 12 }}>🎲 Thème sélectionné</div>
-            <h1 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 52, margin: 0, color: "var(--accent)", letterSpacing: "-0.02em" }}>
-              {themeSelected.theme}
-            </h1>
-            <p style={{ color: "var(--muted)", marginTop: 12, fontSize: 14 }}>
-              Proposé par <strong>{themeSelected.proposer}</strong> · La partie commence dans {themeSelected.countdown}s…
-            </p>
-          </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", maxWidth: 480 }}>
-            {Object.entries(themeSelected.all_themes || {}).map(([name, theme]) => (
-              <span key={name} style={{
-                padding: "5px 14px", borderRadius: 999, fontSize: 13,
-                background: theme === themeSelected.theme ? "var(--accent)" : "white",
-                color: theme === themeSelected.theme ? "white" : "var(--ink-2)",
-                border: "1px solid var(--line)",
-                fontWeight: theme === themeSelected.theme ? 700 : 400,
-              }}>{theme} <span style={{ opacity: 0.6, fontSize: 11 }}>({name})</span></span>
-            ))}
-          </div>
+      {/* ── WaitingScreen with mini-games during inter-round loading ── */}
+      {showWaitingScreen && themeSelected && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 700 }}>
+          <window.WaitingScreen
+            category={themeSelected.theme}
+            isMultiplayer={true}
+            lobbyPlayers={players}
+            roomCode={sessionData?.multiplayer?.roomCode}
+            onReady={(data) => {
+              // Inject the new round data
+              const newBody = data.paragraphs.map((p, idx) => {
+                const isFake = data.positions.find(pos => pos.paragraph_index === idx + 1);
+                if (isFake) {
+                  return [{ kind: "token", id: "p" + idx, text: p, fake: { id: "F" + idx, truth: isFake.explanation || "A identifier", hint: isFake.hint || "Vérifiez cette information" } }];
+                } else {
+                  return [{ kind: "token", id: "p" + idx, text: p, fake: null }];
+                }
+              });
+              window.WIKIFAKE_ARTICLE = { title: data.topic, subtitle: "Wikipedia" };
+              window.WIKIFAKE_INFOBOX = [
+                { label: "DESIGNATION", value: data.topic },
+                { label: "SOURCE", value: data.wikipedia_url || "Wikipedia" },
+                { label: "FAKES INJECTED", value: data.total_fakes.toString() },
+                { label: "STATUS", value: "LIVE", live: true }
+              ];
+              window.WIKIFAKE_BODY = [{ kind: "lead", paragraphs: newBody }];
+              window.WIKIFAKE_FAKES = data.positions.map((pos) => ({
+                id: "F" + (pos.paragraph_index - 1),
+                tokenId: "p" + (pos.paragraph_index - 1),
+                text: pos.false_statement,
+                level: 1,
+                truth: pos.explanation,
+                hint: pos.hint
+              }));
+              setMarked({});
+              setEdited({});
+              setHintUnlocks({});
+              setTime(data.time_limit || 180);
+              setRevealAll(false);
+              setLeaderboard(null);
+              setItems([]);
+              setActiveEffects([]);
+              setThemeVoting(null);
+              setThemeSelected(null);
+              setShowWaitingScreen(false);
+            }}
+            onError={() => {
+              setShowWaitingScreen(false);
+              setThemeVoting(null);
+              setThemeSelected(null);
+            }}
+          />
         </div>
       )}
 
