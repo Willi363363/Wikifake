@@ -14,14 +14,14 @@ help:
 
 check-env:
 	@if [ ! -f .env ]; then \
-		echo "❌ Fichier .env introuvable — copie .env.example et remplis ta clé"; \
-		exit 1; \
+		echo "⚠️  Fichier .env introuvable — création d'un .env minimal."; \
+		echo "OPENAI_API_KEY=" > .env; \
 	fi
 	@if ! grep -q "OPENAI_API_KEY=." .env; then \
-		echo "❌ OPENAI_API_KEY est vide dans le .env — ajoute ta clé avant de lancer"; \
-		exit 1; \
+		echo "⚠️  OPENAI_API_KEY est vide dans le .env — certaines fonctionnalités IA peuvent ne pas marcher."; \
+	else \
+		echo "✅ Clé API détectée"; \
 	fi
-	@echo "✅ Clé API détectée"
 
 build: $(VENV)/bin/activate check-env
 	@echo "📦 Installation des dépendances..."
