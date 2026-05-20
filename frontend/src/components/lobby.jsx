@@ -14,7 +14,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
   const [myVoteTheme, setMyVoteTheme] = useState("");
   const [myVoteSubmitted, setMyVoteSubmitted] = useState(false);
   const [themeSelected, setThemeSelected] = useState(null);
-  
+
   // Multiplayer state
   const [players, setPlayers] = useState([]);
   const [isHost, setIsHost] = useState(false);
@@ -45,7 +45,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/multiplayer/create", { 
+      const res = await fetch("/api/multiplayer/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ max_rounds: maxRounds })
@@ -74,14 +74,14 @@ function Lobby({ onStart, onMultiplayerStart }) {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const socketUrl = `${protocol}//${window.location.host}/ws/${code}/${name}`;
     const socket = new WebSocket(socketUrl);
-    
+
     socket.onopen = () => {
       setLoading(false);
       setMode("lobby");
       ws.current = socket;
     };
-    
-    socket.onmessage = (event) => {
+
+    socket.addEventListener("message", (event) => {
       const msg = JSON.parse(event.data);
       if (msg.type === "lobby_update") {
         setPlayers(msg.players);
@@ -109,8 +109,8 @@ function Lobby({ onStart, onMultiplayerStart }) {
         setLoading(false);
         setMode("lobby");
       }
-    };
-    
+    });
+
     socket.onclose = () => {
       setError("Déconnecté de la salle.");
       setMode("join");
@@ -154,14 +154,17 @@ function Lobby({ onStart, onMultiplayerStart }) {
   // ---- MULTIPLAYER LOBBY WAITING ----
   if (mode === "lobby-waiting") {
     return (
-      <window.WaitingScreen
-        category="Un thème..."
-        onReady={handleMultiWaitingReady}
-        onError={(msg) => { setError(msg); setMode("lobby"); setLoading(false); }}
-        isMultiplayer={true}
-        lobbyPlayers={players}
-        roomCode={roomCode}
-      />
+      <>
+        <window.WaitingScreen
+          category="Un thème..."
+          onReady={handleMultiWaitingReady}
+          onError={(msg) => { setError(msg); setMode("lobby"); setLoading(false); }}
+          isMultiplayer={true}
+          lobbyPlayers={players}
+          roomCode={roomCode}
+        />
+        {ws.current && <window.LobbyChat ws={ws.current} username={username} roomCode={roomCode} />}
+      </>
     );
   }
 
@@ -181,7 +184,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
             <div style={{ textAlign: "center" }}>
               <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 36, marginBottom: 10 }}>Phase de Vote</h2>
               <p style={{ color: "var(--muted)", marginBottom: 20 }}>Round {themeVoting?.round} / {themeVoting?.maxRounds}</p>
-              
+
               {!myVoteSubmitted ? (
                 <form onSubmit={(e) => {
                   e.preventDefault();
@@ -197,7 +200,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
                   Thème soumis : {myVoteTheme}
                 </div>
               )}
-              
+
               <div style={{ marginTop: 20 }}>
                 <p>{themeVoting?.submitted.length} / {themeVoting?.total} joueurs ont voté</p>
                 {isHost && themeVoting?.submitted.length > 0 && (
@@ -209,6 +212,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
             </div>
           )}
         </div>
+        {ws.current && <window.LobbyChat ws={ws.current} username={username} roomCode={roomCode} />}
       </div>
     );
   }
@@ -225,12 +229,12 @@ function Lobby({ onStart, onMultiplayerStart }) {
               {players.map((p, i) => (
                 <li key={i} style={{ padding: "8px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between" }}>
                   <span>{p.name} {i === 0 ? "👑" : ""}</span>
-                  {p.answered && <span style={{color: "green"}}>Prêt</span>}
+                  {p.answered && <span style={{ color: "green" }}>Prêt</span>}
                 </li>
               ))}
             </ul>
           </div>
-          
+
           {isHost ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
               <div>
@@ -277,7 +281,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
                     width: 14, height: 14, borderRadius: "50%",
                     background: "white", transition: "left 150ms",
                     boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-                  }}/>
+                  }} />
                 </span>
               </div>
               <div style={{ display: "flex", gap: "10px" }}>
@@ -299,6 +303,7 @@ function Lobby({ onStart, onMultiplayerStart }) {
           )}
           {error && <p style={{ color: "red", marginTop: "10px", textAlign: "center" }}>{error}</p>}
         </div>
+        {ws.current && <window.LobbyChat ws={ws.current} username={username} roomCode={roomCode} />}
       </div>
     );
   }
@@ -354,55 +359,55 @@ function Lobby({ onStart, onMultiplayerStart }) {
         }
       `}</style>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh", backgroundColor: "var(--bg-primary)" }}>
-      <div style={{ background: "white", padding: "40px", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxWidth: "450px", width: "100%" }}>
-        <h2 style={{ marginBottom: "20px", color: "var(--text-primary)", textAlign: "center", fontFamily: "'Instrument Serif', serif", fontSize: "36px" }}>WikiFake</h2>
-        
-        <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-          <button onClick={() => {setMode("solo"); setError("");}} style={{ flex: 1, padding: "8px", background: mode === "solo" ? "var(--ink)" : "#eee", color: mode === "solo" ? "white" : "black", border: "none", borderRadius: "4px", cursor: "pointer" }}>Solo</button>
-          <button onClick={() => {setMode("host"); setError("");}} style={{ flex: 1, padding: "8px", background: mode === "host" ? "var(--ink)" : "#eee", color: mode === "host" ? "white" : "black", border: "none", borderRadius: "4px", cursor: "pointer" }}>Héberger</button>
-          <button onClick={() => {setMode("join"); setError("");}} style={{ flex: 1, padding: "8px", background: mode === "join" ? "var(--ink)" : "#eee", color: mode === "join" ? "white" : "black", border: "none", borderRadius: "4px", cursor: "pointer" }}>Rejoindre</button>
-        </div>
+        <div style={{ background: "white", padding: "40px", borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxWidth: "450px", width: "100%" }}>
+          <h2 style={{ marginBottom: "20px", color: "var(--text-primary)", textAlign: "center", fontFamily: "'Instrument Serif', serif", fontSize: "36px" }}>WikiFake</h2>
 
-        {mode === "solo" && (
-          <form onSubmit={handleSoloSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
-            <input type="text" placeholder="Sujet Wikipédia (ex: Paris)" value={category} onChange={(e) => setCategory(e.target.value)} style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc" }} disabled={loading} />
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "var(--ink)" }}>
-                Limite de temps: {timeLimit < 60 ? timeLimit + "s" : (timeLimit / 60).toFixed(1) + "min"}
-              </label>
-              <input type="range" min="30" max="600" step="30" value={timeLimit} onChange={(e) => setTimeLimit(Number(e.target.value))} style={{ width: "100%", padding: 0 }} disabled={loading} />
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--muted)", marginTop: "4px" }}>
-                <span>30s</span>
-                <span>10min</span>
+          <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+            <button onClick={() => { setMode("solo"); setError(""); }} style={{ flex: 1, padding: "8px", background: mode === "solo" ? "var(--ink)" : "#eee", color: mode === "solo" ? "white" : "black", border: "none", borderRadius: "4px", cursor: "pointer" }}>Solo</button>
+            <button onClick={() => { setMode("host"); setError(""); }} style={{ flex: 1, padding: "8px", background: mode === "host" ? "var(--ink)" : "#eee", color: mode === "host" ? "white" : "black", border: "none", borderRadius: "4px", cursor: "pointer" }}>Héberger</button>
+            <button onClick={() => { setMode("join"); setError(""); }} style={{ flex: 1, padding: "8px", background: mode === "join" ? "var(--ink)" : "#eee", color: mode === "join" ? "white" : "black", border: "none", borderRadius: "4px", cursor: "pointer" }}>Rejoindre</button>
+          </div>
+
+          {mode === "solo" && (
+            <form onSubmit={handleSoloSubmit} style={{ display: "flex", flexDirection: "column", gap: "15px" }}>
+              <input type="text" placeholder="Sujet Wikipédia (ex: Paris)" value={category} onChange={(e) => setCategory(e.target.value)} style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc" }} disabled={loading} />
+              <div>
+                <label style={{ display: "block", marginBottom: "8px", fontSize: "14px", fontWeight: "500", color: "var(--ink)" }}>
+                  Limite de temps: {timeLimit < 60 ? timeLimit + "s" : (timeLimit / 60).toFixed(1) + "min"}
+                </label>
+                <input type="range" min="30" max="600" step="30" value={timeLimit} onChange={(e) => setTimeLimit(Number(e.target.value))} style={{ width: "100%", padding: 0 }} disabled={loading} />
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: "var(--muted)", marginTop: "4px" }}>
+                  <span>30s</span>
+                  <span>10min</span>
+                </div>
               </div>
-            </div>
-            <button type="submit" disabled={loading || !category} style={{ padding: "12px", background: "var(--bronze)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}>
-              {loading ? "Génération en cours..." : "Lancer en Solo"}
-            </button>
-          </form>
-        )}
+              <button type="submit" disabled={loading || !category} style={{ padding: "12px", background: "var(--bronze)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}>
+                {loading ? "Génération en cours..." : "Lancer en Solo"}
+              </button>
+            </form>
+          )}
 
-        {mode === "host" && (
-          <form onSubmit={handleHost} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <input type="text" placeholder="Votre Pseudo" value={username} onChange={(e) => setUsername(e.target.value)} style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc" }} disabled={loading} />
-            <button type="submit" disabled={loading || !username} style={{ padding: "12px", background: "var(--accent)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}>
-              {loading ? "Création..." : "Créer la Salle"}
-            </button>
-          </form>
-        )}
+          {mode === "host" && (
+            <form onSubmit={handleHost} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <input type="text" placeholder="Votre Pseudo" value={username} onChange={(e) => setUsername(e.target.value)} style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc" }} disabled={loading} />
+              <button type="submit" disabled={loading || !username} style={{ padding: "12px", background: "var(--accent)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}>
+                {loading ? "Création..." : "Créer la Salle"}
+              </button>
+            </form>
+          )}
 
-        {mode === "join" && (
-          <form onSubmit={handleJoin} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <input type="text" placeholder="Code de la salle" value={roomCode} onChange={(e) => setRoomCode(e.target.value)} style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc", textTransform: "uppercase" }} disabled={loading} />
-            <input type="text" placeholder="Votre Pseudo" value={username} onChange={(e) => setUsername(e.target.value)} style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc" }} disabled={loading} />
-            <button type="submit" disabled={loading || !username || !roomCode} style={{ padding: "12px", background: "var(--accent)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}>
-              {loading ? "Connexion..." : "Rejoindre"}
-            </button>
-          </form>
-        )}
+          {mode === "join" && (
+            <form onSubmit={handleJoin} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <input type="text" placeholder="Code de la salle" value={roomCode} onChange={(e) => setRoomCode(e.target.value)} style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc", textTransform: "uppercase" }} disabled={loading} />
+              <input type="text" placeholder="Votre Pseudo" value={username} onChange={(e) => setUsername(e.target.value)} style={{ padding: "10px", fontSize: "16px", borderRadius: "4px", border: "1px solid #ccc" }} disabled={loading} />
+              <button type="submit" disabled={loading || !username || !roomCode} style={{ padding: "12px", background: "var(--accent)", color: "white", borderRadius: "4px", border: "none", cursor: "pointer", fontSize: "16px", fontWeight: "bold" }}>
+                {loading ? "Connexion..." : "Rejoindre"}
+              </button>
+            </form>
+          )}
 
-        {error && <p style={{ color: "red", marginTop: "15px", textAlign: "center" }}>{error}</p>}
-      </div>
+          {error && <p style={{ color: "red", marginTop: "15px", textAlign: "center" }}>{error}</p>}
+        </div>
       </div>
     </>
   );

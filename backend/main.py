@@ -195,6 +195,14 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
                         except:
                             pass
 
+            elif data["type"] == "chat_message":
+                # Broadcast chat to all players in the room (including sender)
+                await broadcast(room_code, {
+                    "type": "chat_message",
+                    "sender": player_name,
+                    "content": data.get("content", ""),
+                })
+
             elif data["type"] == "use_item" and room["state"] == "playing":
                 instance_id = data.get("instance_id")
                 targets = data.get("targets", [])

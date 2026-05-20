@@ -11,7 +11,7 @@ const SoundFX = {
   init() {
     if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
   },
-  playTone(freq, type, duration, vol=0.1) {
+  playTone(freq, type, duration, vol = 0.1) {
     if (typeof window === "undefined") return;
     if (!this.ctx) this.init();
     if (this.ctx.state === "suspended") this.ctx.resume();
@@ -29,7 +29,7 @@ const SoundFX = {
   clickOn() { this.playTone(600, 'sine', 0.05, 0.05); },
   clickOff() { this.playTone(400, 'sine', 0.05, 0.05); },
   success() {
-    this.playTone(440, 'sine', 0.1, 0.08); 
+    this.playTone(440, 'sine', 0.1, 0.08);
     setTimeout(() => this.playTone(554.37, 'sine', 0.2, 0.08), 80);
   },
   error() { this.playTone(150, 'sawtooth', 0.3, 0.1); },
@@ -80,19 +80,19 @@ const playSound = (type) => {
 const GAME_DURATION = 300; // 5 minutes
 
 const ITEM_DEFS = {
-  BLUR:        { icon: "👁",  name: "Brouillard",   description: "Floute l'écran d'un joueur 5s",    color: "#6b4e6f" },
-  FREEZE_TIME: { icon: "⏸",  name: "Gel du temps",  description: "Retire 10s au chrono d'un joueur", color: "#1f3a5f" },
-  SCORE_STEAL: { icon: "⚡",  name: "Pillage",       description: "Vole 50 pts à un joueur",          color: "#8c6d36" },
-  HINT_LOCK:   { icon: "🔒", name: "Brouilleur",    description: "Bloque les hints 20s",              color: "#27272a" },
-  BLACKOUT:    { icon: "⬛", name: "Censure CIA",   description: "Censure le texte d'un joueur 5s",   color: "#18181b" },
-  EARTHQUAKE:  { icon: "🌋", name: "Séisme",        description: "Fait trembler l'écran 5s",          color: "#a64b48" },
-  RICKROLL:    { icon: "🤡", name: "Pop-up Spam",   description: "Affiche un pop-up gênant",          color: "#b58f3a" },
-  SCANNER:     { icon: "🔎", name: "Détecteur",     description: "Surligne un paragraphe suspect",    color: "#4a7a52", targetCount: 0 },
-  MIRROR:      { icon: "🪞", name: "Miroir",        description: "Inverse le texte de l'article 6s",  color: "#4a6b8c" },
-  TINY:        { icon: "🔬", name: "Loupe cassée",  description: "Rend le texte minuscule 8s",        color: "#7a5248" },
-  SPIN:        { icon: "🌀", name: "Tournis",       description: "Fait tourner l'article 4s",         color: "#4a6b8c" },
-  CONFETTI:    { icon: "🎊", name: "Fête surprise", description: "Explosion de confettis 6s",         color: "#8c6d36" },
-  INVERT:      { icon: "🌑", name: "Négatif",       description: "Inverse les couleurs 5s",           color: "#27272a" },
+  BLUR: { icon: "👁", name: "Brouillard", description: "Floute l'écran d'un joueur 5s", color: "#6b4e6f" },
+  FREEZE_TIME: { icon: "⏸", name: "Gel du temps", description: "Retire 10s au chrono d'un joueur", color: "#1f3a5f" },
+  SCORE_STEAL: { icon: "⚡", name: "Pillage", description: "Vole 50 pts à un joueur", color: "#8c6d36" },
+  HINT_LOCK: { icon: "🔒", name: "Brouilleur", description: "Bloque les hints 20s", color: "#27272a" },
+  BLACKOUT: { icon: "⬛", name: "Censure CIA", description: "Censure le texte d'un joueur 5s", color: "#18181b" },
+  EARTHQUAKE: { icon: "🌋", name: "Séisme", description: "Fait trembler l'écran 5s", color: "#a64b48" },
+  RICKROLL: { icon: "🤡", name: "Pop-up Spam", description: "Affiche un pop-up gênant", color: "#b58f3a" },
+  SCANNER: { icon: "🔎", name: "Détecteur", description: "Surligne un paragraphe suspect", color: "#4a7a52", targetCount: 0 },
+  MIRROR: { icon: "🪞", name: "Miroir", description: "Inverse le texte de l'article 6s", color: "#4a6b8c" },
+  TINY: { icon: "🔬", name: "Loupe cassée", description: "Rend le texte minuscule 8s", color: "#7a5248" },
+  SPIN: { icon: "🌀", name: "Tournis", description: "Fait tourner l'article 4s", color: "#4a6b8c" },
+  CONFETTI: { icon: "🎊", name: "Fête surprise", description: "Explosion de confettis 6s", color: "#8c6d36" },
+  INVERT: { icon: "🌑", name: "Négatif", description: "Inverse les couleurs 5s", color: "#27272a" },
 };
 
 const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
@@ -106,11 +106,11 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 const ACCENTS = {
-  teal:    { primary: "#1f574d", hover: "#174841", soft: "#e8f0ed", line: "rgba(31, 87, 77, 0.18)" },
-  navy:    { primary: "#1f3a5f", hover: "#162d4a", soft: "#e6ecf3", line: "rgba(31, 58, 95, 0.18)" },
-  bronze:  { primary: "#8c6d36", hover: "#735829", soft: "#f4ecdb", line: "rgba(140, 109, 54, 0.20)" },
-  aubergine:{ primary: "#6b4e6f", hover: "#553e58", soft: "#efe9f0", line: "rgba(107, 78, 111, 0.20)" },
-  graphite:{ primary: "#27272a", hover: "#18181b", soft: "#ececec", line: "rgba(39, 39, 42, 0.18)" },
+  teal: { primary: "#1f574d", hover: "#174841", soft: "#e8f0ed", line: "rgba(31, 87, 77, 0.18)" },
+  navy: { primary: "#1f3a5f", hover: "#162d4a", soft: "#e6ecf3", line: "rgba(31, 58, 95, 0.18)" },
+  bronze: { primary: "#8c6d36", hover: "#735829", soft: "#f4ecdb", line: "rgba(140, 109, 54, 0.20)" },
+  aubergine: { primary: "#6b4e6f", hover: "#553e58", soft: "#efe9f0", line: "rgba(107, 78, 111, 0.20)" },
+  graphite: { primary: "#27272a", hover: "#18181b", soft: "#ececec", line: "rgba(39, 39, 42, 0.18)" },
 };
 
 // ============ Token renderer ============
@@ -218,16 +218,16 @@ function ArticleBody({ marked, edited, mode, hintedTokenIds, scannedParagraphs, 
 
 // ============ Bots simulation ============
 const BOT_PROFILES = {
-  alice:  { tp: 6, fp: 1, hintsUsed: 1, timeBonus: 72 },   // strong solver
+  alice: { tp: 6, fp: 1, hintsUsed: 1, timeBonus: 72 },   // strong solver
   morgan: { tp: 5, fp: 2, hintsUsed: 0, timeBonus: 54 },   // fast but reckless
-  noor:   { tp: 4, fp: 0, hintsUsed: 2, timeBonus: 88 },   // careful, leans on hints
+  noor: { tp: 4, fp: 0, hintsUsed: 2, timeBonus: 88 },   // careful, leans on hints
 };
 
 function useBots(playing, totalFakes) {
   const [bots, setBots] = useState([
     { id: "alice", name: "Alice", color: "#c4548a", score: 0, x: 320, y: 600 },
     { id: "morgan", name: "Morgan", color: "#7a9460", score: 0, x: 540, y: 820 },
-    { id: "noor",  name: "Noor", color: "#d68842", score: 0, x: 200, y: 900 },
+    { id: "noor", name: "Noor", color: "#d68842", score: 0, x: 200, y: 900 },
   ]);
 
   useEffect(() => {
@@ -279,13 +279,13 @@ function BlizzardEffect({ active }) {
         position: "absolute", inset: 0,
         background: "rgba(0,8,35,0.60)",
         animation: "frost-pulse 1.4s ease-in-out infinite",
-      }}/>
+      }} />
       {/* Heavy radial frost */}
       <div style={{
         position: "absolute", inset: 0,
         background: "radial-gradient(ellipse at center, rgba(0,20,80,0.15) 15%, rgba(0,5,50,0.80) 100%)",
         boxShadow: "inset 0 0 140px rgba(10,60,200,0.65), inset 0 0 0 10px rgba(80,160,255,0.5)",
-      }}/>
+      }} />
       {/* Dense fast snowflakes */}
       {flakes.map(f => (
         <span key={f.id} style={{
@@ -318,7 +318,7 @@ function BlizzardEffect({ active }) {
       <div style={{
         position: "absolute", inset: 0,
         boxShadow: "inset 0 0 0 10px rgba(100,190,255,0.65), inset 0 0 0 20px rgba(40,110,255,0.25)",
-      }}/>
+      }} />
     </div>
   );
 }
@@ -332,24 +332,24 @@ function LightningEffect({ active }) {
         position: "absolute", inset: 0,
         background: "rgba(8,4,0,0.70)",
         animation: "screen-flash 0.45s ease-in-out infinite",
-      }}/>
+      }} />
       {/* Bolts */}
       <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-           viewBox="0 0 100 100" preserveAspectRatio="none">
+        viewBox="0 0 100 100" preserveAspectRatio="none">
         <polyline points="15,0 9,33 23,33 4,100" stroke="rgba(255,235,60,1)" strokeWidth="0.7" fill="none"
-                  filter="url(#glow)" style={{ animation: "lightning-zap 0.45s ease-in-out infinite" }}/>
+          filter="url(#glow)" style={{ animation: "lightning-zap 0.45s ease-in-out infinite" }} />
         <polyline points="86,0 92,28 77,28 96,100" stroke="rgba(255,250,120,0.95)" strokeWidth="0.55" fill="none"
-                  style={{ animation: "lightning-zap 0.45s 0.13s ease-in-out infinite" }}/>
+          style={{ animation: "lightning-zap 0.45s 0.13s ease-in-out infinite" }} />
         <polyline points="50,0 42,24 58,24 34,58 66,58 47,100" stroke="rgba(255,255,190,1)" strokeWidth="0.8" fill="none"
-                  style={{ animation: "lightning-zap 0.45s 0.07s ease-in-out infinite" }}/>
+          style={{ animation: "lightning-zap 0.45s 0.07s ease-in-out infinite" }} />
         <polyline points="27,0 22,44 38,44 16,100" stroke="rgba(230,170,255,0.9)" strokeWidth="0.45" fill="none"
-                  style={{ animation: "lightning-zap 0.45s 0.28s ease-in-out infinite" }}/>
+          style={{ animation: "lightning-zap 0.45s 0.28s ease-in-out infinite" }} />
         <polyline points="73,0 79,40 64,40 83,100" stroke="rgba(255,195,55,0.85)" strokeWidth="0.45" fill="none"
-                  style={{ animation: "lightning-zap 0.45s 0.20s ease-in-out infinite" }}/>
+          style={{ animation: "lightning-zap 0.45s 0.20s ease-in-out infinite" }} />
         <polyline points="38,0 33,52 44,52 28,100" stroke="rgba(255,230,90,0.7)" strokeWidth="0.35" fill="none"
-                  style={{ animation: "lightning-zap 0.45s 0.38s ease-in-out infinite" }}/>
+          style={{ animation: "lightning-zap 0.45s 0.38s ease-in-out infinite" }} />
         <polyline points="62,0 68,46 57,46 74,100" stroke="rgba(210,185,255,0.7)" strokeWidth="0.35" fill="none"
-                  style={{ animation: "lightning-zap 0.45s 0.33s ease-in-out infinite" }}/>
+          style={{ animation: "lightning-zap 0.45s 0.33s ease-in-out infinite" }} />
       </svg>
       {/* -50pts damage indicator */}
       <div style={{
@@ -371,7 +371,7 @@ function LightningEffect({ active }) {
       <div style={{
         position: "absolute", inset: 0,
         boxShadow: "inset 0 0 0 7px rgba(255,210,0,0.75), inset 0 0 80px rgba(255,140,0,0.35), inset 0 0 160px rgba(200,80,0,0.20)",
-      }}/>
+      }} />
     </div>
   );
 }
@@ -398,15 +398,15 @@ function StaticEffect({ active }) {
       for (let i = 0; i < data.length; i += 4) {
         const r = Math.random();
         if (r < 0.45) {
-          data[i] = 0; data[i+1] = 0; data[i+2] = 0; data[i+3] = 230;
+          data[i] = 0; data[i + 1] = 0; data[i + 2] = 0; data[i + 3] = 230;
         } else if (r < 0.02 + 0.45) {
-          data[i] = 200; data[i+1] = 0; data[i+2] = 0; data[i+3] = 160;
+          data[i] = 200; data[i + 1] = 0; data[i + 2] = 0; data[i + 3] = 160;
         } else if (r < 0.02 + 0.02 + 0.45) {
-          data[i] = 0; data[i+1] = 80; data[i+2] = 220; data[i+3] = 120;
+          data[i] = 0; data[i + 1] = 80; data[i + 2] = 220; data[i + 3] = 120;
         } else {
           const v = Math.floor(140 + Math.random() * 115);
-          data[i] = v; data[i+1] = v; data[i+2] = v;
-          data[i+3] = Math.floor(160 + Math.random() * 95);
+          data[i] = v; data[i + 1] = v; data[i + 2] = v;
+          data[i + 3] = Math.floor(160 + Math.random() * 95);
         }
       }
       // Horizontal glitch tears (more frequent, bigger)
@@ -419,8 +419,8 @@ function StaticEffect({ active }) {
           for (let x = 0; x < w; x++) {
             const src = (row * w + Math.max(0, Math.min(w - 1, x + shift))) * 4;
             const dst = (row * w + x) * 4;
-            data[dst] = data[src]; data[dst+1] = data[src+1];
-            data[dst+2] = data[src+2]; data[dst+3] = 240;
+            data[dst] = data[src]; data[dst + 1] = data[src + 1];
+            data[dst + 2] = data[src + 2]; data[dst + 3] = 240;
           }
         }
       }
@@ -433,14 +433,14 @@ function StaticEffect({ active }) {
   if (!active) return null;
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", overflow: "hidden" }}>
-      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}/>
+      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
       {/* Dark overlay */}
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.50)" }}/>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.50)" }} />
       {/* Heavy scanlines */}
       <div style={{
         position: "absolute", inset: 0,
         backgroundImage: "repeating-linear-gradient(0deg, rgba(0,0,0,0.45) 0px, rgba(0,0,0,0.45) 2px, transparent 2px, transparent 4px)",
-      }}/>
+      }} />
       {/* INTEL BLOQUÉ */}
       <div style={{
         position: "absolute", inset: 0, display: "flex", flexDirection: "column",
@@ -468,7 +468,7 @@ function StaticEffect({ active }) {
       <div style={{
         position: "absolute", inset: 0,
         boxShadow: "inset 0 0 0 10px rgba(10,10,10,0.95), inset 0 0 140px rgba(0,0,0,0.75)",
-      }}/>
+      }} />
     </div>
   );
 }
@@ -489,7 +489,7 @@ function FogEffect({ active }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", overflow: "hidden" }}>
       {/* Near-black base */}
-      <div style={{ position: "absolute", inset: 0, background: "rgba(2,2,2,0.68)" }}/>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(2,2,2,0.68)" }} />
       {/* Dark charcoal fog blobs */}
       {blobs.map(b => (
         <div key={b.id} style={{
@@ -502,7 +502,7 @@ function FogEffect({ active }) {
           animation: `fog-drift ${b.duration}s ${b.delay}s ease-in-out infinite alternate`,
           "--driftX": `${b.driftX}px`,
           "--driftY": `${b.driftY}px`,
-        }}/>
+        }} />
       ))}
       {/* BROUILLARD text */}
       <div style={{
@@ -524,7 +524,7 @@ function FogEffect({ active }) {
         position: "absolute", inset: 0,
         background: "radial-gradient(ellipse at center, transparent 10%, rgba(0,0,0,0.75) 75%)",
         boxShadow: "inset 0 0 0 8px rgba(0,0,0,0.95)",
-      }}/>
+      }} />
     </div>
   );
 }
@@ -549,17 +549,17 @@ function EarthquakeEffect({ active }) {
         position: "absolute", inset: 0,
         background: "rgba(60,8,0,0.72)",
         animation: "screen-flash 0.25s ease-in-out infinite",
-      }}/>
+      }} />
       {/* Crack lines SVG */}
       <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} viewBox="0 0 100 100" preserveAspectRatio="none">
-        <polyline points="50,50 38,30 44,18 35,0"   stroke="rgba(255,90,20,0.85)" strokeWidth="0.6" fill="none" style={{ animation: "lightning-zap 0.3s ease-in-out infinite" }}/>
-        <polyline points="50,50 62,28 58,12 68,0"   stroke="rgba(255,60,0,0.70)"  strokeWidth="0.5" fill="none" style={{ animation: "lightning-zap 0.3s 0.08s ease-in-out infinite" }}/>
-        <polyline points="50,50 20,48 8,55 0,50"    stroke="rgba(200,50,0,0.80)"  strokeWidth="0.55" fill="none" style={{ animation: "lightning-zap 0.3s 0.05s ease-in-out infinite" }}/>
-        <polyline points="50,50 80,52 92,45 100,50"  stroke="rgba(255,80,10,0.75)" strokeWidth="0.5" fill="none" style={{ animation: "lightning-zap 0.3s 0.12s ease-in-out infinite" }}/>
-        <polyline points="50,50 42,72 36,85 40,100"  stroke="rgba(180,40,0,0.70)"  strokeWidth="0.5" fill="none" style={{ animation: "lightning-zap 0.3s 0.09s ease-in-out infinite" }}/>
-        <polyline points="50,50 60,75 66,88 62,100"  stroke="rgba(230,70,0,0.65)"  strokeWidth="0.4" fill="none" style={{ animation: "lightning-zap 0.3s 0.15s ease-in-out infinite" }}/>
-        <polyline points="50,50 25,60 12,70 0,75"    stroke="rgba(255,40,0,0.60)"  strokeWidth="0.35" fill="none" style={{ animation: "lightning-zap 0.3s 0.18s ease-in-out infinite" }}/>
-        <polyline points="50,50 76,68 88,80 100,85"  stroke="rgba(200,60,10,0.60)" strokeWidth="0.35" fill="none" style={{ animation: "lightning-zap 0.3s 0.22s ease-in-out infinite" }}/>
+        <polyline points="50,50 38,30 44,18 35,0" stroke="rgba(255,90,20,0.85)" strokeWidth="0.6" fill="none" style={{ animation: "lightning-zap 0.3s ease-in-out infinite" }} />
+        <polyline points="50,50 62,28 58,12 68,0" stroke="rgba(255,60,0,0.70)" strokeWidth="0.5" fill="none" style={{ animation: "lightning-zap 0.3s 0.08s ease-in-out infinite" }} />
+        <polyline points="50,50 20,48 8,55 0,50" stroke="rgba(200,50,0,0.80)" strokeWidth="0.55" fill="none" style={{ animation: "lightning-zap 0.3s 0.05s ease-in-out infinite" }} />
+        <polyline points="50,50 80,52 92,45 100,50" stroke="rgba(255,80,10,0.75)" strokeWidth="0.5" fill="none" style={{ animation: "lightning-zap 0.3s 0.12s ease-in-out infinite" }} />
+        <polyline points="50,50 42,72 36,85 40,100" stroke="rgba(180,40,0,0.70)" strokeWidth="0.5" fill="none" style={{ animation: "lightning-zap 0.3s 0.09s ease-in-out infinite" }} />
+        <polyline points="50,50 60,75 66,88 62,100" stroke="rgba(230,70,0,0.65)" strokeWidth="0.4" fill="none" style={{ animation: "lightning-zap 0.3s 0.15s ease-in-out infinite" }} />
+        <polyline points="50,50 25,60 12,70 0,75" stroke="rgba(255,40,0,0.60)" strokeWidth="0.35" fill="none" style={{ animation: "lightning-zap 0.3s 0.18s ease-in-out infinite" }} />
+        <polyline points="50,50 76,68 88,80 100,85" stroke="rgba(200,60,10,0.60)" strokeWidth="0.35" fill="none" style={{ animation: "lightning-zap 0.3s 0.22s ease-in-out infinite" }} />
       </svg>
       {/* Debris particles */}
       {debris.map(d => (
@@ -567,13 +567,13 @@ function EarthquakeEffect({ active }) {
           position: "absolute",
           left: `${d.x}%`, top: `${d.y}%`,
           width: d.size, height: d.size * 0.4,
-          background: `rgba(${120 + Math.floor(Math.random()*80)},${40 + Math.floor(Math.random()*30)},0,0.85)`,
+          background: `rgba(${120 + Math.floor(Math.random() * 80)},${40 + Math.floor(Math.random() * 30)},0,0.85)`,
           borderRadius: 1,
           transform: `rotate(${Math.random() * 360}deg)`,
           animation: `fog-drift ${d.dur}s ${d.delay}s ease-in-out infinite alternate`,
           "--driftX": `${d.dx}px`,
           "--driftY": `${d.dy}px`,
-        }}/>
+        }} />
       ))}
       {/* SÉISME text */}
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
@@ -600,7 +600,7 @@ function EarthquakeEffect({ active }) {
       <div style={{
         position: "absolute", inset: 0,
         boxShadow: "inset 0 0 0 8px rgba(255,70,0,0.80), inset 0 0 80px rgba(200,40,0,0.45), inset 0 0 200px rgba(100,10,0,0.35)",
-      }}/>
+      }} />
     </div>
   );
 }
@@ -618,12 +618,12 @@ function BlackoutEffect({ active }) {
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 150, pointerEvents: "none", overflow: "hidden" }}>
       {/* Dark base */}
-      <div style={{ position: "absolute", inset: 0, background: "rgba(4,4,4,0.82)" }}/>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(4,4,4,0.82)" }} />
       {/* Scanlines */}
       <div style={{
         position: "absolute", inset: 0,
         backgroundImage: "repeating-linear-gradient(0deg, rgba(0,0,0,0.30) 0px, rgba(0,0,0,0.30) 1px, transparent 1px, transparent 3px)",
-      }}/>
+      }} />
       {/* Redaction bars */}
       {bars.map(b => (
         <div key={b.id} style={{
@@ -633,7 +633,7 @@ function BlackoutEffect({ active }) {
           background: "#0a0a0a",
           border: "1px solid rgba(255,255,255,0.06)",
           animation: `stagger-in 0.3s ${b.delay}s both`,
-        }}/>
+        }} />
       ))}
       {/* CENTER STAMP */}
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
@@ -677,7 +677,7 @@ function BlackoutEffect({ active }) {
       <div style={{
         position: "absolute", inset: 0,
         boxShadow: "inset 0 0 0 8px rgba(180,0,0,0.50), inset 0 0 80px rgba(100,0,0,0.30)",
-      }}/>
+      }} />
     </div>
   );
 }
@@ -689,7 +689,7 @@ function ConfettiEffect({ active }) {
     delay: -(Math.random() * 3),
     duration: 1.2 + Math.random() * 2,
     size: 8 + Math.random() * 14,
-    color: ["#ff4d6d","#ffd166","#06d6a0","#118ab2","#a64ac9","#ff9a3c","#4cc9f0","#f72585"][i % 8],
+    color: ["#ff4d6d", "#ffd166", "#06d6a0", "#118ab2", "#a64ac9", "#ff9a3c", "#4cc9f0", "#f72585"][i % 8],
     rotate: Math.random() * 360,
     drift: ((Math.random() - 0.5) * 120).toFixed(0),
     shape: i % 3 === 0 ? "circle" : i % 3 === 1 ? "rect" : "triangle",
@@ -706,14 +706,14 @@ function ConfettiEffect({ active }) {
           height: p.shape === "triangle" ? 0 : p.size,
           background: p.shape === "triangle" ? "transparent" : p.color,
           borderRadius: p.shape === "circle" ? "50%" : p.shape === "rect" ? 2 : 0,
-          borderLeft: p.shape === "triangle" ? `${p.size/2}px solid transparent` : undefined,
-          borderRight: p.shape === "triangle" ? `${p.size/2}px solid transparent` : undefined,
+          borderLeft: p.shape === "triangle" ? `${p.size / 2}px solid transparent` : undefined,
+          borderRight: p.shape === "triangle" ? `${p.size / 2}px solid transparent` : undefined,
           borderBottom: p.shape === "triangle" ? `${p.size}px solid ${p.color}` : undefined,
           opacity: 0.92,
           animation: `snowfall ${p.duration}s ${p.delay}s linear infinite`,
           "--drift": `${p.drift}px`,
           transform: `rotate(${p.rotate}deg)`,
-        }}/>
+        }} />
       ))}
       <div style={{
         position: "absolute", inset: 0,
@@ -835,7 +835,7 @@ function ItemTargetModal({ item, players, myName, onConfirm, onClose }) {
                 transition: "all 120ms",
               }}
             >
-              <span style={{ width: 10, height: 10, borderRadius: "50%", background: p.color || "#7a9460", flexShrink: 0 }}/>
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: p.color || "#7a9460", flexShrink: 0 }} />
               <span style={{ fontFamily: "'Geist', sans-serif", fontSize: 14, fontWeight: 500 }}>{p.name}</span>
               <span style={{ marginLeft: "auto", fontFamily: "'Geist Mono', monospace", fontSize: 12, color: "var(--muted)" }}>{p.score ?? 0} pts</span>
             </div>
@@ -907,7 +907,7 @@ function App() {
     const newBody = data.paragraphs.map((p, idx) => {
       // Find if this paragraph is a fake
       const isFake = data.positions.find(pos => pos.paragraph_index === idx + 1);
-      
+
       if (isFake) {
         return [
           { kind: "token", id: "p" + idx, text: p, fake: { id: "F" + idx, truth: isFake.explanation || "A identifier", hint: isFake.hint || "Vérifiez cette information" } }
@@ -919,7 +919,7 @@ function App() {
       }
     });
 
-    
+
     window.WIKIFAKE_ARTICLE = { title: data.topic, subtitle: "Wikipedia" };
     // Create generic infobox from Wikipedia URL or topic
     window.WIKIFAKE_INFOBOX = [
@@ -938,7 +938,7 @@ function App() {
       truth: pos.explanation,
       hint: pos.hint
     }));
-    
+
     setSessionData({ ...data, timeLimit: timeLimit || GAME_DURATION });
     playSound('start');
     setGameState("playing");
@@ -999,6 +999,7 @@ function InnerApp({ sessionData, resetSession }) {
   const [invertActive, setInvertActive] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [intelOpen, setIntelOpen] = useState(false);
+  const [briefOpen, setBriefOpen] = useState(false);
   const [scannerTrigger, setScannerTrigger] = useState(0);
   const [scannedParagraphs, setScannedParagraphs] = useState(new Set());
   const articleRef = useRef(null);
@@ -1071,7 +1072,7 @@ function InnerApp({ sessionData, resetSession }) {
           setThemeVoting(null);
           setThemeSelected(null);
           setRoundInfo({ current: msg.round, max: msg.max_rounds });
-          
+
           // Inject new data
           const data = msg.data;
           const newBody = data.paragraphs.map((p, idx) => {
@@ -1098,7 +1099,7 @@ function InnerApp({ sessionData, resetSession }) {
             truth: pos.explanation,
             hint: pos.hint
           }));
-          
+
           // Reset states
           setMarked({});
           setEdited({});
@@ -1197,7 +1198,7 @@ function InnerApp({ sessionData, resetSession }) {
     if (!playing || !sessionData?.multiplayer) return;
     const socket = sessionData.multiplayer.socket;
     let lastTime = 0;
-    
+
     const handleMouseMove = (e) => {
       const now = performance.now();
       if (now - lastTime > 60) {
@@ -1209,7 +1210,7 @@ function InnerApp({ sessionData, resetSession }) {
         }));
       }
     };
-    
+
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [playing, sessionData]);
@@ -1289,7 +1290,7 @@ function InnerApp({ sessionData, resetSession }) {
     return {
       truePositives: tp, falsePositives: fp, missed,
       f1, totalFakes, baseScore, fpPenalty, hintPenalty, timeBonus, finalScore,
-      timeStr: `${String(Math.floor(elapsed / 60)).padStart(2,"0")}:${String(elapsed % 60).padStart(2,"0")}`,
+      timeStr: `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")}`,
       sessionId: t.sessionId,
     };
   }, [marked, edited, time, hintPenalty, totalFakes, t.sessionId]);
@@ -1412,7 +1413,7 @@ function InnerApp({ sessionData, resetSession }) {
           animation: "fade-in 300ms ease",
         }}>
           <h2 style={{ fontFamily: "'Instrument Serif', serif", fontSize: 48, margin: 0 }}>Vote de Thème (Round {themeVoting.round}/{themeVoting.maxRounds})</h2>
-          
+
           {!myVoteSubmitted ? (
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -1420,18 +1421,18 @@ function InnerApp({ sessionData, resetSession }) {
               sessionData.multiplayer.socket.send(JSON.stringify({ type: "submit_theme", theme: myVoteTheme }));
               setMyVoteSubmitted(true);
             }} style={{ display: "flex", gap: 10 }}>
-              <input 
-                type="text" 
-                placeholder="Ex: Napoléon, Pizza..." 
+              <input
+                type="text"
+                placeholder="Ex: Napoléon, Pizza..."
                 value={myVoteTheme}
                 onChange={e => setMyVoteTheme(e.target.value)}
                 style={{ padding: "12px 18px", borderRadius: 10, border: "1px solid var(--line)", fontSize: 15, width: 260 }}
                 autoFocus
               />
-              <button 
+              <button
                 type="submit"
                 disabled={!myVoteTheme.trim()}
-                style={{ 
+                style={{
                   padding: "12px 20px", borderRadius: 10, border: "none",
                   background: myVoteTheme.trim() ? "var(--accent)" : "#ccc",
                   color: "white", fontWeight: 700, cursor: myVoteTheme.trim() ? "pointer" : "not-allowed",
@@ -1535,7 +1536,7 @@ function InnerApp({ sessionData, resetSession }) {
                 borderBottom: i < roundEndData.leaderboard.length - 1 ? "1px solid var(--line)" : "none",
                 background: p.name === sessionData?.multiplayer?.username ? "rgba(31,87,77,0.04)" : "white",
               }}>
-                <span style={{ fontSize: 16, fontWeight: 700, color: "var(--muted)", width: 20 }}>#{i+1}</span>
+                <span style={{ fontSize: 16, fontWeight: 700, color: "var(--muted)", width: 20 }}>#{i + 1}</span>
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: p.color || "var(--ink)", flexShrink: 0 }} />
                 <span style={{ flex: 1, fontWeight: 500 }}>{p.name}</span>
                 <span style={{ fontFamily: "'Geist Mono', monospace", fontSize: 14, fontWeight: 600, color: "var(--accent)" }}>+{p.score}</span>
@@ -1557,10 +1558,29 @@ function InnerApp({ sessionData, resetSession }) {
         canSubmit={markedCount > 0 && !waitingForOthers && !revealAll && !roundEndData}
         waiting={waitingForOthers}
         onOpenIntel={() => setIntelOpen(true)}
+        onOpenBrief={() => setBriefOpen(true)}
         hintsUsed={hintsUsed}
         round={roundInfo.current}
         maxRounds={roundInfo.max}
       />
+
+      {briefOpen && (
+        <Brief onClose={() => setBriefOpen(false)}>
+          <SubjectCard
+            facts={window.WIKIFAKE_INFOBOX}
+            fakesTotal={totalFakes}
+            fakesMarked={markedCount}
+            fakesFound={markedCount}
+            revealed={revealAll}
+          />
+          <MissionCard
+            difficulty={t.difficulty}
+            mode={t.mode}
+            room={t.sessionId}
+            total={totalFakes}
+          />
+        </Brief>
+      )}
 
       {/* Main: article fills viewport */}
       <div style={{
@@ -1575,7 +1595,7 @@ function InnerApp({ sessionData, resetSession }) {
           ref={articleRef}
           className={[
             earthquakeActive ? "earthquake-active" : "",
-            spinActive      ? "spin-active"       : "",
+            spinActive ? "spin-active" : "",
           ].filter(Boolean).join(" ")}
           style={{
             background: "white",
@@ -1585,7 +1605,7 @@ function InnerApp({ sessionData, resetSession }) {
             boxShadow: "var(--shadow-md)",
             position: "relative",
             filter: [
-              blurActive   ? "blur(6px)"   : "",
+              blurActive ? "blur(6px)" : "",
               invertActive ? "invert(1) hue-rotate(180deg)" : "",
               mirrorActive ? "" : "",
             ].filter(Boolean).join(" ") || "none",
@@ -1600,9 +1620,9 @@ function InnerApp({ sessionData, resetSession }) {
             paddingBottom: 12, borderBottom: "1px solid var(--line)",
           }}>
             <LabelMono>Source · Open Encyclopedia</LabelMono>
-            <span style={{ width: 1, height: 12, background: "var(--line)" }}/>
+            <span style={{ width: 1, height: 12, background: "var(--line)" }} />
             <LabelMono>Article · Free</LabelMono>
-            <span style={{ flex: 1 }}/>
+            <span style={{ flex: 1 }} />
             <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#0645ad", fontWeight: 500 }}>
               <span style={{ fontFamily: "'Spectral', serif", fontStyle: "italic" }}>Read</span>
             </span>
@@ -1610,12 +1630,10 @@ function InnerApp({ sessionData, resetSession }) {
             <span style={{ fontSize: 12, color: "var(--muted)" }}>View history</span>
           </div>
 
-          <Brief mode={t.mode} />
-
           <div className={[
             "article-body",
             blackoutActive ? "blackout-active" : "",
-            tinyActive     ? "tiny-active"     : "",
+            tinyActive ? "tiny-active" : "",
           ].filter(Boolean).join(" ")}>
             <h1>{window.WIKIFAKE_ARTICLE.title}</h1>
             <p style={{ fontStyle: "italic", color: "#54595d", fontSize: 14.5, margin: "0 0 22px 0" }}>
@@ -1662,7 +1680,7 @@ function InnerApp({ sessionData, resetSession }) {
                     }}>
                       <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
                         <span className="mono" style={{ fontSize: 10, color: "var(--accent)", fontWeight: 600, letterSpacing: "0.1em" }}>
-                          #{String(i+1).padStart(2,"0")}
+                          #{String(i + 1).padStart(2, "0")}
                         </span>
                         <span style={{
                           fontFamily: "'Spectral', serif",
@@ -1689,32 +1707,16 @@ function InnerApp({ sessionData, resetSession }) {
         <Footer sessionId={t.sessionId} />
       </div>
 
-      {/* SIDE DRAWER */}
-      <SideDrawer open={drawerOpen} onToggle={() => setDrawerOpen(o => !o)}>
-        <SubjectCard
-          facts={window.WIKIFAKE_INFOBOX}
-          fakesTotal={totalFakes}
-          fakesMarked={markedCount}
-          fakesFound={stats.truePositives}
-          revealed={revealAll}
+      {/* In-game Chat */}
+      {sessionData?.multiplayer?.socket && (
+        <window.LobbyChat
+          ws={sessionData.multiplayer.socket}
+          username={sessionData.multiplayer.username}
+          roomCode={sessionData.multiplayer.roomCode}
         />
-        <MissionCard
-          difficulty={t.difficulty}
-          mode={t.mode}
-          room={t.sessionId}
-          total={totalFakes}
-        />
-        <div style={{
-          padding: "12px 14px",
-          background: "rgba(255,255,255,0.6)",
-          border: "1px solid var(--line)",
-          borderRadius: 12,
-        }}>
-          <DataRow label="Session" value={t.sessionId} />
-          <DataRow label="Region" value="EU-WEST-3" />
-          <DataRow label="Latency" value={<span style={{ color: "var(--green)" }}>24 ms</span>} />
-        </div>
-      </SideDrawer>
+      )}
+
+
 
       {/* FLOATING LEADERBOARD */}
       {t.multiplayer && (
@@ -1797,7 +1799,7 @@ function InnerApp({ sessionData, resetSession }) {
               opacity: 0.7,
             }}>
               <div style={{ fontSize: 28, marginBottom: 6 }}>🤡</div>
-              <div style={{ fontFamily: "'Geist', sans-serif", fontSize: 11, fontWeight: 600, color: "#b58f3a" }}>PUBLICITÉ INTRUSIVE #{i+1}</div>
+              <div style={{ fontFamily: "'Geist', sans-serif", fontSize: 11, fontWeight: 600, color: "#b58f3a" }}>PUBLICITÉ INTRUSIVE #{i + 1}</div>
               <div style={{ fontSize: 9, color: "#aaa", marginTop: 4 }}>Cliquez ici pour votre cadeau...</div>
             </div>
           ))}
