@@ -1,1 +1,0 @@
-"""WikiFake backend source package."""

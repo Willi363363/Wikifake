@@ -1,5 +1,2 @@
-"""Core game logic: scraping, misinformation injection, verification, and scoring."""
-from .agent import FakeNewsGame
-from .verification import check_answer, get_feedback
-
-__all__ = ["FakeNewsGame", "check_answer", "get_feedback"]
+from .prompts import MISINFORMATION_PROMPT
+from .settings import MODEL_NAME

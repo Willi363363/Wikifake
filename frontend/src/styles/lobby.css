@@ -1,0 +1,45 @@
+/* Range sliders used by the lobby (round length). Extracted from the inline
+   <style> block the old Lobby component injected on every render. */
+.lobby input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(31, 87, 77, 0.12);
+  outline: none;
+  cursor: pointer;
+}
+.lobby input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(31, 87, 77, 0.25);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.lobby input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 4px 12px rgba(31, 87, 77, 0.35);
+  transform: scale(1.1);
+}
+.lobby input[type="range"]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(31, 87, 77, 0.25);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.lobby input[type="range"]::-moz-range-thumb:hover {
+  box-shadow: 0 4px 12px rgba(31, 87, 77, 0.35);
+  transform: scale(1.1);
+}
+.lobby input[type="range"]::-moz-range-track {
+  background: transparent;
+  border: none;
+}
+.lobby input[type="range"]:disabled { opacity: 0.5; }

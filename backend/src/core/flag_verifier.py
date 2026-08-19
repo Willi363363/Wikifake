@@ -1,13 +1,11 @@
-import asyncio
-import datetime
 import json
 import pathlib
-
+import datetime
+import asyncio
 import wikipedia
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
-
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 from .settings import MODEL_NAME
 
 DATA_DIR = pathlib.Path(__file__).parent.parent.parent / "data"
@@ -33,7 +31,7 @@ def _fetch_wikipedia_context(article_title: str, flagged_claim: str) -> str:
                 return ""
             page = wikipedia.page(results[0])
             return page.content[:3000]
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"[FlagVerifier] Wikipedia lookup failed: {e}")
         return ""
 
@@ -93,12 +91,15 @@ Analyse et retourne ton verdict JSON.
             "wiki_context": wiki_context or "Non disponible",
         }).strip()
 
-        raw = raw.removeprefix("```json")
-        raw = raw.removeprefix("```")
-        raw = raw.removesuffix("```")
+        if raw.startswith("```json"):
+            raw = raw[7:]
+        if raw.startswith("```"):
+            raw = raw[3:]
+        if raw.endswith("```"):
+            raw = raw[:-3]
 
         return json.loads(raw.strip())
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         print(f"[FlagVerifier] LLM verification error: {e}")
         return {
             "verdict": "uncertain",
@@ -125,8 +126,8 @@ async def verify_and_save(report: dict) -> dict:
     verification = await asyncio.to_thread(_run_llm_verification, report, wiki_context)
 
     record = {
-        "id": f"flag_{int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1000)}",
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00", "Z"),
+        "id": f"flag_{int(datetime.datetime.utcnow().timestamp() * 1000)}",
+        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         "status": "ai_reviewed",
         "article_title": report.get("article_title", ""),
         "article_url": report.get("article_url", ""),

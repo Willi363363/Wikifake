@@ -75,6 +75,7 @@ def test_websocket_disconnect():
     with client.websocket_connect(f"/ws/{room_code}/p1") as ws1:
         ws1.receive_json()
         assert len(rooms[room_code].players) == 1
-        
-    assert "p1" not in rooms.get(room_code, type("", (), {"players": {}})).players
+
+    room = rooms.get(room_code)
+    assert room is None or "p1" not in room.players
     assert room_code not in rooms

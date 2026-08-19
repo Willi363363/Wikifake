@@ -1,17 +1,15 @@
-import re
-import time
-
-import requests
 import wikipedia
-from bs4 import BeautifulSoup
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate
+import time
+from typing import Optional
 from langchain_openai import ChatOpenAI
-
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
 from .settings import MODEL_NAME
+import requests
+from bs4 import BeautifulSoup
+import re
 
-
-def get_topic_from_category(category: str, exclude_topics: list | None = None) -> str:
+def get_topic_from_category(category: str, exclude_topics: list = None) -> str:
     """Demande à l'IA de trouver un sujet précis sur Wikipedia basé sur une catégorie."""
     llm = ChatOpenAI(model=MODEL_NAME, temperature=0.9)
     
@@ -28,12 +26,12 @@ def get_topic_from_category(category: str, exclude_topics: list | None = None) -
     topic = chain.invoke({"category": category, "exclude_str": exclude_str}).strip()
     return topic
 
-def get_wikipedia_content(category: str) -> dict | None:
+def get_wikipedia_content(category: str) -> Optional[dict]:
     """
     Récupère le HTML brut et les paragraphes d'une page Wikipedia spécifique en bouclant
     jusqu'à succès.
     """
-    exclude_topics: list[str] = []
+    exclude_topics = []
     
     wikipedia.set_user_agent("FakeNewsHunter/1.0 (+http://www.example.com/bot)")
     wikipedia.set_lang('fr')
@@ -59,7 +57,7 @@ def get_wikipedia_content(category: str) -> dict | None:
                 try:
                     page = wikipedia.page(p_title, auto_suggest=False)
                     break
-                except Exception:  # noqa: BLE001
+                except Exception:
                     exclude_topics.append(p_title)
                     continue
             
@@ -102,8 +100,8 @@ def get_wikipedia_content(category: str) -> dict | None:
                 "raw_paragraphs": paragraphs,
                 "text_content": page.content
             }
-        except Exception as e:  # noqa: BLE001
-            print(f"Erreur inattendue ({e!s}). Nouvel essai...")
+        except Exception as e:
+            print(f"Erreur inattendue ({str(e)}). Nouvel essai...")
             # Ajouter aux exclus pour que l'IA choisisse un autre sujet la prochaine fois
             if 'topic' in locals() and topic not in exclude_topics:
                 exclude_topics.append(topic)

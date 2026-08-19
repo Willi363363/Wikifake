@@ -4,3 +4,11 @@ __pycache__/
 .DS_Store
 venv
 .venv
+
+# Frontend build
+frontend/node_modules/
+frontend/dist/
+
+# Runtime data (player-submitted flag reports)
+data/
+frontend/.smoke/

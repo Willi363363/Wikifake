@@ -1,16 +1,20 @@
-.PHONY: clean clean-build build run check-env help test
+.PHONY: help build run front front-dev back test clean clean-build check-env
 
 VENV   = venv
 PYTHON = $(VENV)/bin/python
 PIP    = $(VENV)/bin/pip
+FRONT  = frontend
 
 help:
 	@echo "Commandes disponibles :"
-	@echo "  make build       → créer le venv, installer les dépendances et lancer"
-	@echo "  make run         → lancer le projet (venv existant)"
-	@echo "  make clean       → tout nettoyer"
-	@echo "  make clean-build → supprimer les artefacts de build"
+	@echo "  make build       → installer backend + frontend, builder le front et lancer"
+	@echo "  make run         → builder le front et lancer le serveur"
+	@echo "  make back        → lancer le serveur seul (front déjà buildé)"
+	@echo "  make front       → builder le frontend"
+	@echo "  make front-dev   → serveur de dev Vite (HMR, proxy vers uvicorn)"
 	@echo "  make test        → lancer les tests"
+	@echo "  make clean       → nettoyer les artefacts Python"
+	@echo "  make clean-build → tout nettoyer (venv, node_modules, dist)"
 
 check-env:
 	@if [ ! -f .env ]; then \
@@ -23,30 +27,45 @@ check-env:
 		echo "✅ Clé API détectée"; \
 	fi
 
-build: $(VENV)/bin/activate check-env
-	@echo "📦 Installation des dépendances..."
-	$(PIP) install --upgrade pip -q
-	$(PIP) install -r backend/requirements.txt -q
-	@echo "✅ Build terminé"
-	@$(MAKE) run
-
 $(VENV)/bin/activate:
 	@echo "🐍 Création du virtual environment..."
 	python3 -m venv $(VENV)
 
-run: check-env
-	@echo "🚀 Lancement de backend/main.py..."
-	PYTHONPATH=backend $(PYTHON) backend/main.py
+$(FRONT)/node_modules:
+	@echo "📦 Installation des dépendances frontend..."
+	cd $(FRONT) && npm install
+
+build: $(VENV)/bin/activate check-env
+	@echo "📦 Installation des dépendances backend..."
+	$(PIP) install --upgrade pip -q
+	$(PIP) install -r backend/requirements.txt -q
+	@echo "✅ Build backend terminé"
+	@$(MAKE) run
+
+front: $(FRONT)/node_modules
+	@echo "🏗  Build du frontend..."
+	cd $(FRONT) && npm run build
+
+front-dev: $(FRONT)/node_modules
+	@echo "⚡ Vite dev server (lancez 'make back' à côté)"
+	cd $(FRONT) && npm run dev
+
+back: check-env
+	@echo "🚀 Lancement du serveur..."
+	$(PYTHON) main.py
+
+run: front back
 
 test: $(VENV)/bin/activate check-env
-	@echo "📦 Installation des dépendances..."
+	@echo "📦 Installation des dépendances backend..."
 	$(PIP) install --upgrade pip -q
 	$(PIP) install -r backend/requirements.txt -q
 	@echo "🧪 Lancement des tests..."
-	PYTHONPATH=backend $(PYTHON) -m pytest backend/tests/ -v
+	$(PYTHON) -m pytest backend/tests/ -v
+
 clean:
 	@echo "🧹 Suppression des fichiers Python compilés..."
-	find . -type d -name __pycache__ -exec rm -rf {} +
+	find . -type d -name __pycache__ -not -path "./$(FRONT)/node_modules/*" -exec rm -rf {} +
 	find . -name "*.pyc" -delete
 	find . -name "*.pyo" -delete
 	find . -name "*.pyd" -delete
@@ -55,11 +74,10 @@ clean:
 
 clean-build: clean
 	@echo "🧹 Suppression des artefacts de build..."
-	find . -type d -name dist -not -path "./venv/*" -exec rm -rf {} +
-	find . -type d -name build -not -path "./venv/*" -exec rm -rf {} +
+	$(RM) -r $(FRONT)/dist $(FRONT)/node_modules
 	find . -name ".DS_Store" -delete
 	find . -name "Thumbs.db" -delete
 	find . -name "*.log" -delete
 	find . -name "*.tmp" -delete
 	find . -name "*.bak" -delete
-	$(RM) -r venv
+	$(RM) -r $(VENV)
