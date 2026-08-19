@@ -68,6 +68,7 @@ clean:
 	find . -type d -name __pycache__ -not -path "./$(FRONT)/node_modules/*" -exec rm -rf {} +
 	find . -name "*.pyc" -delete
 	find . -name "*.pyo" -delete
+	find . -name "*.pyd" -delete
 	find . -name ".pytest_cache" -exec rm -rf {} +
 	find . -name "*.egg-info" -exec rm -rf {} +
 
@@ -75,5 +76,8 @@ clean-build: clean
 	@echo "🧹 Suppression des artefacts de build..."
 	$(RM) -r $(FRONT)/dist $(FRONT)/node_modules
 	find . -name ".DS_Store" -delete
+	find . -name "Thumbs.db" -delete
 	find . -name "*.log" -delete
+	find . -name "*.tmp" -delete
+	find . -name "*.bak" -delete
 	$(RM) -r $(VENV)
