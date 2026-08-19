@@ -3,10 +3,17 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - '**'
   pull_request:
     branches:
       - main
+
+# Un push sur une branche qui a une PR ouverte déclenche deux runs (push +
+# pull_request) : on n'en garde qu'un, et un nouveau push annule le run
+# précédent sur le même ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   frontend:
