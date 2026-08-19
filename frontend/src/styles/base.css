@@ -1,0 +1,83 @@
+/* Document base: page chrome, typography primitives, boot splash. */
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Geist', 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root { min-height: 100vh; position: relative; }
+
+/* Subtle warm gradient background to give depth */
+body::before {
+  content: ""; position: fixed; inset: 0;
+  background:
+    radial-gradient(60% 50% at 12% 8%, rgba(31, 87, 77, 0.05), transparent 70%),
+    radial-gradient(50% 40% at 92% 96%, rgba(140, 109, 54, 0.06), transparent 70%);
+  pointer-events: none; z-index: 0;
+}
+
+/* Optional fine paper grain */
+body::after {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09 0 0 0 0 0.09 0 0 0 0 0.10 0 0 0 0.025 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* ============ TYPE BASE ============ */
+.serif { font-family: 'Instrument Serif', 'Spectral', Georgia, serif; }
+.mono { font-family: 'Geist Mono', 'IBM Plex Mono', ui-monospace, monospace; }
+
+.label-mono {
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+
+/* ============ BOOT SPLASH ============ */
+/* Markup lives in index.html so it paints before the JS bundle arrives;
+   main.jsx adds .fade once React has rendered its first frame. */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  color: var(--ink);
+  transition: opacity 360ms ease;
+  font-family: 'Geist', system-ui, sans-serif;
+}
+#splash.fade { opacity: 0; pointer-events: none; }
+.splash-col { display: flex; flex-direction: column; align-items: center; }
+.splash-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), #2a7568);
+  box-shadow: 0 4px 14px rgba(31, 87, 77, 0.25);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.splash-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+.splash-name {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-size: 32px;
+  letter-spacing: -0.01em;
+}
+.splash-sub {
+  font-family: 'Geist Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 8px;
+}
