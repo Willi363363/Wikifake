@@ -1,7 +1,7 @@
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 /* WIKIFAKE — Waiting Screen with Two-Layer Loading Experience */
 /* global React */
 
-const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
 // ============ PROGRESS STAGES ============
 const PROGRESS_STAGES = [
@@ -13,7 +13,7 @@ const PROGRESS_STAGES = [
   { label: "Ready!", threshold: 100 },
 ];
 
-function ProgressTracker({ progress }) {
+export function ProgressTracker({ progress }) {
   const currentStage = PROGRESS_STAGES.find(s => progress <= s.threshold) || PROGRESS_STAGES[PROGRESS_STAGES.length - 1];
   const isReady = progress >= 100;
 
@@ -38,7 +38,7 @@ function ProgressTracker({ progress }) {
 }
 
 // ============ BACKGROUND ANIMATION ============
-function BackgroundAnimation() {
+export function BackgroundAnimation() {
   const lines = useMemo(() => {
     return Array.from({ length: 15 }).map((_, i) => ({
       id: i,
@@ -90,7 +90,7 @@ function checkWinner(board) {
   return board.every(c => c !== null) ? { winner: "draw", line: null } : null;
 }
 
-function TicTacToe() {
+export function TicTacToe() {
   const [board, setBoard] = useState(Array(9).fill(null));
   const [xIsNext, setXIsNext] = useState(true);
   const [result, setResult] = useState(null);
@@ -184,7 +184,7 @@ function TicTacToe() {
 }
 
 // 2. REACTION SPEED
-function ReactionSpeed() {
+export function ReactionSpeed() {
   const [phase, setPhase] = useState("idle");
   const [targetPos, setTargetPos] = useState({ x: 50, y: 50 });
   const [startTime, setStartTime] = useState(0);
@@ -269,7 +269,7 @@ function shuffleArray(arr) {
   return a;
 }
 
-function MemoryCards() {
+export function MemoryCards() {
   const makeCards = () => {
     const icons = MEMORY_ICONS.slice(0, 4);
     return shuffleArray([...icons, ...icons].map((icon, i) => ({ id: i, icon, matched: false })));
@@ -335,7 +335,7 @@ function MemoryCards() {
 }
 
 // 4. PATTERN MATCH
-function PatternMatch() {
+export function PatternMatch() {
   const [phase, setPhase] = useState("show");
   const [pattern, setPattern] = useState([]);
   const [selected, setSelected] = useState(new Set());
@@ -414,7 +414,7 @@ function PatternMatch() {
 }
 
 // 5. SNAKE
-function SnakeGame() {
+export function SnakeGame() {
   const [snake, setSnake] = useState([{ x: 10, y: 10 }]);
   const [dir, setDir] = useState({ x: 1, y: 0 });
   const [food, setFood] = useState({ x: 15, y: 15 });
@@ -487,7 +487,7 @@ function SnakeGame() {
 }
 
 // 6. DINO RUN
-function DinoGame() {
+export function DinoGame() {
   const [isJumping, setIsJumping] = useState(false);
   const [obstacleX, setObstacleX] = useState(320);
   const [gameOver, setGameOver] = useState(false);
@@ -593,7 +593,7 @@ const GAMES = [
   { id: "dino", name: "Agent Dash", icon: "🦖", component: DinoGame },
 ];
 
-function GameLauncher({ onSelectGame }) {
+export function GameLauncher({ onSelectGame }) {
   return (
     <div className="launcher-grid">
       {GAMES.map(game => (
@@ -608,7 +608,7 @@ function GameLauncher({ onSelectGame }) {
 
 
 // ============ MAIN WAITING SCREEN ============
-function WaitingScreen({ category, onReady, onError, isMultiplayer, lobbyPlayers, roomCode }) {
+export function WaitingScreen({ category, onReady, onError, isMultiplayer, lobbyPlayers, roomCode }) {
   const [progress, setProgress] = useState(0);
   const [dataReady, setDataReady] = useState(null);
   const [fadingOut, setFadingOut] = useState(false);
@@ -782,4 +782,4 @@ function WaitingScreen({ category, onReady, onError, isMultiplayer, lobbyPlayers
   );
 }
 
-window.WaitingScreen = WaitingScreen;
+

@@ -1,9 +1,9 @@
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 /* WIKIFAKE — Refined HUD components */
 /* global React */
-const { useState, useEffect, useRef, useMemo } = React;
 
 /* ============ Atoms ============ */
-function LabelMono({ children, color, style }) {
+export function LabelMono({ children, color, style }) {
   return (
     <span className="mono" style={{
       fontSize: 10,
@@ -17,7 +17,7 @@ function LabelMono({ children, color, style }) {
   );
 }
 
-function PulseDot({ color = "var(--green)", size = 6 }) {
+export function PulseDot({ color = "var(--green)", size = 6 }) {
   return (
     <span style={{ position: "relative", display: "inline-flex", width: size, height: size }}>
       <span style={{
@@ -36,14 +36,14 @@ function PulseDot({ color = "var(--green)", size = 6 }) {
   );
 }
 
-function Divider({ vertical, style }) {
+export function Divider({ vertical, style }) {
   return vertical
     ? <span style={{ width: 1, height: 18, background: "var(--line)", display: "inline-block", ...style }} />
     : <hr style={{ height: 1, border: 0, background: "var(--line)", margin: "12px 0", ...style }} />;
 }
 
 /* Subtle data row */
-function DataRow({ label, value, color, mono = true }) {
+export function DataRow({ label, value, color, mono = true }) {
   return (
     <div style={{
       display: "flex", justifyContent: "space-between", alignItems: "baseline",
@@ -66,7 +66,7 @@ function DataRow({ label, value, color, mono = true }) {
 }
 
 /* Hairline progress bar */
-function HairProgress({ value, max = 100, color = "var(--accent)", height = 3 }) {
+export function HairProgress({ value, max = 100, color = "var(--accent)", height = 3 }) {
   const pct = Math.max(0, Math.min(100, (value / max) * 100));
   return (
     <div style={{
@@ -85,7 +85,7 @@ function HairProgress({ value, max = 100, color = "var(--accent)", height = 3 })
 }
 
 /* Progress ring */
-function Ring({ value, max = 100, size = 44, stroke = 3, color = "var(--accent)", track = "rgba(24,24,27,0.08)", children }) {
+export function Ring({ value, max = 100, size = 44, stroke = 3, color = "var(--accent)", track = "rgba(24,24,27,0.08)", children }) {
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const pct = Math.max(0, Math.min(1, value / max));
@@ -105,7 +105,7 @@ function Ring({ value, max = 100, size = 44, stroke = 3, color = "var(--accent)"
 }
 
 /* Chip */
-function Chip({ children, color = "var(--ink)", bg = "white", border = "var(--line-strong)", style }) {
+export function Chip({ children, color = "var(--ink)", bg = "white", border = "var(--line-strong)", style }) {
   return (
     <span style={{
       display: "inline-flex", alignItems: "center", gap: 6,
@@ -125,7 +125,7 @@ function Chip({ children, color = "var(--ink)", bg = "white", border = "var(--li
 }
 
 /* ============ Top Bar ============ */
-function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, onOpenBrief, hintsUsed, onLogoClick }) {
+export function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progress, canSubmit, waiting, onOpenIntel, onOpenBrief, hintsUsed, onLogoClick }) {
   const min = Math.floor(time / 60);
   const sec = time % 60;
   return (
@@ -258,7 +258,7 @@ function TopBar({ mode, marked, total, time, onSubmit, onUnsubmit, target, progr
 }
 
 /* ============ Subject card (right sidebar) ============ */
-function SubjectCard({ facts, fakesTotal, fakesMarked, fakesFound, revealed }) {
+export function SubjectCard({ facts, fakesTotal, fakesMarked, fakesFound, revealed }) {
   return (
     <div className="glass" style={{ padding: 0, overflow: "hidden" }}>
       <div style={{
@@ -320,7 +320,7 @@ function SubjectCard({ facts, fakesTotal, fakesMarked, fakesFound, revealed }) {
 }
 
 /* ============ Mission card ============ */
-function MissionCard({ difficulty, mode, room, total }) {
+export function MissionCard({ difficulty, mode, room, total }) {
   return (
     <div className="glass" style={{ padding: "18px 20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
@@ -357,7 +357,7 @@ function MissionCard({ difficulty, mode, room, total }) {
 }
 
 /* ============ Leaderboard ============ */
-function Leaderboard({ players }) {
+export function Leaderboard({ players }) {
   const max = Math.max(...players.map(p => p.score), 1);
   return (
     <div className="glass" style={{ padding: "16px 20px" }}>
@@ -404,7 +404,7 @@ function Leaderboard({ players }) {
 }
 
 /* ============ Bot cursor ============ */
-function BotCursor({ x, y, name, color }) {
+export function BotCursor({ x, y, name, color }) {
   return (
     <div style={{
       position: "fixed", left: x, top: y, zIndex: 500, pointerEvents: "none",
@@ -429,7 +429,7 @@ function BotCursor({ x, y, name, color }) {
 }
 
 /* ============ Hints panel ============ */
-function HintsPanel({ targets, unlocked, onUnlock }) {
+export function HintsPanel({ targets, unlocked, onUnlock }) {
   return (
     <div className="glass" style={{ padding: "18px 20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -514,7 +514,7 @@ function HintsPanel({ targets, unlocked, onUnlock }) {
 }
 
 /* ============ Footer ============ */
-function Footer({ sessionId }) {
+export function Footer({ sessionId }) {
   return (
     <div style={{
       maxWidth: 1320, margin: "60px auto 0",
@@ -556,7 +556,7 @@ const STAGE_LABELS = [
   { label: "Final ranking", note: "Mission complete" },
 ];
 
-function AnimatedRanking({ players }) {
+export function AnimatedRanking({ players }) {
   const [stage, setStage] = useState(0);
   const [displayed, setDisplayed] = useState({});
   const [stageProgress, setStageProgress] = useState(0);
@@ -770,7 +770,7 @@ function AnimatedRanking({ players }) {
 }
 
 /* ============ Debrief / results modal ============ */
-function Debrief({ stats, onRestart, mode, allPlayers, onExit }) {
+export function Debrief({ stats, onRestart, mode, allPlayers, onExit }) {
   const [revealStats, setRevealStats] = useState(false);
 
   // After the ranking finishes (~5.1s), reveal personal stats
@@ -949,7 +949,7 @@ function Debrief({ stats, onRestart, mode, allPlayers, onExit }) {
 }
 
 /* ============ Brief Modal ============ */
-function Brief({ onClose, children }) {
+export function Brief({ onClose, children }) {
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 200,
@@ -1001,7 +1001,7 @@ function Brief({ onClose, children }) {
 }
 
 /* ============ Floating leaderboard — sticky, expands on hover ============ */
-function FloatingLeaderboard({ players }) {
+export function FloatingLeaderboard({ players }) {
   const [hovered, setHovered] = useState(false);
   const max = Math.max(...players.map(p => p.score), 1);
   const top = players[0];
@@ -1106,7 +1106,7 @@ function FloatingLeaderboard({ players }) {
 }
 
 /* ============ Intel modal overlay ============ */
-function IntelOverlay({ open, onClose, targets, unlocked, onUnlock }) {
+export function IntelOverlay({ open, onClose, targets, unlocked, onUnlock }) {
   if (!open) return null;
   return (
     <div

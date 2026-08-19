@@ -58,7 +58,7 @@ def test_websocket_cursor_broadcast():
         # ws2 receives 1 lobby update (p2 joins)
         ws2.receive_json()
         
-        rooms[room_code]["state"] = "playing"
+        rooms[room_code].state = "playing"
         
         ws1.send_json({"type": "cursor", "x": 100, "y": 200})
         
@@ -74,7 +74,7 @@ def test_websocket_disconnect():
     
     with client.websocket_connect(f"/ws/{room_code}/p1") as ws1:
         ws1.receive_json()
-        assert len(rooms[room_code]["players"]) == 1
+        assert len(rooms[room_code].players) == 1
         
-    assert "p1" not in rooms.get(room_code, {}).get("players", {})
+    assert "p1" not in rooms.get(room_code, type("", (), {"players": {}})).players
     assert room_code not in rooms

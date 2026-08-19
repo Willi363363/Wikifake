@@ -1,8 +1,10 @@
-import random
 import json
-from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
+import random
+
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+
 from .settings import MODEL_NAME
 
 NUM_FAKES = 4
@@ -14,7 +16,7 @@ def _filter_paragraphs(paragraphs: list) -> list[tuple[int, str]]:
         if len(p.strip()) >= MIN_PARAGRAPH_LENGTH
     ]
 
-def _generate_fake_version(original: str, topic: str) -> dict:
+def _generate_fake_version(original: str, topic: str) -> dict | None:
     llm = ChatOpenAI(model=MODEL_NAME, temperature=0.7)
 
     prompt = ChatPromptTemplate.from_messages([
@@ -41,12 +43,11 @@ def _generate_fake_version(original: str, topic: str) -> dict:
         # clean json markdown
         if response.startswith("```json"):
             response = response.replace("```json", "", 1)
-        if response.endswith("```"):
-            response = response[:-3]
+        response = response.removesuffix("```")
             
         data = json.loads(response.strip())
         return data
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Erreur LLM fake generation: {e}")
         return None
 

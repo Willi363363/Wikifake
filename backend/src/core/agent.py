@@ -1,7 +1,7 @@
-from .scraper import get_wikipedia_content, extract_paragraphs
+
 from .misinformation import swap_paragraphs
+from .scraper import extract_paragraphs, get_wikipedia_content
 from .verification import check_answer, get_feedback
-from typing import Optional
 
 
 class FakeNewsGame:
@@ -11,7 +11,7 @@ class FakeNewsGame:
         self.current_game = None
         self.current_topic = None
     
-    def start_game(self, category: str) -> Optional[dict]:
+    def start_game(self, category: str) -> dict | None:
         """
         Démarre une nouvelle partie du jeu.
         
@@ -39,7 +39,6 @@ class FakeNewsGame:
             return None
         
         # Modifier directement le DOM (soup)
-        from bs4 import BeautifulSoup
         import random
         
         soup = wikipedia_data["soup"]
@@ -107,7 +106,7 @@ class FakeNewsGame:
             "correct_misinformations": self.current_game["misinformations"]
         }
     
-    def get_current_game(self) -> Optional[dict]:
+    def get_current_game(self) -> dict | None:
         """Retourne le contenu du jeu actuel"""
         return self.current_game
     

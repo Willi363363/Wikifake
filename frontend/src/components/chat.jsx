@@ -1,5 +1,6 @@
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 /* ============ Hover-Reveal Chat Panel ============ */
-window.LobbyChat = function LobbyChat({ ws, username, roomCode }) {
+export function LobbyChat({ ws, username, roomCode }) {
   const { useState, useEffect, useRef } = React;
   const [messages, setMessages] = useState([]);
   const [expanded, setExpanded] = useState(false);
@@ -235,8 +236,6 @@ window.LobbyChat = function LobbyChat({ ws, username, roomCode }) {
               outline: "none",
               transition: "border 0.2s",
             }}
-            onFocus={(e) => e.target.style.borderColor = "var(--accent)"}
-            onBlur={(e) => e.target.style.borderColor = "var(--line)"}
           />
         </div>
       </div>

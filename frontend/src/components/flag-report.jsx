@@ -1,6 +1,6 @@
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 /* WIKIFAKE — Flag-for-review system */
 /* global React */
-const { useState, useEffect, useRef, useCallback } = React;
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -19,7 +19,7 @@ function getParagraphs() {
 // ─── FlagButton ──────────────────────────────────────────────────────────────
 // Small circular floating button — bottom-right of the game screen.
 
-function FlagButton({ onClick, count, disabled }) {
+export function FlagButton({ onClick, count, disabled }) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
@@ -97,7 +97,7 @@ function FlagButton({ onClick, count, disabled }) {
 // Lightweight in-game modal. Appears near the flag button (bottom-right).
 // Player selects a paragraph and writes an optional quick note.
 
-function FlagCaptureModal({ articleTitle, onSubmit, onClose }) {
+export function FlagCaptureModal({ articleTitle, onSubmit, onClose }) {
   const [selectedIdx, setSelectedIdx] = useState(null);
   const [quickNote, setQuickNote] = useState("");
   const paragraphs = getParagraphs();
@@ -270,7 +270,7 @@ function FlagCaptureModal({ articleTitle, onSubmit, onClose }) {
 
 // ─── FlagToast ───────────────────────────────────────────────────────────────
 
-function FlagToast({ onDone }) {
+export function FlagToast({ onDone }) {
   useEffect(() => {
     const t = setTimeout(onDone, 2400);
     return () => clearTimeout(t);
@@ -306,7 +306,7 @@ function FlagToast({ onDone }) {
 // Collects: proposed correction, explanation, sources.
 // Submits to /api/flag-report and shows the LLM verification result.
 
-function FlagReportForm({ flaggedItems, articleTitle, articleUrl, sessionContext, onDone }) {
+export function FlagReportForm({ flaggedItems, articleTitle, articleUrl, sessionContext, onDone }) {
   const [step, setStep] = useState("collapsed"); // "collapsed" | "form" | "submitting" | "result"
   const [formValues, setFormValues] = useState(() =>
     flaggedItems.map(item => ({

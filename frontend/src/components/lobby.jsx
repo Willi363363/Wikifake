@@ -1,6 +1,8 @@
-const { useState, useEffect, useRef } = React;
+import { WaitingScreen } from './waiting-screen.jsx';
+import { LobbyChat } from './chat.jsx';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
-function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
+export function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
   const [mode, setMode] = useState(existingMultiplayer ? "lobby" : "solo"); // solo, host, join, lobby, waiting, lobby-waiting
 
   const [category, setCategory] = useState("");
@@ -190,7 +192,7 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
   // ---- SOLO WAITING ----
   if (mode === "waiting") {
     return (
-      <window.WaitingScreen
+      <WaitingScreen
         category={category}
         onReady={handleWaitingReady}
         onError={handleWaitingError}
@@ -203,7 +205,7 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
   if (mode === "lobby-waiting") {
     return (
       <>
-        <window.WaitingScreen
+        <WaitingScreen
           category="Un thème..."
           onReady={handleMultiWaitingReady}
           onError={(msg) => { setError(msg); setMode("lobby"); setLoading(false); }}
@@ -211,7 +213,7 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
           lobbyPlayers={players}
           roomCode={roomCode}
         />
-        {ws.current && <window.LobbyChat ws={ws.current} username={username} roomCode={roomCode} />}
+        {ws.current && <LobbyChat ws={ws.current} username={username} roomCode={roomCode} />}
       </>
     );
   }
@@ -222,7 +224,7 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
     // while the backend generates the game data in the background.
     if (themeSelected) {
       return (
-        <window.WaitingScreen
+        <WaitingScreen
           category={themeSelected.theme}
           isMultiplayer={true}
           lobbyPlayers={players}
@@ -272,7 +274,7 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
             </div>
           </div>
         </div>
-        {ws.current && <window.LobbyChat ws={ws.current} username={username} roomCode={roomCode} />}
+        {ws.current && <LobbyChat ws={ws.current} username={username} roomCode={roomCode} />}
       </div>
     );
   }
@@ -379,7 +381,7 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
           )}
           {error && <p style={{ color: "red", marginTop: "10px", textAlign: "center" }}>{error}</p>}
         </div>
-        {ws.current && <window.LobbyChat ws={ws.current} username={username} roomCode={roomCode} />}
+        {ws.current && <LobbyChat ws={ws.current} username={username} roomCode={roomCode} />}
       </div>
     );
   }
@@ -488,4 +490,4 @@ function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeave }) {
     </>
   );
 }
-window.Lobby = Lobby;
+
