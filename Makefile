@@ -35,15 +35,15 @@ $(VENV)/bin/activate:
 	python3 -m venv $(VENV)
 
 run: check-env
-	@echo "🚀 Lancement de main.py..."
-	$(PYTHON) main.py
+	@echo "🚀 Lancement de backend/main.py..."
+	PYTHONPATH=backend $(PYTHON) backend/main.py
 
 test: $(VENV)/bin/activate check-env
 	@echo "📦 Installation des dépendances..."
 	$(PIP) install --upgrade pip -q
 	$(PIP) install -r backend/requirements.txt -q
 	@echo "🧪 Lancement des tests..."
-	$(PYTHON) -m pytest backend/tests/ -v
+	PYTHONPATH=backend $(PYTHON) -m pytest backend/tests/ -v
 clean:
 	@echo "🧹 Suppression des fichiers Python compilés..."
 	find . -type d -name __pycache__ -exec rm -rf {} +
