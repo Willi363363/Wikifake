@@ -1,6 +1,6 @@
 import random
 import json
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from .settings import MODEL_NAME
@@ -15,7 +15,7 @@ def _filter_paragraphs(paragraphs: list) -> list[tuple[int, str]]:
     ]
 
 def _generate_fake_version(original: str, topic: str) -> dict:
-    llm = ChatOpenAI(model=MODEL_NAME, temperature=0.7)
+    llm = ChatGoogleGenerativeAI(model=MODEL_NAME, temperature=0.7)
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", """

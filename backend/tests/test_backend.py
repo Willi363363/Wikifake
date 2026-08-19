@@ -3,6 +3,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 # We might not have a real .env during tests (e.g. in CI), so set dummy vars if needed
+if "GOOGLE_API_KEY" not in os.environ:
+    os.environ["GOOGLE_API_KEY"] = "dummy-test-key-for-ci"
 if "OPENAI_API_KEY" not in os.environ:
     os.environ["OPENAI_API_KEY"] = "sk-dummy-test-key-for-ci"
 

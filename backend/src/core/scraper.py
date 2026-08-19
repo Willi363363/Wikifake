@@ -1,7 +1,7 @@
 import wikipedia
 import time
 from typing import Optional
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from .settings import MODEL_NAME
@@ -11,7 +11,7 @@ import re
 
 def get_topic_from_category(category: str, exclude_topics: list = None) -> str:
     """Demande à l'IA de trouver un sujet précis sur Wikipedia basé sur une catégorie."""
-    llm = ChatOpenAI(model=MODEL_NAME, temperature=0.9)
+    llm = ChatGoogleGenerativeAI(model=MODEL_NAME, temperature=0.9)
     
     exclude_str = ""
     if exclude_topics:

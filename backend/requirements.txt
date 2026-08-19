@@ -1,5 +1,5 @@
 langchain
-langchain-openai
+langchain-google-genai
 python-dotenv
 rich
 wikipedia
