@@ -8,12 +8,21 @@ from .settings import MODEL_NAME
 NUM_FAKES = 4
 MIN_PARAGRAPH_LENGTH = 100
 
+# Le batch produit NUM_FAKES réécritures complètes + explications + indices.
+# Sans plafond explicite, une troncature silencieuse rend le JSON invalide et
+# fait échouer tout le lot.
+MAX_OUTPUT_TOKENS = 8192
+
 _llm_instance = None
 
 def _get_llm():
     global _llm_instance
     if _llm_instance is None:
-        _llm_instance = ChatGoogleGenerativeAI(model=MODEL_NAME, temperature=0.7)
+        _llm_instance = ChatGoogleGenerativeAI(
+            model=MODEL_NAME,
+            temperature=0.7,
+            max_output_tokens=MAX_OUTPUT_TOKENS,
+        )
     return _llm_instance
 
 def _filter_paragraphs(paragraphs: list) -> list[tuple[int, str]]:
@@ -21,6 +30,99 @@ def _filter_paragraphs(paragraphs: list) -> list[tuple[int, str]]:
         (idx, p) for idx, p in enumerate(paragraphs)
         if len(p.strip()) >= MIN_PARAGRAPH_LENGTH
     ]
+
+def _parse_json_array(raw: str) -> list:
+    """Extrait le tableau JSON d'une réponse LLM, fences et prose comprises."""
+    text = raw.strip()
+
+    if text.startswith("```json"):
+        text = text[7:]
+    elif text.startswith("```"):
+        text = text[3:]
+    if text.endswith("```"):
+        text = text[:-3]
+    text = text.strip()
+
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        # Repli : isoler le premier bloc [...] quand le modèle ajoute du texte.
+        start, end = text.find("["), text.rfind("]")
+        if start == -1 or end <= start:
+            return []
+        data = json.loads(text[start:end + 1])
+
+    if isinstance(data, list):
+        return data
+    if isinstance(data, dict):
+        # Certaines réponses enveloppent le tableau : {"paragraphs": [...]}.
+        for value in data.values():
+            if isinstance(value, list):
+                return value
+        return [data]
+    return []
+
+def _is_valid_fake(item) -> bool:
+    """Un item n'est exploitable que si swapped_text est une chaîne non vide."""
+    return (
+        isinstance(item, dict)
+        and isinstance(item.get("swapped_text"), str)
+        and bool(item["swapped_text"].strip())
+    )
+
+def _coerce_index(value):
+    """Le modèle renvoie parfois l'indice en chaîne ("12") au lieu d'un entier."""
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+def _match_fakes(selected: list[tuple[int, str]], fakes_batch: list) -> dict:
+    """Associe chaque paragraphe sélectionné à son item LLM.
+
+    Les paragraph_index ne sont utilisés que s'ils sont TOUS cohérents avec les
+    indices demandés. Sinon on associe uniquement par position, le prompt
+    imposant « un par paragraphe dans le même ordre ».
+
+    Ce tout-ou-rien est volontaire : un modèle qui renumérote sa réponse 0..3
+    peut produire un indice qui existe aussi dans la requête, et un match
+    partiel de ce genre est pire qu'aucun match — le texte truqué d'un
+    paragraphe atterrirait sur un autre, avec l'explication du mauvais.
+    """
+    valid_items = [item for item in fakes_batch if _is_valid_fake(item)]
+    if not valid_items:
+        return {}
+
+    requested = {idx for idx, _ in selected}
+    coerced = [_coerce_index(item.get("paragraph_index")) for item in valid_items]
+    trust_indices = all(key is not None and key in requested for key in coerced)
+
+    resolved = {}
+    taken = set()
+
+    if trust_indices:
+        positions_by_idx = {}
+        for position, key in enumerate(coerced):
+            if key not in positions_by_idx:
+                positions_by_idx[key] = position
+        for idx, _ in selected:
+            position = positions_by_idx.get(idx)
+            if position is not None and position not in taken:
+                resolved[idx] = valid_items[position]
+                taken.add(position)
+    else:
+        print(
+            "Indices LLM incohérents avec la requête "
+            f"({coerced} vs {sorted(requested)}) : association par position."
+        )
+
+    free = [p for p in range(len(valid_items)) if p not in taken]
+    for idx, _ in selected:
+        if idx in resolved or not free:
+            continue
+        resolved[idx] = valid_items[free.pop(0)]
+
+    return resolved
 
 def _generate_fakes_batch(selected: list[tuple[int, str]], topic: str) -> list[dict]:
     """Generates all fake paragraph modifications in ONE single LLM request."""
@@ -52,16 +154,7 @@ Assure-toi de renvoyer UNIQUEMENT le tableau JSON valide, sans autres textes.
     chain = prompt | llm | StrOutputParser()
     try:
         response = chain.invoke({"topic": topic, "paragraphs_json": items_payload}).strip()
-
-        if response.startswith("```json"):
-            response = response.replace("```json", "", 1)
-        if response.endswith("```"):
-            response = response[:-3]
-
-        data = json.loads(response.strip())
-        if isinstance(data, list):
-            return data
-        return []
+        return _parse_json_array(response)
     except Exception as e:
         print(f"Erreur LLM batch fake generation: {e}")
         return []
@@ -77,16 +170,19 @@ def swap_paragraphs(paragraphs: list, topic: str) -> tuple[list, list]:
     modified = paragraphs.copy()
     swaps = []
 
-    fakes_batch = _generate_fakes_batch(selected, topic)
+    resolved = _match_fakes(selected, _generate_fakes_batch(selected, topic))
 
-    fakes_by_idx = {
-        item.get("paragraph_index"): item
-        for item in fakes_batch
-        if isinstance(item, dict) and "swapped_text" in item
-    }
+    # Un seul appel groupé signifie qu'une erreur API, un rate-limit ou une
+    # troncature fait perdre les NUM_FAKES d'un coup. On rejoue uniquement les
+    # paragraphes manquants pour retrouver la dégradation gracieuse qu'offrait
+    # la génération paragraphe par paragraphe.
+    missing = [(idx, text) for idx, text in selected if idx not in resolved]
+    if missing:
+        print(f"{len(missing)}/{len(selected)} paragraphes manquants : nouvelle tentative.")
+        resolved.update(_match_fakes(missing, _generate_fakes_batch(missing, topic)))
 
     for idx, original_text in selected:
-        fake_data = fakes_by_idx.get(idx)
+        fake_data = resolved.get(idx)
         if not fake_data:
             continue
 

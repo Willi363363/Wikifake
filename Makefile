@@ -20,7 +20,7 @@ check-env:
 	@if [ ! -f .env ]; then \
 		echo "⚠️  Fichier .env introuvable — création d'un .env minimal."; \
 		echo "GOOGLE_API_KEY=" > .env; \
-		echo "MODEL_NAME=gemini-3.6-flash" >> .env; \
+		echo "MODEL_NAME=gemini-3.1-flash-lite" >> .env; \
 	fi
 	@if ! grep -qE "(GOOGLE_API_KEY|GEMINI_API_KEY|OPENAI_API_KEY)=." .env backend/.env 2>/dev/null; then \
 		echo "⚠️  Aucune clé API (GOOGLE_API_KEY, GEMINI_API_KEY ou OPENAI_API_KEY) détectée dans le .env — les fonctionnalités IA peuvent ne pas marcher."; \

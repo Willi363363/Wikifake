@@ -1,5 +1,6 @@
 import wikipedia
 import time
+import difflib
 from typing import Optional
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -34,6 +35,30 @@ def get_topic_from_category(category: str, exclude_topics: list = None) -> str:
     topic = chain.invoke({"category": category, "exclude_str": exclude_str}).strip()
     return topic
 
+def _direct_match(category: str) -> Optional[str]:
+    """Renvoie le titre exact si la saisie est déjà un article Wikipedia.
+
+    On ne retient le premier résultat que s'il correspond vraiment à la saisie :
+    une recherche Wikipedia renvoie un hit pour n'importe quelle entrée, donc
+    prendre search()[0] tel quel court-circuitait get_topic_from_category pour
+    toutes les catégories larges ("Histoire", "Sport") et figeait le même
+    article à chaque partie.
+    """
+    try:
+        results = wikipedia.search(category, results=3)
+    except Exception:
+        return None
+
+    target = category.strip().casefold()
+    for title in results:
+        candidate = title.casefold()
+        if candidate == target:
+            return title
+        if difflib.SequenceMatcher(None, candidate, target).ratio() >= 0.9:
+            return title
+    return None
+
+
 def get_wikipedia_content(category: str) -> Optional[dict]:
     """
     Récupère le HTML brut et les paragraphes d'une page Wikipedia spécifique en bouclant
@@ -48,20 +73,21 @@ def get_wikipedia_content(category: str) -> Optional[dict]:
     while True:
         try:
             # On tente d'abord une recherche directe si le nom entré est déjà un sujet Wikipedia
+            direct_hit = None
             if first_try:
                 first_try = False
-                search_results = wikipedia.search(category, results=3)
-                if search_results:
-                    topic = search_results[0]
-                else:
-                    topic = get_topic_from_category(category, exclude_topics)
+                direct_hit = _direct_match(category)
+
+            if direct_hit:
+                # Titre déjà trouvé : inutile de relancer une recherche dessus.
+                topic = direct_hit
+                search_results = [direct_hit]
+                print(f"Sujet choisi: {topic} (correspondance directe)")
             else:
                 topic = get_topic_from_category(category, exclude_topics)
+                print(f"Sujet choisi: {topic} ... Recherche de la page...")
+                search_results = wikipedia.search(topic, results=3)
 
-            print(f"Sujet choisi: {topic} ... Recherche de la page...")
-            search_results = wikipedia.search(topic, results=3)
-
-            
             if not search_results:
                 print(f"Aucun résultat trouvé pour '{topic}'. Nouvel essai...")
                 exclude_topics.append(topic)
