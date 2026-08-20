@@ -19,13 +19,15 @@ help:
 check-env:
 	@if [ ! -f .env ]; then \
 		echo "⚠️  Fichier .env introuvable — création d'un .env minimal."; \
-		echo "OPENAI_API_KEY=" > .env; \
+		echo "GOOGLE_API_KEY=" > .env; \
+		echo "MODEL_NAME=gemini-3.6-flash" >> .env; \
 	fi
-	@if ! grep -q "OPENAI_API_KEY=." .env; then \
-		echo "⚠️  OPENAI_API_KEY est vide dans le .env — certaines fonctionnalités IA peuvent ne pas marcher."; \
+	@if ! grep -qE "(GOOGLE_API_KEY|GEMINI_API_KEY|OPENAI_API_KEY)=." .env backend/.env 2>/dev/null; then \
+		echo "⚠️  Aucune clé API (GOOGLE_API_KEY, GEMINI_API_KEY ou OPENAI_API_KEY) détectée dans le .env — les fonctionnalités IA peuvent ne pas marcher."; \
 	else \
 		echo "✅ Clé API détectée"; \
 	fi
+
 
 $(VENV)/bin/activate:
 	@echo "🐍 Création du virtual environment..."

@@ -9,9 +9,17 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
+_llm_instance = None
+
+def _get_llm():
+    global _llm_instance
+    if _llm_instance is None:
+        _llm_instance = ChatGoogleGenerativeAI(model=MODEL_NAME, temperature=0.9)
+    return _llm_instance
+
 def get_topic_from_category(category: str, exclude_topics: list = None) -> str:
     """Demande à l'IA de trouver un sujet précis sur Wikipedia basé sur une catégorie."""
-    llm = ChatGoogleGenerativeAI(model=MODEL_NAME, temperature=0.9)
+    llm = _get_llm()
     
     exclude_str = ""
     if exclude_topics:
@@ -36,14 +44,23 @@ def get_wikipedia_content(category: str) -> Optional[dict]:
     wikipedia.set_user_agent("FakeNewsHunter/1.0 (+http://www.example.com/bot)")
     wikipedia.set_lang('fr')
     
+    first_try = True
     while True:
         try:
-            # Trouver un sujet précis
-            topic = get_topic_from_category(category, exclude_topics)
-            print(f"Sujet choisi par l'IA: {topic} ... Recherche de la page...")
-            
-            # Faire une recherche Wikipedia pour s'assurer de trouver de vraies pages
+            # On tente d'abord une recherche directe si le nom entré est déjà un sujet Wikipedia
+            if first_try:
+                first_try = False
+                search_results = wikipedia.search(category, results=3)
+                if search_results:
+                    topic = search_results[0]
+                else:
+                    topic = get_topic_from_category(category, exclude_topics)
+            else:
+                topic = get_topic_from_category(category, exclude_topics)
+
+            print(f"Sujet choisi: {topic} ... Recherche de la page...")
             search_results = wikipedia.search(topic, results=3)
+
             
             if not search_results:
                 print(f"Aucun résultat trouvé pour '{topic}'. Nouvel essai...")
