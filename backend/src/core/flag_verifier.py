@@ -3,7 +3,7 @@ import pathlib
 import datetime
 import asyncio
 import wikipedia
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from .settings import MODEL_NAME
@@ -37,7 +37,7 @@ def _fetch_wikipedia_context(article_title: str, flagged_claim: str) -> str:
 
 
 def _run_llm_verification(report: dict, wiki_context: str) -> dict:
-    llm = ChatOpenAI(model=MODEL_NAME, temperature=0.1)
+    llm = ChatGoogleGenerativeAI(model=MODEL_NAME, temperature=0.1)
 
     prompt = ChatPromptTemplate.from_messages([
         ("system", """
