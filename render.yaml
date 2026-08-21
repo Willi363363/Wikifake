@@ -10,6 +10,27 @@
 # conserver telles qu'elles sont définies dans le tableau de bord.
 
 services:
+  # Préproduction. Même image, même configuration, branche `staging`.
+  # C'est ce qui donne un sens à la promotion `staging` → `main` : sans
+  # environnement derrière, la branche n'est qu'un rituel.
+  - type: web
+    name: wikifake-staging
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    branch: staging
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: MODEL_NAME
+        value: gemini-3.1-flash-lite
+      - key: LOG_LEVEL
+        value: DEBUG
+
   - type: web
     name: wikifake
     runtime: docker

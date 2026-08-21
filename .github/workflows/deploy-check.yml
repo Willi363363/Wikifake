@@ -10,11 +10,15 @@ name: Deploy check
 # définie — il ne fera donc jamais échouer la CI d'un fork ou d'un clone.
 #
 #   Settings → Secrets and variables → Actions → Variables → New
-#   DEPLOY_URL = https://<votre-service>.onrender.com
+#   DEPLOY_URL         = https://<service-production>.onrender.com
+#   STAGING_DEPLOY_URL = https://<service-preproduction>.onrender.com
+#
+# Chaque branche a sa sonde : un push sur `staging` vérifie la préproduction,
+# un push sur `main` vérifie la production.
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   workflow_dispatch:
     inputs:
       timeout_seconds:
@@ -27,22 +31,31 @@ permissions:
 
 jobs:
   deployed-commit:
-    name: La production sert-elle ce commit ?
+    name: L'environnement sert-il ce commit ?
     runs-on: ubuntu-latest
     steps:
-      - name: Vérifier que DEPLOY_URL est configurée
+      - name: Déterminer l'environnement à sonder
         id: config
         env:
-          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
+          URL_MAIN: ${{ vars.DEPLOY_URL }}
+          URL_STAGING: ${{ vars.STAGING_DEPLOY_URL }}
+          BRANCH: ${{ github.ref_name }}
         run: |
+          if [ "$BRANCH" = "staging" ]; then
+            DEPLOY_URL="$URL_STAGING"; VAR_NAME=STAGING_DEPLOY_URL; ENVIRONMENT=préproduction
+          else
+            DEPLOY_URL="$URL_MAIN"; VAR_NAME=DEPLOY_URL; ENVIRONMENT=production
+          fi
+          echo "url=$DEPLOY_URL" >> "$GITHUB_OUTPUT"
+          echo "environment=$ENVIRONMENT" >> "$GITHUB_OUTPUT"
           if [ -z "$DEPLOY_URL" ]; then
             echo "configured=false" >> "$GITHUB_OUTPUT"
             {
               echo "### Sonde de déploiement ignorée"
               echo
-              echo "La variable de dépôt \`DEPLOY_URL\` n'est pas définie."
+              echo "La variable de dépôt \`$VAR_NAME\` n'est pas définie."
               echo "Renseignez-la dans **Settings → Secrets and variables → Actions → Variables**"
-              echo "pour que la CI dise elle-même si la production est à jour."
+              echo "pour que la CI dise elle-même si l'environnement est à jour."
             } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "configured=true" >> "$GITHUB_OUTPUT"
@@ -51,7 +64,8 @@ jobs:
       - name: Attendre que le commit déployé corresponde
         if: steps.config.outputs.configured == 'true'
         env:
-          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
+          DEPLOY_URL: ${{ steps.config.outputs.url }}
+          ENVIRONMENT: ${{ steps.config.outputs.environment }}
           EXPECTED: ${{ github.sha }}
           TIMEOUT: ${{ github.event.inputs.timeout_seconds || '600' }}
         run: |
@@ -77,7 +91,7 @@ jobs:
 
               if [ "$served" = "$EXPECTED" ]; then
                 {
-                  echo "### ✅ Production à jour"
+                  echo "### ✅ $ENVIRONMENT à jour"
                   echo
                   echo "| | |"
                   echo "|---|---|"
@@ -94,7 +108,7 @@ jobs:
           done
 
           {
-            echo "### ⚠️ La production ne sert pas encore ce commit"
+            echo "### ⚠️ $ENVIRONMENT ne sert pas encore ce commit"
             echo
             echo "| | |"
             echo "|---|---|"
@@ -104,7 +118,7 @@ jobs:
             echo
             if [ -z "$served" ]; then
               echo "Aucune réponse de la sonde : service endormi (plan gratuit),"
-              echo "déploiement encore en cours, ou \`DEPLOY_URL\` incorrecte."
+              echo "déploiement encore en cours, ou URL incorrecte."
             else
               echo "Le service répond mais sur une version antérieure :"
               echo "le déploiement automatique est peut-être désactivé."

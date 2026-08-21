@@ -10,6 +10,7 @@ Toute la documentation du projet vit ici. Rien à la racine sauf `README.md` et
 | savoir comment on travaille | `methode/00-cycle-de-dev.md` |
 | créer une branche, ouvrir une PR | `methode/01-flux-git.md` |
 | savoir ce qui est interdit | `methode/02-regles-du-depot.md` |
+| comprendre les environnements et les verrous | `methode/03-infrastructure.md` |
 | comprendre le code actuel | `etat-des-lieux/` |
 | savoir où va le projet | `refonte/00-vue-densemble.md` |
 | **savoir ce qu'on ne doit jamais casser** | `refonte/01-contrat-a-preserver.md` |

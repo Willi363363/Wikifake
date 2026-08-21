@@ -68,6 +68,56 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
+  revue-humaine:
+    name: Revue humaine
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # Avec un seul compte GitHub, aucun contrôle serveur ne distingue un
+      # humain d'un agent : les deux portent le même jeton. La porte est donc
+      # posée là où les agents s'exécutent — `.claude/settings.json` leur
+      # refuse `gh pr merge`, `gh pr review` et `gh pr edit` — et ce check
+      # rend le geste humain explicite et horodaté dans le journal du dépôt.
+      - name: Exiger le label « revu »
+        env:
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          case ",$LABELS," in
+            *,revu,*)
+              echo "Label « revu » présent — cette PR a été relue par un humain."
+              ;;
+            *)
+              {
+                echo '## Revue humaine manquante'
+                echo
+                echo 'Cette PR attend le label `revu`, apposé à la main après lecture.'
+                echo
+                echo 'Un agent ne peut pas se le donner : `.claude/settings.json`'
+                echo 'lui refuse `gh pr edit`, `gh pr review` et `gh pr merge`.'
+              } >> "$GITHUB_STEP_SUMMARY"
+              echo "::error::Label 'revu' absent — voir plans/methode/03-infrastructure.md"
+              exit 1
+              ;;
+          esac
+
+  fuite-de-secrets:
+    name: Analyse de secrets
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # `scripts/checks.sh` fait une détection par expressions régulières, utile
+      # et immédiate. gitleaks est l'outil dédié : il connaît les formats, et
+      # scanne l'historique de la plage, pas seulement le contenu final.
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+          GITLEAKS_ENABLE_SUMMARY: true
+
   push-direct:
     name: Aucun push direct sur main ni staging
     if: github.event_name == 'push'
