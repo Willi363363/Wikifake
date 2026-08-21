@@ -16,9 +16,9 @@ from src.core.verification import check_answer
 from src.game import generate_game
 
 from .broadcast import broadcast, broadcast_lobby
-from .items import item_distribution_loop
-from .room import GAME_DURATION, Room, is_host
-from .scoring import build_leaderboard, compute_score
+from .items import STEAL_AMOUNT, item_distribution_loop
+from .room import GAME_DURATION, Player, Room, is_host
+from .scoring import HINT_COST, REVEAL_COST, build_leaderboard, compute_score, hint_penalty_for
 from .themes import pick_and_start, start_theme_voting
 
 Handler = Callable[[str, Room, str, WebSocket, dict], Awaitable[None]]
@@ -120,10 +120,7 @@ async def handle_start_game(room_code: str, room: Room, player_name: str, websoc
     room.start_time = time.time()
 
     for p in room.players.values():
-        p.score = 0
-        p.answered = False
-        p.results = None
-        p.items = []
+        p.reset_round()
 
     if room.item_task and not room.item_task.done():
         room.item_task.cancel()
@@ -183,6 +180,21 @@ async def handle_chat_message(room_code: str, room: Room, player_name: str, webs
     })
 
 
+# Durée du brouillage d'indices, alignée sur l'effet visuel du client.
+HINT_BLOCK_SECONDS = 20
+
+
+def _apply_scoring_effect(target: Player, item_id: str) -> None:
+    """Applique côté serveur les effets d'items qui pèsent sur le score.
+
+    Les autres items sont purement visuels et restent gérés par le client.
+    """
+    if item_id == "SCORE_STEAL":
+        target.score_stolen += STEAL_AMOUNT
+    elif item_id == "HINT_LOCK":
+        target.hints_blocked_until = time.time() + HINT_BLOCK_SECONDS
+
+
 async def handle_use_item(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:
     if room.state != "playing":
         return
@@ -197,6 +209,7 @@ async def handle_use_item(room_code: str, room: Room, player_name: str, websocke
     if item_used:
         for target in targets:
             if target in room.players:
+                _apply_scoring_effect(room.players[target], item_used["id"])
                 try:
                     await room.players[target].socket.send_text(json.dumps({
                         "type": "item_effect",
@@ -217,6 +230,52 @@ async def handle_use_item(room_code: str, room: Room, player_name: str, websocke
         })
 
 
+async def handle_unlock_hint(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:
+    """Déverrouille un indice et le facture côté serveur.
+
+    Le texte de l'indice n'est envoyé qu'ici : le client ne peut plus le lire
+    gratuitement dans le payload de départ, et ne peut plus effacer sa
+    pénalité en renvoyant `hintPenalty: 0` à la soumission.
+    """
+    if room.state != "playing" or not room.game_data:
+        return
+    player = room.players[player_name]
+
+    if player.hints_blocked:
+        await websocket.send_text(json.dumps({
+            "type": "error", "code": "hints_blocked",
+            "message": "Vos indices sont brouillés.",
+        }))
+        return
+
+    try:
+        number = int(data.get("number", 0))
+        level = 2 if int(data.get("level", 1)) >= 2 else 1
+    except (TypeError, ValueError):
+        return
+
+    positions = room.game_data["positions"]
+    position = next((p for p in positions if p["false_info_number"] == number), None)
+    if position is None:
+        return
+
+    player.hint_levels[number] = max(player.hint_levels.get(number, 0), level)
+    granted = player.hint_levels[number]
+
+    payload = {
+        "type": "hint_unlocked",
+        "number": number,
+        "level": granted,
+        "hint": position["hint"],
+        "cost": REVEAL_COST if granted >= 2 else HINT_COST,
+        "hint_penalty": hint_penalty_for(player.hint_levels),
+    }
+    if granted >= 2:
+        payload["truth"] = position["explanation"]
+        payload["paragraph_index"] = position["paragraph_index"]
+    await websocket.send_text(json.dumps(payload))
+
+
 async def handle_unsubmit_answer(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:
     if room.state != "playing":
         return
@@ -228,10 +287,15 @@ async def handle_submit_answer(room_code: str, room: Room, player_name: str, web
     if room.state != "playing":
         return
     indices = data.get("answers", [])
-    hints_used = data.get("hintsUsed", 0)
-    hint_penalty = data.get("hintPenalty", 0)
-    score_stolen = data.get("scoreStolen", 0)
     time_taken = time.time() - room.start_time
+
+    # `hintsUsed`, `hintPenalty` et `scoreStolen` arrivaient du client et
+    # étaient pris au mot : il suffisait d'envoyer 0 pour annuler ses
+    # pénalités. Ces trois valeurs viennent désormais de l'état serveur.
+    player = room.players[player_name]
+    hint_penalty = hint_penalty_for(player.hint_levels)
+    hints_used = player.hints_used
+    score_stolen = player.score_stolen
 
     result = check_answer(indices, room.game_data["positions"])
     tp = len(result["correct_found"])
@@ -239,7 +303,6 @@ async def handle_submit_answer(room_code: str, room: Room, player_name: str, web
 
     score, time_bonus = compute_score(tp, fp, hint_penalty, score_stolen, room.time_limit, time_taken)
 
-    player = room.players[player_name]
     player.answered = True
     player.score = score
     player.results = {
@@ -280,6 +343,7 @@ HANDLERS: dict[str, Handler] = {
     "cursor": handle_cursor,
     "chat_message": handle_chat_message,
     "use_item": handle_use_item,
+    "unlock_hint": handle_unlock_hint,
     "unsubmit_answer": handle_unsubmit_answer,
     "submit_answer": handle_submit_answer,
 }

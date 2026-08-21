@@ -64,7 +64,10 @@ def test_round_ends_when_every_player_has_answered():
         room = rooms[room_code]
         room.state = "playing"
         room.time_limit = 300
-        room.game_data = {"positions": [{"paragraph_index": 1}, {"paragraph_index": 2}]}
+        room.game_data = {"positions": [
+            {"paragraph_index": 1, "false_info_number": 1, "hint": "indice 1", "explanation": "vérité 1"},
+            {"paragraph_index": 2, "false_info_number": 2, "hint": "indice 2", "explanation": "vérité 2"},
+        ]}
         for player in room.players.values():
             player.ready = True
 
@@ -73,8 +76,16 @@ def test_round_ends_when_every_player_has_answered():
                        "hintsUsed": 0, "hintPenalty": 0, "scoreStolen": 0})
         ws1.receive_json()  # lobby_update: p2 has not answered yet
 
-        ws2.send_json({"type": "submit_answer", "answers": [1, 3],
-                       "hintsUsed": 1, "hintPenalty": 50, "scoreStolen": 0})
+        # p2 achète un indice : la pénalité vient de cet appel, pas de sa
+        # propre déclaration à la soumission.
+        ws2.send_json({"type": "unlock_hint", "number": 1, "level": 1})
+        # Le lobby_update déclenché par p1 est encore en file devant.
+        hint = ws2.receive_json()
+        while hint["type"] != "hint_unlocked":
+            hint = ws2.receive_json()
+        assert hint["hint"] == "indice 1"
+
+        ws2.send_json({"type": "submit_answer", "answers": [1, 3]})
 
         end1 = ws1.receive_json()
         # p2 still has p1's queued lobby_update in front of the round-end message.

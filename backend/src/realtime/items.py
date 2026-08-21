@@ -5,6 +5,10 @@ import random
 from .broadcast import broadcast
 from .room import rooms
 
+# Points retirés par SCORE_STEAL. Défini ici, à côté de la description de
+# l'item qui l'annonce ("Vole 50 pts à un joueur").
+STEAL_AMOUNT = 50
+
 ITEMS = [
     {"id": "HINT_LOCK",   "name": "Brouilleur",    "icon": "🔒", "description": "Bloque les hints d'un joueur pendant 20s",   "targetCount": 1},
     {"id": "FREEZE_TIME", "name": "Gel du temps",  "icon": "⏸",  "description": "Retire 10s au chrono d'un joueur",            "targetCount": 1},

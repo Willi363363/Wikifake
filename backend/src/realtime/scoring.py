@@ -6,6 +6,20 @@ where the bonus is half a point per second left on the clock.
 """
 from .room import Room
 
+# Barème des indices, appliqué par le serveur. `frontend/src/config.js`
+# expose les mêmes valeurs pour l'affichage optimiste pendant la manche.
+HINT_COST = 50
+REVEAL_COST = 200
+
+
+def hint_penalty_for(levels: dict[int, int]) -> int:
+    """Coût total des indices déverrouillés, par numéro de fausse information.
+
+    Niveau 1 = indice, niveau 2 = révélation. Monotone : un joueur qui a payé
+    le niveau 2 ne redescend pas au tarif du niveau 1.
+    """
+    return sum(REVEAL_COST if level >= 2 else HINT_COST for level in levels.values() if level > 0)
+
 
 def compute_score(tp: int, fp: int, hint_penalty: int, score_stolen: int,
                   time_limit: float, elapsed: float) -> tuple[int, int]:

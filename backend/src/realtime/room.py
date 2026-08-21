@@ -33,6 +33,30 @@ class Player:
     # pouvait lancer la partie ou couper le vote.
     is_host: bool = False
     joined_at: float = field(default_factory=time.time)
+    # Ce qui pèse sur le score est suivi ICI, par le serveur. Le client
+    # envoyait auparavant `hintPenalty` et `scoreStolen` dans `submit_answer` :
+    # il suffisait de renvoyer 0 pour effacer ses pénalités.
+    hint_levels: dict[int, int] = field(default_factory=dict)
+    score_stolen: int = 0
+    hints_blocked_until: float = 0.0
+
+    @property
+    def hints_used(self) -> int:
+        return sum(1 for level in self.hint_levels.values() if level > 0)
+
+    @property
+    def hints_blocked(self) -> bool:
+        return time.time() < self.hints_blocked_until
+
+    def reset_round(self) -> None:
+        """Remet à zéro tout ce qui appartient à une manche."""
+        self.score = 0
+        self.answered = False
+        self.results = None
+        self.items = []
+        self.hint_levels = {}
+        self.score_stolen = 0
+        self.hints_blocked_until = 0.0
 
 
 @dataclass

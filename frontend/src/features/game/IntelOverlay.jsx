@@ -4,7 +4,7 @@
  */
 import { LabelMono, Chip } from '../../components/ui';
 
-export function IntelOverlay({ open, onClose, targets, unlocked, onUnlock }) {
+export function IntelOverlay({ open, onClose, targets, unlocked, revealed = {}, onUnlock }) {
   if (!open) return null;
   return (
     <div
@@ -71,6 +71,10 @@ export function IntelOverlay({ open, onClose, targets, unlocked, onUnlock }) {
         }}>
           {targets.map((t, i) => {
             const u = unlocked[t.id] || 0;
+            // En multijoueur le texte vient du serveur, qui vient de le
+            // facturer ; en solo il est déjà dans l'article.
+            const hint = revealed[t.id]?.hint ?? t.hint;
+            const truth = revealed[t.id]?.truth ?? t.truth ?? '';
             return (
               <div key={t.id} style={{
                 border: `1px solid ${u > 0 ? "rgba(140,109,54,0.25)" : "var(--line)"}`,
@@ -98,8 +102,8 @@ export function IntelOverlay({ open, onClose, targets, unlocked, onUnlock }) {
                   letterSpacing: u === 0 ? "0.06em" : "0",
                 }}>
                   {u === 0 && "▒▒▒▒▒ ▒▒▒▒▒▒ ▒▒▒ ▒▒▒"}
-                  {u === 1 && t.hint}
-                  {u === 2 && t.truth.slice(0, 90) + "…"}
+                  {u === 1 && hint}
+                  {u === 2 && truth.slice(0, 90) + "…"}
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <button
