@@ -1,4 +1,5 @@
 import os
+import re
 import pytest
 from fastapi.testclient import TestClient
 
@@ -13,10 +14,17 @@ from main import app
 client = TestClient(app)
 
 def test_index_serves_html():
+    """Le bundle construit est bien servi.
+
+    On teste la présence d'un titre, pas son libellé exact : celui-ci est du
+    texte de référencement, il changera. `frontend/src/__tests__/indexing.test.js`
+    vérifie sa longueur et les balises de partage.
+    """
     response = client.get("/")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
-    assert "<title>Wikifake" in response.text
+    assert re.search(r"<title>[^<]+</title>", response.text)
+    assert 'id="root"' in response.text
 
 def test_create_multiplayer_room():
     response = client.post("/api/multiplayer/create")
