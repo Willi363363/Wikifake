@@ -1,17 +1,17 @@
-## Pourquoi
+## Why
 
-<!-- Le problème, sa cause. Pas ce que fait le diff — le diff le dit déjà. -->
+<!-- The problem and its cause. Not what the diff does — the diff says that. -->
 
-## Ce que ça change
+## What changes
 
-<!-- Et l'étape de `plans/refonte/` concernée, s'il y en a une. -->
+<!-- And the step of `plans/rewrite/` it belongs to, if there is one. -->
 
-## Vérifications
+## Checks
 
-- [ ] `bash scripts/checks.sh diff origin/staging` est vert
-- [ ] Les tests concernés existent et passent
-- [ ] La branche est à jour par rapport à sa cible
-- [ ] La documentation touchée est à jour dans la même PR
-- [ ] Rien n'a été ajouté hors périmètre
+- [ ] `bash scripts/checks.sh diff origin/staging` is green
+- [ ] The relevant tests exist and pass
+- [ ] The branch is up to date with its target
+- [ ] Documentation touched is updated in this same PR
+- [ ] Nothing was added out of scope
 
-<!-- La fusion attend le label `revu`, apposé à la main après lecture. -->
+<!-- Merging waits for the `revu` label, applied by hand after reading. -->

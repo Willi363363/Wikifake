@@ -1,4 +1,4 @@
-# Contexte de build minimal : rien de local ne doit se retrouver dans l'image.
+# Minimal build context: nothing local should end up in the image.
 .git
 .github
 venv
@@ -7,12 +7,12 @@ __pycache__/
 *.pyc
 *.md
 
-# Le frontend est recompilé dans le stage Node — jamais copié depuis le disque.
+# The frontend is rebuilt in the Node stage — never copied from the disk.
 frontend/node_modules
 frontend/dist
 frontend/.smoke
 
-# Secrets et données runtime
+# Secrets and runtime data
 .env
 data/
 backend/data/

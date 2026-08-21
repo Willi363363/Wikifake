@@ -1,63 +1,65 @@
 # plans/
 
-Toute la documentation du projet vit ici. Rien à la racine sauf `README.md` et
-`CLAUDE.md`, et **aucun fichier de plus de 200 lignes** — un hook le vérifie.
+All project documentation lives here. Nothing at the repository root except
+`README.md` and `CLAUDE.md`, and **no file over 200 lines** — a hook checks it.
 
-## Par où commencer
+## Where to start
 
-| Vous voulez… | Lisez |
+| You want to… | Read |
 |---|---|
-| savoir comment on travaille | `methode/00-cycle-de-dev.md` |
-| créer une branche, ouvrir une PR | `methode/01-flux-git.md` |
-| savoir ce qui est interdit | `methode/02-regles-du-depot.md` |
-| comprendre les environnements et les verrous | `methode/03-infrastructure.md` |
-| comprendre le code actuel | `etat-des-lieux/` |
-| savoir où va le projet | `refonte/00-vue-densemble.md` |
-| **savoir ce qu'on ne doit jamais casser** | `refonte/01-contrat-a-preserver.md` |
-| travailler maintenant | la fiche de la phase en cours, ci-dessous |
+| know how we work | `method/00-dev-cycle.md` |
+| create a branch, open a PR | `method/01-git-flow.md` |
+| know what is forbidden | `method/02-repository-rules.md` |
+| understand the environments and the locks | `method/03-infrastructure.md` |
+| understand the current code | `current-state/` |
+| know where the project is going | `rewrite/00-overview.md` |
+| **know what must never break** | `rewrite/01-contract-to-preserve.md` |
+| work right now | the file for the current phase, below |
 
-## Où en est le projet
+## Where the project stands
 
-La refonte remplace intégralement la stack : Python et FastAPI disparaissent au
-profit d'un monorepo TypeScript. Onze phases, dans cet ordre — chacune dépend
-de la précédente sauf mention contraire dans sa fiche.
+The rewrite replaces the whole stack: Python and FastAPI disappear in favour
+of a TypeScript monorepo. Twelve phases, in this order — each depends on the
+previous one unless its file says otherwise.
 
-| # | Phase | État | Fiche |
+| # | Phase | State | Fiche |
 |---|---|---|---|
-| 0 | Fondations — monorepo et outillage | **en cours** | `refonte/phase-00-fondations.md` |
-| 1 | Socle — `protocol` et `domain` | à faire | `refonte/phase-01-socle.md` |
-| 2 | Données — Drizzle et Postgres | à faire | `refonte/phase-02-donnees.md` |
-| 3 | Article — Wikipédia et modèle | à faire | `refonte/phase-03-article.md` |
-| 4 | API et authentification | à faire | `refonte/phase-04-api-et-auth.md` |
-| 5 | Temps réel — WebSocket et Redis | à faire | `refonte/phase-05-temps-reel.md` |
-| 6 | Design system | à faire | `refonte/phase-06-design-system.md` |
-| 7 | Front — lobby et attente | à faire | `refonte/phase-07-front-lobby.md` |
-| 8 | Front — la manche | à faire | `refonte/phase-08-front-manche.md` |
-| 9 | Observabilité et CI/CD | à faire | `refonte/phase-09-observabilite-et-cicd.md` |
-| 10 | Bascule — suppression du Python | à faire | `refonte/phase-10-bascule.md` |
+| 0 | Foundations — monorepo and tooling | **in progress** | `rewrite/phase-00-foundations.md` |
+| 1 | Core — `protocol` and `domain` | to do | `rewrite/phase-01-core.md` |
+| 2 | Data — Drizzle and Postgres | to do | `rewrite/phase-02-data.md` |
+| 3 | Article — Wikipedia and model | to do | `rewrite/phase-03-article.md` |
+| 4 | API and authentication | to do | `rewrite/phase-04-api-and-auth.md` |
+| 5 | Realtime — WebSocket and Redis | to do | `rewrite/phase-05-realtime.md` |
+| 6 | Design system | to do | `rewrite/phase-06-design-system.md` |
+| 7 | Frontend — lobby and waiting room | to do | `rewrite/phase-07-frontend-lobby.md` |
+| 8 | Frontend — the round | to do | `rewrite/phase-08-frontend-round.md` |
+| 9 | Observability and CI/CD | to do | `rewrite/phase-09-observability-and-cicd.md` |
+| 10 | Cutover — removing the Python | to do | `rewrite/phase-10-cutover.md` |
+| 11 | Internationalisation | to do | `rewrite/phase-11-i18n.md` |
 
-**Ce tableau est le seul endroit qui dit où l'on en est.** Il se met à jour
-quand une phase change d'état. Les étapes se cochent dans la fiche de phase.
+**This table is the only place that says where we stand.** It is updated when
+a phase changes state. Steps are ticked off in the phase file.
 
-La phase 10 a une condition d'entrée non négociable : chaque garantie de
-`refonte/01-contrat-a-preserver.md` et
-`refonte/02-contrat-transport-et-conformite.md` doit avoir un test équivalent
-dans la nouvelle stack. Tant qu'il en manque une, le Python reste.
+Phase 10 has a non-negotiable entry condition: every guarantee of
+`rewrite/01-contract-to-preserve.md` and
+`rewrite/02-contract-transport-and-compliance.md` must have an equivalent
+test in the new stack. As long as one is missing, the Python stays.
 
 ## Structure
 
 ```
 plans/
-├── methode/          comment on travaille — à lire une fois, à respecter toujours
-├── etat-des-lieux/   ce qui existe aujourd'hui, et la dette connue
-└── refonte/          où l'on va : vue d'ensemble, contrat, une fiche par phase
+├── method/          how we work — read once, respect always
+├── current-state/   what exists today, and the known debt
+└── rewrite/         where we are going: overview, contract, one file per phase
 ```
 
-## Règles de cette documentation
+## Rules of this documentation
 
-- 200 lignes maximum par fichier. Au-delà, on découpe.
-- La doc se met à jour **dans la PR qui change le comportement**, pas après.
-- Pas de fichier de suivi parallèle. Pas de `TODO.md`, pas de `NOTES.md` : ils
-  divergent en une semaine et mentent en deux.
-- Un problème découvert hors périmètre se note dans
-  `etat-des-lieux/05-dette-connue.md` et ne se corrige pas sur place.
+- 200 lines maximum per file. Beyond that, split.
+- Documentation is updated **in the PR that changes the behaviour**, not
+  afterwards.
+- No parallel tracking file. No `TODO.md`, no `NOTES.md`: they diverge in a
+  week and lie in two.
+- A problem found out of scope is recorded in
+  `current-state/05-known-debt.md` and is not fixed on the spot.

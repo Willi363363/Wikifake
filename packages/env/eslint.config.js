@@ -1,1 +1,1 @@
-export { default } from "@wikifake/config/eslint";
+export { default } from '@wikifake/config/eslint';

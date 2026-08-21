@@ -1,52 +1,69 @@
-# WikiFake — instructions de travail
+# WikiFake — working instructions
 
-Jeu de détection de fausses informations : le serveur récupère un article
-Wikipédia, un modèle y injecte des erreurs factuelles, les joueurs doivent les
-retrouver, seuls ou à plusieurs.
+A misinformation-detection game: the server fetches a Wikipedia article, a
+language model injects factual errors into it, and players have to find them —
+alone or together, sabotaging each other with items.
 
-## À lire avant d'écrire une ligne
+## Language: English, everywhere
 
-1. `plans/README.md` — l'index, et **où en est le projet**.
-2. `plans/methode/00-cycle-de-dev.md` — comment on travaille : phases, étapes.
-3. `plans/methode/01-flux-git.md` — branches, staging, main.
-4. `plans/methode/02-regles-du-depot.md` — ce qui est interdit.
+**Everything written in this repository is in English.** Code, identifiers,
+comments, commit messages, pull request titles and descriptions, documentation,
+tests, log messages, error messages, and — from the rewrite onwards — the user
+interface.
 
-Puis la fiche de la phase en cours dans `plans/refonte/`. On n'improvise pas :
-tout travail correspond à une **étape** d'une phase existante. Si ce n'est pas
-le cas, l'étape se documente d'abord.
+The only deliberate exception: the game reads `fr.wikipedia.org`, so article
+content and the topics players type stay French. That is data, not our prose.
 
-## Non négociable
+French UI text is planned to come back through proper internationalisation, in
+its own phase. Until then, everything new is English. See
+`plans/rewrite/phase-11-i18n.md`.
 
-- **Jamais de push sur `main` ni `staging`.** Une branche, une pull request.
-- **Une étape = une branche = une PR.** Pas de travail hors périmètre : un
-  problème découvert en chemin se signale, il ne se corrige pas ici.
-- **Mettre la branche à jour depuis `staging` avant de demander la fusion.**
-  Les conflits se règlent sur la branche, jamais dans la PR.
-- **Ne jamais désactiver un test, un lint ou une assertion** pour verdir la CI.
-- **Aucune documentation hors de `plans/`**, aucun fichier au-delà de
-  200 lignes.
-- **Une seule source de vérité** par règle métier. Toute duplication
-  front/back est un bug en sursis.
-- **Rapporter fidèlement** : test échoué, étape sautée, contrôle non lancé,
-  ça se dit.
-- Signer les commits produits par un agent (trailer `Co-Authored-By:`).
+## Read before writing a line
 
-## Où trouver quoi
+1. `plans/README.md` — the index, and **where the project stands**.
+2. `plans/method/00-dev-cycle.md` — how we work: phases, steps.
+3. `plans/method/01-git-flow.md` — branches, staging, main.
+4. `plans/method/02-repository-rules.md` — what is forbidden.
 
-| Question | Fichier |
+Then the file for the current phase in `plans/rewrite/`. Nothing is improvised:
+every piece of work maps to a **step** of an existing phase. If it does not,
+document the step first.
+
+## Non-negotiable
+
+- **Never push to `main` or `staging`.** One branch, one pull request.
+- **Everything is written in English**, including this conversation's output
+  when it lands in the repository.
+- **One step = one branch = one PR.** No out-of-scope work: a problem found
+  along the way gets recorded, not fixed here.
+- **Update the branch from `staging` before asking for a merge.** Conflicts are
+  resolved on the branch, never in the PR.
+- **Never disable a test, a lint rule or an assertion** to turn CI green.
+- **No documentation outside `plans/`**, no file over 200 lines.
+- **One source of truth** per business rule. Any front/back duplication is a
+  bug waiting to happen.
+- **Report faithfully**: a failing test, a skipped step, a check that was never
+  run — say so.
+- Sign agent-authored commits with a `Co-Authored-By:` trailer.
+
+## Where to find what
+
+| Question | File |
 |---|---|
-| Comment on travaille | `plans/methode/` |
-| Ce qui existe aujourd'hui | `plans/etat-des-lieux/` |
-| Où l'on va, phase par phase | `plans/refonte/` |
-| Ce qu'on ne doit jamais casser | `plans/refonte/01-contrat-a-preserver.md` |
+| How we work | `plans/method/` |
+| What exists today | `plans/current-state/` |
+| Where we are going, phase by phase | `plans/rewrite/` |
+| What must never break | `plans/rewrite/01-contract-to-preserve.md` |
 
-## Commandes
+## Commands
 
 ```bash
-make hooks     # installer les hooks git (une fois par clone)
-make check     # ce que verra le hook de pre-commit
-make test      # tests backend
-make run       # build du front + serveur sur :8000
+nvm use        # Node 22, pinned by .nvmrc
+pnpm install   # monorepo dependencies
+make hooks     # install the git hooks — once per clone
+make check     # what the pre-commit hook will run
+pnpm test      # monorepo tests
+make test      # legacy backend tests (Python, until phase 10)
 ```
 
-Avant de proposer une fusion : `bash scripts/checks.sh diff origin/staging`.
+Before asking for a merge: `bash scripts/checks.sh diff origin/staging`.

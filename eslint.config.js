@@ -1,18 +1,18 @@
-// Configuration ESLint racine : elle rend `eslint <fichier>` utilisable depuis
-// n'importe où, ce dont dépendent l'éditeur et `scripts/checks.sh`.
-import shared from "@wikifake/config/eslint";
+// Root ESLint configuration: it makes `eslint <file>` usable from anywhere,
+// which the editor and scripts/checks.sh both rely on.
+import shared from '@wikifake/config/eslint';
 
 export default [
   {
-    // Le front Vite en JavaScript est l'ancienne stack : il disparaît à la
-    // phase 10 et n'a jamais été écrit sous ces règles. Le linter le laisse
-    // tranquille plutôt que de crier sur du code condamné.
+    // The Vite frontend in JavaScript is the old stack: it goes away in phase
+    // 10 and was never written under these rules. The linter leaves it alone
+    // rather than shouting at condemned code.
     ignores: [
-      "frontend/**",
-      "backend/**",
-      "**/dist/**",
-      "**/coverage/**",
-      "**/.turbo/**",
+      'frontend/**',
+      'backend/**',
+      '**/dist/**',
+      '**/coverage/**',
+      '**/.turbo/**',
     ],
   },
   ...shared,
