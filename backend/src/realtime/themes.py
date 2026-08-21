@@ -78,7 +78,6 @@ async def pick_and_start(room_code: str, use_votes: bool = True) -> None:
         room.picking_theme = False
         await broadcast(room_code, {"type": "error", "message": "Erreur critique : Impossible de charger un sujet Wikipédia."})
         room.state = "waiting"
-        room.between_rounds = False
         await broadcast_lobby(room_code)
         return
 

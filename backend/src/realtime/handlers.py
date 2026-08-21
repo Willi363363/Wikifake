@@ -13,7 +13,9 @@ from typing import Awaitable, Callable
 
 from fastapi import WebSocket
 
+from src.core.settings import CURSOR_MIN_INTERVAL, MAX_CHAT_LENGTH
 from src.core.verification import check_answer
+from src.log import get_logger
 from src.game import generate_game
 
 from .broadcast import broadcast, broadcast_lobby
@@ -21,6 +23,8 @@ from .items import STEAL_AMOUNT, item_distribution_loop
 from .room import GAME_DURATION, Player, Room, is_host
 from .scoring import HINT_COST, REVEAL_COST, build_leaderboard, compute_score, hint_penalty_for
 from .themes import pick_and_start, start_theme_voting
+
+log = get_logger(__name__)
 
 Handler = Callable[[str, Room, str, WebSocket, dict], Awaitable[None]]
 
@@ -156,29 +160,50 @@ async def handle_live_score(room_code: str, room: Room, player_name: str, websoc
 
 
 async def handle_cursor(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:
-    """Relay the cursor position to every OTHER player (the sender knows its own)."""
+    """Relay the cursor position to every OTHER player (the sender knows its own).
+
+    Le débit est limité ici : le client s'auto-limitait déjà, mais rien
+    n'empêchait un client modifié de saturer la salle.
+    """
     if room.state != "playing":
         return
+
+    sender = room.players[player_name]
+    now = time.time()
+    if now - sender.last_cursor_at < CURSOR_MIN_INTERVAL:
+        return
+    sender.last_cursor_at = now
+
+    def clamp(value) -> float:
+        try:
+            return max(0.0, min(1.0, float(value)))
+        except (TypeError, ValueError):
+            return 0.0
+
     msg_str = json.dumps({
         "type": "cursor_update",
         "player": player_name,
-        "x": data.get("x", 0),
-        "y": data.get("y", 0)
+        "x": clamp(data.get("x", 0)),
+        "y": clamp(data.get("y", 0)),
     })
     for name, p in room.players.items():
         if name != player_name:
-            try:
-                await p.socket.send_text(msg_str)
-            except Exception:
-                pass
+            await _send(p, msg_str)
 
 
 async def handle_chat_message(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:
-    # Broadcast chat to all players in the room (including sender)
+    """Relaie un message à toute la salle, expéditeur inclus.
+
+    La longueur est bornée côté serveur : le champ était relayé tel quel,
+    un client modifié pouvait donc inonder la salle.
+    """
+    content = str(data.get("content", "")).strip()[:MAX_CHAT_LENGTH]
+    if not content:
+        return
     await broadcast(room_code, {
         "type": "chat_message",
         "sender": player_name,
-        "content": data.get("content", ""),
+        "content": content,
     })
 
 
@@ -214,16 +239,13 @@ async def handle_use_item(room_code: str, room: Room, player_name: str, websocke
                 _apply_scoring_effect(room.players[target], item_used["id"])
                 if item_used["id"] == "SCANNER":
                     await _send_scanner_result(room, target, data.get("marked", []))
-                try:
-                    await room.players[target].socket.send_text(json.dumps({
-                        "type": "item_effect",
-                        "item_id": item_used["id"],
-                        "item_name": item_used["name"],
-                        "item_icon": item_used["icon"],
-                        "from": player_name,
-                    }))
-                except Exception:
-                    pass
+                await _send(room.players[target], json.dumps({
+                    "type": "item_effect",
+                    "item_id": item_used["id"],
+                    "item_name": item_used["name"],
+                    "item_icon": item_used["icon"],
+                    "from": player_name,
+                }))
         await broadcast(room_code, {
             "type": "item_used",
             "player": player_name,
@@ -232,6 +254,15 @@ async def handle_use_item(room_code: str, room: Room, player_name: str, websocke
             "item_icon": item_used["icon"],
             "targets": targets,
         })
+
+
+async def _send(player: Player, payload: str) -> None:
+    """Envoi tolérant à un socket mort : la déconnexion est traitée dans le
+    `finally` de l'endpoint, pas ici. On journalise au lieu de rien dire."""
+    try:
+        await player.socket.send_text(payload)
+    except Exception as exc:
+        log.debug("Socket injoignable: %s", exc)
 
 
 async def _send_scanner_result(room: Room, target_name: str, marked: list) -> None:
@@ -260,13 +291,10 @@ async def _send_scanner_result(room: Room, target_name: str, marked: list) -> No
 
     chosen = random.choice(candidates)
     player.scanned.append(chosen)
-    try:
-        await player.socket.send_text(json.dumps({
-            "type": "scanner_result",
-            "paragraph_index": chosen,
-        }))
-    except Exception:
-        pass
+    await _send(player, json.dumps({
+        "type": "scanner_result",
+        "paragraph_index": chosen,
+    }))
 
 
 async def handle_unlock_hint(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:

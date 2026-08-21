@@ -12,6 +12,11 @@ DATA_DIR = pathlib.Path(__file__).parent.parent.parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
 COMPLAINTS_FILE = DATA_DIR / "complaints.jsonl"
 
+def _now() -> datetime.datetime:
+    """Horodatage conscient du fuseau, en UTC."""
+    return datetime.datetime.now(datetime.timezone.utc)
+
+
 VERDICT_LABELS = {
     "likely_valid": "Correction probablement valide",
     "uncertain": "Incertain — révision humaine recommandée",
@@ -126,8 +131,10 @@ async def verify_and_save(report: dict) -> dict:
     verification = await asyncio.to_thread(_run_llm_verification, report, wiki_context)
 
     record = {
-        "id": f"flag_{int(datetime.datetime.utcnow().timestamp() * 1000)}",
-        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        # `utcnow()` est déprécié et renvoie un datetime naïf : on horodate
+        # explicitement en UTC.
+        "id": f"flag_{int(_now().timestamp() * 1000)}",
+        "timestamp": _now().isoformat(),
         "status": "ai_reviewed",
         "article_title": report.get("article_title", ""),
         "article_url": report.get("article_url", ""),

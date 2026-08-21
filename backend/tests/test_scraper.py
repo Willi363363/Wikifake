@@ -7,7 +7,11 @@ fois — doublons dans l'article et index décalés par rapport au document.
 """
 from bs4 import BeautifulSoup
 
-from src.core.scraper import collect_content_paragraphs, extract_paragraphs
+from src.core.scraper import (
+    clean_paragraph_text,
+    collect_content_paragraphs,
+    extract_paragraphs,
+)
 
 LONG = "Une phrase factuelle assez longue pour passer le filtre de taille. " * 2
 
@@ -60,3 +64,45 @@ def test_extract_paragraphs_keeps_index_alignment():
 
 def test_extract_paragraphs_without_data():
     assert extract_paragraphs({}) == []
+
+
+# --- Non-régression : plus d'effet de bord sur la soup -----------------------
+
+def test_extract_paragraphs_does_not_touch_the_document():
+    """`extract_paragraphs` réécrivait chaque `tag.string` pour insérer des
+    espaces, modifiant la soup que l'appelant réutilise ensuite pour produire
+    le HTML de l'article."""
+    soup = BeautifulSoup(
+        f'<div id="bodyContent"><p>{LONG}<b>gras</b> suite</p></div>', "html.parser"
+    )
+    raw = collect_content_paragraphs(soup.find(id="bodyContent"))
+    before = str(soup)
+
+    extract_paragraphs({"raw_paragraphs": raw})
+
+    assert str(soup) == before
+
+
+def test_inline_tags_do_not_glue_words():
+    soup = BeautifulSoup(
+        '<div id="bodyContent"><p>' + LONG + 'un<b>deux</b>trois</p></div>', "html.parser"
+    )
+    raw = collect_content_paragraphs(soup.find(id="bodyContent"))
+    text = extract_paragraphs({"raw_paragraphs": raw})[0]
+    assert "un deux trois" in text
+    assert "undeuxtrois" not in text
+
+
+def test_punctuation_stays_attached():
+    soup = BeautifulSoup(
+        '<div id="bodyContent"><p>' + LONG + 'Paris <b>1889</b> .</p></div>', "html.parser"
+    )
+    raw = collect_content_paragraphs(soup.find(id="bodyContent"))
+    text = extract_paragraphs({"raw_paragraphs": raw})[0]
+    assert "1889." in text
+
+
+def test_clean_paragraph_text():
+    assert clean_paragraph_text("Paris   est   la capitale .") == "Paris est la capitale."
+    assert clean_paragraph_text("a\xa0b") == "a b"
+    assert clean_paragraph_text("  bords  ") == "bords"
