@@ -25,14 +25,19 @@ concurrency:
 
 jobs:
   guard:
-    # Sur une branche qui a déjà une PR ouverte, GitHub déclenche deux runs
-    # pour un même commit : un `push` et un `pull_request`. Les deux exécutent
-    # exactement les mêmes vérifications, doublant la consommation de minutes
-    # et affichant un doublon dans les checks de la PR.
+    # Sur une branche qui a déjà une PR ouverte VERS MAIN, GitHub déclenche
+    # deux runs pour un même commit : un `push` et un `pull_request`. Les deux
+    # exécutent exactement les mêmes vérifications, doublant la consommation de
+    # minutes et affichant un doublon dans les checks de la PR.
     #
     # On garde le run `pull_request` — c'est celui sur lequel la PR est
-    # validée — et on saute le run `push`. Une branche SANS PR continue d'être
-    # vérifiée à chaque push : c'était l'intention de `push: '**'`.
+    # validée — et on saute le run `push`.
+    #
+    # « vers main » est la condition essentielle : `pull_request` ne se
+    # déclenche que pour les PR ciblant `main`. Une PR empilée (base = une
+    # autre branche) n'en produit aucun, donc sauter son run `push` la
+    # laisserait SANS AUCUNE vérification. Une branche sans PR reste vérifiée
+    # à chaque push, comme le voulait `push: '**'`.
     name: Ce run est-il utile ?
     runs-on: ubuntu-latest
     outputs:
@@ -54,20 +59,21 @@ jobs:
             exit 0
           fi
 
-          open=$(gh pr list --repo "$REPO" --head "$BRANCH" --state open \
-                   --json number --jq 'length' 2>/dev/null || echo 0)
+          # `--base main` est indispensable : voir le commentaire ci-dessus.
+          covered=$(gh pr list --repo "$REPO" --head "$BRANCH" --base main \
+                      --state open --json number --jq 'length' 2>/dev/null || echo 0)
 
-          if [ "${open:-0}" -gt 0 ]; then
+          if [ "${covered:-0}" -gt 0 ]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             {
               echo "### Run ignoré"
               echo
-              echo "Une PR est ouverte pour \`$BRANCH\` : le run"
-              echo "\`pull_request\` couvre déjà ce commit."
+              echo "Une PR vers \`main\` est ouverte pour \`$BRANCH\` :"
+              echo "le run \`pull_request\` couvre déjà ce commit."
             } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "aucune PR ouverte pour $BRANCH — on exécute"
+            echo "aucune PR vers main pour $BRANCH — on exécute"
           fi
 
   frontend:
