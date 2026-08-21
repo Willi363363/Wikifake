@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Dernier rempart avant le distant : aucun push direct sur une branche protégée,
+# Dernier rempart avant le distant : aucun push direct sur main ni staging,
 # aucune réécriture d'historique partagé. Le vrai verrou est côté GitHub
 # (branch protection) — celui-ci évite juste l'accident, et le rappelle.
 set -uo pipefail

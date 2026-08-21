@@ -1,4 +1,4 @@
-"""ARCHITECTURE.md doit décrire le code réel.
+"""L'état des lieux doit décrire le code réel.
 
 La documentation avait dérivé sans que rien ne le signale : elle décrivait un
 générateur partagé supprimé depuis, un panneau de maquettage supprimé lui
@@ -14,7 +14,14 @@ from pathlib import Path
 
 BACKEND = Path(__file__).resolve().parent.parent
 ROOT = BACKEND.parent
-DOC = (ROOT / "ARCHITECTURE.md").read_text(encoding="utf-8")
+# La documentation vit dans plans/, découpée en fichiers de 200 lignes au plus
+# (voir plans/methode/02-regles-du-depot.md). Le verrou porte sur l'ensemble :
+# les routes sont dans 01-backend.md, les messages WebSocket dans
+# 03-protocole-websocket.md, les cibles make dans 00-vue-densemble.md.
+DOC = "\n".join(
+    path.read_text(encoding="utf-8")
+    for path in sorted((ROOT / "plans" / "etat-des-lieux").glob("*.md"))
+)
 
 
 def _section(start: str, end: str) -> str:
@@ -28,8 +35,8 @@ def test_documented_modules_exist():
 
 def test_documented_make_targets_exist():
     makefile = (ROOT / "Makefile").read_text(encoding="utf-8")
-    for target in set(re.findall(r"^make ([\w-]+)", DOC, re.M)):
-        assert re.search(rf"^{target}:", makefile, re.M), f"cible make {target!r} inexistante"
+    for target in set(re.findall(r"^make ([\w-]+)", DOC, re.MULTILINE)):
+        assert re.search(rf"^{target}:", makefile, re.MULTILINE), f"cible make {target!r} inexistante"
 
 
 def test_incoming_ws_messages_match_the_dispatch_table():

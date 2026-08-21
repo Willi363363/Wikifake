@@ -12,3 +12,4 @@ frontend/dist/
 # Runtime data (player-submitted flag reports)
 data/
 frontend/.smoke/
+.pytest_cache/

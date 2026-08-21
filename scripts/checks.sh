@@ -3,7 +3,8 @@
 #
 # Appelé par les hooks locaux (.githooks/) ET par la CI (.github/workflows/rules.yml).
 # Une seule implémentation : un contrôle qui passe en local passe en CI, et
-# inversement. Les règles qu'il applique sont documentées dans RULES.md.
+# inversement. Les règles appliquées sont documentées dans
+# plans/methode/02-regles-du-depot.md.
 #
 # Usage : scripts/checks.sh <commande> [arguments]
 #   staged                  contrôles sur les fichiers indexés (pre-commit)
@@ -14,13 +15,12 @@
 #   lint <fichiers...>      linters disponibles sur ces fichiers
 set -uo pipefail
 
-PROTECTED_BRANCHES='main master'
+PROTECTED_BRANCHES='main master staging'
 MAX_FILE_KB=1024
 MAX_SOURCE_LINES=500
 MAX_SUBJECT_LEN=72
-RULES_MAX_LINES=200
-DOC_MAX_LINES=500
-ALLOWED_ROOT_DOCS='README.md ARCHITECTURE.md REFONTE.md RULES.md HANDOVER.md CHANGELOG.md CONTRIBUTING.md SECURITY.md'
+DOC_MAX_LINES=200
+ALLOWED_ROOT_DOCS='README.md CLAUDE.md CHANGELOG.md CONTRIBUTING.md SECURITY.md HANDOVER.md'
 BRANCH_PATTERN='^([a-z0-9][a-z0-9._-]*/[a-z0-9][a-z0-9._-]*|dependabot/.+|renovate/.+)$'
 
 fail=0
@@ -84,7 +84,8 @@ check_hygiene() {
 }
 
 # --- journalisation --------------------------------------------------------
-# ARCHITECTURE.md l'exige depuis toujours : pas de print dans le code applicatif.
+# Exigé depuis toujours par l'état des lieux : pas de print dans le code
+# applicatif.
 check_logging() {
   for f in "$@"; do
     [ -f "$f" ] && ! is_test "$f" || continue
@@ -102,20 +103,25 @@ check_logging() {
 }
 
 # --- documentation ---------------------------------------------------------
+# Toute la documentation vit dans plans/, en fichiers de 200 lignes au plus.
+# Une doc plus longue n'est pas relue, donc elle devient fausse.
 check_docs() {
-  if [ -f RULES.md ]; then
-    n=$(wc -l <RULES.md)
-    [ "$n" -gt "$RULES_MAX_LINES" ] && err "RULES.md : $n lignes (> $RULES_MAX_LINES) — la règle s'applique à elle-même"
-  fi
-  for f in *.md; do
+  local f n
+  while IFS= read -r f; do
     [ -f "$f" ] || continue
-    case " $ALLOWED_ROOT_DOCS " in
-      *" $f "*) ;;
-      *) err "$f : document non prévu à la racine — discutez-en en PR avant d'ajouter un fichier de doc" ;;
-    esac
     n=$(wc -l <"$f")
-    [ "$f" != RULES.md ] && [ "$n" -gt "$DOC_MAX_LINES" ] && err "$f : $n lignes (> $DOC_MAX_LINES)"
-  done
+    [ "$n" -gt "$DOC_MAX_LINES" ] && err "$f : $n lignes (> $DOC_MAX_LINES) — découpez en plusieurs fichiers de plans/"
+    case "$f" in
+      */*) ;;
+      *)
+        case " $ALLOWED_ROOT_DOCS " in
+          *" $f "*) ;;
+          *) err "$f : la documentation vit dans plans/, pas à la racine" ;;
+        esac
+        ;;
+    esac
+  done < <(find . -name '*.md' -not -path './.git/*' -not -path '*/node_modules/*' \
+                  -not -path './venv/*' -not -path '*/.smoke/*' -printf '%P\n' 2>/dev/null | sort)
 }
 
 # --- linters disponibles ---------------------------------------------------

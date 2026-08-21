@@ -14,7 +14,7 @@ help:
 	@echo "  make front-dev   → serveur de dev Vite (HMR, proxy vers uvicorn)"
 	@echo "  make test        → lancer les tests"
 	@echo "  make hooks       → installer les hooks git (une fois par clone)"
-	@echo "  make check       → contrôles de conformité (voir RULES.md)"
+	@echo "  make check       → contrôles de conformité du dépôt"
 	@echo "  make clean       → nettoyer les artefacts Python"
 	@echo "  make clean-build → tout nettoyer (venv, node_modules, dist)"
 
@@ -70,7 +70,7 @@ test: $(VENV)/bin/activate check-env
 hooks:
 	@git config core.hooksPath .githooks
 	@echo "Hooks installés : $$(ls .githooks | tr '\n' ' ')"
-	@echo "Règles : RULES.md"
+	@echo "Règles : plans/methode/02-regles-du-depot.md"
 
 check:
 	@bash scripts/checks.sh staged

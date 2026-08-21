@@ -1,6 +1,6 @@
 name: rules
 
-# Application des règles de RULES.md côté serveur.
+# Application des règles de plans/methode/02-regles-du-depot.md côté serveur.
 #
 # Les hooks locaux (.githooks/) donnent le retour immédiat mais se contournent
 # avec --no-verify. Ce workflow est le contrôle qui compte : il rejoue les mêmes
@@ -11,7 +11,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    branches: [main]
+    branches: [main, staging]
 
 permissions:
   contents: read
@@ -60,16 +60,16 @@ jobs:
             echo '## Conformité'
             echo
             if [ '${{ job.status }}' = 'success' ]; then
-              echo 'Branche, contenu et messages de commit conformes à `RULES.md`.'
+              echo 'Branche, contenu et messages de commit conformes aux règles du dépôt.'
             else
-              echo 'Une règle de `RULES.md` n'"'"'est pas respectée — voir les étapes ci-dessus.'
+              echo 'Une règle du dépôt n'"'"'est pas respectée — voir les étapes ci-dessus.'
               echo
               echo 'Pour reproduire en local : `bash scripts/checks.sh diff origin/main`'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
   push-direct:
-    name: Aucun push direct sur main
+    name: Aucun push direct sur main ni staging
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
@@ -89,14 +89,14 @@ jobs:
             --jq 'length' 2>/dev/null || echo 0)
           if [ "$count" -eq 0 ]; then
             {
-              echo '## Push direct sur `main` détecté'
+              echo '## Push direct sur `${{ github.ref_name }}` détecté'
               echo
               echo "Le commit \`$SHA\` n'est associé à aucune pull request."
               echo
-              echo 'RULES.md §1 : aucun push direct sur `main`, humain ou agent.'
+              echo 'Aucun push direct sur une branche intégratrice, humain ou agent.'
               echo 'Activez la branch protection si ce n'"'"'est pas déjà fait.'
             } >> "$GITHUB_STEP_SUMMARY"
-            echo "::error::Push direct sur main — voir RULES.md §1"
+            echo "::error::Push direct sur ${{ github.ref_name }} — voir plans/methode/02-regles-du-depot.md"
             exit 1
           fi
           echo "Commit rattaché à $count pull request(s)."
