@@ -1,65 +1,103 @@
-.PHONY: clean clean-build build run check-env help test
+# WikiFake — commandes de developpement.
+# `make` seul affiche l'aide.
 
-VENV   = venv
-PYTHON = $(VENV)/bin/python
-PIP    = $(VENV)/bin/pip
+.DEFAULT_GOAL := help
+.PHONY: help install install-backend install-frontend build frontend-build \
+        run dev serve test test-backend test-frontend lint lint-backend \
+        lint-frontend check clean clean-all env
 
-help:
-	@echo "Commandes disponibles :"
-	@echo "  make build       → créer le venv, installer les dépendances et lancer"
-	@echo "  make run         → lancer le projet (venv existant)"
-	@echo "  make clean       → tout nettoyer"
-	@echo "  make clean-build → supprimer les artefacts de build"
-	@echo "  make test        → lancer les tests"
+VENV     := venv
+PYTHON   := $(VENV)/bin/python
+PIP      := $(VENV)/bin/pip
+NPM      := npm --prefix frontend
 
-check-env:
-	@if [ ! -f .env ]; then \
-		echo "⚠️  Fichier .env introuvable — création d'un .env minimal."; \
-		echo "OPENAI_API_KEY=" > .env; \
-	fi
-	@if ! grep -q "OPENAI_API_KEY=." .env; then \
-		echo "⚠️  OPENAI_API_KEY est vide dans le .env — certaines fonctionnalités IA peuvent ne pas marcher."; \
-	else \
-		echo "✅ Clé API détectée"; \
-	fi
+help: ## Affiche cette aide
+	@echo "WikiFake — commandes disponibles :"
+	@echo
+	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
+		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
+	@echo
+	@echo "Demarrage rapide :  make install && make dev"
 
-build: $(VENV)/bin/activate check-env
-	@echo "📦 Installation des dépendances..."
-	$(PIP) install --upgrade pip -q
-	$(PIP) install -r backend/requirements.txt -q
-	@echo "✅ Build terminé"
-	@$(MAKE) run
-
+# ----------------------------------------------------------------- install
 $(VENV)/bin/activate:
-	@echo "🐍 Création du virtual environment..."
-	python3 -m venv $(VENV)
+	@echo "🐍 Creation du virtualenv..."
+	@python3 -m venv $(VENV)
 
-run: check-env
-	@echo "🚀 Lancement de main.py..."
-	$(PYTHON) main.py
+install-backend: $(VENV)/bin/activate ## Installe les dependances Python
+	@echo "📦 Dependances Python..."
+	@$(PIP) install --upgrade pip -q
+	@$(PIP) install -r requirements-dev.txt -q
 
-test: $(VENV)/bin/activate check-env
-	@echo "📦 Installation des dépendances..."
-	$(PIP) install --upgrade pip -q
-	$(PIP) install -r backend/requirements.txt -q
-	@echo "🧪 Lancement des tests..."
-	$(PYTHON) -m pytest backend/tests/ -v
-clean:
-	@echo "🧹 Suppression des fichiers Python compilés..."
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -name "*.pyc" -delete
-	find . -name "*.pyo" -delete
-	find . -name "*.pyd" -delete
-	find . -name ".pytest_cache" -exec rm -rf {} +
-	find . -name "*.egg-info" -exec rm -rf {} +
+install-frontend: ## Installe les dependances Node
+	@echo "📦 Dependances Node..."
+	@$(NPM) install --silent
 
-clean-build: clean
-	@echo "🧹 Suppression des artefacts de build..."
-	find . -type d -name dist -not -path "./venv/*" -exec rm -rf {} +
-	find . -type d -name build -not -path "./venv/*" -exec rm -rf {} +
-	find . -name ".DS_Store" -delete
-	find . -name "Thumbs.db" -delete
-	find . -name "*.log" -delete
-	find . -name "*.tmp" -delete
-	find . -name "*.bak" -delete
-	$(RM) -r venv
+install: install-backend install-frontend env ## Installe tout (backend + frontend + .env)
+	@echo "✅ Installation terminee — lancez 'make dev'"
+
+env: ## Cree un .env a partir de .env.example s'il manque
+	@if [ ! -f .env ]; then \
+		cp .env.example .env; \
+		echo "📝 .env cree depuis .env.example — renseignez OPENAI_API_KEY"; \
+	fi
+	@if ! grep -qE '^OPENAI_API_KEY=.+' .env; then \
+		echo "⚠️  OPENAI_API_KEY vide : la generation d'articles echouera."; \
+	else \
+		echo "✅ Cle API detectee"; \
+	fi
+
+# ------------------------------------------------------------------- build
+frontend-build: ## Construit le frontend dans frontend/dist
+	@echo "🏗  Build du frontend..."
+	@$(NPM) run build
+
+build: install frontend-build ## Installe tout et construit le frontend
+	@echo "✅ Build termine — 'make serve' pour lancer en un seul port"
+
+# --------------------------------------------------------------------- run
+dev: env ## Developpement : backend (8000) + Vite avec rechargement a chaud (5173)
+	@echo "🚀 Backend sur :8000, interface sur http://localhost:5173"
+	@$(PYTHON) main.py & \
+	 BACK=$$!; \
+	 trap "kill $$BACK 2>/dev/null" EXIT INT TERM; \
+	 $(NPM) run dev
+
+serve: env ## Production locale : sert le bundle construit sur :8000
+	@if [ ! -f frontend/dist/index.html ]; then $(MAKE) frontend-build; fi
+	@echo "🚀 http://localhost:8000"
+	@WIKIFAKE_RELOAD=0 $(PYTHON) main.py
+
+run: serve ## Alias de `serve`
+
+# ------------------------------------------------------------------- tests
+test-backend: ## Tests Python
+	@$(PYTHON) -m pytest
+
+test-frontend: ## Tests JavaScript
+	@$(NPM) test
+
+test: test-backend test-frontend ## Toute la suite de tests
+
+lint-backend: ## Analyse statique Python
+	@$(PYTHON) -m ruff check backend
+	@$(PYTHON) -m ruff format --check backend
+
+lint-frontend: ## Analyse statique JavaScript
+	@$(NPM) run lint
+
+lint: lint-backend lint-frontend ## Analyse statique complete
+
+check: lint test ## Ce que la CI verifie
+
+# ------------------------------------------------------------------ nettoyage
+clean: ## Supprime les caches et fichiers compiles
+	@find . -type d -name __pycache__ -not -path "./venv/*" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name .pytest_cache -not -path "./venv/*" -exec rm -rf {} + 2>/dev/null || true
+	@find . -type d -name .ruff_cache -not -path "./venv/*" -exec rm -rf {} + 2>/dev/null || true
+	@rm -rf frontend/dist
+	@echo "🧹 Caches supprimes"
+
+clean-all: clean ## Supprime aussi venv/ et node_modules/
+	@rm -rf $(VENV) frontend/node_modules
+	@echo "🧹 Environnements supprimes"

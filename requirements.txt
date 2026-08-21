@@ -1,12 +1,17 @@
-langchain
-langchain-openai
-python-dotenv
-rich
-wikipedia
-requests
-beautifulsoup4
-uvicorn
-fastapi
-websockets
-pytest
-httpx
+# Dependances d'execution du backend.
+# Versions epinglees en minimum compatible : `pip install -r requirements.txt`.
+# Pour le developpement et les tests : requirements-dev.txt
+
+fastapi>=0.115,<1.0
+uvicorn[standard]>=0.32,<1.0
+pydantic>=2.9,<3.0
+python-dotenv>=1.0,<2.0
+
+# Generation de contenu
+langchain-core>=0.3,<0.4
+langchain-openai>=0.2,<1.0
+
+# Source des articles
+wikipedia>=1.4,<2.0
+requests>=2.32,<3.0
+beautifulsoup4>=4.12,<5.0

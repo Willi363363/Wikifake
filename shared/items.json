@@ -1,0 +1,122 @@
+{
+  "$comment": "SOURCE UNIQUE du catalogue d'items. Lu par le backend (app/rooms/items.py) et par le frontend (src/config/items.js). Ajouter un item = ajouter une entree ici + un effet dans frontend/src/features/effects/registry.js.",
+  "items": [
+    {
+      "id": "HINT_LOCK",
+      "name": "Brouilleur",
+      "icon": "🔒",
+      "description": "Bloque les indices d'un joueur pendant 20s",
+      "targetCount": 1,
+      "durationMs": 20000,
+      "color": "#27272a"
+    },
+    {
+      "id": "FREEZE_TIME",
+      "name": "Gel du temps",
+      "icon": "⏸",
+      "description": "Retire 10s au chrono d'un joueur",
+      "targetCount": 1,
+      "durationMs": 3000,
+      "color": "#1f3a5f"
+    },
+    {
+      "id": "SCORE_STEAL",
+      "name": "Pillage",
+      "icon": "⚡",
+      "description": "Vole 50 pts a un joueur",
+      "targetCount": 1,
+      "durationMs": 3000,
+      "color": "#8c6d36"
+    },
+    {
+      "id": "EARTHQUAKE",
+      "name": "Séisme",
+      "icon": "🌋",
+      "description": "Fait trembler l'ecran d'un joueur (5s)",
+      "targetCount": 1,
+      "durationMs": 5000,
+      "color": "#a64b48"
+    },
+    {
+      "id": "BLACKOUT",
+      "name": "Censure",
+      "icon": "⬛",
+      "description": "Censure le texte d'un joueur (5s)",
+      "targetCount": 1,
+      "durationMs": 5000,
+      "color": "#18181b"
+    },
+    {
+      "id": "BLUR",
+      "name": "Brouillard",
+      "icon": "👁",
+      "description": "Floute l'ecran d'un joueur pendant 5s",
+      "targetCount": 1,
+      "durationMs": 5000,
+      "color": "#6b4e6f"
+    },
+    {
+      "id": "RICKROLL",
+      "name": "Pop-up Spam",
+      "icon": "🤡",
+      "description": "Affiche un pop-up genant a un joueur",
+      "targetCount": 1,
+      "durationMs": 0,
+      "color": "#b58f3a"
+    },
+    {
+      "id": "SCANNER",
+      "name": "Détecteur",
+      "icon": "🔎",
+      "description": "Surligne un paragraphe contenant une erreur",
+      "targetCount": 0,
+      "durationMs": 0,
+      "color": "#4a7a52"
+    },
+    {
+      "id": "MIRROR",
+      "name": "Miroir",
+      "icon": "🪞",
+      "description": "Inverse le texte de l'article (6s)",
+      "targetCount": 1,
+      "durationMs": 6000,
+      "color": "#4a6b8c"
+    },
+    {
+      "id": "TINY",
+      "name": "Loupe cassée",
+      "icon": "🔬",
+      "description": "Rend le texte minuscule (8s)",
+      "targetCount": 1,
+      "durationMs": 8000,
+      "color": "#7a5248"
+    },
+    {
+      "id": "SPIN",
+      "name": "Tournis",
+      "icon": "🌀",
+      "description": "Fait tourner l'article (4s)",
+      "targetCount": 1,
+      "durationMs": 4000,
+      "color": "#4a6b8c"
+    },
+    {
+      "id": "CONFETTI",
+      "name": "Fête surprise",
+      "icon": "🎊",
+      "description": "Explosion de confettis sur l'ecran (6s)",
+      "targetCount": 1,
+      "durationMs": 6000,
+      "color": "#8c6d36"
+    },
+    {
+      "id": "INVERT",
+      "name": "Négatif",
+      "icon": "🌑",
+      "description": "Inverse les couleurs de l'ecran (5s)",
+      "targetCount": 1,
+      "durationMs": 5000,
+      "color": "#27272a"
+    }
+  ]
+}

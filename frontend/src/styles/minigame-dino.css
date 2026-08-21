@@ -1,0 +1,38 @@
+/* Course d'obstacles. */
+/* ============ DINO ============ */
+.dino-board {
+  position: relative;
+  width: 320px;
+  height: 120px;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  margin: 0 auto;
+  overflow: hidden;
+  cursor: pointer;
+}
+.dino-ground {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--line-strong);
+}
+.dino-player {
+  position: absolute;
+  bottom: 22px;
+  left: 30px;
+  width: 20px;
+  height: 20px;
+  background: var(--accent);
+  border-radius: 4px;
+}
+.dino-obstacle {
+  position: absolute;
+  bottom: 22px;
+  width: 12px;
+  height: 24px;
+  background: var(--danger);
+  border-radius: 2px;
+}

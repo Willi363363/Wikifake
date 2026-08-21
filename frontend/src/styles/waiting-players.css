@@ -1,0 +1,33 @@
+/* Liste des joueurs sur l'ecran d'attente. */
+/* ============ MULTIPLAYER WAITING ============ */
+.waiting-players {
+  padding: 16px 32px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.waiting-player-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid var(--line);
+  font-family: 'Geist', sans-serif;
+  font-size: 12px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.waiting-player-avatar {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Geist Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+}

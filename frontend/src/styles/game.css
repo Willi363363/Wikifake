@@ -1,0 +1,50 @@
+/* Article de jeu : source et correction. */
+
+.article-source {
+  font-size: 12.5px;
+  margin: 0 0 18px;
+}
+
+.article-source a {
+  color: #0645ad;
+}
+
+.solution-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.solution-item {
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--line);
+  font-family: 'Geist', sans-serif;
+  font-size: 13.5px;
+}
+
+.solution-item:last-child {
+  border-bottom: none;
+}
+
+.solution-rank {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.solution-quote {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink);
+  margin: 4px 0;
+}
+
+.solution-truth {
+  color: var(--ink-2);
+  line-height: 1.55;
+  font-size: 13px;
+  margin: 0;
+}
+

@@ -1,0 +1,51 @@
+/* Variables de theme, police, reset de base. */
+
+* { box-sizing: border-box; }
+
+:root {
+  --bg:           #f6f4ef;     /* warm paper */
+  --bg-grain:     #f1ede5;     /* deeper warm */
+  --surface:      #ffffff;
+  --glass:        rgba(255, 255, 255, 0.74);
+  --glass-strong: rgba(255, 255, 255, 0.86);
+  --line:         rgba(24, 24, 27, 0.07);
+  --line-strong:  rgba(24, 24, 27, 0.14);
+
+  --ink:          #18181b;
+  --ink-2:        #3f3f46;
+  --muted:        #71717a;
+  --muted-2:      #a1a1aa;
+
+  --accent:       #1f574d;     /* refined teal — verification */
+  --accent-soft:  #e8f0ed;
+  --accent-line:  rgba(31, 87, 77, 0.18);
+  --bronze:       #8c6d36;     /* premium hint */
+  --bronze-soft:  #f3ecdc;
+  --green:        #4a7a52;
+  --green-soft:   #e7efe6;
+  --warn:         #b58f3a;
+  --warn-soft:    #f6ecd1;
+  --danger:       #a64b48;
+  --danger-soft:  #f5e2dd;
+
+  --shadow-sm:    0 1px 2px rgba(24, 24, 27, 0.04), 0 1px 1px rgba(24, 24, 27, 0.03);
+  --shadow-md:    0 6px 20px -8px rgba(24, 24, 27, 0.10), 0 2px 4px rgba(24, 24, 27, 0.04);
+  --shadow-lg:    0 24px 60px -20px rgba(24, 24, 27, 0.18), 0 6px 16px rgba(24, 24, 27, 0.06);
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+}
+
+html, body {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Geist', 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root { min-height: 100vh; position: relative; }

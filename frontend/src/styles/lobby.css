@@ -1,0 +1,297 @@
+/* Salon, formulaires et vote de theme.
+   Remplace les centaines de styles inline de l'ancien lobby.jsx ainsi que
+   le bloc <style> injecte a l'execution pour les curseurs de type range. */
+
+.lobby-card {
+  background: #fff;
+  padding: 36px;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--line);
+  max-width: 520px;
+  width: 100%;
+  position: relative;
+}
+
+.lobby-title {
+  text-align: center;
+  font-family: 'Instrument Serif', serif;
+  font-size: 34px;
+  margin: 0 0 6px;
+}
+
+.lobby-subtitle {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 22px;
+}
+
+.lobby-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.lobby-tab {
+  flex: 1;
+  padding: 9px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f4f4f5;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms, color 150ms;
+}
+
+.lobby-tab[aria-selected='true'] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+
+.lobby-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.text-input {
+  width: 100%;
+  padding: 11px 12px;
+  font: inherit;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: #fff;
+  color: var(--ink);
+}
+
+.text-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.range-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--accent-line);
+  outline: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(31, 87, 77, 0.25);
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+
+input[type='range']::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+}
+
+input[type='range']:disabled {
+  opacity: 0.5;
+}
+
+.player-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 4px;
+}
+
+.player-row {
+  padding: 9px 4px;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-identity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.player-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.player-name {
+  font-weight: 500;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f3f3f3;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.player-badge.ready {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.player-badge.offline {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.option-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #f5f5f5;
+  cursor: pointer;
+  user-select: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink);
+  width: 100%;
+  text-align: left;
+  transition: background 150ms;
+}
+
+.option-toggle[aria-pressed='true'] {
+  background: var(--accent-soft);
+}
+
+.switch {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: #ccc;
+  position: relative;
+  transition: background 150ms;
+  flex-shrink: 0;
+}
+
+.option-toggle[aria-pressed='true'] .switch {
+  background: var(--accent);
+}
+
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 150ms;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.option-toggle[aria-pressed='true'] .switch::after {
+  left: 19px;
+}
+
+.lobby-error {
+  margin-top: 14px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 12.5px;
+  text-align: center;
+}
+
+.leave-button {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  color: var(--danger, #b91c1c);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.room-code {
+  font-family: 'Geist Mono', monospace;
+  letter-spacing: 0.16em;
+}
+
+.vote-status {
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.vote-submitted {
+  padding: 11px;
+  background: var(--green-soft);
+  border-radius: 8px;
+  color: var(--green);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+@media (max-width: 560px) {
+  .lobby-card {
+    padding: 22px 18px;
+  }
+  .lobby-title {
+    font-size: 26px;
+  }
+}

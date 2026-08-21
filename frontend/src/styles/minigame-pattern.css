@@ -1,0 +1,56 @@
+/* Reproduction de motif. */
+/* ============ PATTERN MATCH ============ */
+.pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  width: 220px;
+  margin: 0 auto;
+}
+.pattern-cell {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: rgba(255,255,255,0.6);
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+.pattern-cell:hover:not(.locked) {
+  border-color: var(--accent-line);
+  background: rgba(31, 87, 77, 0.04);
+}
+.pattern-cell.highlighted {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(31, 87, 77, 0.25);
+}
+.pattern-cell.selected {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.pattern-cell.correct {
+  background: var(--green-soft);
+  border-color: rgba(74, 122, 82, 0.3);
+}
+.pattern-cell.wrong {
+  background: var(--danger-soft);
+  border-color: rgba(166, 75, 72, 0.3);
+}
+.pattern-cell.locked {
+  cursor: default;
+}
+.pattern-info {
+  text-align: center;
+  margin-top: 14px;
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  color: var(--ink-2);
+  min-height: 22px;
+}
+.pattern-score {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  text-align: center;
+}

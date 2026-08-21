@@ -1,0 +1,28 @@
+/**
+ * Feuille de style racine.
+ *
+ * Chaque module couvre un domaine : editer un ecran ne demande plus
+ * de naviguer dans un fichier de 1100 lignes.
+ */
+
+@import './tokens.css';
+@import './base.css';
+@import './keyframes.css';
+@import './article.css';
+@import './panels.css';
+@import './waiting.css';
+@import './launcher.css';
+@import './minigame-tictactoe.css';
+@import './minigame-reaction.css';
+@import './minigame-memory.css';
+@import './minigame-pattern.css';
+@import './waiting-players.css';
+@import './minigame-snake.css';
+@import './minigame-dino.css';
+@import './layout.css';
+@import './lobby.css';
+@import './chat.css';
+@import './game.css';
+@import './settings.css';
+@import './rickroll.css';
+@import './verdict.css';

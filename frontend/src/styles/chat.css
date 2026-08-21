@@ -1,0 +1,176 @@
+/* Panneau de chat lateral. */
+
+.chat-panel {
+  position: fixed;
+  top: 20%;
+  bottom: 20%;
+  right: -300px;
+  width: 340px;
+  z-index: 120;
+  display: flex;
+  align-items: stretch;
+  transition: right 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-panel.open {
+  right: 24px;
+}
+
+.chat-handle {
+  width: 34px;
+  border: 1px solid var(--line);
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: inherit;
+  color: var(--ink-2);
+}
+
+.chat-handle-label {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.chat-unread {
+  min-width: 18px;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: var(--danger, #b91c1c);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.chat-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--line);
+  border-radius: 14px 0 0 14px;
+  box-shadow: 0 18px 50px -18px rgba(24, 24, 27, 0.28);
+  overflow: hidden;
+}
+
+.chat-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-empty {
+  margin: 0;
+  color: var(--muted-2);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.chat-message {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.chat-message.mine .chat-author {
+  color: var(--accent);
+}
+
+.chat-author {
+  display: block;
+  font-family: 'Geist Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 1px;
+}
+
+.chat-form {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--line);
+}
+
+.chat-input {
+  flex: 1;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  min-width: 0;
+}
+
+.chat-send {
+  width: 34px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.chat-send:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+@media (max-width: 760px) {
+  .chat-panel {
+    top: auto;
+    bottom: 0;
+    height: 46vh;
+    width: 100%;
+    right: 0;
+    transform: translateY(calc(100% - 38px));
+    transition: transform 300ms ease;
+  }
+  .chat-panel.open {
+    right: 0;
+    transform: translateY(0);
+  }
+  .chat-panel {
+    flex-direction: column-reverse;
+  }
+  .chat-handle {
+    width: 100%;
+    height: 38px;
+    flex-direction: row;
+    border: 1px solid var(--line);
+    border-radius: 12px 12px 0 0;
+  }
+  .chat-handle-label {
+    writing-mode: horizontal-tb;
+  }
+  .chat-body {
+    border-radius: 0;
+  }
+}

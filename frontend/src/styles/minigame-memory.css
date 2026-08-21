@@ -1,0 +1,77 @@
+/* Jeu de memoire. */
+/* ============ MEMORY FLIP CARDS ============ */
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  width: 260px;
+  margin: 0 auto;
+}
+.memory-card {
+  aspect-ratio: 1;
+  perspective: 600px;
+  cursor: pointer;
+}
+.memory-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 400ms cubic-bezier(.4,.0,.2,1);
+  transform-style: preserve-3d;
+}
+.memory-card.flipped .memory-card-inner,
+.memory-card.matched .memory-card-inner {
+  transform: rotateY(180deg);
+}
+.memory-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+}
+.memory-card-front {
+  background: linear-gradient(135deg, rgba(31, 87, 77, 0.08), rgba(31, 87, 77, 0.03));
+  color: var(--accent);
+  font-size: 16px;
+}
+.memory-card-front::after {
+  content: '?';
+  font-family: 'Instrument Serif', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: var(--accent);
+  opacity: 0.5;
+}
+.memory-card-back {
+  background: white;
+  transform: rotateY(180deg);
+  font-size: 26px;
+  user-select: none;
+}
+.memory-card.matched .memory-card-face {
+  border-color: rgba(74, 122, 82, 0.3);
+}
+.memory-card.matched .memory-card-back {
+  background: var(--green-soft);
+}
+.memory-card:hover:not(.matched):not(.flipped) .memory-card-inner {
+  transform: rotateY(8deg);
+}
+.memory-status {
+  text-align: center;
+  margin-top: 14px;
+  font-family: 'Geist', sans-serif;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.memory-moves {
+  font-family: 'Geist Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 4px;
+  text-align: center;
+}

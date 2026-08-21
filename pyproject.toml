@@ -1,0 +1,44 @@
+# Configuration des outils Python. Les dependances restent dans
+# requirements.txt / requirements-dev.txt (installation par pip).
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["backend"]
+exclude = ["venv", ".venv", "frontend"]
+
+[tool.ruff.lint]
+select = [
+  "E",    # pycodestyle
+  "F",    # pyflakes
+  "I",    # isort — ordre des imports
+  "UP",   # pyupgrade
+  "B",    # bugbear — pieges courants
+  "C4",   # comprehensions
+  "SIM",  # simplifications
+  "RET",  # returns
+  "PTH",  # pathlib plutot que os.path
+]
+ignore = [
+  "E501",  # longueur geree par le formateur
+  "B008",  # Depends() en valeur par defaut : idiome FastAPI
+  "UP042", # StrEnum requiert Python 3.11+ strict ; str+Enum reste portable
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Les tests accedent volontairement a des internes et importent apres des
+# reglages d'environnement.
+"backend/tests/**" = ["E402", "SLF001", "B011"]
+# Les handlers WebSocket sont enregistres par import (effet de bord voulu).
+"backend/app/ws/handlers/__init__.py" = ["F401"]
+"backend/app/api/routes_ws.py" = ["F401"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.pytest.ini_options]
+pythonpath = ["backend"]
+testpaths = ["backend/tests"]
+python_files = ["test_*.py"]
+addopts = "-q --strict-markers"

@@ -1,0 +1,84 @@
+/* Pop-up publicitaire (item RICKROLL). */
+/* ---- Pop-up publicitaire (item RICKROLL) ------------------------------ */
+.rickroll-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.88);
+  animation: screen-flash 1.2s ease-in-out infinite;
+  padding: 20px;
+}
+
+.rickroll-decoy {
+  position: absolute;
+  background: #fffbe6;
+  border-radius: 12px;
+  padding: 16px 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  width: 220px;
+  border: 2px solid rgba(255, 180, 0, 0.5);
+  opacity: 0.7;
+}
+
+.rickroll-decoy-icon {
+  font-size: 28px;
+  margin-bottom: 6px;
+}
+
+.rickroll-decoy-title {
+  font-family: 'Geist', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #b58f3a;
+}
+
+.rickroll-decoy-sub {
+  font-size: 9px;
+  color: #aaa;
+  margin-top: 4px;
+}
+
+.rickroll-main {
+  position: relative;
+  z-index: 10;
+  background: linear-gradient(135deg, #fff 60%, #fff8e1);
+  padding: 36px 40px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  max-width: 420px;
+  border: 3px solid rgba(255, 160, 0, 0.6);
+  animation: shake 0.18s infinite;
+}
+
+.rickroll-icon {
+  font-size: 68px;
+  margin-bottom: 12px;
+  display: inline-block;
+  animation: shake 0.12s infinite;
+}
+
+.rickroll-title {
+  font-family: 'Geist', sans-serif;
+  margin: 0 0 8px;
+  color: #c0392b;
+  font-size: 22px;
+}
+
+.rickroll-text {
+  color: #555;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.rickroll-warning {
+  color: #b58f3a;
+  font-size: 11px;
+  margin-bottom: 22px;
+  font-family: 'Geist Mono', monospace;
+}
+
