@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Une seule URL : le jeu est une application monopage et le contenu des
+  parties ne doit pas être indexé (voir robots.txt).
+
+  C'est aussi la limite actuelle de l'acquisition organique. Créer des pages
+  indexables — classements, contenu pédagogique — demande d'abord de décider
+  quoi publier ; elles s'ajouteront ici.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://wikifake.onrender.com/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>

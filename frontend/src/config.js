@@ -8,6 +8,16 @@
 /** Fallback round length, in seconds, when the room does not specify one. */
 export const GAME_DURATION = 300;
 
+/**
+ * Licence de la source. Wikipédia est en CC BY-SA : la réutilisation, même
+ * commerciale, impose attribution, mention des modifications et partage à
+ * l'identique. Voir `features/game/ArticleAttribution.jsx`.
+ */
+export const LICENSE = {
+  name: 'CC BY-SA 4.0',
+  url: 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr',
+};
+
 /** Path to the logo. Served from `frontend/public/` at the site root. */
 export const LOGO_SRC = '/image.png';
 
