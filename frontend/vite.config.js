@@ -11,6 +11,15 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
   },
+  // Tests unitaires : `npm test`. Le smoke test (rendu serveur) reste séparé,
+  // il vérifie que l'arbre complet se monte ; ceux-ci vérifient les unités.
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.js',
+    css: false,
+    include: ['src/**/*.test.{js,jsx}'],
+  },
   server: {
     port: 5173,
     proxy: {
