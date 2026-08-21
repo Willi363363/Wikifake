@@ -25,25 +25,25 @@ check-env:
 		echo "MODEL_NAME=gemini-3.1-flash-lite" >> .env; \
 	fi
 	@if ! grep -qE "(GOOGLE_API_KEY|GEMINI_API_KEY|OPENAI_API_KEY)=." .env backend/.env 2>/dev/null; then \
-		echo "⚠️  Aucune clé API (GOOGLE_API_KEY, GEMINI_API_KEY ou OPENAI_API_KEY) détectée dans le .env — les fonctionnalités IA peuvent ne pas marcher."; \
+		echo "⚠️  No API key (GOOGLE_API_KEY, GEMINI_API_KEY or OPENAI_API_KEY) found in .env — the model features will not work."; \
 	else \
 		echo "✅ Clé API détectée"; \
 	fi
 
 
 $(VENV)/bin/activate:
-	@echo "🐍 Création du virtual environment..."
+	@echo "🐍 Creating the virtual environment..."
 	python3 -m venv $(VENV)
 
 $(FRONT)/node_modules:
-	@echo "📦 Installation des dépendances frontend..."
+	@echo "📦 Installing frontend dependencies..."
 	cd $(FRONT) && npm install
 
 build: $(VENV)/bin/activate check-env
-	@echo "📦 Installation des dépendances backend..."
+	@echo "📦 Installing backend dependencies..."
 	$(PIP) install --upgrade pip -q
 	$(PIP) install -r backend/requirements.txt -q
-	@echo "✅ Build backend terminé"
+	@echo "✅ Backend build complete"
 	@$(MAKE) run
 
 front: $(FRONT)/node_modules
@@ -51,7 +51,7 @@ front: $(FRONT)/node_modules
 	cd $(FRONT) && npm run build
 
 front-dev: $(FRONT)/node_modules
-	@echo "⚡ Vite dev server (lancez 'make back' à côté)"
+	@echo "⚡ Vite dev server (run 'make back' alongside)"
 	cd $(FRONT) && npm run dev
 
 back: check-env
@@ -61,10 +61,10 @@ back: check-env
 run: front back
 
 test: $(VENV)/bin/activate check-env
-	@echo "📦 Installation des dépendances backend..."
+	@echo "📦 Installing backend dependencies..."
 	$(PIP) install --upgrade pip -q
 	$(PIP) install -r backend/requirements.txt -q
-	@echo "🧪 Lancement des tests..."
+	@echo "🧪 Running the tests..."
 	$(PYTHON) -m pytest backend/tests/ -v
 
 hooks:
@@ -76,7 +76,7 @@ check:
 	@bash scripts/checks.sh staged
 
 clean:
-	@echo "🧹 Suppression des fichiers Python compilés..."
+	@echo "🧹 Removing compiled Python files..."
 	find . -type d -name __pycache__ -not -path "./$(FRONT)/node_modules/*" -exec rm -rf {} +
 	find . -name "*.pyc" -delete
 	find . -name "*.pyo" -delete
@@ -85,7 +85,7 @@ clean:
 	find . -name "*.egg-info" -exec rm -rf {} +
 
 clean-build: clean
-	@echo "🧹 Suppression des artefacts de build..."
+	@echo "🧹 Removing build artefacts..."
 	$(RM) -r $(FRONT)/dist $(FRONT)/node_modules
 	find . -name ".DS_Store" -delete
 	find . -name "Thumbs.db" -delete
