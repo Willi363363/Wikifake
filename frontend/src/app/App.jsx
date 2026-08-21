@@ -11,8 +11,9 @@ import { playSound } from '../lib/sound.js';
 import { GAME_DURATION } from '../config.js';
 import { Lobby } from '../features/lobby/index.js';
 import { GameSession } from '../features/game/GameSession.jsx';
+import { SettingsProvider } from './SettingsContext.jsx';
 
-export function App() {
+function AppRoutes() {
   const [session, setSession] = useState(null);
 
   /** Build a session from a backend `game_start` payload. */
@@ -60,4 +61,12 @@ export function App() {
   }
 
   return <GameSession session={session} onEndRound={endRound} onLeave={leaveRoom} />;
+}
+
+export function App() {
+  return (
+    <SettingsProvider>
+      <AppRoutes />
+    </SettingsProvider>
+  );
 }

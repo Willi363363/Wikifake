@@ -34,13 +34,3 @@ export const DEFAULT_ACCENT = 'teal';
 /** Colour used for other players when the server did not assign one. */
 export const NEUTRAL_PLAYER_COLOR = '#7a9460';
 
-/** Initial values for the design-host tweak panel. */
-export const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
-  "mode": "normal",
-  "difficulty": "medium",
-  "multiplayer": true,
-  "gameState": "playing",
-  "showCursors": true,
-  "accent": "teal",
-  "sessionId": "A2-F1K9"
-}/*EDITMODE-END*/;

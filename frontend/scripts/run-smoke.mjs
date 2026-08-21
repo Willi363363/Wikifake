@@ -34,6 +34,12 @@ const SUITES = [
     ['classement flottant', /Ranking/],
     ['pied de page', /Intelligence System/],
     ['signalement', /Signaler une erreur factuelle/],
+    ['réglages joueur', /aria-label="Réglages"/],
+    // L'état de jeu ne doit plus être pilotable depuis un panneau de réglages.
+    ['aucun sélecteur d’écran', />Debrief</, false],
+    ['aucun panneau de maquettage', /twk-panel/, false],
+    ['étiquette de manche réelle', /A2-F1K9/, false],
+    ['étiquette SOLO', /SOLO/],
   ]],
   ['Partie révélée', renderRevealed, [
     ['tokens sabotés identifiés', /data-fake-id="F1"/],

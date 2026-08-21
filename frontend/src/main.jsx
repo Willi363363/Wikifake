@@ -15,6 +15,7 @@ import './styles/effects.css';
 import './styles/waiting.css';
 import './styles/minigames.css';
 import './styles/lobby.css';
+import './styles/settings.css';
 
 import { App } from './app/App.jsx';
 
