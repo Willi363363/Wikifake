@@ -8,15 +8,71 @@ on:
     branches:
       - main
 
-# Un push sur une branche qui a une PR ouverte déclenche deux runs (push +
-# pull_request) : on n'en garde qu'un, et un nouveau push annule le run
-# précédent sur le même ref.
+permissions:
+  contents: read
+  pull-requests: read
+
+# Un nouveau push sur la même référence annule le run précédent.
+#
+# Le groupe reste basé sur `github.ref`, qui diffère entre les deux
+# déclencheurs (`refs/heads/<branche>` contre `refs/pull/N/merge`) : il ne
+# faut PAS les fusionner ici, sinon le run `push` annulerait le run
+# `pull_request` sur lequel la PR est validée. La déduplication est faite par
+# le job `guard` ci-dessous.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  guard:
+    # Sur une branche qui a déjà une PR ouverte, GitHub déclenche deux runs
+    # pour un même commit : un `push` et un `pull_request`. Les deux exécutent
+    # exactement les mêmes vérifications, doublant la consommation de minutes
+    # et affichant un doublon dans les checks de la PR.
+    #
+    # On garde le run `pull_request` — c'est celui sur lequel la PR est
+    # validée — et on saute le run `push`. Une branche SANS PR continue d'être
+    # vérifiée à chaque push : c'était l'intention de `push: '**'`.
+    name: Ce run est-il utile ?
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          BRANCH: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -u
+
+          # Tout sauf un push de branche : on exécute.
+          if [ "$EVENT" != "push" ] || [ "$BRANCH" = "main" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "événement $EVENT sur $BRANCH — on exécute"
+            exit 0
+          fi
+
+          open=$(gh pr list --repo "$REPO" --head "$BRANCH" --state open \
+                   --json number --jq 'length' 2>/dev/null || echo 0)
+
+          if [ "${open:-0}" -gt 0 ]; then
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### Run ignoré"
+              echo
+              echo "Une PR est ouverte pour \`$BRANCH\` : le run"
+              echo "\`pull_request\` couvre déjà ce commit."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "aucune PR ouverte pour $BRANCH — on exécute"
+          fi
+
   frontend:
+    needs: guard
+    if: needs.guard.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -44,6 +100,8 @@ jobs:
         run: npm run smoke
 
   backend:
+    needs: guard
+    if: needs.guard.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
