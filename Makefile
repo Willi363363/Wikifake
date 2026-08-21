@@ -6,17 +6,17 @@ PIP    = $(VENV)/bin/pip
 FRONT  = frontend
 
 help:
-	@echo "Commandes disponibles :"
-	@echo "  make build       → installer backend + frontend, builder le front et lancer"
-	@echo "  make run         → builder le front et lancer le serveur"
-	@echo "  make back        → lancer le serveur seul (front déjà buildé)"
-	@echo "  make front       → builder le frontend"
-	@echo "  make front-dev   → serveur de dev Vite (HMR, proxy vers uvicorn)"
-	@echo "  make test        → lancer les tests"
-	@echo "  make hooks       → installer les hooks git (une fois par clone)"
-	@echo "  make check       → contrôles de conformité du dépôt"
-	@echo "  make clean       → nettoyer les artefacts Python"
-	@echo "  make clean-build → tout nettoyer (venv, node_modules, dist)"
+	@echo "Available commands:"
+	@echo "  make build       -> install backend + frontend, build the frontend and run"
+	@echo "  make run         -> build the frontend and run the server"
+	@echo "  make back        -> run the server only (frontend already built)"
+	@echo "  make front       -> build the frontend"
+	@echo "  make front-dev   -> Vite dev server (HMR, proxy to uvicorn)"
+	@echo "  make test        -> run the tests"
+	@echo "  make hooks       -> install the git hooks (once per clone)"
+	@echo "  make check       -> repository conformance checks"
+	@echo "  make clean       -> clean Python artefacts"
+	@echo "  make clean-build -> clean everything (venv, node_modules, dist)"
 
 check-env:
 	@if [ ! -f .env ]; then \
@@ -69,8 +69,8 @@ test: $(VENV)/bin/activate check-env
 
 hooks:
 	@git config core.hooksPath .githooks
-	@echo "Hooks installés : $$(ls .githooks | tr '\n' ' ')"
-	@echo "Règles : plans/methode/02-regles-du-depot.md"
+	@echo "Hooks installed: $$(ls .githooks | tr '\n' ' ')"
+	@echo "Rules: plans/method/02-repository-rules.md"
 
 check:
 	@bash scripts/checks.sh staged

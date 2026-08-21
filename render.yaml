@@ -1,18 +1,18 @@
-# Configuration du service Render, versionnée.
+# Render service configuration, versioned.
 #
-# ⚠️  Ce fichier ne prend effet que si le service est rattaché à un Blueprint
-#     (Render → New → Blueprint, ou « Sync Blueprint » sur un service
-#     existant). Tant que le service est configuré à la main dans le tableau
-#     de bord, ce fichier ne fait que documenter la configuration attendue —
-#     et c'est déjà utile : il dit ce qui doit être vrai.
+# ⚠️  This file only takes effect if the service is attached to a Blueprint
+#     (Render → New → Blueprint, or "Sync Blueprint" on an existing service).
+#     While the service is configured by hand in the dashboard, this file only
+#     documents the expected configuration — which is already useful: it says
+#     what must be true.
 #
-# Les clés d'API ne sont PAS ici : `sync: false` demande à Render de les
-# conserver telles qu'elles sont définies dans le tableau de bord.
+# API keys are NOT here: `sync: false` asks Render to keep them as defined in
+# the dashboard.
 
 services:
-  # Préproduction. Même image, même configuration, branche `staging`.
-  # C'est ce qui donne un sens à la promotion `staging` → `main` : sans
-  # environnement derrière, la branche n'est qu'un rituel.
+  # Preproduction. Same image, same configuration, `staging` branch.
+  # This is what makes promoting `staging` to `main` mean something: with no
+  # environment behind it, the branch is only a ritual.
   - type: web
     name: wikifake-staging
     runtime: docker
@@ -40,16 +40,16 @@ services:
     region: frankfurt
     branch: main
 
-    # Redéploiement automatique à chaque push sur `main`.
+    # Automatic redeploy on every push to `main`.
     autoDeploy: true
 
-    # Render interroge cette route pour décider si l'instance est saine, et
-    # attend qu'elle réponde avant de basculer le trafic sur la nouvelle
-    # version : c'est ce qui rend un déploiement observable.
+    # Render polls this route to decide whether the instance is healthy, and
+    # waits for it to answer before switching traffic to the new version: this
+    # is what makes a deployment observable.
     healthCheckPath: /api/health
 
     envVars:
-      # Renseignée dans le tableau de bord, jamais dans le dépôt.
+      # Set in the dashboard, never in the repository.
       - key: GEMINI_API_KEY
         sync: false
       - key: MODEL_NAME

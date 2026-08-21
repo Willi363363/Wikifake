@@ -1,5 +1,5 @@
-# Mises à jour de dépendances. Les branches produites (`dependabot/…`) sont
-# acceptées par le contrôle de nomenclature de `scripts/checks.sh`.
+# Dependency updates. The branches it produces (`dependabot/…`) are accepted by
+# the branch-naming check in `scripts/checks.sh`.
 version: 2
 updates:
   - package-ecosystem: npm

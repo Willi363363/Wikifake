@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Dernier rempart avant le distant : aucun push direct sur main ni staging,
-# aucune réécriture d'historique partagé. Le vrai verrou est côté GitHub
-# (branch protection) — celui-ci évite juste l'accident, et le rappelle.
+# Last line of defence before the remote: no direct push to main or staging,
+# no rewriting of shared history. The real lock is on the GitHub side (the
+# ruleset) — this one only prevents the accident, and says so.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
 zero='0000000000000000000000000000000000000000'
@@ -16,16 +16,16 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     continue
   fi
 
-  # Push non fast-forward = réécriture d'un historique déjà publié.
+  # A non-fast-forward push rewrites history that was already published.
   if [ "$local_sha" != "$zero" ] && [ "$remote_sha" != "$zero" ]; then
     if ! git merge-base --is-ancestor "$remote_sha" "$local_sha" 2>/dev/null; then
-      printf '  \033[33m!\033[0m %s : push non fast-forward (réécriture d'\''historique)\n' "$target" >&2
-      printf '    Acceptable sur votre branche de travail, jamais sur une branche partagée.\n' >&2
+      printf '  \033[33m!\033[0m %s: non-fast-forward push (history rewrite)\n' "$target" >&2
+      printf '    Acceptable on your own branch, never on a shared one.\n' >&2
     fi
   fi
 done
 
 if [ "$status" -ne 0 ]; then
-  printf '\n\033[31mPush refusé.\033[0m Ouvrez une pull request.\n' >&2
+  printf '\n\033[31mPush rejected.\033[0m Open a pull request.\n' >&2
   exit 1
 fi

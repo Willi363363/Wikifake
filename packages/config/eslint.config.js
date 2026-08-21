@@ -1,5 +1,5 @@
-// Configuration ESLint partagée. Les paquets la réexportent telle quelle ;
-// tout assouplissement se discute en pull request.
+// Shared ESLint configuration. Packages re-export it as is; any relaxation is
+// discussed in a pull request.
 import js from '@eslint/js';
 import tseslint from 'typescript-eslint';
 
@@ -9,8 +9,8 @@ export default tseslint.config(
   ...tseslint.configs.strict,
   {
     rules: {
-      // Les règles du dépôt interdisent la journalisation sauvage dans le code
-      // applicatif : voir plans/methode/02-regles-du-depot.md.
+      // The repository rules forbid stray logging in application code: see
+      // plans/method/02-repository-rules.md.
       'no-console': ['error', { allow: ['warn', 'error'] }],
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/no-unused-vars': [
