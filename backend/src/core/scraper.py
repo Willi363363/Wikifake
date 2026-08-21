@@ -122,12 +122,7 @@ def get_wikipedia_content(category: str) -> Optional[dict]:
             # Extraire les paragraphes pour l'IA
             soup = BeautifulSoup(html_content, 'html.parser')
             content_div = soup.find(id='bodyContent')
-            paragraphs = []
-            if content_div:
-                for p in content_div.find_all('p', recursive=False) + content_div.find_all('p'):
-                    text = p.get_text(strip=True)
-                    if len(text) > 50: # Garder seulement les vrais paragraphes
-                        paragraphs.append(p)
+            paragraphs = collect_content_paragraphs(content_div or soup)
             
             if len(paragraphs) < 3:
                 print(f"L'article '{page.title}' est trop court. Nouvel essai...")
@@ -151,6 +146,33 @@ def get_wikipedia_content(category: str) -> Optional[dict]:
             time.sleep(1)
 
 
+MIN_PARAGRAPH_CHARS = 50
+
+
+def collect_content_paragraphs(container) -> list:
+    """Paragraphes de contenu d'une page Wikipedia, dans l'ordre du document.
+
+    Chaque `<p>` est visité UNE SEULE FOIS. La version précédente concaténait
+    `find_all('p', recursive=False)` et `find_all('p')` : comme le second
+    contient déjà les enfants directs, tout paragraphe de premier niveau était
+    ajouté deux fois, ce qui désalignait `raw_paragraphs` avec le document et
+    faisait apparaître des doublons dans l'article servi au joueur.
+    """
+    paragraphs = []
+    seen = set()
+    for tag in container.find_all('p'):
+        text = tag.get_text(strip=True)
+        if len(text) <= MIN_PARAGRAPH_CHARS:
+            continue
+        # Wikipedia sert parfois deux fois le même paragraphe (variantes
+        # mobile/desktop) : on dédoublonne sur le texte complet.
+        if text in seen:
+            continue
+        seen.add(text)
+        paragraphs.append(tag)
+    return paragraphs
+
+
 def extract_paragraphs(content_data: dict) -> list:
     if "raw_paragraphs" not in content_data:
         return []
@@ -163,7 +185,8 @@ def extract_paragraphs(content_data: dict) -> list:
         text = p.get_text()
         text = re.sub(r' +', ' ', text).strip()
         text = re.sub(r' ([.,;:!?])', r'\1', text)
-        if text:
-            result.append(text)
+        # Pas de filtrage ici : `result[i]` doit toujours correspondre à
+        # `raw_paragraphs[i]`, sinon les index de `positions` se décalent.
+        result.append(text)
 
     return result

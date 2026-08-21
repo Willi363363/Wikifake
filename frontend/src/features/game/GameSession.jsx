@@ -72,7 +72,7 @@ export function GameSession({ session, onEndRound }) {
 
   const [time, setTime] = useTimer(session.timeLimit || GAME_DURATION, playing);
   const selection = useSelection(t.mode, revealAll);
-  const hints = useHints(article.fakes);
+  const hints = useHints(article.fakes, socket);
   const { cursors, trackCursor } = useLiveCursors(socket, playing);
 
   const effects = useItemEffects({
@@ -96,18 +96,15 @@ export function GameSession({ session, onEndRound }) {
   const submit = useCallback(() => {
     playSound('success');
     if (socket) {
-      send(socket, 'submit_answer', {
-        answers: selection.answerIndices,
-        hintsUsed: hints.hintsUsed,
-        hintPenalty: hints.hintPenalty,
-        scoreStolen,
-      });
+      // Seule la sélection est envoyée : indices consommés, points volés et
+      // bonus de temps sont comptés par le serveur (cf. handle_submit_answer).
+      send(socket, 'submit_answer', { answers: selection.answerIndices });
       setWaitingForOthers(true);
       return;
     }
     setRevealAll(true);
     setTimeout(() => setTweak('gameState', 'results'), 600);
-  }, [socket, selection.answerIndices, hints.hintsUsed, hints.hintPenalty, scoreStolen, setTweak]);
+  }, [socket, selection.answerIndices, setTweak]);
 
   const unsubmit = useCallback(() => {
     if (!socket) return;
@@ -355,6 +352,7 @@ export function GameSession({ session, onEndRound }) {
         onClose={() => setIntelOpen(false)}
         targets={article.fakes}
         unlocked={hints.unlocks}
+        revealed={hints.revealed}
         onUnlock={hints.unlock}
       />
       {effects.flags.hintLocked && intelOpen && (

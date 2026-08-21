@@ -22,9 +22,18 @@ async def broadcast(room_code: str, message: dict) -> None:
 
 
 async def broadcast_lobby(room_code: str) -> None:
-    """Push the current lobby roster (name / answered / ready / colour) to everyone."""
+    """Push the current lobby roster (name / answered / ready / colour / host) to everyone."""
     if room_code not in rooms:
         return
     room = rooms[room_code]
-    players_data = [{"name": name, "answered": p.answered, "ready": p.ready, "color": p.color} for name, p in room.players.items()]
+    players_data = [
+        {
+            "name": name,
+            "answered": p.answered,
+            "ready": p.ready,
+            "color": p.color,
+            "isHost": p.is_host,
+        }
+        for name, p in room.players.items()
+    ]
     await broadcast(room_code, {"type": "lobby_update", "players": players_data})

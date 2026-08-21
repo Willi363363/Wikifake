@@ -8,10 +8,6 @@ class StartGameRequest(BaseModel):
     category: str
 
 
-class SubmitAnswerRequest(BaseModel):
-    paragraph_indices: list[int]
-
-
 class FlagReportRequest(BaseModel):
     article_title: str
     article_url: str = ""

@@ -5,7 +5,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from .broadcast import broadcast_lobby
 from .handlers import HANDLERS
-from .room import Player, assign_color, rooms
+from .room import Player, assign_color, promote_host, rooms
 
 router = APIRouter()
 
@@ -26,6 +26,7 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
     else:
         room.players[player_name] = Player(socket=websocket, color=assign_color(room))
 
+    promote_host(room)
     await broadcast_lobby(room_code)
 
     try:
@@ -40,6 +41,8 @@ async def websocket_endpoint(websocket: WebSocket, room_code: str, player_name: 
     except WebSocketDisconnect:
         if player_name in room.players:
             del room.players[player_name]
+            # Si l'hôte vient de partir, un autre joueur reprend le rôle.
+            promote_host(room)
             await broadcast_lobby(room_code)
         if not room.players:
             # Last player left: stop the item loop and forget the room.
