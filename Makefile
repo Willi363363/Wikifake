@@ -1,4 +1,4 @@
-.PHONY: help build run front front-dev back test clean clean-build check-env
+.PHONY: help build run front front-dev back test check clean clean-build check-env hooks
 
 VENV   = venv
 PYTHON = $(VENV)/bin/python
@@ -13,6 +13,8 @@ help:
 	@echo "  make front       → builder le frontend"
 	@echo "  make front-dev   → serveur de dev Vite (HMR, proxy vers uvicorn)"
 	@echo "  make test        → lancer les tests"
+	@echo "  make hooks       → installer les hooks git (une fois par clone)"
+	@echo "  make check       → contrôles de conformité (voir RULES.md)"
 	@echo "  make clean       → nettoyer les artefacts Python"
 	@echo "  make clean-build → tout nettoyer (venv, node_modules, dist)"
 
@@ -64,6 +66,14 @@ test: $(VENV)/bin/activate check-env
 	$(PIP) install -r backend/requirements.txt -q
 	@echo "🧪 Lancement des tests..."
 	$(PYTHON) -m pytest backend/tests/ -v
+
+hooks:
+	@git config core.hooksPath .githooks
+	@echo "Hooks installés : $$(ls .githooks | tr '\n' ' ')"
+	@echo "Règles : RULES.md"
+
+check:
+	@bash scripts/checks.sh staged
 
 clean:
 	@echo "🧹 Suppression des fichiers Python compilés..."

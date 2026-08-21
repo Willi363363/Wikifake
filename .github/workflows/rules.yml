@@ -1,0 +1,102 @@
+name: rules
+
+# Application des règles de RULES.md côté serveur.
+#
+# Les hooks locaux (.githooks/) donnent le retour immédiat mais se contournent
+# avec --no-verify. Ce workflow est le contrôle qui compte : il rejoue les mêmes
+# vérifications (scripts/checks.sh) sur la plage de commits de la PR, et détecte
+# les pushes directs sur main que la branch protection GitHub n'aurait pas bloqués.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: rules-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conformite:
+    name: Conformité de la PR
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Nom de branche
+        run: bash scripts/checks.sh branch "${{ github.event.pull_request.head.ref }}"
+
+      - name: Contenu des fichiers modifiés
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: bash scripts/checks.sh diff "$BASE" "$HEAD"
+
+      - name: Messages de commit
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          status=0
+          for sha in $(git rev-list "$BASE..$HEAD"); do
+            git log -1 --format=%B "$sha" > /tmp/msg
+            printf '\n%s %s\n' "$sha" "$(head -1 /tmp/msg)"
+            bash scripts/checks.sh commit-msg /tmp/msg || status=1
+          done
+          exit $status
+
+      - name: Résumé
+        if: always()
+        run: |
+          {
+            echo '## Conformité'
+            echo
+            if [ '${{ job.status }}' = 'success' ]; then
+              echo 'Branche, contenu et messages de commit conformes à `RULES.md`.'
+            else
+              echo 'Une règle de `RULES.md` n'"'"'est pas respectée — voir les étapes ci-dessus.'
+              echo
+              echo 'Pour reproduire en local : `bash scripts/checks.sh diff origin/main`'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  push-direct:
+    name: Aucun push direct sur main
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Détective, pas préventif : la prévention est la branch protection GitHub.
+      # Si un commit arrive sur main sans PR associée, on le signale bruyamment.
+      - name: Vérifier que le commit vient d'une pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ "${{ github.event.created }}" = 'true' ]; then
+            echo 'Création de branche — rien à vérifier.'; exit 0
+          fi
+          count=$(gh api "/repos/${{ github.repository }}/commits/$SHA/pulls" \
+            --jq 'length' 2>/dev/null || echo 0)
+          if [ "$count" -eq 0 ]; then
+            {
+              echo '## Push direct sur `main` détecté'
+              echo
+              echo "Le commit \`$SHA\` n'est associé à aucune pull request."
+              echo
+              echo 'RULES.md §1 : aucun push direct sur `main`, humain ou agent.'
+              echo 'Activez la branch protection si ce n'"'"'est pas déjà fait.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Push direct sur main — voir RULES.md §1"
+            exit 1
+          fi
+          echo "Commit rattaché à $count pull request(s)."

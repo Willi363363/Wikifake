@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Format du message de commit : conventional commits, en français.
+set -uo pipefail
+cd "$(git rev-parse --show-toplevel)" || exit 1
+if ! bash scripts/checks.sh commit-msg "$1"; then
+  printf '\n\033[31mMessage refusé.\033[0m Le message est conservé dans .git/COMMIT_EDITMSG\n' >&2
+  exit 1
+fi

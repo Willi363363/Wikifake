@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Contrôles rapides avant chaque commit. Les règles vivent dans RULES.md,
+# leur implémentation dans scripts/checks.sh (partagée avec la CI).
+set -uo pipefail
+cd "$(git rev-parse --show-toplevel)" || exit 1
+printf '\033[1mpre-commit\033[0m\n'
+if ! bash scripts/checks.sh staged; then
+  printf '\n\033[31mCommit refusé.\033[0m Corrigez ci-dessus, ou justifiez en PR.\n' >&2
+  printf 'Contournement : git commit --no-verify — tracé, et rattrapé par la CI.\n' >&2
+  exit 1
+fi
+printf '\033[32mok\033[0m\n'
