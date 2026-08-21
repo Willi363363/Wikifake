@@ -6,10 +6,11 @@ from src.core.agent import FakeNewsGame
 def fake_game():
     return FakeNewsGame()
 
-def test_game_init(fake_game):
-    assert fake_game.current_game is None
-    assert fake_game.current_topic is None
-    assert fake_game.get_current_game() is None
+def test_generator_is_stateless(fake_game):
+    """Le générateur ne mémorise plus de partie : une seule instance peut
+    servir plusieurs joueurs sans qu'ils s'écrasent mutuellement."""
+    assert not hasattr(fake_game, "current_game")
+    assert not hasattr(fake_game, "current_topic")
 
 @patch('src.core.agent.get_wikipedia_content')
 def test_start_game_no_wiki_data(mock_get_wiki, fake_game):
@@ -36,49 +37,12 @@ def test_start_game_success(mock_get_wiki, mock_extract, mock_swap, fake_game):
     )
 
     result = fake_game.start_game("Cat")
-    
+
     assert result is not None
-    assert fake_game.current_topic == "Cat"
     assert result["topic"] == "Cat"
     assert result["total_false_statements"] == 1
     assert len(result["positions"]) == 1
     assert result["wikipedia_url"] == "https://fr.wikipedia.org/wiki/Cat"
-
-def test_submit_answers_no_game(fake_game):
-    result = fake_game.submit_answers([1, 2])
-    assert "error" in result
-
-@patch('src.core.agent.get_wikipedia_content')
-@patch('src.core.agent.extract_paragraphs')
-@patch('src.core.agent.swap_paragraphs')
-def test_submit_answers_with_game(mock_swap, mock_extract, mock_wiki, fake_game):
-    mock_wiki.return_value = {
-        "title": "Dog",
-        "url": "",
-        "soup": MagicMock(),
-        "raw_paragraphs": [MagicMock(), MagicMock()]
-    }
-    mock_extract.return_value = ["P1", "P2"]
-    mock_swap.return_value = (
-        ["P1 fake", "P2"],
-        [{"paragraph_index": 0, "original_text": "P1", "swapped_text": "P1 fake",
-          "explanation": "a", "hint": "b"}]
-    )
-    fake_game.start_game("Dog")
-
-    # The paragraph chosen is somewhat random due to random.sample, 
-    # but we can test the submit_answers method doesn't crash and returns the correct structure.
-    res = fake_game.submit_answers([0]) # 0-indexed in some logic or 1-indexed? The game uses 1-indexed.
-    assert "check_result" in res
-    assert "feedback" in res
-    assert "correct_misinformations" in res
-    
-def test_reset_game(fake_game):
-    fake_game.current_game = {"test": 123}
-    fake_game.current_topic = "test"
-    fake_game.reset_game()
-    assert fake_game.current_game is None
-    assert fake_game.current_topic is None
 
 
 # --- Non-régression : alignement paragraphes / vérité terrain ----------------
@@ -168,3 +132,39 @@ def test_false_info_numbers_are_sequential(mock_wiki, mock_extract, mock_swap, f
 
     assert [p["false_info_number"] for p in positions] == [1, 2, 3]
     assert [p["paragraph_index"] for p in positions] == [1, 4, 6]
+
+
+# --- Non-régression : parties concurrentes -----------------------------------
+
+@patch('src.core.agent.swap_paragraphs')
+@patch('src.core.agent.extract_paragraphs')
+@patch('src.core.agent.get_wikipedia_content')
+def test_concurrent_games_do_not_overwrite_each_other(mock_wiki, mock_extract, mock_swap):
+    """Une instance partagée mémorisait la dernière partie dans
+    `self.current_game` : deux joueurs simultanés écrasaient leurs parties."""
+    from src.game import generate_game
+
+    def wiki(category):
+        return {
+            "title": category,
+            "url": f"https://fr.wikipedia.org/wiki/{category}",
+            "soup": MagicMock(),
+            "raw_paragraphs": [MagicMock(), MagicMock(), MagicMock()],
+        }
+
+    mock_wiki.side_effect = wiki
+    mock_extract.side_effect = lambda data: [f"{data['title']} p{i}" for i in range(3)]
+    mock_swap.side_effect = lambda paragraphs, topic: (
+        paragraphs,
+        [{"paragraph_index": 0, "original_text": paragraphs[0],
+          "swapped_text": f"FAUX {topic}", "explanation": "e", "hint": "h"}],
+    )
+
+    first = generate_game("Chat")
+    second = generate_game("Chien")
+
+    assert first["topic"] == "Chat"
+    assert second["topic"] == "Chien"
+    # la première partie n'a pas été mutée par la seconde
+    assert first["positions"][0]["false_statement"] == "FAUX Chat"
+    assert second["positions"][0]["false_statement"] == "FAUX Chien"

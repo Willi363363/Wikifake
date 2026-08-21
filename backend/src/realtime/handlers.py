@@ -13,7 +13,7 @@ from typing import Awaitable, Callable
 from fastapi import WebSocket
 
 from src.core.verification import check_answer
-from src.game import game
+from src.game import generate_game
 
 from .broadcast import broadcast, broadcast_lobby
 from .items import item_distribution_loop
@@ -84,7 +84,7 @@ async def handle_start_game(room_code: str, room: Room, player_name: str, websoc
     room.with_items = with_items
     room.time_limit = time_limit
 
-    game_data = game.start_game(category)
+    game_data = generate_game(category)
     if not game_data:
         await websocket.send_text(json.dumps({"type": "error", "message": "Mot-clé introuvable."}))
         return

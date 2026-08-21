@@ -3,7 +3,7 @@ import asyncio
 import random
 import time
 
-from src.game import game
+from src.game import generate_game
 
 from .broadcast import broadcast, broadcast_lobby
 from .items import item_distribution_loop
@@ -60,9 +60,9 @@ async def pick_and_start(room_code: str, use_votes: bool = True) -> None:
     })
 
     # Step 2: generate the game data in a background thread so WebSocket stays alive
-    def generate_game():
+    def first_playable_theme():
         for theme in all_candidates:
-            data = game.start_game(theme)
+            data = generate_game(theme)
             if data:
                 if use_votes:
                     p_list = [n for n, t in room.voting_themes.items() if t == theme]
@@ -72,7 +72,7 @@ async def pick_and_start(room_code: str, use_votes: bool = True) -> None:
                 return theme, p, data
         return None, None, None
 
-    chosen, proposer, game_data = await asyncio.to_thread(generate_game)
+    chosen, proposer, game_data = await asyncio.to_thread(first_playable_theme)
 
     if not game_data:
         room.picking_theme = False
@@ -91,7 +91,7 @@ async def pick_and_start(room_code: str, use_votes: bool = True) -> None:
 async def start_game_in_room(room_code: str, category: str, preloaded_game_data: dict | None = None) -> bool:
     """Reset player round state, (re)arm the item loop, and broadcast game_start."""
     room = rooms[room_code]
-    game_data = preloaded_game_data or game.start_game(category)
+    game_data = preloaded_game_data or generate_game(category)
     if not game_data:
         return False
 

@@ -32,7 +32,3 @@ def test_start_game_without_mocking():
     # Should be 422 Unprocessable Entity due to missing 'category' body field
     assert response.status_code == 422
 
-def test_submit_answer_invalid_request():
-    # Test that missing required fields result in a validation error
-    response = client.post("/api/game/submit", json={})
-    assert response.status_code == 422
