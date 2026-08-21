@@ -6,11 +6,14 @@ ad-hoc dicts to dataclasses so every field has one obvious home and default.
 """
 import asyncio
 import random
+import re
 import time
 from dataclasses import dataclass, field
 from typing import Optional
 
 from fastapi import WebSocket
+
+from src.core.settings import MAX_PLAYER_NAME_LENGTH
 
 GAME_DURATION = 300  # 5 minutes — default round length; a room's time_limit overrides it
 
@@ -42,6 +45,8 @@ class Player:
     # Paragraphes déjà désignés à ce joueur par le Détecteur : le serveur
     # choisit désormais la cible, le client ne connaît plus la solution.
     scanned: list[int] = field(default_factory=list)
+    # Dernier curseur relayé : sert à limiter le débit côté serveur.
+    last_cursor_at: float = 0.0
 
     @property
     def hints_used(self) -> int:
@@ -75,7 +80,6 @@ class Room:
     voting_themes: dict[str, str] = field(default_factory=dict)
     picking_theme: bool = False  # guards against concurrent pick_and_start runs
     with_items: bool = True
-    between_rounds: bool = False
 
 
 # Global registry: room code -> Room. Kept a plain dict on purpose (see module docstring).
@@ -114,3 +118,26 @@ def promote_host(room: Room) -> Optional[Player]:
 def is_host(room: Room, player_name: str) -> bool:
     player = room.players.get(player_name)
     return bool(player and player.is_host)
+
+
+# Pseudos : lettres, chiffres, tiret, point, souligné et espace. Le pseudo
+# arrive dans l'URL du WebSocket et sert de clé de dictionnaire ; il était
+# auparavant accepté tel quel, de n'importe quelle longueur.
+_NAME_RE = re.compile(r"^[\w\-. ]+$", re.UNICODE)
+
+
+class InvalidPlayerName(ValueError):
+    """Pseudo refusé : vide, trop long, ou caractères non autorisés."""
+
+
+def validate_player_name(raw: str) -> str:
+    name = (raw or "").strip()
+    if not name:
+        raise InvalidPlayerName("Le pseudo ne peut pas être vide.")
+    if len(name) > MAX_PLAYER_NAME_LENGTH:
+        raise InvalidPlayerName(
+            f"Le pseudo ne peut pas dépasser {MAX_PLAYER_NAME_LENGTH} caractères."
+        )
+    if not _NAME_RE.match(name):
+        raise InvalidPlayerName("Le pseudo contient des caractères non autorisés.")
+    return name

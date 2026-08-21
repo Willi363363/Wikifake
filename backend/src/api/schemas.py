@@ -42,8 +42,3 @@ class FlagReportRequest(BaseModel):
     player_id: str = "anonymous"
     room_code: str = ""
 
-
-class CreateRoomRequest(BaseModel):
-    """Empty on purpose: room creation takes no options yet, but keeping the
-    model preserves the (optional) JSON body the old endpoint accepted."""
-    pass

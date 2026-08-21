@@ -1,12 +1,16 @@
 """Fan-out helpers for room-wide WebSocket messages.
 
-Per-socket sends are wrapped in `except Exception: pass` on purpose: a dead
-socket must never prevent the remaining players from receiving the message —
-cleanup happens in the disconnect path, not here.
+Un socket mort ne doit jamais empêcher les autres joueurs de recevoir le
+message : l'échec est donc absorbé, mais journalisé — le nettoyage vit dans
+le `finally` de l'endpoint, pas ici.
 """
 import json
 
+from src.log import get_logger
+
 from .room import rooms
+
+log = get_logger(__name__)
 
 
 async def broadcast(room_code: str, message: dict) -> None:
@@ -17,8 +21,8 @@ async def broadcast(room_code: str, message: dict) -> None:
     for p in rooms[room_code].players.values():
         try:
             await p.socket.send_text(msg_str)
-        except Exception:
-            pass
+        except Exception as exc:
+            log.debug("Diffusion échouée vers un joueur de %s: %s", room_code, exc)
 
 
 async def broadcast_lobby(room_code: str) -> None:

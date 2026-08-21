@@ -32,4 +32,49 @@ if "GEMINI_API_KEY" in os.environ and "GOOGLE_API_KEY" not in os.environ:
     os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
 
 MODEL_NAME = os.getenv("MODEL_NAME", "gemini-3.1-flash-lite")
-GAME_MODE = "misinformation_hunt"  # Type de jeu
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name, "")
+    try:
+        return int(raw)
+    except ValueError:
+        return default
+
+
+# ---------------------------------------------------------------------------
+# Génération d'article
+#
+# Les deux seuils de longueur ci-dessous répondent à deux questions
+# différentes, mais l'un contraint l'autre : un paragraphe non retenu par le
+# scraper ne peut jamais être falsifié. Ils sont donc déclarés côte à côte.
+# ---------------------------------------------------------------------------
+
+# Longueur minimale pour qu'un <p> compte comme paragraphe de contenu
+# (élimine légendes, notes et bandeaux).
+MIN_CONTENT_CHARS = _env_int("MIN_CONTENT_CHARS", 50)
+
+# Longueur minimale pour qu'un paragraphe soit falsifiable : sous ce seuil il
+# n'y a pas assez de faits pour en altérer un discrètement.
+MIN_FALSIFIABLE_CHARS = _env_int("MIN_FALSIFIABLE_CHARS", 100)
+
+# Nombre de paragraphes de contenu exigés pour qu'un article soit jouable.
+MIN_ARTICLE_PARAGRAPHS = _env_int("MIN_ARTICLE_PARAGRAPHS", 3)
+
+# Borne les tentatives de recherche d'article : chaque essai coûte un appel au
+# modèle, la boucle ne doit donc jamais être infinie.
+MAX_TOPIC_ATTEMPTS = _env_int("MAX_TOPIC_ATTEMPTS", 6)
+
+# Délai maximal d'une requête HTTP vers Wikipédia, en secondes.
+HTTP_TIMEOUT = _env_int("HTTP_TIMEOUT", 15)
+
+# ---------------------------------------------------------------------------
+# Limites de salle
+# ---------------------------------------------------------------------------
+
+MAX_PLAYER_NAME_LENGTH = _env_int("MAX_PLAYER_NAME_LENGTH", 24)
+MAX_CHAT_LENGTH = _env_int("MAX_CHAT_LENGTH", 400)
+
+# Intervalle minimal entre deux positions de curseur relayées, en secondes :
+# un client modifié ne doit pas pouvoir saturer la salle.
+CURSOR_MIN_INTERVAL = float(os.getenv("CURSOR_MIN_INTERVAL", "0.04"))

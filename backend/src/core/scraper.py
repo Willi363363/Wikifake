@@ -5,10 +5,24 @@ from typing import Optional
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from .settings import MODEL_NAME
+from src.log import get_logger
+
+from .settings import (
+    HTTP_TIMEOUT,
+    MAX_TOPIC_ATTEMPTS,
+    MIN_ARTICLE_PARAGRAPHS,
+    MIN_CONTENT_CHARS,
+    MODEL_NAME,
+)
 import requests
 from bs4 import BeautifulSoup
 import re
+
+log = get_logger(__name__)
+
+USER_AGENT = "WikiFake/1.0 (jeu éducatif de fact-checking)"
+# Pause entre deux tentatives, pour ne pas marteler Wikipédia.
+RETRY_BACKOFF = 1
 
 _llm_instance = None
 
@@ -46,7 +60,8 @@ def _direct_match(category: str) -> Optional[str]:
     """
     try:
         results = wikipedia.search(category, results=3)
-    except Exception:
+    except Exception as exc:
+        log.debug("Recherche directe impossible pour %r: %s", category, exc)
         return None
 
     target = category.strip().casefold()
@@ -60,17 +75,22 @@ def _direct_match(category: str) -> Optional[str]:
 
 
 def get_wikipedia_content(category: str) -> Optional[dict]:
-    """
-    Récupère le HTML brut et les paragraphes d'une page Wikipedia spécifique en bouclant
-    jusqu'à succès.
+    """Trouve un article Wikipedia jouable pour cette catégorie.
+
+    Retourne None après `MAX_TOPIC_ATTEMPTS` essais infructueux. La boucle
+    était auparavant infinie alors que chaque tour consomme un appel au
+    modèle : une catégorie sans issue bloquait la requête et brûlait des
+    crédits sans limite.
     """
     exclude_topics = []
-    
-    wikipedia.set_user_agent("FakeNewsHunter/1.0 (+http://www.example.com/bot)")
+
+    wikipedia.set_user_agent(USER_AGENT)
     wikipedia.set_lang('fr')
-    
+
     first_try = True
-    while True:
+    last_reason = "aucune tentative"
+
+    for attempt in range(1, MAX_TOPIC_ATTEMPTS + 1):
         try:
             # On tente d'abord une recherche directe si le nom entré est déjà un sujet Wikipedia
             direct_hit = None
@@ -82,14 +102,15 @@ def get_wikipedia_content(category: str) -> Optional[dict]:
                 # Titre déjà trouvé : inutile de relancer une recherche dessus.
                 topic = direct_hit
                 search_results = [direct_hit]
-                print(f"Sujet choisi: {topic} (correspondance directe)")
+                log.info("Sujet choisi: %s (correspondance directe)", topic)
             else:
                 topic = get_topic_from_category(category, exclude_topics)
-                print(f"Sujet choisi: {topic} ... Recherche de la page...")
+                log.info("Tentative %d/%d — sujet: %s", attempt, MAX_TOPIC_ATTEMPTS, topic)
                 search_results = wikipedia.search(topic, results=3)
 
             if not search_results:
-                print(f"Aucun résultat trouvé pour '{topic}'. Nouvel essai...")
+                last_reason = f"aucun résultat pour {topic!r}"
+                log.info("%s — nouvel essai", last_reason)
                 exclude_topics.append(topic)
                 continue
                 
@@ -100,22 +121,25 @@ def get_wikipedia_content(category: str) -> Optional[dict]:
                 try:
                     page = wikipedia.page(p_title, auto_suggest=False)
                     break
-                except Exception:
+                except Exception as exc:
+                    log.debug("Page %r inaccessible: %s", p_title, exc)
                     exclude_topics.append(p_title)
                     continue
             
             if not page:
-                print(f"Les pages trouvées pour '{topic}' ne sont pas accessibles. Nouvel essai...")
+                last_reason = f"aucune page accessible pour {topic!r}"
+                log.info("%s — nouvel essai", last_reason)
                 exclude_topics.append(topic)
-                time.sleep(1)
+                time.sleep(RETRY_BACKOFF)
                 continue
                 
             url = page.url
-            print(f"Page trouvée ! URL: {url}")
-            
-            # Scraper le HTML exact avec un User-Agent valide
-            headers = {"User-Agent": "FakeNewsHunter/1.0 (+http://www.example.com/bot)"}
-            response = requests.get(url, headers=headers)
+            log.info("Page trouvée: %s", url)
+
+            # Scraper le HTML exact avec un User-Agent valide et un timeout :
+            # sans lui, une requête pendante bloque le thread de génération.
+            response = requests.get(url, headers={"User-Agent": USER_AGENT},
+                                    timeout=HTTP_TIMEOUT)
             response.raise_for_status()
             html_content = response.text
             
@@ -123,11 +147,15 @@ def get_wikipedia_content(category: str) -> Optional[dict]:
             soup = BeautifulSoup(html_content, 'html.parser')
             content_div = soup.find(id='bodyContent')
             paragraphs = collect_content_paragraphs(content_div or soup)
-            
-            if len(paragraphs) < 3:
-                print(f"L'article '{page.title}' est trop court. Nouvel essai...")
+
+            if len(paragraphs) < MIN_ARTICLE_PARAGRAPHS:
+                last_reason = (
+                    f"article {page.title!r} trop court "
+                    f"({len(paragraphs)} paragraphes exploitables)"
+                )
+                log.info("%s — nouvel essai", last_reason)
                 exclude_topics.append(page.title)
-                time.sleep(1)
+                time.sleep(RETRY_BACKOFF)
                 continue
                         
             return {
@@ -138,15 +166,17 @@ def get_wikipedia_content(category: str) -> Optional[dict]:
                 "raw_paragraphs": paragraphs,
                 "text_content": page.content
             }
-        except Exception as e:
-            print(f"Erreur inattendue ({str(e)}). Nouvel essai...")
-            # Ajouter aux exclus pour que l'IA choisisse un autre sujet la prochaine fois
+        except Exception as exc:
+            last_reason = f"erreur inattendue: {exc}"
+            log.warning("%s — nouvel essai", last_reason)
+            # Exclure le sujet en cours pour que le modèle en propose un autre.
             if 'topic' in locals() and topic not in exclude_topics:
                 exclude_topics.append(topic)
-            time.sleep(1)
+            time.sleep(RETRY_BACKOFF)
 
-
-MIN_PARAGRAPH_CHARS = 50
+    log.error("Aucun article exploitable pour %r après %d tentatives (%s)",
+              category, MAX_TOPIC_ATTEMPTS, last_reason)
+    return None
 
 
 def collect_content_paragraphs(container) -> list:
@@ -162,7 +192,7 @@ def collect_content_paragraphs(container) -> list:
     seen = set()
     for tag in container.find_all('p'):
         text = tag.get_text(strip=True)
-        if len(text) <= MIN_PARAGRAPH_CHARS:
+        if len(text) <= MIN_CONTENT_CHARS:
             continue
         # Wikipedia sert parfois deux fois le même paragraphe (variantes
         # mobile/desktop) : on dédoublonne sur le texte complet.
@@ -173,20 +203,30 @@ def collect_content_paragraphs(container) -> list:
     return paragraphs
 
 
+_MULTISPACE_RE = re.compile(r'\s+')
+_SPACE_BEFORE_PUNCT_RE = re.compile(r'\s+([.,;:!?%)\]])')
+
+
+def clean_paragraph_text(raw: str) -> str:
+    """Normalise le texte d'un paragraphe : espaces, insécables, ponctuation."""
+    text = raw.replace('\xa0', ' ')
+    text = _MULTISPACE_RE.sub(' ', text)
+    text = _SPACE_BEFORE_PUNCT_RE.sub(r'\1', text)
+    return text.strip()
+
+
 def extract_paragraphs(content_data: dict) -> list:
+    """Texte lisible de chaque paragraphe, dans le même ordre.
+
+    `get_text(" ")` insère le séparateur entre les nœuds : les mots collés par
+    les balises inline sont séparés SANS toucher au document. La version
+    précédente réécrivait chaque `tag.string` pour y ajouter des espaces, et
+    modifiait donc la soup que l'appelant réutilise ensuite pour produire le
+    HTML de l'article — un effet de bord invisible sur un objet partagé.
+    """
     if "raw_paragraphs" not in content_data:
         return []
 
-    result = []
-    for p in content_data["raw_paragraphs"]:
-        for tag in p.find_all(True):
-            if tag.string:
-                tag.string.replace_with(f" {tag.string} ")
-        text = p.get_text()
-        text = re.sub(r' +', ' ', text).strip()
-        text = re.sub(r' ([.,;:!?])', r'\1', text)
-        # Pas de filtrage ici : `result[i]` doit toujours correspondre à
-        # `raw_paragraphs[i]`, sinon les index de `positions` se décalent.
-        result.append(text)
-
-    return result
+    # Pas de filtrage : `result[i]` doit toujours correspondre à
+    # `raw_paragraphs[i]`, sinon les index de `positions` se décalent.
+    return [clean_paragraph_text(tag.get_text(" ")) for tag in content_data["raw_paragraphs"]]
