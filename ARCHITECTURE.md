@@ -64,6 +64,7 @@ FastAPI. `main.py` ne fait qu'exposer `app` ; tout le reste vit sous `src/`.
 | `src/scoring.py` | **Le barème**, partagé par le solo et le multijoueur. `realtime/scoring.py` le réexporte et n'ajoute que le classement. |
 | `src/solo.py` | Sessions solo côté serveur : article, départ du chrono, indices payés. Le solo en a besoin pour la même raison que le multijoueur — sans état serveur, la solution ne peut pas rester cachée. |
 | `src/log.py` | `get_logger(__name__)`. Pas de `print` dans le code applicatif. |
+| `src/version.py` | `VERSION`, tenue à la main. Exposée par `/api/health` pour repérer d'un coup d'œil ce qui tourne en production. |
 
 L'état des salles et des sessions solo est **en mémoire** : redémarrer le
 serveur vide les parties en cours, et le service doit tourner en un seul
@@ -73,7 +74,8 @@ process (`--workers 1`).
 
 | Méthode | Route | Rôle |
 |---|---|---|
-| `GET` | `/ping` | Sonde de vie |
+| `GET` | `/ping` | Sonde de vie, minimale (répartiteurs de charge) |
+| `GET` | `/api/health` | Version, commit déployé, modèle — voir *Déploiement* |
 | `POST` | `/api/multiplayer/create` | Crée une salle → `{room_code}` |
 | `POST` | `/api/game/start` | Partie solo → `{session_id, …}`, **sans la solution** |
 | `POST` | `/api/game/hint` | Achète un indice (niveau 1 ou 2), facturé serveur |
@@ -178,3 +180,35 @@ sert. Render injecte `$PORT`.
 docker build -t wikifake .
 docker run -p 8000:8000 -e GEMINI_API_KEY=... wikifake
 ```
+
+### Savoir si la production est à jour
+
+`GET /api/health` répond **quelle version tourne** :
+
+```json
+{"status":"ok","version":"1.1.0","commit":"5d9d884…","model":"gemini-3.1-flash-lite","llm_configured":true}
+```
+
+`commit` vient de `RENDER_GIT_COMMIT`, injecté par la plateforme ; il est vide
+en local, c'est normal.
+
+Le workflow `deploy-check.yml` interroge cette route après chaque push sur
+`main` et attend que le commit servi soit celui qui vient d'être poussé. C'est
+ce qui remplace l'aller-retour manuel vers le tableau de bord Render — le
+dépôt ne publiait auparavant ni statut de commit, ni déploiement, ni
+environnement.
+
+Il faut lui donner l'URL, une seule fois :
+
+> **Settings → Secrets and variables → Actions → Variables → New**
+> `DEPLOY_URL` = `https://<service>.onrender.com`
+
+Sans cette variable, le job s'ignore proprement et explique comment le
+configurer : un fork ne verra jamais échouer sa CI à cause de ça.
+
+`render.yaml` versionne la configuration du service (Dockerfile, branche,
+déploiement automatique, `healthCheckPath`). **Il n'a d'effet que si le service
+est rattaché à un Blueprint** — tant qu'il est configuré à la main dans le
+tableau de bord, ce fichier documente la configuration attendue sans
+l'appliquer. Les clés d'API y sont marquées `sync: false` : elles restent dans
+le tableau de bord.
