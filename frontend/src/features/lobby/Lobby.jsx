@@ -148,6 +148,7 @@ export function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeav
     return (
       <WaitingScreen
         category={category}
+        timeLimit={timeLimit}
         onReady={(data) => onStart(data, timeLimit)}
         onError={(message) => { setError(message); setScreen('solo'); }}
         isMultiplayer={false}
