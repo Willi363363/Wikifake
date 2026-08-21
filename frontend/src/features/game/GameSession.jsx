@@ -8,13 +8,13 @@
  */
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 
-import { GAME_DURATION, NEUTRAL_PLAYER_COLOR, TWEAK_DEFAULTS } from '../../config.js';
+import { GAME_DURATION, NEUTRAL_PLAYER_COLOR } from '../../config.js';
 import { playSound } from '../../lib/sound.js';
 import { send, useSocketMessages } from '../../lib/ws.js';
 import { articleUrl, hintTargets, tokenIdFor, withSolution } from '../../lib/article.js';
 import { scanSoloParagraph, submitSoloAnswers, unlockSoloHint } from '../../lib/api.js';
-import { useTweaks } from '../../vendor/tweaks/index.jsx';
 import { useAccent, accentColor } from '../../app/useAccent.js';
+import { useSettings } from '../../app/SettingsContext.jsx';
 
 // Imported file-by-file rather than through ./index.js: the barrel re-exports
 // GameSession itself, and going through it would make the cycle load-order dependent.
@@ -25,7 +25,7 @@ import { Footer } from './Footer.jsx';
 import { Brief } from './Brief.jsx';
 import { IntelOverlay } from './IntelOverlay.jsx';
 import { ArticleCard } from './ArticleCard.jsx';
-import { GameTweaks } from './GameTweaks.jsx';
+import { SettingsPanel } from './SettingsPanel.jsx';
 import { HintLockedNotice } from './HintLockedNotice.jsx';
 import { useSelection } from './useSelection.js';
 import { useTimer } from './useTimer.js';
@@ -46,8 +46,17 @@ export function GameSession({ session, onEndRound }) {
   const socket = multiplayer?.socket || null;
   const me = multiplayer?.username;
 
-  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
-  useAccent(t.accent);
+  // Phase de la manche : c'est de l'état de jeu, il vit ici. Il était
+  // auparavant stocké dans l'objet du panneau de maquettage, où un sélecteur
+  // « Playing / Debrief » permettait de le changer en pleine partie.
+  const [phase, setPhase] = useState('playing');
+
+  const { settings } = useSettings();
+  useAccent(settings.accent);
+
+  // Étiquette de la manche : le code de la salle, ou SOLO. C'était une
+  // constante de maquette ("A2-F1K9") affichée comme si elle était réelle.
+  const roundLabel = multiplayer?.roomCode || 'SOLO';
 
   const [revealAll, setRevealAll] = useState(false);
   // Correction envoyée par le serveur à la fin de la manche : le client ne
@@ -80,10 +89,10 @@ export function GameSession({ session, onEndRound }) {
   );
   const totalFakes = baseArticle.totalFakes ?? 0;
 
-  const playing = t.gameState === 'playing' && !revealAll;
+  const playing = phase === 'playing' && !revealAll;
 
   const [time, setTime] = useTimer(session.timeLimit || GAME_DURATION, playing);
-  const selection = useSelection(t.mode, revealAll);
+  const selection = useSelection(settings.expertMode ? 'expert' : 'normal', revealAll);
 
   // Un seul contrat, deux transports : le socket en multijoueur, le REST en
   // solo. Dans les deux cas c'est le serveur qui facture et livre le texte.
@@ -108,7 +117,7 @@ export function GameSession({ session, onEndRound }) {
     onScoreStolen: (points) => setScoreStolen((prev) => prev + points),
   });
 
-  const stats = useFinalStats(myBreakdown, totalFakes, t.sessionId);
+  const stats = useFinalStats(myBreakdown, totalFakes, roundLabel);
   const liveScore = useLiveScore({ markedCount: selection.markedCount, hintPenalty: hints.hintPenalty });
 
   // ---- Submission -----------------------------------------------------------
@@ -129,14 +138,14 @@ export function GameSession({ session, onEndRound }) {
         setMyBreakdown(result.breakdown);
         setSolution(result.positions);
         setRevealAll(true);
-        setTimeout(() => setTweak('gameState', 'results'), 600);
+        setTimeout(() => setPhase('results'), 600);
       })
       .catch(() => {
         // La manche est jouée : on montre au moins le débriefing.
         setRevealAll(true);
-        setTimeout(() => setTweak('gameState', 'results'), 600);
+        setTimeout(() => setPhase('results'), 600);
       });
-  }, [socket, session.soloId, selection.answerIndices, setTweak]);
+  }, [socket, session.soloId, selection.answerIndices]);
 
   const unsubmit = useCallback(() => {
     if (!socket) return;
@@ -166,7 +175,7 @@ export function GameSession({ session, onEndRound }) {
         const mine = (msg.leaderboard || []).find((row) => row.name === me);
         setMyBreakdown(mine?.breakdown || null);
         setRevealAll(true);
-        setTimeout(() => setTweak('gameState', 'results'), 600);
+        setTimeout(() => setPhase('results'), 600);
         break;
       }
       case 'hint_unlocked':
@@ -202,8 +211,8 @@ export function GameSession({ session, onEndRound }) {
 
   // Broadcast our optimistic score so rivals see a live ranking.
   useEffect(() => {
-    if (socket && t.gameState === 'playing') send(socket, 'live_score', { score: liveScore });
-  }, [socket, liveScore, t.gameState]);
+    if (socket && phase === 'playing') send(socket, 'live_score', { score: liveScore });
+  }, [socket, liveScore, phase]);
 
   // Le Détecteur : le client ne sait plus quels paragraphes sont falsifiés,
   // c'est le serveur qui en désigne un (`scanner_result` en multijoueur,
@@ -231,7 +240,7 @@ export function GameSession({ session, onEndRound }) {
   // ---- Scoreboard -----------------------------------------------------------
 
   const players = useMemo(() => {
-    const mine = accentColor(t.accent);
+    const mine = accentColor(settings.accent);
 
     if (leaderboard) {
       return leaderboard.map((p) => ({
@@ -259,7 +268,7 @@ export function GameSession({ session, onEndRound }) {
     }
 
     return [{ id: 'you', name: me || 'You', color: mine, score: liveScore, you: true }];
-  }, [leaderboard, liveScore, t.accent, multiplayer, session.players, liveScores, me]);
+  }, [leaderboard, liveScore, settings.accent, multiplayer, session.players, liveScores, me]);
 
   // ---- Render ---------------------------------------------------------------
 
@@ -270,14 +279,14 @@ export function GameSession({ session, onEndRound }) {
       onEndRound();
       return;
     }
-    setTweak({ ...t, gameState: 'playing' });
+    setPhase('playing');
     setRevealAll(true);
   };
 
   return (
     <div style={{ minHeight: '100vh', position: 'relative' }}>
       <TopBar
-        mode={t.mode}
+        mode={settings.expertMode ? 'expert' : 'normal'}
         marked={selection.markedCount}
         total={totalFakes}
         time={time}
@@ -303,9 +312,8 @@ export function GameSession({ session, onEndRound }) {
             revealed={revealAll}
           />
           <MissionCard
-            difficulty={t.difficulty}
-            mode={t.mode}
-            room={t.sessionId}
+            mode={multiplayer ? 'multijoueur' : 'solo'}
+            room={roundLabel}
             total={totalFakes}
           />
         </Brief>
@@ -323,7 +331,7 @@ export function GameSession({ session, onEndRound }) {
           articleRef={articleRef}
           marked={selection.marked}
           edited={selection.edited}
-          mode={t.mode}
+          mode={settings.expertMode ? 'expert' : 'normal'}
           hintedTokenIds={hints.hintedTokenIds}
           scannedParagraphs={scannedParagraphs}
           onTokenClick={selection.onTokenClick}
@@ -331,7 +339,7 @@ export function GameSession({ session, onEndRound }) {
           revealAll={revealAll}
           effects={effects.flags}
         >
-          {t.multiplayer && t.showCursors && playing && Object.entries(cursors).map(([name, cursor]) => {
+          {settings.showLeaderboard && settings.showCursors && playing && Object.entries(cursors).map(([name, cursor]) => {
             const player = players.find((p) => p.name === name);
             if (!player || player.you) return null;
             return (
@@ -346,14 +354,14 @@ export function GameSession({ session, onEndRound }) {
           })}
         </ArticleCard>
 
-        <Footer sessionId={t.sessionId} />
+        <Footer sessionId={roundLabel} />
       </div>
 
       {socket && (
         <ChatPanel ws={socket} username={me} roomCode={multiplayer.roomCode} />
       )}
 
-      {t.multiplayer && <FloatingLeaderboard players={players.slice(0, 4)} />}
+      {settings.showLeaderboard && <FloatingLeaderboard players={players.slice(0, 4)} />}
 
       <Blizzard active={effects.flags.timeFrozen} />
       <Lightning active={effects.flags.lightning} />
@@ -392,11 +400,11 @@ export function GameSession({ session, onEndRound }) {
         <HintLockedNotice onClose={() => setIntelOpen(false)} />
       )}
 
-      {t.gameState === 'results' && (
+      {phase === 'results' && (
         <Debrief
           stats={stats}
           onRestart={restart}
-          mode={t.mode}
+          mode={settings.expertMode ? 'expert' : 'normal'}
           allPlayers={players.map((p) => ({
             id: p.id,
             name: p.name,
@@ -429,7 +437,7 @@ export function GameSession({ session, onEndRound }) {
         />
       )}
       {flagToastOpen && <FlagToast onDone={() => setFlagToastOpen(false)} />}
-      {t.gameState === 'results' && flaggedItems.length > 0 && !flagReportDone && (
+      {phase === 'results' && flaggedItems.length > 0 && !flagReportDone && (
         <FlagReportForm
           flaggedItems={flaggedItems}
           articleTitle={article.title}
@@ -442,7 +450,7 @@ export function GameSession({ session, onEndRound }) {
         />
       )}
 
-      <GameTweaks t={t} setTweak={setTweak} onResetMission={() => restart('new')} />
+      <SettingsPanel />
     </div>
   );
 }

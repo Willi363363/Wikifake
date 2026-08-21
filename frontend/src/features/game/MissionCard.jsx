@@ -1,20 +1,28 @@
 /**
- * MissionCard — sidebar card stating the mission parameters (difficulty,
- * target count) and the how-to-play reminder. Ported from hud.jsx.
+ * MissionCard — paramètres de la mission et rappel des règles.
+ *
+ * La tuile affichait auparavant une « Difficulty » (easy/medium/hard) qui
+ * n'existait nulle part : le backend n'a aucune notion de difficulté et la
+ * valeur venait du panneau de maquettage. Elle est remplacée par le mode de
+ * partie, qui est réel.
  */
 import { LabelMono, Chip } from '../../components/ui';
 
-export function MissionCard({ difficulty, mode, room, total }) {
+export function MissionCard({ mode, room, total }) {
   return (
     <div className="glass" style={{ padding: "18px 20px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <LabelMono>Mission</LabelMono>
         <Chip color="var(--bronze)" bg="var(--bronze-soft)" border="rgba(140,109,54,0.25)">Active</Chip>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))", gap: 16, marginBottom: 14 }}>
         <div>
-          <LabelMono style={{ fontSize: 9 }}>Difficulty</LabelMono>
-          <div style={{ fontFamily: "'Instrument Serif', serif", fontSize: 22, color: "var(--ink)", lineHeight: 1.1, marginTop: 2, textTransform: "capitalize" }}>{difficulty}</div>
+          <LabelMono style={{ fontSize: 9 }}>Mode</LabelMono>
+          <div style={{ fontFamily: "'Instrument Serif', serif", fontSize: 22, color: "var(--ink)", lineHeight: 1.1, marginTop: 2, textTransform: "capitalize" }}>{mode}</div>
+        </div>
+        <div>
+          <LabelMono style={{ fontSize: 9 }}>Salle</LabelMono>
+          <div style={{ fontFamily: "'Geist Mono', monospace", fontSize: 15, color: "var(--ink)", lineHeight: 1.1, marginTop: 6, letterSpacing: "0.12em" }}>{room}</div>
         </div>
         <div>
           <LabelMono style={{ fontSize: 9 }}>Targets</LabelMono>
