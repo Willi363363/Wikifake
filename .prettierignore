@@ -1,0 +1,15 @@
+# L'ancienne stack disparaît à la phase 10 : la reformater maintenant créerait
+# un diff énorme sans valeur, et brouillerait la lecture des vraies migrations.
+frontend/
+backend/
+
+# Généré ou hors périmètre
+pnpm-lock.yaml
+node_modules/
+coverage/
+dist/
+.turbo/
+
+# La documentation a ses propres règles de mise en forme (plans/methode/).
+plans/
+*.md

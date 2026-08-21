@@ -10,6 +10,24 @@ et la solution ne le quitte pas avant la fin de la manche.**
 
 ## Démarrer
 
+Le projet migre vers un monorepo TypeScript. Les deux stacks coexistent
+jusqu'à la phase 10 ; voir [`plans/README.md`](plans/README.md).
+
+### Monorepo (la cible)
+
+```bash
+nvm use                 # Node 22, fixé par .nvmrc
+corepack enable pnpm    # si besoin : npm i -g corepack@latest d'abord
+pnpm install
+```
+
+Puis `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build`, `pnpm format`.
+
+> Le Corepack livré avec Node 20 a des clés de signature périmées et échoue sur
+> `Cannot find matching keyid` : mettez-le à jour avant de l'activer.
+
+### Stack actuelle (Python + Vite)
+
 ```bash
 make hooks     # installer les hooks git — une fois par clone
 make build     # dépendances backend, build du front, puis lancement

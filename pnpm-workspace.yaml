@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm refuse par défaut d'exécuter les scripts d'installation : chaque
+# exception est explicite. esbuild compile son binaire natif, vitest en dépend.
+allowBuilds:
+  esbuild: true

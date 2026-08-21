@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **État** | à faire |
+| **État** | en cours — PR ouverte |
 | **Branche** | `feat/refonte-phase-0` |
 | **Dépend de** | rien |
 | **Livre** | un monorepo qui compile et teste à vide |
@@ -22,7 +22,10 @@ les active tout seul dès qu'ils existent.
 
 ## Étapes
 
-### 0.1 — Trancher la version de Node
+### ✅ 0.1 — Trancher la version de Node
+
+**Tranché : Node 22 LTS.** `.nvmrc` à 22, `engines: >=22.13.0`, pnpm 11.22.0
+épinglé par `packageManager`.
 
 Le poste de développement est en Node 20.18.3. pnpm 11 exige Node ≥ 22.13
 (il charge `node:sqlite`), d'où pnpm 10 aujourd'hui. La cible raisonnable est
@@ -36,7 +39,7 @@ demi-heure.
 **Fini quand** : `.nvmrc` et `engines` sont commités, `node -v` correspond, et
 le contournement Corepack est documenté.
 
-### 0.2 — Squelette du monorepo
+### ✅ 0.2 — Squelette du monorepo
 
 `pnpm-workspace.yaml`, `package.json` racine avec `packageManager` épinglé,
 arborescence `apps/` et `packages/` vide mais déclarée. Turborepo avec ses
@@ -45,7 +48,7 @@ tâches `build`, `test`, `lint`, `typecheck` et leurs dépendances.
 **Fini quand** : `pnpm install` puis `pnpm build` et `pnpm test` réussissent sur
 un dépôt sans code, et le cache Turborepo se remplit au second appel.
 
-### 0.3 — TypeScript strict partagé
+### ✅ 0.3 — TypeScript strict partagé
 
 `packages/config` porte le `tsconfig` de base : `strict`, `noUncheckedIndexedAccess`,
 `exactOptionalPropertyTypes`, `verbatimModuleSyntax`. Les paquets l'étendent.
@@ -53,7 +56,7 @@ un dépôt sans code, et le cache Turborepo se remplit au second appel.
 **Fini quand** : `pnpm typecheck` passe, et relâcher une option fait échouer un
 test de configuration.
 
-### 0.4 — Linters et formateur
+### ✅ 0.4 — Linters et formateur
 
 ESLint en configuration plate, règles TypeScript et React, plus Prettier.
 Une seule configuration, partagée depuis `packages/config`.
@@ -62,7 +65,7 @@ Une seule configuration, partagée depuis `packages/config`.
 fichier TypeScript fautif échoue — c'est le signal que la détection
 automatique des linters fonctionne.
 
-### 0.5 — Lanceur de tests
+### ✅ 0.5 — Lanceur de tests
 
 Vitest à la racine, projets par paquet, couverture activée mais sans seuil
 bloquant pour l'instant.
@@ -70,7 +73,7 @@ bloquant pour l'instant.
 **Fini quand** : `pnpm test` découvre et exécute un test trivial dans deux
 paquets distincts.
 
-### 0.6 — Variables d'environnement typées
+### ✅ 0.6 — Variables d'environnement typées
 
 Un schéma Zod unique valide l'environnement au démarrage et échoue fort si une
 variable manque. `.env.example` recense tout, avec des valeurs factices.
@@ -78,7 +81,7 @@ variable manque. `.env.example` recense tout, avec des valeurs factices.
 **Fini quand** : démarrer sans `DATABASE_URL` produit une erreur explicite qui
 nomme la variable, pas un `undefined` trois couches plus loin.
 
-### 0.7 — Mettre à jour l'outillage du dépôt
+### ✅ 0.7 — Mettre à jour l'outillage du dépôt
 
 `make hooks` et `make check` continuent de fonctionner ; le `README` racine
 décrit l'installation en trois commandes.

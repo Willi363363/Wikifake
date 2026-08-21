@@ -142,11 +142,16 @@ check_lint() {
     fi
   fi
   if [ ${#js[@]} -gt 0 ]; then
-    local eslint=''
+    local eslint='' config=''
     for c in node_modules/.bin/eslint frontend/node_modules/.bin/eslint; do
       [ -x "$c" ] && eslint="$c" && break
     done
-    if [ -n "$eslint" ] && ls eslint.config.* .eslintrc* frontend/eslint.config.* >/dev/null 2>&1; then
+    # Un `ls` sur plusieurs motifs échoue dès qu'un seul manque : chaque
+    # candidat se teste séparément.
+    for c in eslint.config.js eslint.config.mjs eslint.config.ts .eslintrc.json .eslintrc.js; do
+      [ -f "$c" ] && config="$c" && break
+    done
+    if [ -n "$eslint" ] && [ -n "$config" ]; then
       "$eslint" "${js[@]}" || fail=1
     else
       info "eslint non configuré — aucun contrôle sur ${#js[@]} fichier(s) JS/TS"

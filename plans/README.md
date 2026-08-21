@@ -24,7 +24,7 @@ de la précédente sauf mention contraire dans sa fiche.
 
 | # | Phase | État | Fiche |
 |---|---|---|---|
-| 0 | Fondations — monorepo et outillage | à faire | `refonte/phase-00-fondations.md` |
+| 0 | Fondations — monorepo et outillage | **en cours** | `refonte/phase-00-fondations.md` |
 | 1 | Socle — `protocol` et `domain` | à faire | `refonte/phase-01-socle.md` |
 | 2 | Données — Drizzle et Postgres | à faire | `refonte/phase-02-donnees.md` |
 | 3 | Article — Wikipédia et modèle | à faire | `refonte/phase-03-article.md` |
