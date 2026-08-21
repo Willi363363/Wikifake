@@ -1,0 +1,15 @@
+# The old stack goes away in phase 10: reformatting it now would produce a huge
+# diff with no value, and would drown out the real migrations.
+frontend/
+backend/
+
+# Generated or out of scope
+pnpm-lock.yaml
+node_modules/
+coverage/
+dist/
+.turbo/
+
+# Documentation has its own formatting rules (plans/method/).
+plans/
+*.md
