@@ -1,0 +1,113 @@
+name: Deploy check
+
+# Après un push sur `main`, vérifie que la production sert bien ce commit.
+#
+# Sans ça, la seule façon de savoir si un merge a été redéployé était d'ouvrir
+# le tableau de bord Render : ni statut de commit, ni déploiement GitHub, ni
+# environnement n'étaient publiés sur le dépôt.
+#
+# Le job s'ignore proprement si la variable de dépôt `DEPLOY_URL` n'est pas
+# définie — il ne fera donc jamais échouer la CI d'un fork ou d'un clone.
+#
+#   Settings → Secrets and variables → Actions → Variables → New
+#   DEPLOY_URL = https://<votre-service>.onrender.com
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      timeout_seconds:
+        description: "Durée max d'attente du redéploiement"
+        required: false
+        default: "600"
+
+permissions:
+  contents: read
+
+jobs:
+  deployed-commit:
+    name: La production sert-elle ce commit ?
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier que DEPLOY_URL est configurée
+        id: config
+        env:
+          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
+        run: |
+          if [ -z "$DEPLOY_URL" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### Sonde de déploiement ignorée"
+              echo
+              echo "La variable de dépôt \`DEPLOY_URL\` n'est pas définie."
+              echo "Renseignez-la dans **Settings → Secrets and variables → Actions → Variables**"
+              echo "pour que la CI dise elle-même si la production est à jour."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Attendre que le commit déployé corresponde
+        if: steps.config.outputs.configured == 'true'
+        env:
+          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
+          EXPECTED: ${{ github.sha }}
+          TIMEOUT: ${{ github.event.inputs.timeout_seconds || '600' }}
+        run: |
+          set -u
+          url="${DEPLOY_URL%/}/api/health"
+          deadline=$(( $(date +%s) + TIMEOUT ))
+          attempt=0
+          served=""
+
+          echo "Commit attendu : ${EXPECTED:0:7}"
+          echo "Sonde          : $url"
+
+          while [ "$(date +%s)" -lt "$deadline" ]; do
+            attempt=$((attempt + 1))
+            body=$(curl -fsS --max-time 20 "$url" 2>/dev/null || true)
+
+            if [ -n "$body" ]; then
+              served=$(printf '%s' "$body" | python3 -c \
+                'import json,sys; print(json.load(sys.stdin).get("commit",""))' 2>/dev/null || true)
+              version=$(printf '%s' "$body" | python3 -c \
+                'import json,sys; print(json.load(sys.stdin).get("version",""))' 2>/dev/null || true)
+              echo "tentative $attempt — version=$version commit=${served:0:7}"
+
+              if [ "$served" = "$EXPECTED" ]; then
+                {
+                  echo "### ✅ Production à jour"
+                  echo
+                  echo "| | |"
+                  echo "|---|---|"
+                  echo "| Version servie | \`$version\` |"
+                  echo "| Commit servi | \`${served:0:7}\` |"
+                  echo "| URL | $DEPLOY_URL |"
+                } >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+              fi
+            else
+              echo "tentative $attempt — pas de réponse (déploiement en cours ?)"
+            fi
+            sleep 15
+          done
+
+          {
+            echo "### ⚠️ La production ne sert pas encore ce commit"
+            echo
+            echo "| | |"
+            echo "|---|---|"
+            echo "| Commit attendu | \`${EXPECTED:0:7}\` |"
+            echo "| Commit servi | \`${served:0:7}\` |"
+            echo "| Délai | ${TIMEOUT}s |"
+            echo
+            if [ -z "$served" ]; then
+              echo "Aucune réponse de la sonde : service endormi (plan gratuit),"
+              echo "déploiement encore en cours, ou \`DEPLOY_URL\` incorrecte."
+            else
+              echo "Le service répond mais sur une version antérieure :"
+              echo "le déploiement automatique est peut-être désactivé."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
