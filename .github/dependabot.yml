@@ -7,17 +7,17 @@ updates:
     schedule: { interval: weekly }
     open-pull-requests-limit: 5
     target-branch: staging
-    commit-message: { prefix: "chore(deps)" }
+    commit-message: { prefix: 'chore(deps)' }
 
   - package-ecosystem: pip
     directory: /backend
     schedule: { interval: weekly }
     open-pull-requests-limit: 5
     target-branch: staging
-    commit-message: { prefix: "chore(deps)" }
+    commit-message: { prefix: 'chore(deps)' }
 
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
     target-branch: staging
-    commit-message: { prefix: "ci(deps)" }
+    commit-message: { prefix: 'ci(deps)' }

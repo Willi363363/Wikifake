@@ -29,7 +29,11 @@ concurrency:
 jobs:
   conformite:
     name: Conformité de la PR
-    if: github.event_name == 'pull_request'
+    # Only the human-review gate depends on labels. Re-running the content
+    # checks on a label change would burn CI minutes and, through the
+    # concurrency group, cancel an in-flight run for nothing.
+    if: github.event_name == 'pull_request' &&
+      contains(fromJson('["opened", "synchronize", "reopened"]'), github.event.action)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -69,7 +73,7 @@ jobs:
             else
               echo 'A repository rule is not satisfied — see the steps above.'
               echo
-              echo 'To reproduce locally: `bash scripts/checks.sh diff origin/staging`'
+              echo 'To reproduce locally: `bash scripts/checks.sh diff origin/${{ github.event.pull_request.base.ref }}`'
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -107,7 +111,8 @@ jobs:
 
   fuite-de-secrets:
     name: Analyse de secrets
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' &&
+      contains(fromJson('["opened", "synchronize", "reopened"]'), github.event.action)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

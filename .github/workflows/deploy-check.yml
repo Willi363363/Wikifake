@@ -22,9 +22,9 @@ on:
   workflow_dispatch:
     inputs:
       timeout_seconds:
-        description: "Maximum time to wait for the redeploy"
+        description: 'Maximum time to wait for the redeploy'
         required: false
-        default: "600"
+        default: '600'
 
 permissions:
   contents: read

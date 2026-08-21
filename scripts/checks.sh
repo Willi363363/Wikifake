@@ -55,8 +55,8 @@ xox[baprs]-[A-Za-z0-9-]{12,}
 -----BEGIN [A-Z ]*PRIVATE KEY-----
 PATTERNS
     # Hardcoded secret assignment, excluding templates and placeholders.
-    if grep -nEq "(API_KEY|APIKEY|SECRET|TOKEN|PASSWORD)[A-Z_]*\s*[:=]\s*['\"][^'\"\$<{]{12,}['\"]" "$f" 2>/dev/null; then
-      grep -nE "(API_KEY|APIKEY|SECRET|TOKEN|PASSWORD)[A-Z_]*\s*[:=]\s*['\"][^'\"\$<{]{12,}['\"]" "$f" \
+    if grep -nEq "(API_KEY|APIKEY|SECRET|TOKEN|PASSWORD)[A-Z_]*[[:space:]]*[:=][[:space:]]*['\"][^'\"\$<{]{12,}['\"]" "$f" 2>/dev/null; then
+      grep -nE "(API_KEY|APIKEY|SECRET|TOKEN|PASSWORD)[A-Z_]*[[:space:]]*[:=][[:space:]]*['\"][^'\"\$<{]{12,}['\"]" "$f" \
         | grep -viE 'your_|dummy|example|placeholder|changeme|xxxx|test|fake' >/dev/null \
         && err "$f: hardcoded secret — use an environment variable"
     fi
@@ -90,7 +90,7 @@ check_logging() {
     [ -f "$f" ] && ! is_test "$f" || continue
     case "$f" in
       *.py)
-        grep -nq '^\s*print(' "$f" && err "$f: print() is forbidden — use the logger"
+        grep -nq '^[[:space:]]*print(' "$f" && err "$f: print() is forbidden — use the logger"
         ;;
       *.js|*.jsx|*.ts|*.tsx)
         case "$f" in *.config.*|*vite.config*) continue;; esac
@@ -120,7 +120,8 @@ check_docs() {
         ;;
     esac
   done < <(find . -name '*.md' -not -path './.git/*' -not -path '*/node_modules/*' \
-                  -not -path './venv/*' -not -path '*/.smoke/*' -printf '%P\n' 2>/dev/null | sort)
+                  -not -path './venv/*' -not -path '*/.smoke/*' -print 2>/dev/null \
+             | sed 's|^\./||' | sort)
 }
 
 # --- available linters -----------------------------------------------------
@@ -186,8 +187,12 @@ check_branch_name() {
 }
 
 # --- file collection -------------------------------------------------------
+# `mapfile` is a bash 4+ builtin and `find -printf` is a GNU extension: neither
+# exists on a default macOS (bash 3.2 + BSD find). The hooks must work there
+# too, or the "rules enforced locally" promise only holds on Linux.
 staged_files() { git diff --cached --name-only --diff-filter=ACMR; }
 diff_files()   { git diff --name-only --diff-filter=ACMR "$1" "${2:-HEAD}"; }
+read_lines()   { files=(); while IFS= read -r line; do [ -n "$line" ] && files+=("$line"); done; }
 
 run_file_checks() {
   [ "$#" -eq 0 ] && { info 'no file to check'; return; }
@@ -199,12 +204,12 @@ case "${1:-}" in
     branch=$(git symbolic-ref --short HEAD 2>/dev/null || echo detached)
     check_protected "$branch"
     printf '%s' "$branch" | grep -qE "$BRANCH_PATTERN" || warn "branch name \"$branch\" is not conforming (blocking in CI)"
-    mapfile -t files < <(staged_files)
+    read_lines < <(staged_files)
     run_file_checks "${files[@]}"; check_docs; check_lint "${files[@]}"
     ;;
   diff)
     [ -z "${2:-}" ] && { echo 'usage: checks.sh diff <base> [head]' >&2; exit 2; }
-    mapfile -t files < <(diff_files "$2" "${3:-HEAD}")
+    read_lines < <(diff_files "$2" "${3:-HEAD}")
     run_file_checks "${files[@]}"; check_docs
     ;;
   commit-msg) check_commit_msg "${2:?message file required}" ;;
