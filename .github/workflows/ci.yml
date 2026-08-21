@@ -13,33 +13,35 @@ permissions:
   contents: read
   pull-requests: read
 
-# Un nouveau push sur la même référence annule le run précédent.
+# A new push on the same ref cancels the previous run.
 #
-# Le groupe reste basé sur `github.ref`, qui diffère entre les deux
-# déclencheurs (`refs/heads/<branche>` contre `refs/pull/N/merge`) : il ne
-# faut PAS les fusionner ici, sinon le run `push` annulerait le run
-# `pull_request` sur lequel la PR est validée. La déduplication est faite par
-# le job `guard` ci-dessous.
+# The group stays keyed on `github.ref`, which differs between the two
+# triggers (`refs/heads/<branch>` vs `refs/pull/N/merge`): they must NOT be
+# merged here, otherwise the `push` run would cancel the `pull_request` run
+# the PR is validated on. Deduplication is handled by the `guard` job below.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   guard:
-    # Sur une branche qui a déjà une PR ouverte VERS MAIN, GitHub déclenche
-    # deux runs pour un même commit : un `push` et un `pull_request`. Les deux
-    # exécutent exactement les mêmes vérifications, doublant la consommation de
-    # minutes et affichant un doublon dans les checks de la PR.
+    # On a branch that already has an open PR TO MAIN, GitHub triggers two
+    # runs for the same commit: a `push` and a `pull_request`. Both execute
+    # exactly the same checks, doubling the minutes consumed and showing a
+    # duplicate among the PR's checks.
     #
-    # On garde le run `pull_request` — c'est celui sur lequel la PR est
-    # validée — et on saute le run `push`.
+    # We keep the `pull_request` run — the one the PR is validated on — and
+    # skip the `push` run.
     #
-    # « vers une branche intégratrice » est la condition essentielle :
-    # `pull_request` ne se déclenche que pour les PR ciblant `main` ou
-    # `staging`. Une PR de phase (base = la branche parapluie d'une refonte)
-    # n'en produit aucun, donc sauter son run `push` la laisserait SANS AUCUNE
-    # vérification. Une branche sans PR reste vérifiée à chaque push, comme le
-    # voulait `push: '**'`.
+    # "targeting an integration branch" is the essential condition:
+    # `pull_request` only fires for PRs targeting `main` or `staging`. A
+    # phase PR (base = the umbrella branch of a rework) produces none, so
+    # skipping its `push` run would leave it WITHOUT ANY checks. A branch
+    # with no PR is still checked on every push, as `push: '**'` intended.
+    #
+    # NOTE: this job's check context is deliberately still named in French —
+    # it is referenced by the branch-protection ruleset's required checks.
+    # It gets renamed in phase 9, together with the ruleset's required checks.
     name: Ce run est-il utile ?
     runs-on: ubuntu-latest
     outputs:
@@ -54,16 +56,16 @@ jobs:
         run: |
           set -u
 
-          # Tout sauf un push de branche : on exécute.
+          # Anything other than a branch push: we run.
           if [ "$EVENT" != "push" ] || [ "$BRANCH" = "main" ] || [ "$BRANCH" = "staging" ]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "événement $EVENT sur $BRANCH — on exécute"
+            echo "event $EVENT on $BRANCH — running"
             exit 0
           fi
 
-          # Filtrer sur la base est indispensable : voir le commentaire ci-dessus.
-          # Une PR vers main OU staging produit un run `pull_request` ; toute
-          # autre base (branche parapluie de phase) n'en produit aucun.
+          # Filtering on the base branch is essential: see the comment above.
+          # A PR to main OR staging produces a `pull_request` run; any other
+          # base (a phase umbrella branch) produces none.
           covered=0
           for base in main staging; do
             n=$(gh pr list --repo "$REPO" --head "$BRANCH" --base "$base" \
@@ -74,15 +76,45 @@ jobs:
           if [ "${covered:-0}" -gt 0 ]; then
             echo "run=false" >> "$GITHUB_OUTPUT"
             {
-              echo "### Run ignoré"
+              echo "### Run skipped"
               echo
-              echo "Une PR vers \`main\` ou \`staging\` est ouverte pour \`$BRANCH\` :"
-              echo "le run \`pull_request\` couvre déjà ce commit."
+              echo "A PR to \`main\` or \`staging\` is open for \`$BRANCH\`:"
+              echo "the \`pull_request\` run already covers this commit."
             } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "aucune PR vers main ni staging pour $BRANCH — on exécute"
+            echo "no PR to main or staging for $BRANCH — running"
           fi
+
+  monorepo:
+    name: monorepo
+    needs: guard
+    if: needs.guard.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The version comes from `.nvmrc`: a single source of truth, and
+      # `engines` in the root package.json rejects any older runtime.
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable pnpm
+        run: corepack enable pnpm
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm format:check
 
   frontend:
     needs: guard
@@ -136,7 +168,6 @@ jobs:
           echo "GOOGLE_API_KEY=dummy-test-key-for-ci" > .env
           echo "MODEL_NAME=gemini-3.1-flash-lite" >> .env
           echo "OPENAI_API_KEY=sk-dummy-key" >> .env
-
 
       - name: Run tests
         run: python -m pytest backend/tests/ -v
