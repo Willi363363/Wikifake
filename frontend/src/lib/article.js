@@ -35,6 +35,9 @@ export function buildArticle(payload) {
   return {
     title: payload.topic,
     subtitle: 'Wikipedia',
+    // Exposé à part : l'attribution CC BY-SA en a besoin, et la chercher dans
+    // l'infobox par son libellé est fragile.
+    sourceUrl: payload.wikipedia_url || '',
     infobox: [
       { label: 'DESIGNATION', value: payload.topic },
       { label: 'SOURCE', value: payload.wikipedia_url || 'Wikipedia' },

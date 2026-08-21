@@ -1,4 +1,6 @@
 import os
+import pathlib
+import re
 import pytest
 from fastapi.testclient import TestClient
 
@@ -12,11 +14,40 @@ from main import app
 
 client = TestClient(app)
 
-def test_index_serves_html():
+# Le job backend de la CI ne compile pas le frontend : `frontend/dist` est
+# alors absent et le serveur rend une page d'aide. Les deux cas sont légitimes
+# et testés séparément — l'ancien test passait par accident, la page d'aide
+# contenant elle aussi « <title>Wikifake ».
+_DIST_INDEX = (
+    pathlib.Path(__file__).resolve().parent.parent.parent / "frontend" / "dist" / "index.html"
+)
+
+
+def test_index_always_serves_html():
+    """Quel que soit l'état du build, la racine répond une page HTML titrée.
+
+    Le libellé du titre n'est pas testé : c'est du texte de référencement, il
+    changera. `frontend/src/__tests__/indexing.test.js` en vérifie la qualité.
+    """
     response = client.get("/")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
-    assert "<title>Wikifake" in response.text
+    assert re.search(r"<title>[^<]+</title>", response.text)
+
+
+@pytest.mark.skipif(_DIST_INDEX.exists(), reason="le frontend est construit")
+def test_missing_build_is_explained():
+    """Sans bundle, le serveur explique quoi faire au lieu d'un 404 muet."""
+    body = client.get("/").text
+    assert "npm" in body and "build" in body
+
+
+@pytest.mark.skipif(not _DIST_INDEX.exists(), reason="le frontend n'est pas construit")
+def test_built_bundle_is_served():
+    """Avec bundle, c'est bien l'application qui est servie."""
+    body = client.get("/").text
+    assert 'id="root"' in body
+    assert "/assets/" in body
 
 def test_create_multiplayer_room():
     response = client.post("/api/multiplayer/create")

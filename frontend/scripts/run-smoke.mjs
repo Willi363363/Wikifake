@@ -40,6 +40,10 @@ const SUITES = [
     ['aucun panneau de maquettage', /twk-panel/, false],
     ['étiquette de manche réelle', /A2-F1K9/, false],
     ['étiquette SOLO', /SOLO/],
+    // Obligation CC BY-SA : toujours visible, pendant comme après la manche.
+    ['avertissement de modification', /volontairement modifié/],
+    ['licence citée', /CC BY-SA/],
+    ['source Wikipédia nommée', /Source · Wikipédia/],
   ]],
   ['Partie révélée', renderRevealed, [
     ['tokens sabotés identifiés', /data-fake-id="F1"/],

@@ -7,6 +7,7 @@
  */
 import { LabelMono } from '../../components/ui/index.js';
 import { ArticleBody } from './ArticleBody.jsx';
+import { ArticleAttribution } from './ArticleAttribution.jsx';
 
 export function ArticleCard({
   article, marked, edited, mode, hintedTokenIds, scannedParagraphs,
@@ -46,15 +47,20 @@ export function ArticleCard({
         display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22,
         paddingBottom: 12, borderBottom: '1px solid var(--line)',
       }}>
-        <LabelMono>Source · Open Encyclopedia</LabelMono>
+        <LabelMono>Source · Wikipédia</LabelMono>
         <span style={{ width: 1, height: 12, background: 'var(--line)' }} />
-        <LabelMono>Article · Free</LabelMono>
+        <LabelMono>Texte modifié</LabelMono>
         <span style={{ flex: 1 }} />
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#0645ad', fontWeight: 500 }}>
-          <span style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic' }}>Read</span>
-        </span>
-        <span style={{ fontSize: 12, color: 'var(--muted)' }}>Edit</span>
-        <span style={{ fontSize: 12, color: 'var(--muted)' }}>View history</span>
+        {article.sourceUrl && (
+          <a
+            href={article.sourceUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            style={{ fontSize: 12, color: '#0645ad', fontWeight: 500 }}
+          >
+            Voir l’original
+          </a>
+        )}
       </div>
 
       <div className={['article-body', blackout ? 'blackout-active' : '', tiny ? 'tiny-active' : '']
@@ -94,6 +100,8 @@ export function ArticleCard({
         />
 
         {revealAll && <RevealedFakes fakes={article.fakes} />}
+
+        <ArticleAttribution topic={article.title} sourceUrl={article.sourceUrl} />
       </div>
 
       {children}
