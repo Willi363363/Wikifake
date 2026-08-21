@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr review:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh api --method PUT:*)",
+      "Bash(gh api --method DELETE:*)",
+      "Bash(gh ruleset:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push origin staging:*)",
+      "Bash(git push --force origin:*)"
+    ]
+  }
+}

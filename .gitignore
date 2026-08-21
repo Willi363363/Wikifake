@@ -12,3 +12,11 @@ frontend/dist/
 # Runtime data (player-submitted flag reports)
 data/
 frontend/.smoke/
+.pytest_cache/
+
+# Monorepo TypeScript
+node_modules/
+.turbo/
+dist/
+coverage/
+.env

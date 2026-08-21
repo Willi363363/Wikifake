@@ -1,0 +1,8 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm refuses to run install scripts by default: every exception is explicit.
+# esbuild compiles its native binary, and vitest depends on it.
+allowBuilds:
+  esbuild: true
