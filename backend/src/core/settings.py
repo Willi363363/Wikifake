@@ -69,6 +69,27 @@ MAX_TOPIC_ATTEMPTS = _env_int("MAX_TOPIC_ATTEMPTS", 6)
 HTTP_TIMEOUT = _env_int("HTTP_TIMEOUT", 15)
 
 # ---------------------------------------------------------------------------
+# Cache d'articles
+#
+# Chaque partie générée coûte des appels au modèle. Un article falsifié est
+# réutilisable, et le réutiliser rend aussi le chargement instantané.
+# ---------------------------------------------------------------------------
+
+# Durée de vie d'un article en cache, en secondes (6 h par défaut).
+ARTICLE_CACHE_TTL = _env_int("ARTICLE_CACHE_TTL", 6 * 3600)
+
+# Nombre de catégories mémorisées ; au-delà, la moins récemment servie est
+# évincée. Borne la mémoire d'un process.
+ARTICLE_CACHE_MAX_CATEGORIES = _env_int("ARTICLE_CACHE_MAX_CATEGORIES", 200)
+
+# Articles distincts conservés par catégorie : une même recherche ne doit pas
+# servir éternellement le même article.
+ARTICLE_CACHE_VARIANTS = _env_int("ARTICLE_CACHE_VARIANTS", 3)
+
+# Mettre à 0 pour désactiver le cache (mesure du coût brut, débogage).
+ARTICLE_CACHE_ENABLED = _env_int("ARTICLE_CACHE_ENABLED", 1)
+
+# ---------------------------------------------------------------------------
 # Limites de salle
 # ---------------------------------------------------------------------------
 

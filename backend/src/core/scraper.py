@@ -4,8 +4,8 @@ import difflib
 from typing import Optional
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
 from src.log import get_logger
+from src.usage import record_call
 
 from .settings import (
     HTTP_TIMEOUT,
@@ -45,9 +45,18 @@ def get_topic_from_category(category: str, exclude_topics: list = None) -> str:
         "Donne-moi le titre exact d'un article Wikipedia français intéressant lié à cette catégorie.{exclude_str} "
         "Retourne UNIQUEMENT le nom de l'article, rien d'autre."
     )
-    chain = prompt | llm | StrOutputParser()
-    topic = chain.invoke({"category": category, "exclude_str": exclude_str}).strip()
-    return topic
+    rendered = prompt.format_messages(category=category, exclude_str=exclude_str)
+    prompt_text = "\n".join(str(message.content) for message in rendered)
+    try:
+        message = llm.invoke(rendered)
+        topic = str(message.content).strip()
+        record_call("choix_de_sujet", prompt_text, topic,
+                    getattr(message, "usage_metadata", None))
+        return topic
+    except Exception as exc:
+        record_call("choix_de_sujet", prompt_text, "", None, failed=True)
+        log.warning("Choix de sujet échoué: %s", exc)
+        raise
 
 def _direct_match(category: str) -> Optional[str]:
     """Renvoie le titre exact si la saisie est déjà un article Wikipedia.

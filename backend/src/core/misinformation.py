@@ -1,9 +1,14 @@
 import random
 import json
+
+from src.log import get_logger
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
+from src.usage import record_call
+
 from .settings import MODEL_NAME
+
+log = get_logger(__name__)
 
 NUM_FAKES = 4
 MIN_PARAGRAPH_LENGTH = 100
@@ -151,12 +156,19 @@ Assure-toi de renvoyer UNIQUEMENT le tableau JSON valide, sans autres textes.
         for idx, text in selected
     ], ensure_ascii=False)
 
-    chain = prompt | llm | StrOutputParser()
+    # On invoque le modèle sans parseur de sortie pour conserver
+    # `usage_metadata` : c'est la seule source fiable du coût réel.
+    rendered = prompt.format_messages(topic=topic, paragraphs_json=items_payload)
+    prompt_text = "\n".join(str(message.content) for message in rendered)
     try:
-        response = chain.invoke({"topic": topic, "paragraphs_json": items_payload}).strip()
-        return _parse_json_array(response)
-    except Exception as e:
-        print(f"Erreur LLM batch fake generation: {e}")
+        message = llm.invoke(rendered)
+        text = str(message.content).strip()
+        record_call("falsification", prompt_text, text,
+                    getattr(message, "usage_metadata", None))
+        return _parse_json_array(text)
+    except Exception as exc:
+        record_call("falsification", prompt_text, "", None, failed=True)
+        log.warning("Génération groupée des faux échouée: %s", exc)
         return []
 
 def swap_paragraphs(paragraphs: list, topic: str) -> tuple[list, list]:
