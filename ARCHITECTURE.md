@@ -60,7 +60,9 @@ FastAPI. `main.py` ne fait qu'exposer `app` ; tout le reste vit sous `src/`.
 | `src/api/` | Les routes HTTP, une par domaine (`game`, `rooms`, `flags`, `health`) + `static_files` qui sert le front buildé. |
 | `src/realtime/` | Le multijoueur WebSocket : `room` (état + validation des pseudos), `handlers` (une fonction par type de message + table de dispatch), `broadcast`, `items`, `scoring`, `themes`, `ws` (l'endpoint). |
 | `src/app.py` | `create_app()` : assemble les routers puis le montage statique. |
-| `src/game.py` | `generate_game(category)` — génération **sans état**. Une instance partagée mémorisait auparavant la dernière partie, et deux joueurs simultanés s'écrasaient. |
+| `src/game.py` | `generate_game(category)` — génération **sans état**, servie par le cache quand c'est possible. Une instance partagée mémorisait auparavant la dernière partie, et deux joueurs simultanés s'écrasaient. |
+| `src/article_cache.py` | Cache des articles falsifiés. Chaque partie régénérait tout depuis zéro : c'était le premier poste de coût, et les dix secondes d'attente au lancement. Interface réduite à `get` / `put` pour qu'un stockage partagé (Redis, Postgres) s'y substitue en un seul fichier. |
+| `src/usage.py` | Compteurs d'appels au modèle, exposés par `/api/usage`. Sans mesure, impossible de savoir ce que coûte une partie. |
 | `src/scoring.py` | **Le barème**, partagé par le solo et le multijoueur. `realtime/scoring.py` le réexporte et n'ajoute que le classement. |
 | `src/solo.py` | Sessions solo côté serveur : article, départ du chrono, indices payés. Le solo en a besoin pour la même raison que le multijoueur — sans état serveur, la solution ne peut pas rester cachée. |
 | `src/log.py` | `get_logger(__name__)`. Pas de `print` dans le code applicatif. |
@@ -76,6 +78,7 @@ process (`--workers 1`).
 |---|---|---|
 | `GET` | `/ping` | Sonde de vie, minimale (répartiteurs de charge) |
 | `GET` | `/api/health` | Version, commit déployé, modèle — voir *Déploiement* |
+| `GET` | `/api/usage` | Consommation du modèle et efficacité du cache |
 | `POST` | `/api/multiplayer/create` | Crée une salle → `{room_code}` |
 | `POST` | `/api/game/start` | Partie solo → `{session_id, …}`, **sans la solution** |
 | `POST` | `/api/game/hint` | Achète un indice (niveau 1 ou 2), facturé serveur |

@@ -8,6 +8,7 @@ import os
 
 from fastapi import APIRouter
 
+from src import article_cache, usage
 from src.core.settings import MODEL_NAME
 from src.version import VERSION
 
@@ -42,3 +43,14 @@ def health():
         # Dit si la génération d'articles peut fonctionner, sans divulguer la clé.
         "llm_configured": bool(os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")),
     }
+
+
+@router.get("/api/usage")
+def usage_report():
+    """Consommation du modèle et efficacité du cache.
+
+    Sert à répondre à une question chiffrée : combien coûte une partie ?
+    Sans elle, impossible de savoir si un modèle publicitaire tient. Les
+    compteurs sont en mémoire et repartent de zéro à chaque redémarrage.
+    """
+    return {"usage": usage.snapshot(), "cache": article_cache.stats()}
