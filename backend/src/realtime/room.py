@@ -6,6 +6,7 @@ ad-hoc dicts to dataclasses so every field has one obvious home and default.
 """
 import asyncio
 import random
+import time
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -27,6 +28,11 @@ class Player:
     ready: bool = False
     connected: bool = True
     items: list[dict] = field(default_factory=list)
+    # Rôle d'hôte : décidé et vérifié par le serveur. Le client se contentait
+    # auparavant de le déduire tout seul, si bien que n'importe quel joueur
+    # pouvait lancer la partie ou couper le vote.
+    is_host: bool = False
+    joined_at: float = field(default_factory=time.time)
 
 
 @dataclass
@@ -53,3 +59,30 @@ def assign_color(room: Room) -> str:
     used_colors = [p.color for p in room.players.values()]
     available = [c for c in AVAILABLE_COLORS if c not in used_colors]
     return available[0] if available else random.choice(AVAILABLE_COLORS)
+
+
+def promote_host(room: Room) -> Optional[Player]:
+    """Garantit qu'exactement un joueur connecté porte le rôle d'hôte.
+
+    Appelé à chaque arrivée et à chaque départ : si l'hôte se déconnecte, le
+    plus ancien joueur encore connecté prend le relais.
+    """
+    current = next((p for p in room.players.values() if p.is_host), None)
+    if current is not None and current.connected:
+        return current
+    if current is not None:
+        current.is_host = False
+
+    candidates = sorted(
+        (p for p in room.players.values() if p.connected),
+        key=lambda p: p.joined_at,
+    )
+    if not candidates:
+        return None
+    candidates[0].is_host = True
+    return candidates[0]
+
+
+def is_host(room: Room, player_name: str) -> bool:
+    player = room.players.get(player_name)
+    return bool(player and player.is_host)

@@ -17,19 +17,39 @@ from src.game import generate_game
 
 from .broadcast import broadcast, broadcast_lobby
 from .items import item_distribution_loop
-from .room import GAME_DURATION, Room
+from .room import GAME_DURATION, Room, is_host
 from .scoring import build_leaderboard, compute_score
 from .themes import pick_and_start, start_theme_voting
 
 Handler = Callable[[str, Room, str, WebSocket, dict], Awaitable[None]]
 
 
+async def _reject_if_not_host(room: Room, player_name: str, websocket: WebSocket) -> bool:
+    """Refuse une commande réservée à l'hôte. Retourne True si elle est refusée.
+
+    Le rôle vient de l'état serveur (`Player.is_host`) : auparavant `isHost`
+    n'existait que côté client, n'importe qui pouvait donc lancer la partie,
+    couper le vote ou changer la durée.
+    """
+    if is_host(room, player_name):
+        return False
+    await websocket.send_text(json.dumps({
+        "type": "error",
+        "code": "not_host",
+        "message": "Seul l'hôte peut faire cela.",
+    }))
+    return True
+
+
 async def handle_set_ready(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:
     room.players[player_name].ready = data.get("ready", True)
-    if "with_items" in data:
-        room.with_items = data["with_items"]
-    if "time_limit" in data:
-        room.time_limit = int(data["time_limit"])
+    # Les options de partie appartiennent à l'hôte : un invité qui les envoie
+    # (le client les joint à chaque `set_ready`) ne doit pas pouvoir les changer.
+    if is_host(room, player_name):
+        if "with_items" in data:
+            room.with_items = data["with_items"]
+        if "time_limit" in data:
+            room.time_limit = int(data["time_limit"])
     await broadcast_lobby(room_code)
 
 
@@ -39,6 +59,8 @@ async def handle_get_lobby(room_code: str, room: Room, player_name: str, websock
 
 async def handle_force_start(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:
     if room.state != "waiting":
+        return
+    if await _reject_if_not_host(room, player_name, websocket):
         return
     if "with_items" in data:
         room.with_items = data["with_items"]
@@ -68,6 +90,8 @@ async def handle_submit_theme(room_code: str, room: Room, player_name: str, webs
 async def handle_force_pick(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:
     if room.state != "theme_voting":
         return
+    if await _reject_if_not_host(room, player_name, websocket):
+        return
     if room.voting_themes:
         await pick_and_start(room_code)
     else:
@@ -77,6 +101,8 @@ async def handle_force_pick(room_code: str, room: Room, player_name: str, websoc
 async def handle_start_game(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:
     """Direct start with a chosen category (no theme voting)."""
     if room.state != "waiting":
+        return
+    if await _reject_if_not_host(room, player_name, websocket):
         return
     category = data.get("category")
     with_items = data.get("with_items", True)

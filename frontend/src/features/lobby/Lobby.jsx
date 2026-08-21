@@ -27,9 +27,11 @@ export function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeav
 
   const [username, setUsername] = useState(existingMultiplayer?.username || '');
   const [roomCode, setRoomCode] = useState(existingMultiplayer?.roomCode || '');
-  const [isHost, setIsHost] = useState(existingMultiplayer?.isHost || false);
 
   const [players, setPlayers] = useState([]);
+  // Le serveur est seul à décider qui est l'hôte (`Player.is_host`) et refuse
+  // les commandes d'hôte aux autres. On lit son verdict, on ne le devine plus.
+  const isHost = players.some((p) => p.name === username && p.isHost);
   const [isReady, setIsReady] = useState(false);
   const [voting, setVoting] = useState(null);
   const [selectedTheme, setSelectedTheme] = useState(null);
@@ -106,7 +108,6 @@ export function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeav
     try {
       const { room_code: code } = await createRoom();
       setRoomCode(code);
-      setIsHost(true);
       connect(code, username);
       setLoading(false);
       setScreen('room');
@@ -121,7 +122,6 @@ export function Lobby({ onStart, onMultiplayerStart, existingMultiplayer, onLeav
     if (!username || !roomCode) return;
     setLoading(true);
     setError('');
-    setIsHost(false);
     const code = roomCode.toUpperCase();
     setRoomCode(code);
     connect(code, username);
