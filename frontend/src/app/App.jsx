@@ -22,6 +22,10 @@ export function App() {
       players: data.players || null,
       withItems: data.with_items,
       timeLimit: timeLimit || data.time_limit || GAME_DURATION,
+      // Identifiant de session solo : c'est par lui que le client demande un
+      // indice, un scan ou la correction. Absent en multijoueur, où tout
+      // passe par le socket de la salle.
+      soloId: data.session_id || null,
       multiplayer,
     });
     playSound('start');

@@ -9,9 +9,15 @@ import { renderToString } from 'react-dom/server';
 
 import { App } from '../src/app/App.jsx';
 import { GameSession } from '../src/features/game/GameSession.jsx';
-import { buildArticle } from '../src/lib/article.js';
+import { buildArticle, withSolution } from '../src/lib/article.js';
 
-/** A round payload shaped exactly like the backend's `game_start` data. */
+/**
+ * A round payload shaped exactly like the backend's `game_start` data.
+ *
+ * Il ne contient PAS `positions` : le serveur ne livre la solution qu'à la fin
+ * de la manche. `SOLUTION` reproduit ce que renvoient `game_end` et
+ * `/api/game/submit`.
+ */
 const ROUND = {
   topic: 'Tour Eiffel',
   wikipedia_url: 'https://fr.wikipedia.org/wiki/Tour_Eiffel',
@@ -21,23 +27,40 @@ const ROUND = {
     "Construite par Gustave Eiffel, elle fut achevée en 1889 pour l'Exposition universelle.",
     'Elle mesure 330 mètres de hauteur et reçoit environ sept millions de visiteurs par an.',
   ],
-  positions: [
-    { paragraph_index: 2, false_statement: 'achevée en 1889', explanation: 'En réalité 1889.', hint: 'Vérifiez la date.' },
-    { paragraph_index: 3, false_statement: '330 mètres', explanation: 'En réalité 330 m.', hint: 'Vérifiez la hauteur.' },
-  ],
 };
+
+const SOLUTION = [
+  { paragraph_index: 2, false_info_number: 1, false_statement: 'achevée en 1889',
+    explanation: 'En réalité 1889.', hint: 'Vérifiez la date.' },
+  { paragraph_index: 3, false_info_number: 2, false_statement: '330 mètres',
+    explanation: 'En réalité 330 m.', hint: 'Vérifiez la hauteur.' },
+];
 
 export function renderLobby() {
   return renderToString(<App />);
 }
 
-export function renderRound() {
-  const session = {
-    article: buildArticle(ROUND),
+function soloSession(article) {
+  return {
+    article,
     players: null,
     withItems: false,
     timeLimit: 300,
+    soloId: 'smoke-session',
     multiplayer: null,
   };
-  return renderToString(<GameSession session={session} onEndRound={() => {}} />);
+}
+
+export function renderRound() {
+  return renderToString(
+    <GameSession session={soloSession(buildArticle(ROUND))} onEndRound={() => {}} />,
+  );
+}
+
+/** L'article une fois la correction reçue : les faux deviennent identifiables. */
+export function renderRevealed() {
+  const article = withSolution(buildArticle(ROUND), SOLUTION);
+  return renderToString(
+    <GameSession session={soloSession(article)} onEndRound={() => {}} />,
+  );
 }

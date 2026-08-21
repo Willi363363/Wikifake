@@ -14,7 +14,7 @@ import { BackgroundAnimation } from './BackgroundAnimation.jsx';
 import { GameLauncher } from './GameLauncher.jsx';
 import { GAMES } from './minigames';
 
-export const WaitingScreen = forwardRef(function WaitingScreen({ category, onReady, onError, isMultiplayer, lobbyPlayers, roomCode }, ref) {
+export const WaitingScreen = forwardRef(function WaitingScreen({ category, timeLimit, onReady, onError, isMultiplayer, lobbyPlayers, roomCode }, ref) {
   const [progress, setProgress] = useState(0);
   const [dataReady, setDataReady] = useState(null);
   const [fadingOut, setFadingOut] = useState(false);
@@ -46,7 +46,7 @@ export const WaitingScreen = forwardRef(function WaitingScreen({ category, onRea
     let cancelled = false;
     (async () => {
       try {
-        const data = await startSoloGame(category);
+        const data = await startSoloGame(category, timeLimit);
         if (cancelled) return;
         fetchDone.current = true;
         clearInterval(progressRef.current);
@@ -57,7 +57,7 @@ export const WaitingScreen = forwardRef(function WaitingScreen({ category, onRea
       }
     })();
     return () => { cancelled = true; };
-  }, [category, isMultiplayer]);
+  }, [category, timeLimit, isMultiplayer]);
 
   // Imperative handle for multiplayer: the lobby calls ready(data) when the
   // round arrives, instead of the old window.__waitingScreenReady global.

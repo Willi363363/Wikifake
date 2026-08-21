@@ -1,49 +1,17 @@
 /**
- * Client-side scoring.
+ * Score display.
  *
- * The backend recomputes the authoritative score on submit; this mirror exists
- * so the HUD, the live leaderboard and the debrief can show numbers before the
- * server answers. The arithmetic is kept in sync through `SCORING` in config.
+ * The client no longer knows which paragraphs are sabotaged during the round,
+ * so it cannot count true or false positives: the authoritative breakdown is
+ * computed by the backend and arrives with `game_end` (multiplayer) or with
+ * the submit response (solo).
+ *
+ * Two shapes are exposed:
+ *  - `useLiveScore`  — optimistic number shown while playing.
+ *  - `finalStats`    — the debrief numbers, derived from the server breakdown.
  */
 import { useMemo } from 'react';
 import { SCORING } from '../../config.js';
-
-/**
- * Full breakdown for the debrief.
- * @param fakes  article.fakes — the tokens that are actually sabotaged
- */
-export function useScore({ marked, edited, fakes, time, hintPenalty, scoreStolen, sessionId }) {
-  return useMemo(() => {
-    const selected = new Set([...Object.keys(marked), ...Object.keys(edited)]);
-    const fakeTokenIds = new Set(fakes.map((f) => f.tokenId));
-
-    let truePositives = 0;
-    let falsePositives = 0;
-    for (const id of selected) {
-      if (fakeTokenIds.has(id)) truePositives += 1;
-      else falsePositives += 1;
-    }
-
-    const totalFakes = fakes.length;
-    const missed = totalFakes - truePositives;
-
-    const precision = (truePositives + falsePositives) === 0
-      ? 0 : truePositives / (truePositives + falsePositives);
-    const recall = totalFakes === 0 ? 0 : truePositives / totalFakes;
-    const f1 = (precision + recall) === 0 ? 0 : (2 * precision * recall) / (precision + recall);
-
-    const baseScore = truePositives * SCORING.perCorrect;
-    const fpPenalty = falsePositives * SCORING.perFalsePositive;
-    const timeBonus = Math.max(0, Math.floor(time * SCORING.timeBonusPerSecond));
-
-    return {
-      truePositives, falsePositives, missed, f1, totalFakes,
-      baseScore, fpPenalty, hintPenalty, timeBonus,
-      finalScore: baseScore - fpPenalty - hintPenalty - scoreStolen + timeBonus,
-      sessionId,
-    };
-  }, [marked, edited, fakes, time, hintPenalty, scoreStolen, sessionId]);
-}
 
 /**
  * The optimistic score broadcast to rivals during the round.
@@ -55,5 +23,47 @@ export function useLiveScore({ markedCount, hintPenalty }) {
   return useMemo(
     () => markedCount * SCORING.perCorrect - hintPenalty,
     [markedCount, hintPenalty],
+  );
+}
+
+const EMPTY_BREAKDOWN = { tp: 0, fp: 0, hintsUsed: 0, hintPenalty: 0, scoreStolen: 0, timeBonus: 0 };
+
+/**
+ * Debrief numbers, from the server's own arithmetic.
+ *
+ * @param breakdown  Server breakdown (`tp`, `fp`, `hintPenalty`, `timeBonus`…).
+ * @param totalFakes How many paragraphs were sabotaged.
+ * @param sessionId  Label shown in the debrief header.
+ */
+export function finalStats(breakdown, totalFakes, sessionId) {
+  const b = { ...EMPTY_BREAKDOWN, ...(breakdown || {}) };
+
+  const precision = (b.tp + b.fp) === 0 ? 0 : b.tp / (b.tp + b.fp);
+  const recall = totalFakes === 0 ? 0 : b.tp / totalFakes;
+  const f1 = (precision + recall) === 0 ? 0 : (2 * precision * recall) / (precision + recall);
+
+  const baseScore = b.tp * SCORING.perCorrect;
+  const fpPenalty = b.fp * SCORING.perFalsePositive;
+
+  return {
+    truePositives: b.tp,
+    falsePositives: b.fp,
+    missed: Math.max(0, totalFakes - b.tp),
+    f1,
+    totalFakes,
+    baseScore,
+    fpPenalty,
+    hintPenalty: b.hintPenalty,
+    timeBonus: b.timeBonus,
+    finalScore: baseScore - fpPenalty - b.hintPenalty - (b.scoreStolen || 0) + b.timeBonus,
+    sessionId,
+  };
+}
+
+/** Hook wrapper, so the debrief re-renders only when the breakdown changes. */
+export function useFinalStats(breakdown, totalFakes, sessionId) {
+  return useMemo(
+    () => finalStats(breakdown, totalFakes, sessionId),
+    [breakdown, totalFakes, sessionId],
   );
 }

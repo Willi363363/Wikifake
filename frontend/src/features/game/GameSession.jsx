@@ -11,7 +11,8 @@ import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { GAME_DURATION, NEUTRAL_PLAYER_COLOR, TWEAK_DEFAULTS } from '../../config.js';
 import { playSound } from '../../lib/sound.js';
 import { send, useSocketMessages } from '../../lib/ws.js';
-import { articleUrl } from '../../lib/article.js';
+import { articleUrl, hintTargets, tokenIdFor, withSolution } from '../../lib/article.js';
+import { scanSoloParagraph, submitSoloAnswers, unlockSoloHint } from '../../lib/api.js';
 import { useTweaks } from '../../vendor/tweaks/index.jsx';
 import { useAccent, accentColor } from '../../app/useAccent.js';
 
@@ -29,7 +30,7 @@ import { HintLockedNotice } from './HintLockedNotice.jsx';
 import { useSelection } from './useSelection.js';
 import { useTimer } from './useTimer.js';
 import { useHints } from './useHints.js';
-import { useScore, useLiveScore } from './useScore.js';
+import { useFinalStats, useLiveScore } from './useScore.js';
 import { useLiveCursors } from './useLiveCursors.js';
 
 import { ItemBar, ItemTargetModal, ItemNotification, isSelfCast } from '../items/index.js';
@@ -41,7 +42,7 @@ import { ChatPanel } from '../chat/index.js';
 import { FlagButton, FlagCaptureModal, FlagToast, FlagReportForm } from '../flag/index.js';
 
 export function GameSession({ session, onEndRound }) {
-  const { article, multiplayer } = session;
+  const { article: baseArticle, multiplayer } = session;
   const socket = multiplayer?.socket || null;
   const me = multiplayer?.username;
 
@@ -49,6 +50,10 @@ export function GameSession({ session, onEndRound }) {
   useAccent(t.accent);
 
   const [revealAll, setRevealAll] = useState(false);
+  // Correction envoyée par le serveur à la fin de la manche : le client ne
+  // l'a jamais avant (cf. lib/article.js).
+  const [solution, setSolution] = useState(null);
+  const [myBreakdown, setMyBreakdown] = useState(null);
   const [scoreStolen, setScoreStolen] = useState(0);
   const [items, setItems] = useState([]);
   const [itemModal, setItemModal] = useState(null);
@@ -68,11 +73,34 @@ export function GameSession({ session, onEndRound }) {
 
   const articleRef = useRef(null);
 
+  // L'article ne porte les faux qu'une fois la solution reçue.
+  const article = useMemo(
+    () => (solution ? withSolution(baseArticle, solution) : baseArticle),
+    [baseArticle, solution],
+  );
+  const totalFakes = baseArticle.totalFakes ?? 0;
+
   const playing = t.gameState === 'playing' && !revealAll;
 
   const [time, setTime] = useTimer(session.timeLimit || GAME_DURATION, playing);
   const selection = useSelection(t.mode, revealAll);
-  const hints = useHints(article.fakes, socket);
+
+  // Un seul contrat, deux transports : le socket en multijoueur, le REST en
+  // solo. Dans les deux cas c'est le serveur qui facture et livre le texte.
+  const hintsRef = useRef(null);
+  const requestHint = useCallback((number, level) => {
+    if (socket) {
+      send(socket, 'unlock_hint', { number, level });
+      return;
+    }
+    if (!session.soloId) return;
+    unlockSoloHint(session.soloId, number, level)
+      .then((payload) => hintsRef.current?.applyServerHint(payload))
+      .catch(() => {});
+  }, [socket, session.soloId]);
+
+  const hints = useHints(totalFakes, requestHint);
+  hintsRef.current = hints;
   const { cursors, trackCursor } = useLiveCursors(socket, playing);
 
   const effects = useItemEffects({
@@ -80,15 +108,7 @@ export function GameSession({ session, onEndRound }) {
     onScoreStolen: (points) => setScoreStolen((prev) => prev + points),
   });
 
-  const stats = useScore({
-    marked: selection.marked,
-    edited: selection.edited,
-    fakes: article.fakes,
-    time,
-    hintPenalty: hints.hintPenalty,
-    scoreStolen,
-    sessionId: t.sessionId,
-  });
+  const stats = useFinalStats(myBreakdown, totalFakes, t.sessionId);
   const liveScore = useLiveScore({ markedCount: selection.markedCount, hintPenalty: hints.hintPenalty });
 
   // ---- Submission -----------------------------------------------------------
@@ -102,9 +122,21 @@ export function GameSession({ session, onEndRound }) {
       setWaitingForOthers(true);
       return;
     }
-    setRevealAll(true);
-    setTimeout(() => setTweak('gameState', 'results'), 600);
-  }, [socket, selection.answerIndices, setTweak]);
+    // En solo aussi, c'est le serveur qui corrige et qui livre la solution.
+    if (!session.soloId) return;
+    submitSoloAnswers(session.soloId, selection.answerIndices)
+      .then((result) => {
+        setMyBreakdown(result.breakdown);
+        setSolution(result.positions);
+        setRevealAll(true);
+        setTimeout(() => setTweak('gameState', 'results'), 600);
+      })
+      .catch(() => {
+        // La manche est jouée : on montre au moins le débriefing.
+        setRevealAll(true);
+        setTimeout(() => setTweak('gameState', 'results'), 600);
+      });
+  }, [socket, session.soloId, selection.answerIndices, setTweak]);
 
   const unsubmit = useCallback(() => {
     if (!socket) return;
@@ -126,11 +158,25 @@ export function GameSession({ session, onEndRound }) {
 
   useSocketMessages(socket, (msg) => {
     switch (msg.type) {
-      case 'game_end':
+      case 'game_end': {
         setWaitingForOthers(false);
         setLeaderboard(msg.leaderboard);
+        // La correction n'arrive qu'ici.
+        setSolution(msg.positions || []);
+        const mine = (msg.leaderboard || []).find((row) => row.name === me);
+        setMyBreakdown(mine?.breakdown || null);
         setRevealAll(true);
         setTimeout(() => setTweak('gameState', 'results'), 600);
+        break;
+      }
+      case 'hint_unlocked':
+        hintsRef.current?.applyServerHint(msg);
+        break;
+      case 'scanner_result':
+        if (msg.paragraph_index) {
+          playSound('scanner');
+          setScannedParagraphs((prev) => new Set([...prev, tokenIdFor(msg.paragraph_index)]));
+        }
         break;
       case 'live_score_update':
         setLiveScores((prev) => ({ ...prev, [msg.player]: msg.score }));
@@ -159,32 +205,20 @@ export function GameSession({ session, onEndRound }) {
     if (socket && t.gameState === 'playing') send(socket, 'live_score', { score: liveScore });
   }, [socket, liveScore, t.gameState]);
 
-  // The Détecteur reveals one still-unfound sabotaged paragraph.
+  // Le Détecteur : le client ne sait plus quels paragraphes sont falsifiés,
+  // c'est le serveur qui en désigne un (`scanner_result` en multijoueur,
+  // `/api/game/scan` en solo).
   useEffect(() => {
-    if (effects.scannerTrigger === 0) return;
-    setScannedParagraphs((prev) => {
-      const candidates = article.fakes
-        .map((f) => f.tokenId)
-        .filter((id) => !selection.marked[id] && !selection.edited[id] && !prev.has(id));
-      if (candidates.length === 0) return prev;
-      playSound('scanner');
-      return new Set([...prev, candidates[Math.floor(Math.random() * candidates.length)]]);
-    });
-    // Intentionally keyed on the trigger alone: a re-scan only happens on a new item use.
-  }, [effects.scannerTrigger]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ---- Items ----------------------------------------------------------------
-
-  const useItem = useCallback((item) => {
-    if (!socket) return;
-    if (isSelfCast(item.id)) {
-      playSound('item_use');
-      send(socket, 'use_item', { instance_id: item.instance_id, targets: [me] });
-      setItems((prev) => prev.filter((it) => it.instance_id !== item.instance_id));
-      return;
-    }
-    setItemModal(item);
-  }, [socket, me]);
+    if (effects.scannerTrigger === 0 || socket) return;
+    if (!session.soloId) return;
+    scanSoloParagraph(session.soloId, selection.answerIndices)
+      .then((result) => {
+        if (!result.paragraph_index) return;
+        playSound('scanner');
+        setScannedParagraphs((prev) => new Set([...prev, tokenIdFor(result.paragraph_index)]));
+      })
+      .catch(() => {});
+  }, [effects.scannerTrigger, socket, session.soloId, selection.answerIndices]);
 
   const confirmUseItem = useCallback((targetName) => {
     if (!itemModal || !socket) return;
@@ -229,7 +263,6 @@ export function GameSession({ session, onEndRound }) {
 
   // ---- Render ---------------------------------------------------------------
 
-  const totalFakes = article.fakes.length;
   const progress = Math.min(100, (selection.markedCount / totalFakes) * 100);
 
   const restart = (kind) => {
@@ -350,8 +383,8 @@ export function GameSession({ session, onEndRound }) {
       <IntelOverlay
         open={intelOpen && !effects.flags.hintLocked}
         onClose={() => setIntelOpen(false)}
-        targets={article.fakes}
-        unlocked={hints.unlocks}
+        targets={hintTargets(totalFakes)}
+        unlocked={hints.levels}
         revealed={hints.revealed}
         onUnlock={hints.unlock}
       />

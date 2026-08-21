@@ -39,6 +39,9 @@ class Player:
     hint_levels: dict[int, int] = field(default_factory=dict)
     score_stolen: int = 0
     hints_blocked_until: float = 0.0
+    # Paragraphes déjà désignés à ce joueur par le Détecteur : le serveur
+    # choisit désormais la cible, le client ne connaît plus la solution.
+    scanned: list[int] = field(default_factory=list)
 
     @property
     def hints_used(self) -> int:
@@ -57,6 +60,7 @@ class Player:
         self.hint_levels = {}
         self.score_stolen = 0
         self.hints_blocked_until = 0.0
+        self.scanned = []
 
 
 @dataclass

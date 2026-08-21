@@ -7,6 +7,7 @@ a uniform signature so `HANDLERS` can stay a flat dict.
 """
 import asyncio
 import json
+import random
 import time
 from typing import Awaitable, Callable
 
@@ -132,10 +133,9 @@ async def handle_start_game(room_code: str, room: Room, player_name: str, websoc
         "data": {
             "topic": game_data["topic"],
             "paragraphs": game_data["paragraphs"],
-            # `misinformations` n'est plus transmis : il portait `original_text`,
-            # c'est-à-dire le texte authentique de chaque paragraphe falsifié.
-            # Un simple diff donnait la solution, et aucun client ne le lisait.
-            "positions": game_data["positions"],
+            # Ni `positions` ni `misinformations` : la solution reste au
+            # serveur jusqu'à `game_end`. Le client ne peut donc plus la lire
+            # dans le DevTools ni s'en servir pour ses indices.
             "total_fakes": game_data["total_false_statements"],
             "wikipedia_url": game_data.get("wikipedia_url", ""),
             "players": list(room.players.keys()),
@@ -212,6 +212,8 @@ async def handle_use_item(room_code: str, room: Room, player_name: str, websocke
         for target in targets:
             if target in room.players:
                 _apply_scoring_effect(room.players[target], item_used["id"])
+                if item_used["id"] == "SCANNER":
+                    await _send_scanner_result(room, target, data.get("marked", []))
                 try:
                     await room.players[target].socket.send_text(json.dumps({
                         "type": "item_effect",
@@ -230,6 +232,41 @@ async def handle_use_item(room_code: str, room: Room, player_name: str, websocke
             "item_icon": item_used["icon"],
             "targets": targets,
         })
+
+
+async def _send_scanner_result(room: Room, target_name: str, marked: list) -> None:
+    """Désigne au joueur un paragraphe falsifié qu'il n'a pas encore repéré.
+
+    Le client ne connaît plus la solution : c'est le serveur qui choisit.
+    `marked` sert seulement à ne pas désigner un paragraphe déjà coché ; le
+    falsifier ne rapporte rien.
+    """
+    if not room.game_data:
+        return
+    player = room.players[target_name]
+    try:
+        already = {int(index) for index in marked}
+    except (TypeError, ValueError):
+        already = set()
+
+    candidates = [
+        position["paragraph_index"]
+        for position in room.game_data["positions"]
+        if position["paragraph_index"] not in already
+        and position["paragraph_index"] not in player.scanned
+    ]
+    if not candidates:
+        return
+
+    chosen = random.choice(candidates)
+    player.scanned.append(chosen)
+    try:
+        await player.socket.send_text(json.dumps({
+            "type": "scanner_result",
+            "paragraph_index": chosen,
+        }))
+    except Exception:
+        pass
 
 
 async def handle_unlock_hint(room_code: str, room: Room, player_name: str, websocket: WebSocket, data: dict) -> None:
@@ -329,7 +366,12 @@ async def handle_submit_answer(room_code: str, room: Room, player_name: str, web
         room.state = "waiting"
         for p in room.players.values():
             p.ready = False
-        await broadcast(room_code, {"type": "game_end", "leaderboard": final_leaderboard})
+        await broadcast(room_code, {
+            "type": "game_end",
+            "leaderboard": final_leaderboard,
+            # La correction n'est révélée qu'ici, une fois la manche jouée.
+            "positions": room.game_data["positions"],
+        })
     else:
         await broadcast_lobby(room_code)
 

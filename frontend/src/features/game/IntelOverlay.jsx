@@ -5,6 +5,9 @@
 import { LabelMono, Chip } from '../../components/ui';
 
 export function IntelOverlay({ open, onClose, targets, unlocked, revealed = {}, onUnlock }) {
+  // `targets` ne sont que des numéros : le joueur sait COMBIEN de
+  // paragraphes sont falsifiés, jamais lesquels. Chaque case se remplit
+  // quand le serveur a facturé et livré l'indice correspondant.
   if (!open) return null;
   return (
     <div
@@ -47,7 +50,7 @@ export function IntelOverlay({ open, onClose, targets, unlocked, revealed = {}, 
               </svg>
             </span>
             <div>
-              <LabelMono style={{ fontSize: 9 }}>Intel — request hints</LabelMono>
+              <LabelMono style={{ fontSize: 9 }}>Intel — acheter un indice</LabelMono>
               <div style={{ fontFamily: "'Instrument Serif', serif", fontSize: 26, color: "var(--ink)", lineHeight: 1.1, letterSpacing: "-0.01em" }}>
                 Briefing room
               </div>
@@ -69,12 +72,10 @@ export function IntelOverlay({ open, onClose, targets, unlocked, revealed = {}, 
           gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
           gap: 10,
         }}>
-          {targets.map((t, i) => {
-            const u = unlocked[t.id] || 0;
-            // En multijoueur le texte vient du serveur, qui vient de le
-            // facturer ; en solo il est déjà dans l'article.
-            const hint = revealed[t.id]?.hint ?? t.hint;
-            const truth = revealed[t.id]?.truth ?? t.truth ?? '';
+          {targets.map((t) => {
+            const u = unlocked[t.number] || 0;
+            const hint = revealed[t.number]?.hint || '';
+            const truth = revealed[t.number]?.truth || '';
             return (
               <div key={t.id} style={{
                 border: `1px solid ${u > 0 ? "rgba(140,109,54,0.25)" : "var(--line)"}`,
@@ -87,7 +88,7 @@ export function IntelOverlay({ open, onClose, targets, unlocked, revealed = {}, 
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <LabelMono style={{ fontSize: 9, color: u > 0 ? "var(--bronze)" : "var(--muted)" }}>
-                    Target #{String(i + 1).padStart(2, "0")}
+                    Cible #{String(t.number).padStart(2, "0")}
                   </LabelMono>
                   <span style={{
                     width: 6, height: 6, borderRadius: "50%",
@@ -103,21 +104,21 @@ export function IntelOverlay({ open, onClose, targets, unlocked, revealed = {}, 
                 }}>
                   {u === 0 && "▒▒▒▒▒ ▒▒▒▒▒▒ ▒▒▒ ▒▒▒"}
                   {u === 1 && hint}
-                  {u === 2 && truth.slice(0, 90) + "…"}
+                  {u === 2 && (truth ? truth.slice(0, 90) + "…" : hint)}
                 </div>
                 <div style={{ display: "flex", gap: 6 }}>
                   <button
                     className="btn ghost"
                     disabled={u >= 1}
-                    onClick={() => onUnlock(t.id, 1)}
+                    onClick={() => onUnlock(t.number, 1)}
                     style={{ flex: 1, fontSize: 11, padding: "5px 10px" }}
-                  >Hint</button>
+                  >Indice</button>
                   <button
                     className="btn ghost"
                     disabled={u >= 2}
-                    onClick={() => onUnlock(t.id, 2)}
+                    onClick={() => onUnlock(t.number, 2)}
                     style={{ flex: 1, fontSize: 11, padding: "5px 10px", color: u >= 2 ? "" : "var(--danger)" }}
-                  >Reveal</button>
+                  >Révéler</button>
                 </div>
               </div>
             );
