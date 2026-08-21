@@ -38,32 +38,33 @@ class FakeNewsGame:
         if not swaps:
             return None
         
-        # Modifier directement le DOM (soup)
-        from bs4 import BeautifulSoup
-        import random
-        
+        # Répercuter les faux dans le DOM et construire la vérité terrain.
+        #
+        # `swap_paragraphs` renvoie déjà l'index du paragraphe qu'il a modifié
+        # (`paragraph_index`, base 0 dans `paragraphs`). Cet index est la seule
+        # source de vérité : le réattribuer ferait noter le joueur sur un
+        # paragraphe qui n'a pas été altéré.
         soup = wikipedia_data["soup"]
         raw_paragraphs = wikipedia_data["raw_paragraphs"]
-        
+
         positions = []
-        selected_indices = random.sample(range(len(raw_paragraphs)), min(len(swaps), len(raw_paragraphs)))
-        
-        for idx, swap in enumerate(swaps):
-            if idx < len(selected_indices):
-                para_idx = selected_indices[idx]
+        for number, swap in enumerate(sorted(swaps, key=lambda s: s["paragraph_index"]), start=1):
+            para_idx = swap["paragraph_index"]
+
+            if para_idx < len(raw_paragraphs):
+                # Remplacer le contenu du vrai paragraphe par le faux généré par l'IA
                 p_tag = raw_paragraphs[para_idx]
-                
-                # Remplacer entièrement le contenu du vrai paragraphe par le faux paragraphe généré par l'IA
                 p_tag.clear()
                 p_tag.append(soup.new_string(swap["swapped_text"]))
-                
-                positions.append({
-                    "paragraph_index": para_idx + 1,
-                    "false_statement": swap["swapped_text"],
-                    "false_info_number": idx + 1,
-                    "explanation": swap.get("explanation", "Explication manquante."),
-                    "hint": swap.get("hint", "Vérifiez cette information.")
-                })
+
+            positions.append({
+                # Base 1 : c'est ce que le client renvoie quand il clique.
+                "paragraph_index": para_idx + 1,
+                "false_statement": swap["swapped_text"],
+                "false_info_number": number,
+                "explanation": swap.get("explanation", "Explication manquante."),
+                "hint": swap.get("hint", "Vérifiez cette information.")
+            })
         
         # Injection de la balise base pour conserver les styles
         head = soup.find('head')
