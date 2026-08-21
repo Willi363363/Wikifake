@@ -4,6 +4,7 @@ Non-régression : `submit_answer` lisait `hintsUsed`, `hintPenalty` et
 `scoreStolen` dans le message du joueur. Envoyer 0 effaçait ses pénalités,
 et une valeur négative offrait un bonus arbitraire.
 """
+import json
 import os
 
 if "GEMINI_API_KEY" not in os.environ:
@@ -180,3 +181,30 @@ def test_round_reset_clears_penalties():
         assert player.hint_levels == {}
         assert player.score_stolen == 0
         assert player.hints_used == 0
+
+
+def test_start_payload_never_carries_the_original_text():
+    """`misinformations` portait `original_text` : le texte authentique de
+    chaque paragraphe falsifié. Un diff suffisait à résoudre la partie."""
+    from unittest.mock import patch
+
+    from src.realtime import handlers
+
+    code = client.post("/api/multiplayer/create").json()["room_code"]
+    game_data = {
+        "topic": "Sujet",
+        "paragraphs": ["p1", "p2"],
+        "misinformations": [{"original_text": "SECRET", "swapped_text": "p1"}],
+        "positions": POSITIONS,
+        "total_false_statements": 2,
+        "wikipedia_url": "",
+    }
+
+    with client.websocket_connect(f"/ws/{code}/host") as ws:
+        drain(ws, "lobby_update")
+        with patch.object(handlers, "generate_game", return_value=game_data):
+            ws.send_json({"type": "start_game", "category": "Sujet"})
+            payload = drain(ws, "game_start")["data"]
+
+    assert "misinformations" not in payload
+    assert "SECRET" not in json.dumps(payload, ensure_ascii=False)

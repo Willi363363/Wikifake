@@ -16,7 +16,8 @@ def start_game(req: StartGameRequest):
     return {
         "topic": game_data["topic"],
         "paragraphs": game_data["paragraphs"],
-        "misinformations": game_data["misinformations"],
+        # Pas de `misinformations` : il contenait `original_text`, le texte
+        # authentique de chaque paragraphe falsifié.
         "positions": game_data["positions"],
         "total_fakes": game_data["total_false_statements"],
         "wikipedia_url": game_data.get("wikipedia_url", "")

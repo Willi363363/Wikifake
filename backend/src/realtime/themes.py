@@ -116,7 +116,9 @@ async def start_game_in_room(room_code: str, category: str, preloaded_game_data:
         "data": {
             "topic": game_data["topic"],
             "paragraphs": game_data["paragraphs"],
-            "misinformations": game_data["misinformations"],
+            # `misinformations` n'est plus transmis : il portait `original_text`,
+            # c'est-à-dire le texte authentique de chaque paragraphe falsifié.
+            # Un simple diff donnait la solution, et aucun client ne le lisait.
             "positions": game_data["positions"],
             "total_fakes": game_data["total_false_statements"],
             "wikipedia_url": game_data.get("wikipedia_url", ""),
