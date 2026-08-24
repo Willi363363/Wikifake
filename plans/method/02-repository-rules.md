@@ -144,7 +144,12 @@ ruleset.
 | PR required, CI green | — | — | ruleset |
 
 Both sides run the **same** file, `scripts/checks.sh`: there is no local
-version and no CI version drifting apart.
+version and no CI version drifting apart. It carries its own tests, in
+`packages/config/src/branch-rules.test.ts`: a rule engine that disarms itself
+disarms both sides at once.
+
+One rule has an exception, and only one: the `staging` → `main` promotion is a
+pull request whose head is a protected branch. `01-git-flow.md` describes it.
 
 ```bash
 git config core.hooksPath .githooks        # once per clone, or make hooks

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — PR open |
+| **State** | in progress — promotion to `main` open (#31) |
 | **Branch** | `feat/refonte-phase-0` (created before the English-only rule; later phases use `feat/rewrite-phase-N`) |
 | **Depends on** | nothing |
 | **Delivers** | a monorepo that builds and tests with no code in it |
@@ -88,6 +88,22 @@ setup in three commands.
 
 **Done when**: a fresh clone is operational by following the `README`, with
 no implicit knowledge.
+
+### ✅ 0.8 — Let the promotion pass its own checks
+
+The `staging` → `main` promotion pull request was refused by the conformance
+job: `scripts/checks.sh branch` read its head, saw `staging`, and reported a
+protected branch and a non-conforming name. The rule was right for every other
+pull request and wrong for the only one that carries a batch to production.
+
+`branch` now takes the base as a second argument and recognises the pair
+`staging` → `main` documented in `../method/01-git-flow.md`. Nothing else is
+loosened: any other protected head is still refused, and `push` is untouched.
+The command grew its first tests, in `packages/config/src/branch-rules.test.ts`.
+
+**Done when**: a test proves the promotion is accepted and that `main` as a
+head, `staging` onto itself and a push to a protected branch are still refused;
+the conformance job on the promotion PR is green.
 
 ## Exit gate
 

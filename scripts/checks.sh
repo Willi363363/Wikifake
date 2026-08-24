@@ -10,7 +10,7 @@
 #   staged                  checks on staged files (pre-commit)
 #   diff <base> [head]      checks over a commit range (CI)
 #   commit-msg <file>       commit message format
-#   branch <name>           protected branch + naming
+#   branch <name> [base]    protected branch + naming, for a PR head
 #   push <name>             protected branch (pre-push)
 #   lint <files...>         available linters on these files
 set -uo pipefail
@@ -186,6 +186,23 @@ check_branch_name() {
     || err "branch name \"$1\" is not conforming — expected <type>/<subject>, lowercase"
 }
 
+# One pull request legitimately has a protected branch as its head: the
+# promotion of `staging` to `main`, described in plans/method/01-git-flow.md.
+# It is recognised by the pair (head, base) and by nothing else — a protected
+# head anywhere else is a commit that bypassed the flow.
+is_promotion() { [ "$1" = 'staging' ] && [ "$2" = 'main' ]; }
+
+# `base` is empty when the caller has no target to name — a local hook. In that
+# case there is no promotion to recognise, and the rules apply in full.
+check_branch() {
+  if is_promotion "$1" "${2:-}"; then
+    info "\"$1\" → \"$2\": documented promotion, the branch rules do not apply"
+    return
+  fi
+  check_protected "$1"
+  check_branch_name "$1"
+}
+
 # --- file collection -------------------------------------------------------
 # `mapfile` is a bash 4+ builtin and `find -printf` is a GNU extension: neither
 # exists on a default macOS (bash 3.2 + BSD find). The hooks must work there
@@ -213,7 +230,7 @@ case "${1:-}" in
     run_file_checks "${files[@]}"; check_docs
     ;;
   commit-msg) check_commit_msg "${2:?message file required}" ;;
-  branch)     check_protected "${2:?name required}"; check_branch_name "$2" ;;
+  branch)     check_branch "${2:?name required}" "${3:-}" ;;
   push)       check_protected "${2:?name required}" ;;
   lint)       shift; check_lint "$@" ;;
   *) echo 'usage: scripts/checks.sh {staged|diff|commit-msg|branch|push|lint} [args]' >&2; exit 2 ;;
