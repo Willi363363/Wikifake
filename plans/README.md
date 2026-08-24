@@ -25,7 +25,7 @@ previous one unless its file says otherwise.
 | # | Phase | State | Fiche |
 |---|---|---|---|
 | 0 | Foundations — monorepo and tooling | **in progress** | `rewrite/phase-00-foundations.md` |
-| 1 | Core — `protocol` and `domain` | to do | `rewrite/phase-01-core.md` |
+| 1 | Core — `protocol` and `domain` | **in progress** | `rewrite/phase-01-core.md` |
 | 2 | Data — Drizzle and Postgres | to do | `rewrite/phase-02-data.md` |
 | 3 | Article — Wikipedia and model | to do | `rewrite/phase-03-article.md` |
 | 4 | API and authentication | to do | `rewrite/phase-04-api-and-auth.md` |

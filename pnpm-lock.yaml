@@ -54,6 +54,28 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.20.1)(supports-color@7.2.0)
 
+  packages/domain:
+    dependencies:
+      '@wikifake/protocol':
+        specifier: workspace:*
+        version: link:../protocol
+    devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^3.2.4
+        version: 3.2.7(supports-color@7.2.0)(vitest@3.2.7(@types/node@22.20.1)(supports-color@7.2.0))
+      '@wikifake/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^9.39.0
+        version: 9.39.5(supports-color@7.2.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)(supports-color@7.2.0)
+
   packages/env:
     dependencies:
       zod:
@@ -63,6 +85,28 @@ importers:
       '@types/node':
         specifier: ^22.18.9
         version: 22.20.1
+      '@vitest/coverage-v8':
+        specifier: ^3.2.4
+        version: 3.2.7(supports-color@7.2.0)(vitest@3.2.7(@types/node@22.20.1)(supports-color@7.2.0))
+      '@wikifake/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^9.39.0
+        version: 9.39.5(supports-color@7.2.0)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)(supports-color@7.2.0)
+
+  packages/protocol:
+    dependencies:
+      zod:
+        specifier: ^4.1.12
+        version: 4.4.3
+    devDependencies:
       '@vitest/coverage-v8':
         specifier: ^3.2.4
         version: 3.2.7(supports-color@7.2.0)(vitest@3.2.7(@types/node@22.20.1)(supports-color@7.2.0))
