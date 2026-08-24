@@ -143,6 +143,13 @@ of the migration.
   the model on every report and does not call `record_call`, so `/api/usage`
   under-reports the spend and the cost of the feature is invisible. Closed by
   the `llm_call` table of phase 2 step 2.5.
+- **D13** — The flag verification asks the wrong Wikipedia: the language and
+  user agent are module globals set only by `scraper.py`, so before the first
+  generation of a fresh process the checker queries the **English** Wikipedia
+  with the library's default agent. It also resolves pages with
+  auto-suggestion on, so a lookup can land on a different article. Closed by
+  the MediaWiki client of phase 3 step 3.2, where both are per-call
+  parameters.
 
 The rest of the contract — C4 to C8 — is in
 `02-contract-transport-and-compliance.md`.

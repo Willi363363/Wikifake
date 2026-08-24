@@ -99,6 +99,17 @@ in the rewrite phase it belongs to, not as an aside.
     Found while writing the `llm_call` table of phase 2 step 2.5, whose `kind`
     enum has a value for it.
 
+13. **The flag verification asks the wrong Wikipedia.** The `wikipedia` library
+    keeps the language and the user agent in module globals, and only
+    `scraper.py:96` ever sets them. `flag_verifier.py:27` never does, so it uses
+    whatever the last caller configured — and on a freshly restarted process,
+    before any game has been generated, that is the **English** Wikipedia with
+    the library's default user agent, which Wikimedia's policy refuses. A report
+    about a French article then gets fact-checked against the wrong encyclopedia,
+    or against nothing. The same function also calls
+    `wikipedia.page(results[0])` without `auto_suggest=False`, so a lookup can
+    land on a different article than the one searched for.
+
 ## The remaining `print()` calls in `backend/src/core/`
 
 The repository rule is "no `print` in application code" (`src/log.py`). Five
