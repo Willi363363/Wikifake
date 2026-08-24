@@ -29,7 +29,7 @@ Nine routes. A `GET` takes no body.
 - `usage` — object
   - `gamesGenerated` — integer (≥ 0)
   - `gamesServedFromCache` — integer (≥ 0)
-  - `byKind` — record keyed by string (min 1 char), of objects
+  - `byKind` — record keyed by `"topic_choice"` | `"falsification"` | `"flag_verification"`, of objects
     - `calls` — integer (≥ 0)
     - `failures` — integer (≥ 0)
     - `promptChars` — integer (≥ 0)

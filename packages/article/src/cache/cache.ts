@@ -15,7 +15,7 @@ import { z } from 'zod';
 
 import {
   CACHE_TTL_SECONDS,
-  INDEX_KEY,
+  indexKey,
   MAX_CATEGORIES,
   NAMESPACE,
   normaliseCategory,
@@ -88,6 +88,8 @@ export interface CacheOptions {
   readonly ttlSeconds?: number;
   readonly variantsPerCategory?: number;
   readonly maxCategories?: number;
+  /** Defaults to `NAMESPACE`. Set it to keep two deployments off each other's keys. */
+  readonly namespace?: string;
 }
 
 export interface ArticleCache {
@@ -105,6 +107,8 @@ export function createArticleCache(options: CacheOptions): ArticleCache {
   const variants = options.variantsPerCategory ?? VARIANTS_PER_CATEGORY;
   const maxCategories = options.maxCategories ?? MAX_CATEGORIES;
   const ttlMs = String(ttlSeconds * 1000);
+  const namespace = options.namespace ?? NAMESPACE;
+  const index = indexKey(namespace);
 
   return {
     async get(category: string): Promise<CacheLookup> {
@@ -116,7 +120,7 @@ export function createArticleCache(options: CacheOptions): ArticleCache {
       let raw: unknown;
       try {
         raw = await options.redis.eval(GET_SCRIPT, {
-          keys: [variantsKey(key), turnKey(key), INDEX_KEY],
+          keys: [variantsKey(namespace, key), turnKey(namespace, key), index],
           arguments: [String(options.now()), ttlMs, key],
         });
       } catch (error) {
@@ -156,7 +160,7 @@ export function createArticleCache(options: CacheOptions): ArticleCache {
 
       try {
         await options.redis.eval(PUT_SCRIPT, {
-          keys: [variantsKey(key), turnKey(key), INDEX_KEY],
+          keys: [variantsKey(namespace, key), turnKey(namespace, key), index],
           arguments: [
             String(now),
             ttlMs,
@@ -164,7 +168,7 @@ export function createArticleCache(options: CacheOptions): ArticleCache {
             entry,
             String(variants),
             String(maxCategories),
-            NAMESPACE,
+            namespace,
           ],
         });
       } catch (error) {
@@ -177,8 +181,8 @@ export function createArticleCache(options: CacheOptions): ArticleCache {
       let raw: unknown;
       try {
         raw = await options.redis.eval(STATS_SCRIPT, {
-          keys: [INDEX_KEY],
-          arguments: [String(options.now()), ttlMs, NAMESPACE],
+          keys: [index],
+          arguments: [String(options.now()), ttlMs, namespace],
         });
       } catch {
         // Null rather than zeroes: "the cache is unreachable" and "the cache is

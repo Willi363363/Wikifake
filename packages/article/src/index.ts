@@ -1,7 +1,6 @@
 // Producing the falsified articles: retrieval, paragraph collection,
 // falsification, cache.
 //
-// The counters arrive with step 3.7.
 export {
   collectParagraphs,
   injectFalsifications,
@@ -24,9 +23,12 @@ export type {
   Falsification,
   FalsifyOptions,
   FalsifyOutcome,
+  FalsifyReport,
 } from './falsify.js';
+export { callFailed, callSucceeded, requestedModel } from './accounting.js';
+export type { CallAnswer, CallShape } from './accounting.js';
 export { generateArticle, MIN_ARTICLE_PARAGRAPHS } from './generate.js';
-export type { GeneratedArticle, GenerateOptions } from './generate.js';
+export type { GeneratedArticle, GenerateOptions, GenerationReport } from './generate.js';
 export { createArticleCache } from './cache/cache.js';
 export type {
   ArticleCache,
@@ -40,6 +42,7 @@ export type {
 export {
   CACHE_TTL_SECONDS,
   MAX_CATEGORIES,
+  NAMESPACE,
   normaliseCategory,
   VARIANTS_PER_CATEGORY,
 } from './cache/keys.js';

@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CACHE_TTL_SECONDS,
-  INDEX_KEY,
+  indexKey,
   MAX_CATEGORIES,
+  NAMESPACE,
   normaliseCategory,
   turnKey,
   variantsKey,
@@ -75,13 +76,24 @@ describe('C4.3 — the bounds', () => {
 
 describe('the key namespace', () => {
   it('is versioned, so a payload shape change retires its own entries', () => {
-    expect(variantsKey('paris')).toBe('article:v1:variants:paris');
-    expect(turnKey('paris')).toBe('article:v1:turn:paris');
-    expect(INDEX_KEY).toBe('article:v1:index');
+    expect(NAMESPACE).toBe('article:v1');
+    expect(variantsKey(NAMESPACE, 'paris')).toBe('article:v1:variants:paris');
+    expect(turnKey(NAMESPACE, 'paris')).toBe('article:v1:turn:paris');
+    expect(indexKey(NAMESPACE)).toBe('article:v1:index');
   });
 
   it('keeps the three key kinds apart', () => {
-    const keys = new Set([variantsKey('paris'), turnKey('paris'), INDEX_KEY]);
+    const keys = new Set([
+      variantsKey(NAMESPACE, 'paris'),
+      turnKey(NAMESPACE, 'paris'),
+      indexKey(NAMESPACE),
+    ]);
     expect(keys.size).toBe(3);
+  });
+
+  // Two deployments on one Redis, or two test files: the entries must not meet.
+  it('keeps two namespaces off each other keys', () => {
+    expect(variantsKey('staging', 'paris')).not.toBe(variantsKey('prod', 'paris'));
+    expect(indexKey('staging')).not.toBe(indexKey('prod'));
   });
 });

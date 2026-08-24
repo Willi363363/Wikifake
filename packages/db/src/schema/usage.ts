@@ -17,21 +17,20 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
+import { llmCallKind as llmCallKindContract } from '@wikifake/protocol';
+
+import { nonEmpty } from './enum.js';
 import { game } from './game.js';
 
 /**
- * What the call was for.
+ * What the call was for, from the contract rather than retyped.
  *
  * `topic_choice` and `falsification` are the two `usage.py` records today, in
  * English. `flag_verification` is a third: `flag_verifier.py` calls the model and
  * records nothing, so the cost of verifying a player's report is currently
- * invisible. Recorded in `plans/current-state/05-known-debt.md`.
+ * invisible (D12).
  */
-export const llmCallKind = pgEnum('llm_call_kind', [
-  'topic_choice',
-  'falsification',
-  'flag_verification',
-]);
+export const llmCallKind = pgEnum('llm_call_kind', nonEmpty(llmCallKindContract.options));
 
 export const llmCall = pgTable(
   'llm_call',

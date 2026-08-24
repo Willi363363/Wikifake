@@ -23,6 +23,7 @@ export {
 } from './queries/audit.js';
 export {
   readUsageTotals,
+  recordLlmCalls,
   selectCallsByKind,
   selectCostOfGame,
   selectFailuresByKind,

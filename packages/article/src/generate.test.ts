@@ -13,8 +13,23 @@ import { serverMessages } from '@wikifake/protocol';
 import { MockLanguageModelV4 } from 'ai/test';
 import { describe, expect, it } from 'vitest';
 
-import { generateArticle, MIN_ARTICLE_PARAGRAPHS } from './generate.js';
+import {
+  generateArticle,
+  MIN_ARTICLE_PARAGRAPHS,
+  type GenerateOptions,
+} from './generate.js';
+
 import { collectParagraphs } from './paragraphs.js';
+
+/**
+ * The round alone.
+ *
+ * Since step 3.7 `generateArticle` returns what happened *and* every model call
+ * it made, because a failed generation still has to be billed. The tests about
+ * the round read it through here; the ones about the cost call it directly.
+ */
+const roundOf = async (options: GenerateOptions) =>
+  (await generateArticle(options)).result;
 
 const FIXTURES = fileURLToPath(new URL('../fixtures/', import.meta.url));
 const CHAT = readFileSync(`${FIXTURES}chat.html`, 'utf8');
@@ -73,7 +88,7 @@ describe('C3.1 — positions designate exactly what changed', () => {
     '%s: every position differs from the original, and only those',
     async (_name, html) => {
       const before = collectParagraphs(html).paragraphs;
-      const result = await generateArticle({ ...BASE, html, model: falsifier() });
+      const result = await roundOf({ ...BASE, html, model: falsifier() });
 
       expect(result.ok, result.ok ? '' : result.detail).toBe(true);
       if (!result.ok) return;
@@ -96,7 +111,7 @@ describe('C3.1 — positions designate exactly what changed', () => {
     ['chat.html', CHAT],
     ['chocolat.html', CHOCOLAT],
   ])('%s: the solution satisfies C3.3', async (_name, html) => {
-    const result = await generateArticle({ ...BASE, html, model: falsifier() });
+    const result = await roundOf({ ...BASE, html, model: falsifier() });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
@@ -107,7 +122,7 @@ describe('C3.1 — positions designate exactly what changed', () => {
   });
 
   it('numbers the fakes in the order a player meets them', async () => {
-    const result = await generateArticle({ ...BASE, html: CHAT, model: falsifier() });
+    const result = await roundOf({ ...BASE, html: CHAT, model: falsifier() });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
@@ -120,7 +135,7 @@ describe('C3.1 — positions designate exactly what changed', () => {
   });
 
   it('reports the falsified text, not the original', async () => {
-    const result = await generateArticle({ ...BASE, html: CHAT, model: falsifier() });
+    const result = await roundOf({ ...BASE, html: CHAT, model: falsifier() });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
@@ -146,7 +161,7 @@ describe('C3.1 — positions designate exactly what changed', () => {
   ])(
     '%s: the explanation and the hint describe the paragraph they point at',
     async (_name, html) => {
-      const result = await generateArticle({ ...BASE, html, model: falsifier() });
+      const result = await roundOf({ ...BASE, html, model: falsifier() });
       expect(result.ok).toBe(true);
       if (!result.ok) return;
 
@@ -164,14 +179,14 @@ describe('C3.1 — positions designate exactly what changed', () => {
   );
 
   it('counts the fakes it actually made', async () => {
-    const result = await generateArticle({ ...BASE, html: CHAT, model: falsifier() });
+    const result = await roundOf({ ...BASE, html: CHAT, model: falsifier() });
     expect(result.ok && result.value.article.totalFakes).toBe(
       result.ok ? result.value.solution.length : -1,
     );
   });
 
   it('produces an article the protocol accepts, with no truth in it', async () => {
-    const result = await generateArticle({ ...BASE, html: CHAT, model: falsifier() });
+    const result = await roundOf({ ...BASE, html: CHAT, model: falsifier() });
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
@@ -197,8 +212,8 @@ describe('C3.1 — positions designate exactly what changed', () => {
 describe('C3.6 — the generator is stateless', () => {
   it('two concurrent generations exchange nothing', async () => {
     const [first, second] = await Promise.all([
-      generateArticle({ ...BASE, html: CHAT, model: falsifier(), seed: 1 }),
-      generateArticle({
+      roundOf({ ...BASE, html: CHAT, model: falsifier(), seed: 1 }),
+      roundOf({
         ...BASE,
         topic: 'Chocolat',
         html: CHOCOLAT,
@@ -219,13 +234,13 @@ describe('C3.6 — the generator is stateless', () => {
   });
 
   it('the same seed picks the same paragraphs', async () => {
-    const once = await generateArticle({
+    const once = await roundOf({
       ...BASE,
       html: CHAT,
       model: falsifier(),
       seed: 42,
     });
-    const twice = await generateArticle({
+    const twice = await roundOf({
       ...BASE,
       html: CHAT,
       model: falsifier(),
@@ -244,7 +259,7 @@ describe('C3.6 — the generator is stateless', () => {
   it('a different seed picks different paragraphs', async () => {
     const picks = await Promise.all(
       [1, 2, 3, 4, 5].map(async (seed) => {
-        const result = await generateArticle({
+        const result = await roundOf({
           ...BASE,
           html: CHAT,
           model: falsifier(),
@@ -260,7 +275,7 @@ describe('C3.6 — the generator is stateless', () => {
 
   it('does not mutate the HTML it was given', async () => {
     const html = CHAT;
-    await generateArticle({ ...BASE, html, model: falsifier() });
+    await roundOf({ ...BASE, html, model: falsifier() });
     expect(html).toBe(CHAT);
     expect(collectParagraphs(html).paragraphs[0]).toBe(
       collectParagraphs(CHAT).paragraphs[0],
@@ -271,7 +286,7 @@ describe('C3.6 — the generator is stateless', () => {
 describe('what the generator refuses', () => {
   it('an article with too few usable paragraphs', async () => {
     const html = `<div id="bodyContent"><p>${'a'.repeat(200)}</p></div>`;
-    const result = await generateArticle({ ...BASE, html, model: falsifier() });
+    const result = await roundOf({ ...BASE, html, model: falsifier() });
 
     expect(result).toMatchObject({ ok: false });
     expect(result.ok ? '' : result.detail).toContain('usable paragraphs');
@@ -281,7 +296,7 @@ describe('what the generator refuses', () => {
   it('an article whose paragraphs are all too short to falsify', async () => {
     const short = 'x'.repeat(60);
     const html = `<div id="bodyContent"><p>${short}</p><p>${short}b</p><p>${short}c</p></div>`;
-    const result = await generateArticle({ ...BASE, html, model: falsifier() });
+    const result = await roundOf({ ...BASE, html, model: falsifier() });
 
     expect(result).toMatchObject({ ok: false });
     expect(result.ok ? '' : result.detail).toContain('long enough');
@@ -327,16 +342,49 @@ describe('what the generator refuses', () => {
       },
     });
 
-    const result = await generateArticle({ ...BASE, html: CHAT, model: echo });
+    const result = await roundOf({ ...BASE, html: CHAT, model: echo });
     expect(result).toMatchObject({ ok: false });
     expect(result.ok ? '' : result.detail).toContain('changed nothing');
   });
 
-  it('reports what the call cost even so', async () => {
-    const result = await generateArticle({ ...BASE, html: CHAT, model: falsifier() });
-    expect(result.ok && result.value.usage).toEqual({
+  it('reports the call it made', async () => {
+    const report = await generateArticle({ ...BASE, html: CHAT, model: falsifier() });
+
+    expect(report.result.ok).toBe(true);
+    expect(report.calls).toHaveLength(1);
+    expect(report.calls[0]).toMatchObject({
+      kind: 'falsification',
       inputTokens: 5000,
       outputTokens: 900,
+      failed: false,
     });
+  });
+
+  // The whole reason 3.7 changed this signature: a generation that fails must
+  // still hand back the call. C4.5 keeps it out of `perGeneratedGame`; nothing
+  // says to throw the record away, and throwing it away is what makes the cost
+  // of failure invisible today.
+  it('reports the call even when the generation fails', async () => {
+    const model = new MockLanguageModelV4({
+      doGenerate: async () => {
+        throw new Error('the provider is down');
+      },
+    });
+    const report = await generateArticle({ ...BASE, html: CHAT, model });
+
+    expect(report.result.ok).toBe(false);
+    expect(report.calls).toHaveLength(1);
+    expect(report.calls[0]).toMatchObject({ failed: true });
+  });
+
+  it('reports no call when it never reached the model', async () => {
+    const report = await generateArticle({
+      ...BASE,
+      html: '<p>trop court</p>',
+      model: falsifier(),
+    });
+
+    expect(report.result.ok).toBe(false);
+    expect(report.calls).toEqual([]);
   });
 });

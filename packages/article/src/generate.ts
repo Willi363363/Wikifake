@@ -7,7 +7,7 @@
 //
 // C3.6 — stateless. Nothing is memoised, nothing is module-level, and two
 // concurrent generations share nothing but the fixture they were handed.
-import type { ArticleView, FalsifiedPosition } from '@wikifake/protocol';
+import type { ArticleView, FalsifiedPosition, LlmCallRecord } from '@wikifake/protocol';
 import type { LanguageModel } from 'ai';
 
 import {
@@ -48,10 +48,23 @@ export interface GeneratedArticle {
   readonly solution: readonly FalsifiedPosition[];
   /** The page with the falsifications in it, for the reader view. */
   readonly html: string;
-  readonly usage: {
-    readonly inputTokens: number | null;
-    readonly outputTokens: number | null;
-  };
+}
+
+/**
+ * A generation attempt: what came of it, and every model call it made.
+ *
+ * The calls are returned on **both** paths, which is the point of step 3.7. A
+ * failed generation is not counted as a generated game (C4.5) and its article is
+ * not cached (C3.7), but the call it made still happened and still has to be
+ * recorded — otherwise the cost of failure is invisible, which is exactly the
+ * state `/api/usage` is in today.
+ *
+ * A list rather than one call: the topic choice becomes a second one in phase 4,
+ * and a caller that already loops writes no new code for it.
+ */
+export interface GenerationReport {
+  readonly calls: readonly LlmCallRecord[];
+  readonly result: Result<GeneratedArticle>;
 }
 
 /**
@@ -99,19 +112,26 @@ function choose(
  */
 export async function generateArticle(
   options: GenerateOptions,
-): Promise<Result<GeneratedArticle>> {
+): Promise<GenerationReport> {
   const collected = collectParagraphs(options.html);
 
   if (collected.paragraphs.length < MIN_ARTICLE_PARAGRAPHS) {
-    return failed(
-      'unexpected_response',
-      `only ${String(collected.paragraphs.length)} usable paragraphs`,
-    );
+    // Nothing was sent to the model, so there is nothing to bill.
+    return {
+      calls: [],
+      result: failed(
+        'unexpected_response',
+        `only ${String(collected.paragraphs.length)} usable paragraphs`,
+      ),
+    };
   }
 
   const candidates = falsifiableCandidates(collected.paragraphs);
   if (candidates.length === 0) {
-    return failed('unexpected_response', 'no paragraph is long enough to falsify');
+    return {
+      calls: [],
+      result: failed('unexpected_response', 'no paragraph is long enough to falsify'),
+    };
   }
 
   const chosen = choose(
@@ -128,18 +148,25 @@ export async function generateArticle(
       ? {}
       : { maxOutputTokens: options.maxOutputTokens }),
   });
-  if (!falsified.ok) return falsified;
+
+  // Assembled once, before the first path that can leave: every return below
+  // carries it, so no failure can drop the call on its way out.
+  const calls = falsified.call === null ? [] : [falsified.call];
+  if (!falsified.result.ok) return { calls, result: falsified.result };
 
   // C3.1 — a falsification that does not change its paragraph is not one. The
   // model sometimes returns the original text unchanged, and a position pointing
   // at an untouched paragraph is the historical bug wearing a different hat: the
   // player would be marked wrong for not finding something that is not there.
-  const effective = falsified.value.falsifications.filter(
+  const effective = falsified.result.value.falsifications.filter(
     (item) =>
       item.swappedText.trim() !== collected.paragraphs[item.paragraphIndex]?.trim(),
   );
   if (effective.length === 0) {
-    return failed('unexpected_response', 'the model changed nothing');
+    return {
+      calls,
+      result: failed('unexpected_response', 'the model changed nothing'),
+    };
   }
 
   const replacements = new Map(
@@ -158,15 +185,17 @@ export async function generateArticle(
     hint: item.hint,
   }));
 
-  return ok({
-    article: {
-      topic: options.topic,
-      paragraphs: [...injected.paragraphs],
-      totalFakes: solution.length,
-      wikipediaUrl: options.sourceUrl,
-    },
-    solution,
-    html: injected.html,
-    usage: falsified.value.usage,
-  });
+  return {
+    calls,
+    result: ok({
+      article: {
+        topic: options.topic,
+        paragraphs: [...injected.paragraphs],
+        totalFakes: solution.length,
+        wikipediaUrl: options.sourceUrl,
+      },
+      solution,
+      html: injected.html,
+    }),
+  };
 }

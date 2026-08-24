@@ -8,6 +8,7 @@
 // The SQL returns totals; the ratios are computed in TypeScript. Division by
 // zero and rounding are easier to be exact about — and to test — outside SQL, and
 // a query that returns raw counts is a query a reader can check.
+import type { LlmCallRecord } from '@wikifake/protocol';
 import { and, count, eq, sql, sum } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
@@ -15,6 +16,28 @@ import { game } from '../schema/game.js';
 import { llmCall } from '../schema/usage.js';
 
 type Db = Database['db'];
+
+/**
+ * Writes what the model calls cost. One place, so "every call writes a row" is a
+ * single statement rather than a rule every caller has to remember.
+ *
+ * C4.5 — a failed call is a row like any other, carrying `failed: true`. What it
+ * must not do is become a game, and that is enforced by there being no `game`
+ * row rather than by anything here. Losing the row instead is what makes the
+ * cost of failure invisible today: `usage.py` drops failures, and
+ * `flag_verifier.py` never records its calls at all (D12).
+ *
+ * @param gameId the game these calls produced, or null — a call made before
+ * there is a game, or one that never led to one.
+ */
+export async function recordLlmCalls(
+  db: Db,
+  calls: readonly LlmCallRecord[],
+  gameId: string | null,
+): Promise<void> {
+  if (calls.length === 0) return;
+  await db.insert(llmCall).values(calls.map((call) => ({ ...call, gameId })));
+}
 
 /**
  * Model calls that produced something, by kind.

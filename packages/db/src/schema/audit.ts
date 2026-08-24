@@ -23,20 +23,9 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
+import { nonEmpty } from './enum.js';
 import { user } from './auth.js';
 import { game, participant } from './game.js';
-
-/**
- * A Postgres enum needs a non-empty tuple; `z.enum(...).options` is an array.
- *
- * The throw cannot fire — a Zod enum always has at least one value — but saying
- * so out loud is better than an assertion that hides why it is safe.
- */
-function nonEmpty<T extends string>(values: readonly T[]): [T, ...T[]] {
-  const [first, ...rest] = values;
-  if (first === undefined) throw new Error('a Postgres enum needs at least one value');
-  return [first, ...rest];
-}
 
 /** D8 — the item identifiers, taken from the contract rather than retyped. */
 export const itemIdEnum = pgEnum('item_id', ITEM_IDS);
