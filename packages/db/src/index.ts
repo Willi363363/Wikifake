@@ -5,4 +5,12 @@
 // rules live in one place, and it is not the database.
 export * from './schema/index.js';
 export { connect, connectFromEnv } from './client.js';
+export {
+  selectAnswers,
+  selectGameInProgress,
+  selectLeaderboard,
+  selectParticipantsInProgress,
+  selectSolution,
+  IN_PROGRESS_QUERIES,
+} from './queries/game.js';
 export type { ConnectionOptions, Database } from './client.js';
