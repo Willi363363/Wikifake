@@ -1,8 +1,23 @@
 // The single source of the contracts: one schema per WebSocket message and per
 // REST payload, and the types inferred from them rather than declared twice.
 //
-// The schemas themselves arrive with steps 1.2 and 1.3 of
-// plans/rewrite/phase-01-core.md. What is here is the decoding surface they
-// all go through.
+// The two message families are namespaced rather than flattened, because a
+// message type can legitimately exist in both directions with different
+// payloads — `chat_message` carries `content` on the way in and `sender` plus
+// `content` on the way out. Flattening would force one of the two to be renamed
+// for a reason that has nothing to do with the protocol.
+//
+// The REST payloads arrive with step 1.3 of plans/rewrite/phase-01-core.md.
 export { decode } from './decode.js';
 export type { Decoded } from './decode.js';
+
+export * from './primitives.js';
+export * from './errors.js';
+export * from './article.js';
+
+export * as clientMessages from './ws/incoming.js';
+export * as serverMessages from './ws/outgoing.js';
+export { incomingMessage, INCOMING_TYPES } from './ws/incoming.js';
+export type { IncomingMessage } from './ws/incoming.js';
+export { outgoingMessage, OUTGOING_TYPES } from './ws/outgoing.js';
+export type { OutgoingMessage } from './ws/outgoing.js';
