@@ -13,3 +13,8 @@ dist/
 # Documentation has its own formatting rules (plans/method/).
 plans/
 *.md
+
+# Drizzle owns these: it writes the SQL and reads its own snapshots back to
+# compute the next diff. Reformatting a snapshot is how a migration chain starts
+# disagreeing with the database it describes.
+packages/db/migrations

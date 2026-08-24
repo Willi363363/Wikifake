@@ -91,6 +91,29 @@ jobs:
     needs: guard
     if: needs.guard.outputs.run == 'true'
     runs-on: ubuntu-latest
+
+    # A **fresh** database on every run. The point is not convenience: a suite
+    # that runs against a database somebody already migrated proves the queries
+    # and nothing about the schema, so the migrations are never really tested.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: wikifake
+          POSTGRES_DB: wikifake
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # `@wikifake/db` refuses to skip its integration tests when CI is set, so
+      # this variable missing turns the suite red rather than quiet.
+      DATABASE_URL: postgres://postgres:wikifake@localhost:5432/wikifake
+
     steps:
       - uses: actions/checkout@v4
 
@@ -110,6 +133,12 @@ jobs:
           restore-keys: pnpm-
 
       - run: pnpm install --frozen-lockfile
+
+      # The CLI, on a database that has never been migrated: the exit gate of
+      # phase 2 asks for exactly that, and a programmatic migrator passing is
+      # not the same proof.
+      - run: pnpm --filter @wikifake/db migrate
+
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
