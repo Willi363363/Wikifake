@@ -129,13 +129,22 @@ export const participant = pgTable(
       .notNull()
       .references(() => game.id, { onDelete: 'cascade' }),
     /**
-     * An account, or a guest — exactly one.
+     * Who played: an identity, a chosen name, or both.
      *
-     * Guests are the majority today: the game is playable without signing up,
-     * and that stays true. The check is what stops a row from being neither,
-     * which would be a score belonging to nobody.
+     * Phase 2 required **exactly** one, and step 4.3 found that wrong. A guest
+     * has an anonymous `user` row — that is what makes a game attachable to an
+     * account created afterwards — *and* the nickname they typed for this game,
+     * which is not their account name. Exclusivity forbade the normal case.
+     *
+     * Worse, it made the attachment impossible to finish: the anonymous row is
+     * deleted once the account is real, `userId` is `set null` on delete, and a
+     * row left with neither field would fail the check and abort the delete.
+     *
+     * What the check still forbids is the case it was written for: a row that is
+     * neither, which would be a score belonging to nobody.
      */
     userId: text('user_id').references(() => user.id, { onDelete: 'set null' }),
+    /** The name shown for this game. An account's own name may differ. */
     guestName: text('guest_name'),
     colour: text('colour').notNull(),
     /** Null until they submit. Everything below it is null with it. */
@@ -153,7 +162,7 @@ export const participant = pgTable(
     index('participant_user_id_idx').on(table.userId),
     check(
       'participant_account_or_guest',
-      sql`(${table.userId} is null) != (${table.guestName} is null)`,
+      sql`${table.userId} is not null or ${table.guestName} is not null`,
     ),
     // A score without a submission is a score nobody earned, and a submission
     // without a score is a debrief with a hole in it.

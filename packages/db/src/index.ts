@@ -15,6 +15,15 @@ export {
   IN_PROGRESS_QUERIES,
 } from './queries/game.js';
 export type { ConnectionOptions, Database } from './client.js';
+export { selectUserById } from './queries/users.js';
+export {
+  attachGuestRecords,
+  selectGameHistory,
+  selectOtherParticipants,
+  selectPlayedGameIds,
+  HISTORY_QUERIES,
+} from './queries/history.js';
+export type { Attachment } from './queries/history.js';
 export {
   isMonotonic,
   selectHintPurchases,

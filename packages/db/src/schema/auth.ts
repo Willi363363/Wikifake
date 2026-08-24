@@ -24,6 +24,18 @@ export const user = pgTable('user', {
   email: text('email').notNull().unique(),
   emailVerified: boolean('email_verified').notNull().default(false),
   image: text('image'),
+  /**
+   * A guest, in Better Auth's `anonymous` plugin sense — phase 4 step 4.3.
+   *
+   * Playing without signing up still creates a row here, because a guest needs
+   * an *identity* and not just a nickname: two guests can type the same name,
+   * and nothing else would connect the browser that played to the account
+   * created afterwards. The plugin deletes the row once the account is real.
+   *
+   * Nullable and defaulted false, which is the plugin's own declaration; a row
+   * that predates it reads as not anonymous, which is correct.
+   */
+  isAnonymous: boolean('is_anonymous').default(false),
   ...stamps,
 });
 

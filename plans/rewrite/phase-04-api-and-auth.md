@@ -27,18 +27,24 @@ game alive.
 
 ## Steps
 
-Nine steps, so the definitions live in two sheets: the ones that establish who
-is asking, and the ones that answer game questions. **The tables below are the
+Nine steps, so the definitions live in three sheets: the probes that say what
+is deployed, the ones that establish who is asking, and the ones that answer
+game questions. **The tables below are the
 only place that says where a step stands** — the sheets define the work and its
 completion criterion, and carry no state.
 
-| # | Step — identity and deployment | State |
+| # | Step — the deployment probes | State |
 |---|---|---|
 | 4.1 | `/ping` and `/api/health` field by field | ✅ done |
-| 4.2 | Better Auth | ✅ done |
-| 4.3 | Attachable guest sessions | to do |
 
-Definitions: `phase-04-steps-identity.md`.
+Definitions: `phase-04-steps-probes.md`.
+
+| # | Step — accounts and guests | State |
+|---|---|---|
+| 4.2 | Better Auth | ✅ done |
+| 4.3 | Attachable guest sessions | ✅ done |
+
+Definitions: `phase-04-steps-accounts.md`.
 
 | # | Step — the game's routes | State |
 |---|---|---|
