@@ -28,7 +28,7 @@ const EXPECTED: Readonly<Record<string, readonly string[]>> = {
   env: ['zod'],
   protocol: ['zod'],
   domain: ['@wikifake/protocol'],
-  db: ['@wikifake/env', 'drizzle-orm', 'postgres'],
+  db: ['@wikifake/env', '@wikifake/protocol', 'drizzle-orm', 'postgres'],
 };
 
 describe('workspace dependency graph', () => {
@@ -55,6 +55,14 @@ describe('workspace dependency graph', () => {
   // `domain` holds the rules and `protocol` the contracts: the rules import the
   // contracts, never the other way round. A cycle here would mean the contract
   // has started depending on the rule it describes.
+  // `db` may import the contracts — the schema is built on them rather than
+  // redeclaring the shapes — but never the rules. Data does not depend on rules.
+  it('keeps db away from domain', () => {
+    expect(Object.keys(manifest('db').dependencies ?? {})).not.toContain(
+      '@wikifake/domain',
+    );
+  });
+
   it('keeps protocol free of any workspace dependency', () => {
     const deps = Object.keys(manifest('protocol').dependencies ?? {});
     expect(deps.filter((name) => name.startsWith('@wikifake/'))).toEqual([]);

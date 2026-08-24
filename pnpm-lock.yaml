@@ -59,6 +59,9 @@ importers:
       '@wikifake/env':
         specifier: workspace:*
         version: link:../env
+      '@wikifake/protocol':
+        specifier: workspace:*
+        version: link:../protocol
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(postgres@3.4.9)

@@ -60,7 +60,7 @@ stolen, time bonus), `answer` (marked paragraphs).
 and the exported "game in progress" read queries never join
 `game_position`.
 
-### 2.4 — Audit tables
+### ✅ 2.4 — Audit tables
 
 `hint_purchase` (timestamped purchase, level, cost — billing becomes
 auditable), `item_use` (who sabotaged whom, with what, when), `flag_report`

@@ -14,3 +14,9 @@ export {
   IN_PROGRESS_QUERIES,
 } from './queries/game.js';
 export type { ConnectionOptions, Database } from './client.js';
+export {
+  isMonotonic,
+  selectHintPurchases,
+  selectItemUses,
+  selectReportsToReview,
+} from './queries/audit.js';
