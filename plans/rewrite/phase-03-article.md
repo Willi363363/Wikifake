@@ -42,13 +42,17 @@ says so in the file.
 
 **Done when**: the fixtures are committed and loaded by a first test.
 
-### 3.2 — MediaWiki client, explicit language and user-agent
+### ✅ 3.2 — MediaWiki client, explicit language and user-agent
 
 Search, page resolution without auto-suggestion, rendered HTML. The language
 and the user-agent are **explicit parameters on every call**: today the
 Python library carries global state, and the flag-report checker silently
 queries Wikipedia in another language depending on call order. Wikipedia
 page not found → clean failure, no exception.
+
+Verified while writing it: `flag_verifier.py` never sets either global, so the
+failure is not "depending on call order" but "English until the first game is
+generated". Recorded as D13.
 
 **Done when**: a test shows two successive calls in two different languages
 with no leakage from one to the other, and a page not found produces a typed
