@@ -12,3 +12,12 @@ export {
   room,
   roomPhase,
 } from './game.js';
+export {
+  flagRecommendationEnum,
+  flagReport,
+  flagStatusEnum,
+  flagVerdictEnum,
+  hintPurchase,
+  itemIdEnum,
+  itemUse,
+} from './audit.js';
