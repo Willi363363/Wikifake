@@ -83,7 +83,7 @@ runs on **both** transports. See `phase-01-protocol-decisions.md`.
 **and by values**, that no truth text or hint appears in it (§3.1); the
 `/api/health` contract of §3.7 is represented field by field.
 
-### 1.4 — Scoring
+### ✅ 1.4 — Scoring
 
 `score = tp×150 − fp×80 − hint_penalty − score_stolen + time_bonus`, with
 `time_bonus = max(0, time_limit − elapsed) × 0.5`, `HINT_COST = 50`,
