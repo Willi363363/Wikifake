@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { IncomingMessage } from '@wikifake/protocol';
 import { serverMessages } from '@wikifake/protocol';
 
-import { reduceLobby } from './lobby.js';
+import { reduceRoom } from './reduce.js';
 import type { RoomEvent } from './events.js';
 import { broadcasts, joined, refusal, run, says } from './scenario.js';
 import { emptyRoom, type RoomState } from './state.js';
@@ -41,7 +41,7 @@ describe('C1.7 — the options belong to the host', () => {
 describe('D6 — the round length cannot change once a round is under way', () => {
   it('refuses set_ready during a round', () => {
     const inRound: RoomState = { ...run(joined('ada')).state, phase: 'round' };
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       inRound,
       says('ada', { type: 'set_ready', ready: true, timeLimit: 600 }),
     );
@@ -51,7 +51,7 @@ describe('D6 — the round length cannot change once a round is under way', () =
 
   it('refuses it while an article is being generated', () => {
     const generating: RoomState = { ...run(joined('ada')).state, phase: 'generating' };
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       generating,
       says('ada', { type: 'set_ready', ready: true, timeLimit: 600 }),
     );
@@ -66,14 +66,14 @@ describe('C1.7 — host-only commands', () => {
     [{ type: 'force_start' } as const],
     [{ type: 'start_game', topic: 'Paris' } as const],
   ])('refuses %j to a guest', (message) => {
-    const outcome = reduceLobby(lobby, says('bob', message));
+    const outcome = reduceRoom(lobby, says('bob', message));
     expect(refusal(outcome.effects)).toBe('not_host');
   });
 
   // "without changing the room state" is the load-bearing half: the current
   // handler applies the options before it checks who sent the message.
   it('changes nothing at all when it refuses', () => {
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       lobby,
       says('bob', { type: 'force_start', withItems: false, timeLimit: 30 }),
     );
@@ -81,18 +81,18 @@ describe('C1.7 — host-only commands', () => {
   });
 
   it('refuses force_pick to a guest', () => {
-    const voting = reduceLobby(lobby, says('ada', { type: 'force_start' })).state;
-    const withBallot = reduceLobby(
+    const voting = reduceRoom(lobby, says('ada', { type: 'force_start' })).state;
+    const withBallot = reduceRoom(
       voting,
       says('ada', { type: 'submit_theme', topic: 'Paris' }),
     );
-    const outcome = reduceLobby(withBallot.state, says('bob', { type: 'force_pick' }));
+    const outcome = reduceRoom(withBallot.state, says('bob', { type: 'force_pick' }));
     expect(refusal(outcome.effects)).toBe('not_host');
     expect(outcome.state).toBe(withBallot.state);
   });
 
   it('lets the host open the vote', () => {
-    const outcome = reduceLobby(lobby, says('ada', { type: 'force_start' }));
+    const outcome = reduceRoom(lobby, says('ada', { type: 'force_start' }));
     expect(outcome.state.phase).toBe('voting');
     expect(broadcasts(outcome.effects)).toEqual([{ type: 'theme_vote_start' }]);
   });
@@ -100,12 +100,12 @@ describe('C1.7 — host-only commands', () => {
 
 describe('the topic vote', () => {
   const openVote = (...names: readonly string[]): RoomState =>
-    reduceLobby(run(joined(...names)).state, says(names[0]!, { type: 'force_start' }))
+    reduceRoom(run(joined(...names)).state, says(names[0]!, { type: 'force_start' }))
       .state;
 
   it('reports who has voted, out of how many players', () => {
     const voting = openVote('ada', 'bob', 'cyd');
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       voting,
       says('ada', { type: 'submit_theme', topic: 'Paris' }),
     );
@@ -117,11 +117,11 @@ describe('the topic vote', () => {
 
   it('picks a topic once everyone has voted', () => {
     let state = openVote('ada', 'bob');
-    state = reduceLobby(
+    state = reduceRoom(
       state,
       says('ada', { type: 'submit_theme', topic: 'Paris' }),
     ).state;
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       state,
       says('bob', { type: 'submit_theme', topic: 'Lyon' }),
     );
@@ -133,11 +133,11 @@ describe('the topic vote', () => {
 
   it('announces the ballots with the chosen topic', () => {
     let state = openVote('ada', 'bob');
-    state = reduceLobby(
+    state = reduceRoom(
       state,
       says('ada', { type: 'submit_theme', topic: 'Paris' }),
     ).state;
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       state,
       says('bob', { type: 'submit_theme', topic: 'Lyon' }),
     );
@@ -152,11 +152,11 @@ describe('the topic vote', () => {
   it('follows the seed it was given', () => {
     const pick = (seed: number): string => {
       let state = openVote('ada', 'bob');
-      state = reduceLobby(
+      state = reduceRoom(
         state,
         says('ada', { type: 'submit_theme', topic: 'Paris' }),
       ).state;
-      const outcome = reduceLobby(
+      const outcome = reduceRoom(
         state,
         says('bob', { type: 'submit_theme', topic: 'Lyon' }, seed),
       );
@@ -169,11 +169,11 @@ describe('the topic vote', () => {
 
   it('counts a topic proposed twice once', () => {
     let state = openVote('ada', 'bob');
-    state = reduceLobby(
+    state = reduceRoom(
       state,
       says('ada', { type: 'submit_theme', topic: 'Paris' }),
     ).state;
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       state,
       says('bob', { type: 'submit_theme', topic: 'Paris' }),
     );
@@ -186,11 +186,8 @@ describe('the topic vote', () => {
 
   it('never queues the chosen topic behind itself', () => {
     let state = openVote('ada', 'bob');
-    state = reduceLobby(
-      state,
-      says('ada', { type: 'submit_theme', topic: 'Lyon' }),
-    ).state;
-    const outcome = reduceLobby(
+    state = reduceRoom(state, says('ada', { type: 'submit_theme', topic: 'Lyon' })).state;
+    const outcome = reduceRoom(
       state,
       says('bob', { type: 'submit_theme', topic: 'Lyon' }),
     );
@@ -199,11 +196,11 @@ describe('the topic vote', () => {
 
   it('names the player who proposed the chosen topic', () => {
     let state = openVote('ada', 'bob');
-    state = reduceLobby(
+    state = reduceRoom(
       state,
       says('ada', { type: 'submit_theme', topic: 'Paris' }),
     ).state;
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       state,
       says('bob', { type: 'submit_theme', topic: 'Lyon' }),
     );
@@ -212,11 +209,11 @@ describe('the topic vote', () => {
 
   it('queues the losing proposals ahead of the fallbacks', () => {
     let state = openVote('ada', 'bob');
-    state = reduceLobby(
+    state = reduceRoom(
       state,
       says('ada', { type: 'submit_theme', topic: 'Paris' }),
     ).state;
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       state,
       says('bob', { type: 'submit_theme', topic: 'Lyon' }),
     );
@@ -225,7 +222,7 @@ describe('the topic vote', () => {
 
   it('clears the ballots once a topic is chosen', () => {
     const state = openVote('ada');
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       state,
       says('ada', { type: 'submit_theme', topic: 'Paris' }),
     );
@@ -234,18 +231,18 @@ describe('the topic vote', () => {
 
   it('refuses to close an empty vote', () => {
     const voting = openVote('ada', 'bob');
-    const outcome = reduceLobby(voting, says('ada', { type: 'force_pick' }));
+    const outcome = reduceRoom(voting, says('ada', { type: 'force_pick' }));
     expect(refusal(outcome.effects)).toBe('no_theme_submitted');
     expect(outcome.state).toBe(voting);
   });
 
   it('lets the host close a vote that has ballots', () => {
     const voting = openVote('ada', 'bob');
-    const withBallot = reduceLobby(
+    const withBallot = reduceRoom(
       voting,
       says('ada', { type: 'submit_theme', topic: 'Paris' }),
     );
-    const outcome = reduceLobby(withBallot.state, says('ada', { type: 'force_pick' }));
+    const outcome = reduceRoom(withBallot.state, says('ada', { type: 'force_pick' }));
     expect(outcome.state.phase).toBe('generating');
     expect(outcome.state.generating?.topic).toBe('Paris');
   });
@@ -263,7 +260,7 @@ describe('the topic vote', () => {
 describe('starting straight on a topic', () => {
   it('goes to generating with the host as proposer', () => {
     const lobby = run(joined('ada')).state;
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       lobby,
       says('ada', { type: 'start_game', topic: 'Paris' }),
     );
@@ -274,7 +271,7 @@ describe('starting straight on a topic', () => {
 
   it('applies the options it carries', () => {
     const lobby = run(joined('ada')).state;
-    const outcome = reduceLobby(
+    const outcome = reduceRoom(
       lobby,
       says('ada', {
         type: 'start_game',
@@ -296,9 +293,7 @@ describe('guards answer instead of going quiet', () => {
     [{ type: 'submit_theme', topic: 'Paris' } as const],
     [{ type: 'force_pick' } as const],
   ])('refuses %j outside a vote', (message) => {
-    expect(refusal(reduceLobby(lobby, says('ada', message)).effects)).toBe(
-      'out_of_phase',
-    );
+    expect(refusal(reduceRoom(lobby, says('ada', message)).effects)).toBe('out_of_phase');
   });
 
   const ROUND_MESSAGES: IncomingMessage[] = [
@@ -311,22 +306,20 @@ describe('guards answer instead of going quiet', () => {
   ];
 
   it.each(ROUND_MESSAGES)('refuses the round message %j in the lobby', (message) => {
-    expect(refusal(reduceLobby(lobby, says('ada', message)).effects)).toBe(
-      'out_of_phase',
-    );
+    expect(refusal(reduceRoom(lobby, says('ada', message)).effects)).toBe('out_of_phase');
   });
 
   it('refuses force_start once the vote is open', () => {
-    const voting = reduceLobby(lobby, says('ada', { type: 'force_start' })).state;
+    const voting = reduceRoom(lobby, says('ada', { type: 'force_start' })).state;
     expect(
-      refusal(reduceLobby(voting, says('ada', { type: 'force_start' })).effects),
+      refusal(reduceRoom(voting, says('ada', { type: 'force_start' })).effects),
     ).toBe('out_of_phase');
   });
 
   // The current handlers index `room.players[player_name]` directly, so a
   // message arriving just after a departure raises a KeyError.
   it('refuses a message from someone who is not in the room', () => {
-    expect(refusal(reduceLobby(lobby, says('zoe', { type: 'get_lobby' })).effects)).toBe(
+    expect(refusal(reduceRoom(lobby, says('zoe', { type: 'get_lobby' })).effects)).toBe(
       'room_not_found',
     );
   });
@@ -337,7 +330,7 @@ describe('the chat works in every phase', () => {
     'in %s',
     (phase) => {
       const state: RoomState = { ...run(joined('ada')).state, phase };
-      const outcome = reduceLobby(
+      const outcome = reduceRoom(
         state,
         says('ada', { type: 'chat_message', content: 'bien joué' }),
       );
@@ -359,7 +352,7 @@ describe('every broadcast is a real protocol message', () => {
     ];
     let state = emptyRoom();
     for (const event of script) {
-      const outcome = reduceLobby(state, event);
+      const outcome = reduceRoom(state, event);
       state = outcome.state;
       for (const effect of outcome.effects) {
         if (effect.kind === 'broadcast' || effect.kind === 'send') {

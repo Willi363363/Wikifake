@@ -51,11 +51,25 @@ export {
 } from './items.js';
 export type { ItemDefinition, ItemKind, ItemState, TargetCheck } from './items.js';
 
+export { reduceRoom } from './room/reduce.js';
 export { lobbyUpdate, reduceLobby } from './room/lobby.js';
+export type { LobbyEvent } from './room/lobby.js';
+export {
+  articleFailed,
+  endRound,
+  grantItems,
+  leaveDuringRound,
+  startRound,
+  submitAnswer,
+  timerExpired,
+  unsubmitAnswer,
+} from './room/round.js';
+export { cursor, liveScore, unlockHint, useItem } from './room/actions.js';
 export { FALLBACK_TOPICS, selectTopic } from './room/topics.js';
 export {
   assignColour,
   emptyRoom,
+  forNewRound,
   hostOf,
   isHost,
   newPlayer,
@@ -69,5 +83,7 @@ export type {
   RoomOptions,
   RoomPhase,
   RoomState,
+  RoundState,
+  ScoredSubmission,
 } from './room/state.js';
 export type { RoomEffect, RoomEvent } from './room/events.js';

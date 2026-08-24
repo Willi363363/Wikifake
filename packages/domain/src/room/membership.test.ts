@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { serverMessages } from '@wikifake/protocol';
 
-import { lobbyUpdate, reduceLobby } from './lobby.js';
+import { lobbyUpdate } from './lobby.js';
+import { reduceRoom } from './reduce.js';
 import { broadcasts, joined, refusal, run } from './scenario.js';
 import { emptyRoom, hostOf, PLAYER_COLOURS } from './state.js';
 
@@ -50,7 +51,7 @@ describe('arriving', () => {
   // anything they have paid for.
   it('refuses a duplicate nickname without touching the player in place', () => {
     const first = run(joined('ada'));
-    const second = reduceLobby(first.state, { kind: 'join', player: 'ada' });
+    const second = reduceRoom(first.state, { kind: 'join', player: 'ada' });
     expect(refusal(second.effects)).toBe('name_taken');
     expect(second.state).toBe(first.state);
   });
@@ -94,7 +95,7 @@ describe('leaving', () => {
 
   it('does nothing for someone who was never there', () => {
     const before = run(joined('ada'));
-    const after = reduceLobby(before.state, { kind: 'leave', player: 'zoe' });
+    const after = reduceRoom(before.state, { kind: 'leave', player: 'zoe' });
     expect(after.state).toBe(before.state);
     expect(after.effects).toEqual([]);
   });
