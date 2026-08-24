@@ -31,6 +31,15 @@ describe('the error code union', () => {
     },
   );
 
+  // These three are the REST failures: FastAPI answers `{"detail": "<prose>"}`,
+  // so a 404 on a hint is indistinguishable from a 404 on the session.
+  it.each([['session_not_found'], ['hint_not_found'], ['room_capacity_reached']])(
+    'gives the REST failure %s a code',
+    (code) => {
+      expect(errorCode.safeParse(code).success).toBe(true);
+    },
+  );
+
   it('has no duplicate', () => {
     expect(new Set(ERROR_CODES).size).toBe(ERROR_CODES.length);
   });

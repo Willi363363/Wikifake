@@ -71,11 +71,57 @@ regex across would have locked out every accented nickname, in silence, for a
 game that reads `fr.wikipedia.org`. The new schema spells the class out as
 `[\p{L}\p{N}_\-. ]`, and the test carries the accented cases.
 
+## The REST surface
+
+Nine routes, catalogued in `rest/routes.ts` with their schemas on each side.
+The catalogue is compared to the `@router.get/post` decorators the way the
+message catalogues are compared to the dispatch table — the other half of C8.1,
+held from the new stack while both run.
+
+**Solo and multiplayer are the same game through two transports**, so they share
+the payloads rather than restating them. `POST /api/game/start` returns the same
+`articleView` the round-start message carries, which is why the negative
+assertion of C1.1 holds on both by construction rather than twice by hand. The
+hint and scan responses are literally their WebSocket messages with `type`
+removed.
+
+**One score breakdown, not two.** The solo submission returns
+`{tp, fp, hintsUsed, hintPenalty, scoreStolen, timeBonus}`; a multiplayer
+leaderboard row returns the same thing **without** `scoreStolen`. A client
+rendering a debrief had to know which mode produced it to know whether a field
+exists. `scoreStolen` is simply 0 in solo — nobody is there to steal from you —
+and an always-zero field costs less than a branch in every consumer.
+
+**`check` is not carried over.** `POST /api/game/submit` returns a `check`
+object beside the score: `correct_found`, `false_positives`, `missed`, and a
+percentage also called `score` — two fields named `score` in one response,
+meaning different things. Nothing reads it: the debrief recomposes itself from
+the breakdown and the solution. Dropping it is `no dead code`, not a change of
+behaviour.
+
+**Closed unions where a language model answers.** `/api/flag-report` returns a
+`verdict`, a `confidence` and a `recommendation` that come out of the model
+through `json.loads`. Nothing checks the model answered with one of the five
+values its own prompt lists, so a sixth would reach the client unnoticed. They
+are enums now, and `confidence` is bounded to 0–100.
+
+**`/api/health` keeps `commit` a string that is present even when empty.** Only
+the platform provides it, so locally it is `""`. Optional would let the CI probe
+read `undefined` and wait for a match that cannot come — C7.2 says this contract
+must survive the migration or the deployment loop dies in silence. There is no
+field for the API key, so there is nothing to leak.
+
 ## Three errors that had no code
 
 C5.1 asks for typed rejections and the current server half-delivers: six errors
 carry a `code`, three carry only a French sentence — an empty ballot on
 `force_pick`, an unknown topic on `start_game`, and a round that could not
 generate anything. A client cannot branch on prose. They are now
-`no_theme_submitted`, `topic_not_found` and `generation_failed`, and the union
-of codes is closed.
+`no_theme_submitted`, `topic_not_found` and `generation_failed`.
+
+The REST failures had the same problem, in the place a client is most likely to
+branch: FastAPI answers `{"detail": "<a French sentence>"}`, so a 404 on a hint
+is indistinguishable from a 404 on the session. They are now
+`session_not_found`, `hint_not_found` and `room_capacity_reached`, and a failed
+REST call carries `{code, message}` like everything else. Twelve codes, one
+closed union, both transports.

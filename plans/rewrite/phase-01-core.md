@@ -69,12 +69,15 @@ three errors that had no code — is written in
 are inferred through `z.infer` (no type redeclared by hand), and invalid
 fixtures are rejected with the right code.
 
-### 1.3 — REST DTOs and negative assertion
+### ✅ 1.3 — REST DTOs and negative assertion
 
 Schemas for `game/{start,hint,scan,submit}`, `health`, `usage`,
 `multiplayer/create`, `flag-report`. The start payload cannot represent the
 solution: no falsified positions, no explanations, no hints, no
 `original_text` — only the count of fakes.
+
+Nine routes, checked against the `@router` decorators. The negative assertion
+runs on **both** transports. See `phase-01-protocol-decisions.md`.
 
 **Done when**: a test serialises a complete game start and checks, by keys
 **and by values**, that no truth text or hint appears in it (§3.1); the

@@ -55,6 +55,7 @@ const GAME_END = {
         timeBonus: 100,
         hintsUsed: 1,
         hintPenalty: 20,
+        scoreStolen: 50,
       },
     },
   ],
