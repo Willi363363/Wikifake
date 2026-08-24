@@ -11,9 +11,6 @@ import { connect, type Database } from '../client.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../migrations', import.meta.url));
 
-/** Every table, in an order that respects the foreign keys — children first. */
-const TABLES = ['profile', 'session', 'account', 'verification', 'user'] as const;
-
 /**
  * Where the test database is, or why there is none.
  *
@@ -82,10 +79,20 @@ export async function openTestDatabase(url: string): Promise<TestDatabase> {
   const { db, close } = connect({ url, max: 1 });
   await migrate(db, { migrationsFolder: MIGRATIONS });
 
+  // Every table in `public`, discovered rather than listed.
+  //
+  // A hand-written list is a list that drifts: the first table added after it was
+  // written left a row behind between tests, and the failure surfaced as a
+  // primary key collision in an unrelated test. Drizzle keeps its migration
+  // journal in its own schema, so `public` is exactly the application's tables.
   const truncate = async (): Promise<void> => {
-    await db.execute(
-      sql.raw(`truncate table ${TABLES.map((table) => `"${table}"`).join(', ')} cascade`),
+    const tables = await db.execute<{ name: string }>(
+      sql`select table_name as name from information_schema.tables
+          where table_schema = 'public' and table_type = 'BASE TABLE'`,
     );
+    const names = [...tables].map((row) => `"${row.name}"`);
+    if (names.length === 0) return;
+    await db.execute(sql.raw(`truncate table ${names.join(', ')} cascade`));
   };
 
   await truncate();

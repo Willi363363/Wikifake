@@ -8,6 +8,13 @@
       "when": 1787573894499,
       "tag": "0000_chubby_risque",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787574556992,
+      "tag": "0001_deep_odin",
+      "breakpoints": true
     }
   ]
 }

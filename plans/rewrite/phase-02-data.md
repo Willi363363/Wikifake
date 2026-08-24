@@ -47,7 +47,7 @@ accent, preferences.
 **Done when**: the migration passes, and an integration test inserts then
 reads back a `user` and its `profile` in a typed way.
 
-### 2.3 — Game tables
+### ✅ 2.3 — Game tables
 
 `room` (code, host, settings, state, timestamps), `game` (solo/multi mode,
 topic, source URL, article snapshot, count of fakes), `game_position`
