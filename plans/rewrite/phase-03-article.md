@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | in progress |
 | **Branch** | `feat/rewrite-phase-3` |
 | **Depends on** | phase 2 |
 | **Delivers** | `packages/article`: scraping, LLM falsification, Redis cache |
@@ -27,12 +27,18 @@ needs.
 
 ## Steps
 
-### 3.1 — Fixtures of real frozen Wikipedia pages
+### ✅ 3.1 — Fixtures of real frozen Wikipedia pages
 
 Freeze into the package the HTML of real Wikipedia pages, as today: at least
 one case with duplicated paragraphs (mobile/desktop variants), one case with
 inline tags (`un<b>deux</b>trois`), one case with short paragraphs. They
 serve all the following steps.
+
+The fixtures are the first paragraphs of real rendered pages, reduced to keep
+them readable in a diff: every paragraph is byte-for-byte as MediaWiki served
+it, with its revision recorded. The duplicated-variant case is constructed —
+the `action=parse` output does not carry the mobile/desktop duplication — and
+says so in the file.
 
 **Done when**: the fixtures are committed and loaded by a first test.
 
@@ -48,7 +54,7 @@ page not found → clean failure, no exception.
 with no leakage from one to the other, and a page not found produces a typed
 failure value, not an exception.
 
-### 3.3 — Paragraph collection with cheerio
+### ✅ 3.3 — Paragraph collection with cheerio
 
 Strict index parity: `paragraphs[i]` corresponds to the i-th collected `<p>`
 node, and collection, text extraction and injection share the same node

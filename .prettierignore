@@ -18,3 +18,9 @@ plans/
 # compute the next diff. Reformatting a snapshot is how a migration chain starts
 # disagreeing with the database it describes.
 packages/db/migrations
+
+# Frozen Wikipedia HTML. The fixtures claim to be byte-for-byte what MediaWiki
+# served, and a test asserts on the whitespace they carry — reformatting them
+# would make both false, and would silently change the text the parity test
+# reads.
+packages/article/fixtures
