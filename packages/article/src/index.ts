@@ -1,7 +1,7 @@
 // Producing the falsified articles: retrieval, paragraph collection,
 // falsification, cache.
 //
-// The Redis cache arrives with step 3.6, the counters with 3.7.
+// The counters arrive with step 3.7.
 export {
   collectParagraphs,
   injectFalsifications,
@@ -27,3 +27,19 @@ export type {
 } from './falsify.js';
 export { generateArticle, MIN_ARTICLE_PARAGRAPHS } from './generate.js';
 export type { GeneratedArticle, GenerateOptions } from './generate.js';
+export { createArticleCache } from './cache/cache.js';
+export type {
+  ArticleCache,
+  CachedArticle,
+  CacheLookup,
+  CacheOptions,
+  CacheStats,
+  CacheWrite,
+  RedisCommands,
+} from './cache/cache.js';
+export {
+  CACHE_TTL_SECONDS,
+  MAX_CATEGORIES,
+  normaliseCategory,
+  VARIANTS_PER_CATEGORY,
+} from './cache/keys.js';

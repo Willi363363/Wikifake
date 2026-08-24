@@ -109,10 +109,25 @@ jobs:
           --health-timeout 5s
           --health-retries 10
 
+      # The article cache. Readiness is the service health-check's job here too:
+      # `redis-cli ping` answers only once the server accepts commands, which is
+      # exactly the condition the tests need.
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
       # `@wikifake/db` refuses to skip its integration tests when CI is set, so
       # this variable missing turns the suite red rather than quiet.
       DATABASE_URL: postgres://postgres:wikifake@localhost:5432/wikifake
+      # Same contract for the cache: `@wikifake/article` throws rather than skip.
+      REDIS_URL: redis://localhost:6379
 
     steps:
       - uses: actions/checkout@v4
