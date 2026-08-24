@@ -13,9 +13,11 @@ const SRC = fileURLToPath(new URL('./', import.meta.url));
 
 /**
  * `decode.ts` is plumbing, not a contract: `Decoded<T>` is a result type with no
- * schema behind it, and declaring it by hand is the right thing.
+ * schema behind it, and declaring it by hand is the right thing. `rest/routes.ts`
+ * describes the shape of a catalogue entry rather than of a payload — there is
+ * no schema behind `Route` either.
  */
-const NOT_CONTRACTS = new Set(['decode.ts', 'index.ts']);
+const NOT_CONTRACTS = new Set(['decode.ts', 'index.ts', 'rest/routes.ts']);
 
 function contractFiles(): string[] {
   const files: string[] = [];
@@ -42,6 +44,11 @@ describe('contract types are inferred, never redeclared', () => {
       'article.ts',
       'errors.ts',
       'primitives.ts',
+      'rest/flags.ts',
+      'rest/game.ts',
+      'rest/health.ts',
+      'rest/rooms.ts',
+      'score.ts',
       'ws/incoming.ts',
       'ws/outgoing.ts',
     ]);

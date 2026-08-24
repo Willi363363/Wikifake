@@ -20,6 +20,7 @@ import { z } from 'zod';
 
 import { articleView, solution } from '../article.js';
 import { errorMessage } from '../errors.js';
+import { scoreBreakdown } from '../score.js';
 import {
   falseInfoNumber,
   paragraphIndex,
@@ -177,20 +178,17 @@ export const scannerResult = z.object({
   paragraphIndex: paragraphIndex.nullable(),
 });
 
-/** One final standing. `breakdown` is null for a player who never submitted. */
+/**
+ * One final standing. `breakdown` is null for a player who never submitted.
+ *
+ * The breakdown is the shared one of `score.ts`: solo and multiplayer report a
+ * score the same way, or a debrief has to know which mode produced it.
+ */
 const leaderboardEntry = z.object({
   player: playerName,
   colour: playerColour,
   score: z.number().int(),
-  breakdown: z
-    .object({
-      truePositives: z.number().int().min(0),
-      falsePositives: z.number().int().min(0),
-      timeBonus: z.number().min(0),
-      hintsUsed: z.number().int().min(0),
-      hintPenalty: z.number().int().min(0),
-    })
-    .nullable(),
+  breakdown: scoreBreakdown.nullable(),
 });
 
 /**

@@ -14,9 +14,15 @@ export type { Decoded } from './decode.js';
 export * from './primitives.js';
 export * from './errors.js';
 export * from './article.js';
+export * from './score.js';
+export * from './rest/routes.js';
 
 export * as clientMessages from './ws/incoming.js';
 export * as serverMessages from './ws/outgoing.js';
+export * as gameApi from './rest/game.js';
+export * as healthApi from './rest/health.js';
+export * as roomsApi from './rest/rooms.js';
+export * as flagsApi from './rest/flags.js';
 export { incomingMessage, INCOMING_TYPES } from './ws/incoming.js';
 export type { IncomingMessage } from './ws/incoming.js';
 export { outgoingMessage, OUTGOING_TYPES } from './ws/outgoing.js';

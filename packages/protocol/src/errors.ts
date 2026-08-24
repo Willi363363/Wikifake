@@ -38,6 +38,12 @@ export const ERROR_CODES = [
    * waiting.
    */
   'generation_failed',
+  /** A solo session that expired or never existed. REST: 404. */
+  'session_not_found',
+  /** A hint asked for by a number the round does not have. REST: 404. */
+  'hint_not_found',
+  /** C5.6 — the room registry is full. REST: 503. */
+  'room_capacity_reached',
 ] as const;
 
 export const errorCode = z.enum(ERROR_CODES);
@@ -56,3 +62,17 @@ export const errorMessage = z.object({
   message: z.string().min(1),
 });
 export type ErrorMessage = z.infer<typeof errorMessage>;
+
+/**
+ * The body of a failed REST call.
+ *
+ * FastAPI answers `{"detail": "<a French sentence>"}` today, so every REST
+ * failure is prose too — the same problem the WebSocket errors had, in the one
+ * place a client is most likely to want to branch: a 404 on a hint is a
+ * different situation from a 404 on the session.
+ */
+export const restError = z.object({
+  code: errorCode,
+  message: z.string().min(1),
+});
+export type RestError = z.infer<typeof restError>;
