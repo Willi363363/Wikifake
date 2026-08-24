@@ -138,25 +138,48 @@ in the rewrite phase it belongs to, not as an aside.
       (`backend/src/api/health.py:56`) therefore reports articles the cache
       would refuse to hand out.
 
+## The packages ship TypeScript, so the app cannot use Turbopack
+
+Every package's `exports` points at `src/index.ts`, and their internal imports
+carry a `.js` extension — the convention `verbatimModuleSyntax` asks for.
+`tsc`, Vitest and `tsx` resolve `./x.js` to `./x.ts`; bundlers need telling.
+webpack has `resolve.extensionAlias`, which Next exposes as
+`experimental.extensionAlias`. **Turbopack has no equivalent**: it accepts the
+flag as an experiment and ignores it, and `turbopack.resolveExtensions` applies
+to extensionless requests, not to rewriting one extension into another.
+
+So `apps/web` builds with `next build --webpack` (step 4.1). It works and Next
+16 supports it, but webpack is the bundler on its way out: a deadline, not a
+preference.
+
+**The durable fix is a build step in each package** — emit `dist`, point
+`exports` at it — which also removes `transpilePackages`. `turbo.json` is
+already configured for it (`build` declares `outputs: ["dist/**"]`, and `test`
+and `typecheck` depend on `^build`); no package has a `build` script, so phase 0
+left it half-done. Not a five-minute change: every suite would start exercising
+built output instead of source. Its own step, or phase 9.
+
 ## Two notations for the same contract
 
-The phase sheets cite the contract as `§3.N` — the numbering of the source
-plan, where the contract was section 3, so `§3.1` is `C1` and `§3.4` is `C4`.
-`01-contract-to-preserve.md` and `02-contract-transport-and-compliance.md`
-number the same guarantees `C1` to `C8`, with sub-clauses `C4.1`, `C4.2` and
-so on. Twenty-one citations across seven sheets still use the old form.
+The phase sheets cite the contract as `§3.N` — the source plan's numbering,
+where the contract was section 3, so `§3.1` is `C1` and `§3.4` is `C4`. The
+contract files number the same guarantees `C1` to `C8`, with sub-clauses
+`C4.1` and so on. Twenty citations across six sheets still use the old form.
 
-Nothing is *wrong*: the mapping is consistent. It is ambiguous, because
-`§3.4` and `C3.4` look like the same reference and are not — `§3.4` is the
-cache, `C3.4` is paragraph deduplication. `phase-03-steps-cache.md` cites
-`C4` outright for that reason.
+Nothing is wrong: the mapping is consistent. It is ambiguous, because `§3.4`
+and `C3.4` look like one reference and are two — `§3.4` is the cache, `C3.4` is
+paragraph deduplication. `phase-03-steps-cache.md` cites `C4` outright for that
+reason.
 
-**Not a mechanical rename.** Some sites mean the section (`the cases of §3.2`
-→ `C2`) and some mean one clause inside it (`the contract shape of §3.3
-(1-based indices, sorted positions, sequential numbers)` is `C3.3`, not
-`C3`). Each of the twenty-one needs reading. It also touches sheets that
-open pull requests currently have in flight, so it wants its own step on a
-quiet tree rather than a corner of somebody else's.
+**Not a mechanical rename.** Some sites mean the section (`the cases of §3.2` →
+`C2`), some mean one clause inside it (`the contract shape of §3.3 (1-based
+indices, sorted positions, sequential numbers)` is `C3.3`). Each needs reading.
+It also touches sheets that open pull requests have in flight, so it wants its
+own step on a quiet tree.
+
+**This file is near the 200-line limit.** The next entry should split it rather
+than squeeze: the numbered production defects are one document, the structural
+notes below them are another.
 
 ## The remaining `print()` calls in `backend/src/core/`
 

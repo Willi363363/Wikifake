@@ -20,3 +20,10 @@ node_modules/
 dist/
 coverage/
 .env
+
+# Next.js — build output and the types it generates on the fly
+.next/
+next-env.d.ts
+
+# TypeScript incremental build state
+*.tsbuildinfo

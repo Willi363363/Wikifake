@@ -1,0 +1,20 @@
+{
+  "extends": "@wikifake/config/tsconfig.base.json",
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "src/**/*.ts",
+    "*.config.ts",
+    "next-env.d.ts"
+  ],
+  "exclude": ["node_modules", ".next"],
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "jsx": "preserve",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "incremental": true,
+    "plugins": [{ "name": "next" }]
+  }
+}

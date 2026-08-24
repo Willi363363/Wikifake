@@ -5,6 +5,17 @@
 // process refuses to start, naming what is missing.
 import { z } from 'zod';
 
+/**
+ * The model served when none is configured.
+ *
+ * Exported because `/api/health` reports which model is in use and must not
+ * validate the whole environment to do it — a health probe that needs a working
+ * database to answer is a probe that goes silent exactly when it is needed. So it
+ * reads `MODEL_NAME` itself, and takes the default from here rather than
+ * retyping the string.
+ */
+export const DEFAULT_MODEL_NAME = 'gemini-3.1-flash-lite';
+
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
@@ -26,7 +37,7 @@ const schema = z.object({
 
   /** Language model — phase 3. */
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1, 'model API key is missing'),
-  MODEL_NAME: z.string().min(1).default('gemini-3.1-flash-lite'),
+  MODEL_NAME: z.string().min(1).default(DEFAULT_MODEL_NAME),
 });
 
 export type Env = z.infer<typeof schema>;
