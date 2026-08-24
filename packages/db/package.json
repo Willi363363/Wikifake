@@ -10,8 +10,9 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
-    "generate": "drizzle-kit generate && node scripts/normalise-migrations.ts",
-    "migrate": "drizzle-kit migrate"
+    "generate": "drizzle-kit generate && tsx scripts/normalise-migrations.ts",
+    "migrate": "drizzle-kit migrate",
+    "seed": "tsx scripts/seed.ts"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
@@ -19,6 +20,7 @@
     "@wikifake/config": "workspace:*",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.0",
+    "tsx": "^4.23.12",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   },
