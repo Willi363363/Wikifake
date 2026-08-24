@@ -24,15 +24,21 @@ database, the cost per game becomes a query.
 
 ## Steps
 
-### 2.1 — Drizzle tooling and client
+### ✅ 2.1 — Drizzle tooling and client
 
 `drizzle-kit`, configuration, Neon client exported exactly once.
 `DATABASE_URL` goes through the typed environment of phase 0.
 
+Delivered with 2.2, because the first half of its criterion needs a table to
+migrate: `drizzle-kit migrate` on an empty schema does nothing and proves
+nothing. One driver for every environment — `postgres.js` speaks what Neon
+serves over TCP and what a container serves in a test, so the code that runs in
+production is the code the tests exercise.
+
 **Done when**: `drizzle-kit migrate` runs on a fresh database, and starting
 without `DATABASE_URL` fails while naming the variable.
 
-### 2.2 — Authentication and profile tables
+### ✅ 2.2 — Authentication and profile tables
 
 `user`, `session`, `account`, `verification` in the format expected by
 Better Auth (wired in phase 5), plus `profile`: display name, preferred
