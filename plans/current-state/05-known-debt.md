@@ -70,6 +70,12 @@ in the rewrite phase it belongs to, not as an aside.
    `backend/src/core/prompts.py` is dead code: the real falsification prompt
    is inline in `misinformation.py`.
 
+   Since phase 1 step 1.4, the scoring copies can no longer *diverge* in
+   silence: `packages/domain/src/scale-parity.test.ts` asserts all three agree
+   with `C2.1`. They still exist in three places — the duplication goes with the
+   frontend in phase 8 and the Python in phase 10 — but a disagreement now fails
+   CI instead of surfacing as an unexplainable debrief.
+
 9. **Client-side leaks.** The cursors of departed players are never removed
    from the state (`frontend/src/features/game/useLiveCursors.js`).
    `useHints` resets on `totalFakes`
