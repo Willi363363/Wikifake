@@ -50,3 +50,24 @@ export {
   ITEM_CATALOGUE,
 } from './items.js';
 export type { ItemDefinition, ItemKind, ItemState, TargetCheck } from './items.js';
+
+export { lobbyUpdate, reduceLobby } from './room/lobby.js';
+export { FALLBACK_TOPICS, selectTopic } from './room/topics.js';
+export {
+  assignColour,
+  emptyRoom,
+  hostOf,
+  isHost,
+  newPlayer,
+  playerIn,
+  DEFAULT_TIME_LIMIT,
+  PLAYER_COLOURS,
+} from './room/state.js';
+export type {
+  Generating,
+  PlayerState,
+  RoomOptions,
+  RoomPhase,
+  RoomState,
+} from './room/state.js';
+export type { RoomEffect, RoomEvent } from './room/events.js';
