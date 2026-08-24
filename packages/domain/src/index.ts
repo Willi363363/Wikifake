@@ -28,3 +28,6 @@ export type { HintLevel, Submission } from './scoring.js';
 
 export { grantHint, hintPenaltyFor, hintsUsedFor, EMPTY_LEDGER } from './hints.js';
 export type { HintGrant, HintLedger, HintPayload, HintRequest } from './hints.js';
+
+export { gradeAnswer, isWellFormedSolution, solutionIssues } from './grading.js';
+export type { Grading } from './grading.js';

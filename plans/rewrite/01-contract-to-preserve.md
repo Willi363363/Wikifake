@@ -134,6 +134,11 @@ of the migration.
   because `GameSession` is unmounted between rounds.
 - **D10** — The nickname is not encoded in the WebSocket URL even though the
   server regex allows spaces.
+- **D11** — A duplicate mark is scored twice: `check_answer` counts every
+  element of the submitted list, so marking the same paragraph three times
+  counts three true positives — 450 points for one paragraph. Nothing on the
+  wire forbids the repeat. Closed by the grading of phase 1 step 1.6, which
+  counts a paragraph once.
 
 The rest of the contract — C4 to C8 — is in
 `02-contract-transport-and-compliance.md`.
