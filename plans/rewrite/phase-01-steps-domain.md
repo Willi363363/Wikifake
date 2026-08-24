@@ -44,11 +44,17 @@ and tp/fp are exact on partial, empty and over-marked answers.
 ## 1.7 — Item catalogue and effects
 
 The catalogue is **one** object: identifiers can no longer diverge between
-front and back. The eight effects are pure functions: SCANNER designates a
-real fake not yet designated, remembered per player, `null` on exhaustion;
-`HINT_LOCK` refuses the purchase with `code: hints_blocked`; `FREEZE_TIME`
-really eats into the time bonus (§2.1.7); `targets` are validated — no
-self-targeting, bounded count (§2.1.6).
+front and back. The effects are pure functions: SCANNER designates a real fake
+not yet designated, remembered per player, `null` on exhaustion; `HINT_LOCK`
+refuses the purchase with `code: hints_blocked`; `FREEZE_TIME` really eats into
+the time bonus (§2.1.7); `targets` are validated — no self-targeting, bounded
+count (§2.1.6).
+
+This sheet said "the eight effects" until the catalogue was counted: there are
+**thirteen items**, of which **four** touch server state — the three named above
+plus `SCORE_STEAL`. The other nine are visual and belong to the client. Worth
+naming, because `FREEZE_TIME` was in that second group by accident rather than
+by design (§2.1.7), and a wrong count would have hidden that.
 
 **Done when**: every effect has its tests, SCANNER returns `null` on
 exhaustion, and a self-targeted `use_item` is rejected.

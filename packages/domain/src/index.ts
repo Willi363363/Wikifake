@@ -27,7 +27,26 @@ export {
 export type { HintLevel, Submission } from './scoring.js';
 
 export { grantHint, hintPenaltyFor, hintsUsedFor, EMPTY_LEDGER } from './hints.js';
-export type { HintGrant, HintLedger, HintPayload, HintRequest } from './hints.js';
+export type {
+  HintGrant,
+  HintGuard,
+  HintLedger,
+  HintPayload,
+  HintRequest,
+} from './hints.js';
 
 export { gradeAnswer, isWellFormedSolution, solutionIssues } from './grading.js';
 export type { Grading } from './grading.js';
+
+export {
+  applyItemToTarget,
+  areHintsBlocked,
+  scan,
+  validateTargets,
+  EMPTY_ITEM_STATE,
+  FREEZE_TIME_SECONDS,
+  HINT_BLOCK_SECONDS,
+  ITEMS,
+  ITEM_CATALOGUE,
+} from './items.js';
+export type { ItemDefinition, ItemKind, ItemState, TargetCheck } from './items.js';

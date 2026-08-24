@@ -64,7 +64,20 @@ export type HintPayload = protocol.gameApi.HintResponse;
 export type HintGrant =
   | { readonly ok: true; readonly ledger: HintLedger; readonly payload: HintPayload }
   /** The number does not exist in this round. REST answers 404. */
-  | { readonly ok: false; readonly code: 'hint_not_found' };
+  | { readonly ok: false; readonly code: 'hint_not_found' }
+  /** C1.5 — `HINT_LOCK` is in effect on the buyer. */
+  | { readonly ok: false; readonly code: 'hints_blocked' };
+
+/**
+ * What stops a purchase from outside the ledger.
+ *
+ * `blocked` is passed in rather than computed here, because knowing it means
+ * reading a clock against `hintsBlockedUntil` — `areHintsBlocked` in `items.ts`
+ * does that, with the instant as a parameter.
+ */
+export interface HintGuard {
+  readonly blocked?: boolean;
+}
 
 /**
  * C1.4 — grants a hint, monotonically, and bills the difference.
@@ -76,12 +89,21 @@ export type HintGrant =
  * The level-2 truth rides in `grant`, so a level-1 payload has nowhere to put
  * it — C1.4's "the text of a hint is never transmitted before payment" holds by
  * shape rather than by care.
+ *
+ * C1.5 — a blocked buyer is refused with `hints_blocked` and the ledger comes
+ * back untouched.
  */
 export function grantHint(
   solution: readonly FalsifiedPosition[],
   ledger: HintLedger,
   request: HintRequest,
+  guard: HintGuard = {},
 ): HintGrant {
+  // C1.5 — refused before anything is looked up, so a blocked player learns
+  // nothing: not even whether the number they asked for exists. And the ledger
+  // is returned untouched, which is the other half of that guarantee.
+  if (guard.blocked === true) return { ok: false, code: 'hints_blocked' };
+
   const position = solution.find(
     (candidate) => candidate.falseInfoNumber === request.falseInfoNumber,
   );
