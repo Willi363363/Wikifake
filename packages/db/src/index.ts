@@ -20,3 +20,12 @@ export {
   selectItemUses,
   selectReportsToReview,
 } from './queries/audit.js';
+export {
+  readUsageTotals,
+  selectCallsByKind,
+  selectCostOfGame,
+  selectFailuresByKind,
+  selectGameCounts,
+  usageReport,
+} from './queries/usage.js';
+export type { UsageReport, UsageTotals } from './queries/usage.js';

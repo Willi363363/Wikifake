@@ -92,6 +92,13 @@ in the rewrite phase it belongs to, not as an aside.
     repeat: the message carries a plain list. Found while writing the grading
     rules of phase 1 step 1.6, which count a paragraph once.
 
+12. **The flag verification is never counted.** `flag_verifier.py:44` calls the
+    model on every player report and does not call `record_call`, unlike the
+    scraper and the falsifier. So `/api/usage` under-reports the model spend by
+    however many reports came in, and the cost of the feature is invisible.
+    Found while writing the `llm_call` table of phase 2 step 2.5, whose `kind`
+    enum has a value for it.
+
 ## The remaining `print()` calls in `backend/src/core/`
 
 The repository rule is "no `print` in application code" (`src/log.py`). Five

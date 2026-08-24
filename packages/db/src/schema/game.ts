@@ -70,6 +70,14 @@ export const game = pgTable(
     totalFakes: integer('total_fakes').notNull(),
     /** Kept with the game: the time bonus of C2.1 cannot be recomputed without it. */
     timeLimit: integer('time_limit').notNull(),
+    /**
+     * C4.6 — whether this game reused an article instead of generating one.
+     *
+     * It is the denominator of `cache_hit_rate` and, more importantly, what
+     * keeps the cost per game from being diluted: a cached game costs nothing
+     * and averaging it in would make generation look cheaper than it is.
+     */
+    fromCache: boolean('from_cache').notNull().default(false),
     startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
     /** Null while the round is still running. */
     endedAt: timestamp('ended_at', { withTimezone: true }),

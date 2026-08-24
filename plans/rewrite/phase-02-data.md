@@ -70,7 +70,7 @@ auditable), `item_use` (who sabotaged whom, with what, when), `flag_report`
 a participant's sequence of hint purchases can be reconstructed sorted by
 timestamp.
 
-### 2.5 — `llm_call` and cost queries
+### ✅ 2.5 — `llm_call` and cost queries
 
 Model, call type, input/output tokens, failure. The queries that replace
 `usage.py`: cost per actually generated game (`per_generated_game`, not

@@ -21,3 +21,4 @@ export {
   itemIdEnum,
   itemUse,
 } from './audit.js';
+export { llmCall, llmCallKind } from './usage.js';

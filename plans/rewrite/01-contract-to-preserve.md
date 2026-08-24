@@ -139,6 +139,10 @@ of the migration.
   counts three true positives — 450 points for one paragraph. Nothing on the
   wire forbids the repeat. Closed by the grading of phase 1 step 1.6, which
   counts a paragraph once.
+- **D12** — The flag verification is never counted: `flag_verifier.py` calls
+  the model on every report and does not call `record_call`, so `/api/usage`
+  under-reports the spend and the cost of the feature is invisible. Closed by
+  the `llm_call` table of phase 2 step 2.5.
 
 The rest of the contract — C4 to C8 — is in
 `02-contract-transport-and-compliance.md`.
