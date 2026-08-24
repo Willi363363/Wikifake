@@ -111,7 +111,10 @@ export type TimeLimitSeconds = z.infer<typeof timeLimitSeconds>;
 export const cursorCoordinate = z
   .unknown()
   .transform((value) => (typeof value === 'number' && Number.isFinite(value) ? value : 0))
-  .transform((value) => Math.max(0, Math.min(1, value)));
+  .transform((value) => Math.max(0, Math.min(1, value)))
+  // A transform has no JSON Schema, so the generated documentation would say
+  // `unknown` about the one field whose tolerance is the interesting part.
+  .describe('number clamped to [0,1]; anything else becomes 0');
 export type CursorCoordinate = z.infer<typeof cursorCoordinate>;
 
 /**

@@ -17,7 +17,14 @@ const SRC = fileURLToPath(new URL('./', import.meta.url));
  * describes the shape of a catalogue entry rather than of a payload — there is
  * no schema behind `Route` either.
  */
-const NOT_CONTRACTS = new Set(['decode.ts', 'index.ts', 'rest/routes.ts']);
+const NOT_CONTRACTS = new Set([
+  'decode.ts',
+  'index.ts',
+  'rest/routes.ts',
+  // The generator reads the contracts; it does not declare any.
+  'docs/render.ts',
+  'docs/pages.ts',
+]);
 
 function contractFiles(): string[] {
   const files: string[] = [];

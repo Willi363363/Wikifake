@@ -14,6 +14,7 @@ All project documentation lives here. Nothing at the repository root except
 | understand the current code | `current-state/` |
 | know where the project is going | `rewrite/00-overview.md` |
 | **know what must never break** | `rewrite/01-contract-to-preserve.md` |
+| read the protocol, message by message | `protocol/README.md` |
 | work right now | the file for the current phase, below |
 
 ## Where the project stands
@@ -50,6 +51,7 @@ test in the new stack. As long as one is missing, the Python stays.
 ```
 plans/
 ├── method/          how we work — read once, respect always
+├── protocol/        generated from the Zod schemas — never edited by hand
 ├── current-state/   what exists today, and the known debt
 └── rewrite/         where we are going: overview, contract, one file per phase.
                      A big phase splits: the phase file keeps the frame and the
@@ -64,5 +66,8 @@ plans/
   afterwards.
 - No parallel tracking file. No `TODO.md`, no `NOTES.md`: they diverge in a
   week and lie in two.
+- `protocol/` is **generated**. Edit the schemas in `packages/protocol`, then
+  `pnpm --filter @wikifake/protocol docs`. A test fails on divergence, so a hand
+  edit is caught rather than believed.
 - A problem found out of scope is recorded in
   `current-state/05-known-debt.md` and is not fixed on the spot.
