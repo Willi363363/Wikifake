@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | in progress — all six steps done, exit gate passed |
 | **Branch** | `feat/rewrite-phase-2` |
 | **Depends on** | phase 1 |
 | **Delivers** | `packages/db`: migrated Drizzle schema, typed client, seed |
@@ -80,7 +80,7 @@ as a failure, never counted as a generated game (§3.4).
 **Done when**: on a test dataset, the cost-per-game query returns the
 expected aggregate, and a failed call does not enter `per_generated_game`.
 
-### 2.6 — Development seed
+### ✅ 2.6 — Development seed
 
 A seed script: a few accounts, a room, a finished game with positions,
 answers, hint purchases and LLM calls — enough to develop the next phases

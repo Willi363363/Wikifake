@@ -5,6 +5,7 @@
 // rules live in one place, and it is not the database.
 export * from './schema/index.js';
 export { connect, connectFromEnv } from './client.js';
+export { requireDatabaseUrl } from './database-url.js';
 export {
   selectAnswers,
   selectGameInProgress,
@@ -29,3 +30,4 @@ export {
   usageReport,
 } from './queries/usage.js';
 export type { UsageReport, UsageTotals } from './queries/usage.js';
+export { seed } from './seed/seed.js';
