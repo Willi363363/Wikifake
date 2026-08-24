@@ -6,7 +6,7 @@
 import type { ErrorCode, IncomingMessage, OutgoingMessage } from '@wikifake/protocol';
 
 import type { RoomEffect, RoomEvent } from './events.js';
-import { reduceLobby } from './lobby.js';
+import { reduceRoom } from './reduce.js';
 import { emptyRoom, type RoomState } from './state.js';
 
 export interface Outcome {
@@ -22,7 +22,7 @@ export function run(
   let state = from;
   let effects: readonly RoomEffect[] = [];
   for (const event of events) {
-    const outcome = reduceLobby(state, event);
+    const outcome = reduceRoom(state, event);
     state = outcome.state;
     effects = outcome.effects;
   }

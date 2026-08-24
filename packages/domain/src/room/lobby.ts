@@ -21,6 +21,16 @@ import {
 
 type Outcome = Reduced<RoomState, RoomEffect>;
 
+/**
+ * What the lobby knows how to answer. The round events reach `reduceRoom`, which
+ * routes them to `round.ts` — so an event the lobby cannot handle is a type
+ * error rather than a silent no-op.
+ */
+export type LobbyEvent = Extract<
+  RoomEvent,
+  { kind: 'join' } | { kind: 'leave' } | { kind: 'message' }
+>;
+
 /** The roster, as the protocol carries it. */
 export function lobbyUpdate(state: RoomState): OutgoingMessage {
   const host = hostOf(state);
@@ -208,7 +218,7 @@ function startGame(state: RoomState, from: string, message: IncomingMessage): Ou
  * Round messages are refused here with `out_of_phase`: the `round` phase is
  * unreachable until step 1.9 introduces the article that starts it.
  */
-export function reduceLobby(state: RoomState, event: RoomEvent): Outcome {
+export function reduceLobby(state: RoomState, event: LobbyEvent): Outcome {
   switch (event.kind) {
     case 'join':
       return join(state, event.player);

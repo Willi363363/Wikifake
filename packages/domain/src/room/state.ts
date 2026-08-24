@@ -4,6 +4,13 @@
 // so no `Map`, no `Set`, no `Date`. Where the current code reaches for a clock —
 // `joined_at`, to decide who becomes host — the order of the `players` array
 // carries the same information and survives `JSON.stringify`.
+import type {
+  ArticleView,
+  FalsifiedPosition,
+  ItemInstance,
+  ScoreBreakdown,
+} from '@wikifake/protocol';
+
 import type { HintLedger } from '../hints.js';
 import type { ItemState } from '../items.js';
 import { EMPTY_LEDGER } from '../hints.js';
@@ -46,6 +53,28 @@ export interface PlayerState {
   readonly hints: HintLedger;
   /** What items have done to them, this round (C1.5, C1.6). */
   readonly items: ItemState;
+  /** Unspent items. Filled by the waves of `items_granted`. */
+  readonly hand: readonly ItemInstance[];
+  /** Their score once they submit, absent until then. */
+  readonly submission: ScoredSubmission | null;
+}
+
+/** What a submission was worth, kept until the round ends. */
+export interface ScoredSubmission {
+  readonly score: number;
+  readonly breakdown: ScoreBreakdown;
+}
+
+/**
+ * A round in progress.
+ *
+ * The solution sits here and is sent exactly once, with `game_end` (C1.2).
+ * Nothing that reaches a player before then can reach it: `article` is the whole
+ * of what the round may show.
+ */
+export interface RoundState {
+  readonly article: ArticleView;
+  readonly solution: readonly FalsifiedPosition[];
 }
 
 /** The options the host controls. A guest can change neither (C1.7). */
@@ -78,6 +107,8 @@ export interface RoomState {
   readonly ballots: Readonly<Record<string, string>>;
   /** Set while `phase` is `generating`, null otherwise. */
   readonly generating: Generating | null;
+  /** Set while `phase` is `round`, null otherwise. */
+  readonly round: RoundState | null;
 }
 
 /** Default round length, from `GAME_DURATION`. */
@@ -90,6 +121,7 @@ export function emptyRoom(): RoomState {
     options: { withItems: true, timeLimit: DEFAULT_TIME_LIMIT },
     ballots: {},
     generating: null,
+    round: null,
   };
 }
 
@@ -140,5 +172,31 @@ export function newPlayer(name: string, colour: string): PlayerState {
     answered: false,
     hints: EMPTY_LEDGER,
     items: EMPTY_ITEM_STATE,
+    hand: [],
+    submission: null,
+  };
+}
+
+/**
+ * D2 — everything a round owns, back to nothing.
+ *
+ * The penalty leak this closes: the topic-vote path — the normal path — reset
+ * `score` and `answered` and forgot `hint_levels`, `score_stolen`,
+ * `hints_blocked_until` and `scanned`, so a player carried last round's
+ * penalties into this one. `reset_round()` did it correctly and was called from
+ * the other path, which is why `test_score_integrity.py` never saw it.
+ *
+ * One function, called from one place: the single round start.
+ */
+export function forNewRound(player: PlayerState): PlayerState {
+  return {
+    name: player.name,
+    colour: player.colour,
+    ready: false,
+    answered: false,
+    hints: EMPTY_LEDGER,
+    items: EMPTY_ITEM_STATE,
+    hand: [],
+    submission: null,
   };
 }

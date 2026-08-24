@@ -59,6 +59,12 @@ export const ERROR_CODES = [
    * silence.
    */
   'out_of_phase',
+  /**
+   * A `use_item` naming an instance the player does not hold — already spent, or
+   * never theirs. Silently ignored today, so a client that lost track of a hand
+   * gets no correction.
+   */
+  'item_not_held',
 ] as const;
 
 export const errorCode = z.enum(ERROR_CODES);
