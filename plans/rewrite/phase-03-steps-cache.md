@@ -17,8 +17,13 @@ nor counted. The cache becomes shared between instances and survives
 redeployments.
 
 **The clause to cite is C4**, in `02-contract-transport-and-compliance.md`.
-This sheet said "§3.4" four times; `C3.4` is paragraph deduplication, so
-anyone following the sheet landed on the wrong guarantee. Corrected here.
+This sheet said "§3.4", which is the source plan's numbering — the contract
+was its section 3, so `§3.N` means `CN` and `§3.4` did mean the cache. That
+notation is used consistently across the phase sheets and was **not** wrong.
+It is only ambiguous beside identifiers of the form `C3.4`, which is a
+different guarantee, so this sheet now cites `C4` outright. Normalising the
+rest is its own piece of work: see the debt register, because some sites mean
+the section and others a specific clause.
 
 "Same rules as today" turned out to need a decision twice, because the
 current code is weaker than the text it is supposed to implement. Both are

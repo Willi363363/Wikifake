@@ -138,6 +138,26 @@ in the rewrite phase it belongs to, not as an aside.
       (`backend/src/api/health.py:56`) therefore reports articles the cache
       would refuse to hand out.
 
+## Two notations for the same contract
+
+The phase sheets cite the contract as `§3.N` — the numbering of the source
+plan, where the contract was section 3, so `§3.1` is `C1` and `§3.4` is `C4`.
+`01-contract-to-preserve.md` and `02-contract-transport-and-compliance.md`
+number the same guarantees `C1` to `C8`, with sub-clauses `C4.1`, `C4.2` and
+so on. Twenty-one citations across seven sheets still use the old form.
+
+Nothing is *wrong*: the mapping is consistent. It is ambiguous, because
+`§3.4` and `C3.4` look like the same reference and are not — `§3.4` is the
+cache, `C3.4` is paragraph deduplication. `phase-03-steps-cache.md` cites
+`C4` outright for that reason.
+
+**Not a mechanical rename.** Some sites mean the section (`the cases of §3.2`
+→ `C2`) and some mean one clause inside it (`the contract shape of §3.3
+(1-based indices, sorted positions, sequential numbers)` is `C3.3`, not
+`C3`). Each of the twenty-one needs reading. It also touches sheets that
+open pull requests currently have in flight, so it wants its own step on a
+quiet tree rather than a corner of somebody else's.
+
 ## The remaining `print()` calls in `backend/src/core/`
 
 The repository rule is "no `print` in application code" (`src/log.py`). Five
