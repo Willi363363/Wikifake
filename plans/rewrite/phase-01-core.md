@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | in progress |
 | **Branch** | `feat/rewrite-phase-1` |
 | **Depends on** | phase 0 |
 | **Delivers** | `packages/protocol` and `packages/domain`, pure and tested |
@@ -26,11 +26,23 @@ the last player's disconnection (§2.1.4).
 
 ## Steps
 
-### 1.1 — Skeleton of the two packages
+### ✅ 1.1 — Skeleton of the two packages
 
 `packages/protocol` and `packages/domain` on the shared configuration from
 phase 0. `protocol` has a single runtime dependency, Zod; `domain` depends
 on `protocol` and nothing else.
+
+Two pieces of plumbing come with the skeleton, because every later step goes
+through them and neither is a rule: `protocol` exports `decode`, the single
+entry point that turns an unknown input into a result rather than an exception
+— an invalid frame is an ordinary event, and Zod's error shape stays inside
+that one file — and `domain` exports the `Reduced` shape that steps 1.7 to 1.9
+return, which is what keeps effects data rather than `setTimeout` calls.
+
+The graph is locked by a test rather than by a convention:
+`packages/config/src/workspace-graph.test.ts` fails when either package grows
+a runtime dependency, and when `protocol` grows a workspace one — the rules
+import the contracts, never the reverse.
 
 **Done when**: `pnpm build`, `pnpm test` and `pnpm typecheck` pass with a
 trivial test in each package, and the dependency graph is exactly that one.
