@@ -1,0 +1,115 @@
+// C1.4, C2.2 — hints: monotonic levels, billed exactly once.
+//
+// The ledger is the whole trick. Rather than accumulating a penalty as purchases
+// come in — which is how a double-charge happens — it records the **highest
+// level reached** per falsification, and the penalty is a function of that
+// record. Charging twice for the same number stops being a bug to avoid and
+// becomes a state that cannot be written down.
+//
+// C1.3 — the penalty therefore comes from server state and never from a client.
+// A `hintsUsed: 9` in a submission is not ignored here: the protocol has no
+// field to put it in.
+import type { FalsifiedPosition } from '@wikifake/protocol';
+import type * as protocol from '@wikifake/protocol';
+
+import { hintCostFor, type HintLevel } from './scoring.js';
+
+/**
+ * What a player has unlocked, by falsification number.
+ *
+ * A number absent from the ledger was never bought. Level 0 is not
+ * representable, which the current `dict[int, int]` allowed and then had to
+ * filter out of every sum.
+ *
+ * A plain object rather than a `Map`: room state is serialised to Redis in
+ * phase 5, and a `Map` does not survive `JSON.stringify`.
+ */
+export type HintLedger = Readonly<Record<number, HintLevel>>;
+
+export const EMPTY_LEDGER: HintLedger = {};
+
+/**
+ * C2.2 — the total cost of what has been unlocked.
+ *
+ * Non-cumulative: a number at level 2 costs 200, not 50 + 200. Recomputed from
+ * the ledger every time rather than tracked incrementally, so there is no
+ * running total to drift.
+ */
+export function hintPenaltyFor(ledger: HintLedger): number {
+  return Object.values(ledger).reduce((total, level) => total + hintCostFor(level), 0);
+}
+
+/** How many falsifications the player has bought a hint on. Display only. */
+export function hintsUsedFor(ledger: HintLedger): number {
+  return Object.keys(ledger).length;
+}
+
+/** What the player asks for. */
+export interface HintRequest {
+  readonly falseInfoNumber: number;
+  readonly level: HintLevel;
+}
+
+/**
+ * The payload of `hint_unlocked`, minus its `type` — taken from the protocol
+ * rather than restated here. Restating it is how the two would drift, which is
+ * the reason `protocol` exists.
+ *
+ * `charged` is what **this** purchase cost, and 0 when the level was already
+ * held. The sum of `charged` over a session equals `hintPenalty`, and there is a
+ * test for that.
+ */
+export type HintPayload = protocol.gameApi.HintResponse;
+
+export type HintGrant =
+  | { readonly ok: true; readonly ledger: HintLedger; readonly payload: HintPayload }
+  /** The number does not exist in this round. REST answers 404. */
+  | { readonly ok: false; readonly code: 'hint_not_found' };
+
+/**
+ * C1.4 — grants a hint, monotonically, and bills the difference.
+ *
+ * Monotonic: asking for level 1 after paying for level 2 returns level 2. The
+ * player already knows the truth; re-serving the nudge and charging for it again
+ * would be charging for something they cannot un-know.
+ *
+ * The level-2 truth rides in `grant`, so a level-1 payload has nowhere to put
+ * it — C1.4's "the text of a hint is never transmitted before payment" holds by
+ * shape rather than by care.
+ */
+export function grantHint(
+  solution: readonly FalsifiedPosition[],
+  ledger: HintLedger,
+  request: HintRequest,
+): HintGrant {
+  const position = solution.find(
+    (candidate) => candidate.falseInfoNumber === request.falseInfoNumber,
+  );
+  if (position === undefined) return { ok: false, code: 'hint_not_found' };
+
+  const held = ledger[request.falseInfoNumber];
+  const granted: HintLevel =
+    held !== undefined && held >= request.level ? held : request.level;
+  const charged = hintCostFor(granted) - (held === undefined ? 0 : hintCostFor(held));
+
+  const next: HintLedger = { ...ledger, [request.falseInfoNumber]: granted };
+
+  return {
+    ok: true,
+    ledger: next,
+    payload: {
+      falseInfoNumber: request.falseInfoNumber,
+      hint: position.hint,
+      charged,
+      hintPenalty: hintPenaltyFor(next),
+      grant:
+        granted === 2
+          ? {
+              level: 2,
+              truth: position.explanation,
+              paragraphIndex: position.paragraphIndex,
+            }
+          : { level: 1 },
+    },
+  };
+}

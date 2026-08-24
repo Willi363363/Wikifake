@@ -149,14 +149,18 @@ export const itemUsed = z.object({
  * being runtime checks and become type errors — `grant.truth` does not exist
  * until the client has narrowed on `grant.level === 2`.
  *
- * `hintPenalty` is the running total computed from server state (C1.3), not a
- * delta the client could reinterpret.
+ * `charged` is what **this** purchase cost, and 0 when the level was already
+ * held. The current server sends the *price of the level* instead, so a client
+ * that sums what it was told it paid over-counts every repeat request — and
+ * repeat requests are normal, since asking for level 1 after buying level 2
+ * returns level 2. `hintPenalty` is the running total computed from server
+ * state (C1.3), and the sum of `charged` equals it.
  */
 export const hintUnlocked = z.object({
   type: z.literal('hint_unlocked'),
   falseInfoNumber,
   hint: z.string().min(1),
-  cost: z.number().int().min(0),
+  charged: z.number().int().min(0),
   hintPenalty: z.number().int().min(0),
   grant: z.discriminatedUnion('level', [
     z.object({ level: z.literal(1) }),

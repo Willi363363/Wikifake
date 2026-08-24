@@ -37,7 +37,7 @@ const HINT_UNLOCKED = {
   type: 'hint_unlocked',
   falseInfoNumber: 1,
   hint: 'Vérifiez le nombre.',
-  cost: 50,
+  charged: 50,
   hintPenalty: 50,
   grant: { level: 1 },
 };
@@ -168,7 +168,7 @@ describe('hint_unlocked (C1.2, C1.4)', () => {
   it('reveals the truth at level 2', () => {
     const message = {
       ...HINT_UNLOCKED,
-      cost: 200,
+      charged: 200,
       hintPenalty: 200,
       grant: {
         level: 2,

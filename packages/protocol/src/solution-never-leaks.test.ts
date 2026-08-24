@@ -132,7 +132,7 @@ describe('a level-1 hint reveals nothing (C1.4)', () => {
     const parsed = hintResponse.parse({
       falseInfoNumber: 1,
       hint: HINT,
-      cost: 50,
+      charged: 50,
       hintPenalty: 50,
       grant: { level: 1, truth: TRUTH, paragraphIndex: 2 },
     });
@@ -145,7 +145,7 @@ describe('a level-1 hint reveals nothing (C1.4)', () => {
     const parsed = hintResponse.parse({
       falseInfoNumber: 1,
       hint: HINT,
-      cost: 200,
+      charged: 200,
       hintPenalty: 200,
       grant: { level: 2, truth: TRUTH, paragraphIndex: 2 },
     });
