@@ -1,7 +1,7 @@
 // Producing the falsified articles: retrieval, paragraph collection,
 // falsification, cache.
 //
-// The falsification arrives with step 3.4 and the Redis cache with 3.6.
+// The Redis cache arrives with step 3.6, the counters with 3.7.
 export {
   collectParagraphs,
   injectFalsifications,
@@ -13,3 +13,15 @@ export { fetchRenderedPage, searchTitles } from './mediawiki.js';
 export type { RenderedPage, WikiRequest, WikiTransport } from './mediawiki.js';
 export { failed, ok } from './result.js';
 export type { FailureReason, Result } from './result.js';
+export {
+  falsifiableCandidates,
+  falsify,
+  FALSIFICATIONS_PER_ARTICLE,
+  MIN_FALSIFIABLE_CHARS,
+} from './falsify.js';
+export type {
+  Candidate,
+  Falsification,
+  FalsifyOptions,
+  FalsifyOutcome,
+} from './falsify.js';
