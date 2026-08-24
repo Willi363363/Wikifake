@@ -5,7 +5,8 @@ why. Written down because each one is a choice a reviewer would otherwise have
 to reverse-engineer from a diff, and because the frontend phases (7 and 8) read
 this rather than the Python.
 
-Nothing here is a rule: the rules live in `phase-01-core.md`, steps 1.4 to 1.9.
+Nothing here is a rule: the rules are steps 1.4 to 1.9, in
+`phase-01-steps-domain.md`.
 These are shapes.
 
 ## Naming

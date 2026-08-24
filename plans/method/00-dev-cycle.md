@@ -24,13 +24,20 @@ containing the same sections:
 | Header | state (to do / in progress / done), branch, phase it depends on |
 | Goal | what the phase delivers, in three lines |
 | Why now | the constraint that fixes its place in the order |
-| Steps | the numbered list, each with its completion criterion |
+| Steps | the numbered list, each with its completion criterion, and the table that says where each one stands |
 | Exit gate | what must be true to close the phase |
 | Invariants involved | pointer to `01-contract-to-preserve.md` |
 | Pitfalls | what will go wrong, written in advance |
 
 A phase has **one** umbrella branch. It never closes halfway: either its exit
 gate is passed, or the phase is still in progress.
+
+A phase file stays under 200 lines like every other document, and a phase with
+ten steps does not fit. When it stops fitting, it splits: the phase file keeps
+the frame — objective, step tables, exit gate, pitfalls — and satellite sheets
+carry the step definitions. **The tables stay in the phase file**, because the
+state of a step has to have one home; the sheets define the work and say
+nothing about how far along it is. Phase 1 is the worked example.
 
 ## Anatomy of a step
 
@@ -47,7 +54,8 @@ three commits, it was hiding two steps: split it again in the phase file
 ## The cycle, every time
 
 1. Read `plans/README.md` to know which phase is in progress.
-2. Open the phase file, pick the first step not yet done.
+2. Open the phase file, read its table, pick the first step not yet done, and
+   read its definition — in the phase file, or in the sheet it points to.
 3. Create the branch (see `01-git-flow.md`).
 4. Do the step, and nothing else.
 5. `make check`, then the relevant tests.
@@ -82,8 +90,8 @@ Three cases, three answers:
 ## Tracking progress
 
 `plans/README.md` carries the table of phases and their state. It is the only
-place that says where we stand: it is updated at every phase crossed. Step
-checkboxes are ticked in the phase file.
+place that says where we stand: it is updated at every phase crossed. Steps are
+ticked in the phase file — in its own table, never in a satellite sheet.
 
 No other tracking file. No `TODO.md`, no `NOTES.md` — they diverge within a
 week and lie within two.

@@ -51,8 +51,10 @@ test in the new stack. As long as one is missing, the Python stays.
 plans/
 ├── method/          how we work — read once, respect always
 ├── current-state/   what exists today, and the known debt
-└── rewrite/         where we are going: overview, contract, one file per phase,
-                     plus a decisions sheet where a phase outgrew 200 lines
+└── rewrite/         where we are going: overview, contract, one file per phase.
+                     A big phase splits: the phase file keeps the frame and the
+                     step tables, satellite sheets carry the definitions and
+                     the decisions. See phase 1.
 ```
 
 ## Rules of this documentation
