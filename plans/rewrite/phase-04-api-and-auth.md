@@ -35,7 +35,7 @@ completion criterion, and carry no state.
 | # | Step — identity and deployment | State |
 |---|---|---|
 | 4.1 | `/ping` and `/api/health` field by field | ✅ done |
-| 4.2 | Better Auth | to do |
+| 4.2 | Better Auth | ✅ done |
 | 4.3 | Attachable guest sessions | to do |
 
 Definitions: `phase-04-steps-identity.md`.

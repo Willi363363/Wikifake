@@ -1,8 +1,10 @@
 // The four tables Better Auth owns, plus nothing.
 //
-// Better Auth is wired in phase 5; these tables exist now because everything
-// that persists hangs off a user. The shapes are its documented core schema, so
-// phase 5 configures the adapter rather than migrating on arrival.
+// Better Auth is wired in phase 4 step 4.2; these tables exist now because
+// everything that persists hangs off a user. The shapes are its documented core
+// schema, so that step configures the adapter rather than migrating on arrival.
+// Checked against `getAuthTables` in better-auth 1.7.1 when it got there: they
+// match, `account.issuer` included.
 //
 // Column names are snake_case in SQL and camelCase in TypeScript — the same
 // split the protocol makes. The Drizzle adapter reads the property names, so

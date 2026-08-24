@@ -38,6 +38,29 @@ const schema = z.object({
   /** Language model — phase 3. */
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1, 'model API key is missing'),
   MODEL_NAME: z.string().min(1).default(DEFAULT_MODEL_NAME),
+
+  /**
+   * Better Auth — phase 4.
+   *
+   * The secret signs every session cookie, so a short one is not a weak
+   * configuration but a forgeable session. Thirty-two characters is Better
+   * Auth's own floor, checked here so the failure is a startup message naming
+   * the variable rather than a subtle one later.
+   */
+  BETTER_AUTH_SECRET: z
+    .string()
+    .min(32, 'BETTER_AUTH_SECRET must be at least 32 characters: it signs sessions'),
+  /** Where the app answers. OAuth redirect URIs are built from it. */
+  BETTER_AUTH_URL: z.url().default('http://localhost:3000'),
+
+  // Social sign-in, per provider, both halves or neither. Optional because the
+  // game must stay playable — and developable — without any provider
+  // configured: `providers.ts` turns on exactly the ones whose credentials are
+  // present.
+  GOOGLE_OAUTH_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
+  GITHUB_OAUTH_CLIENT_ID: z.string().min(1).optional(),
+  GITHUB_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof schema>;
