@@ -29,7 +29,7 @@ const EXPECTED: Readonly<Record<string, readonly string[]>> = {
   protocol: ['zod'],
   domain: ['@wikifake/protocol'],
   db: ['@wikifake/env', '@wikifake/protocol', 'drizzle-orm', 'postgres'],
-  article: ['ai', 'cheerio', 'domhandler', 'zod'],
+  article: ['@wikifake/protocol', 'ai', 'cheerio', 'domhandler', 'zod'],
 };
 
 describe('workspace dependency graph', () => {
@@ -60,6 +60,15 @@ describe('workspace dependency graph', () => {
   // redeclaring the shapes — but never the rules. Data does not depend on rules.
   it('keeps db away from domain', () => {
     expect(Object.keys(manifest('db').dependencies ?? {})).not.toContain(
+      '@wikifake/domain',
+    );
+  });
+
+  // `article` produces the contracts, so it imports them. It does not import the
+  // rules either — its end-to-end test asks `domain` whether the solution it
+  // built is well formed, and that is a test dependency, not a runtime one.
+  it('keeps article away from domain at runtime', () => {
+    expect(Object.keys(manifest('article').dependencies ?? {})).not.toContain(
       '@wikifake/domain',
     );
   });

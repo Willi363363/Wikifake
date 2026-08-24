@@ -91,7 +91,7 @@ model in test), and a test checks that a paragraph longer than
 1,000 characters goes to the model whole and comes back whole in the
 article.
 
-### 3.5 — Injection and end-to-end parity
+### ✅ 3.5 — Injection and end-to-end parity
 
 `positions` designates exactly the paragraphs the LLM modified.
 `false_info_number` sequential from 1 to n, `positions` sorted by ascending

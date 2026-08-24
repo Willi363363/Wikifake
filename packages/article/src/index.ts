@@ -25,3 +25,5 @@ export type {
   FalsifyOptions,
   FalsifyOutcome,
 } from './falsify.js';
+export { generateArticle, MIN_ARTICLE_PARAGRAPHS } from './generate.js';
+export type { GeneratedArticle, GenerateOptions } from './generate.js';

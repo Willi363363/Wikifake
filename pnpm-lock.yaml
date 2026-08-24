@@ -32,6 +32,9 @@ importers:
 
   packages/article:
     dependencies:
+      '@wikifake/protocol':
+        specifier: workspace:*
+        version: link:../protocol
       ai:
         specifier: ^7.0.77
         version: 7.0.77(zod@4.4.3)
@@ -54,6 +57,9 @@ importers:
       '@wikifake/config':
         specifier: workspace:*
         version: link:../config
+      '@wikifake/domain':
+        specifier: workspace:*
+        version: link:../domain
       eslint:
         specifier: ^9.39.0
         version: 9.39.5(supports-color@7.2.0)
