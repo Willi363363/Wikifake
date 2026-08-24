@@ -152,7 +152,7 @@ Progress on these phases is read in `plans/README.md`, not here.
 | 1 | Core (`protocol` + `domain`) | `phase-01-core.md` |
 | 2 | Data | `phase-02-data.md` |
 | 3 | Article | `phase-03-article.md`, `phase-03-steps-generation.md`, `phase-03-steps-cache.md` |
-| 4 | API and auth | `phase-04-api-and-auth.md` |
+| 4 | API and auth | `phase-04-api-and-auth.md`, `phase-04-steps-identity.md`, `phase-04-steps-game.md` |
 | 5 | Realtime | `phase-05-realtime.md` |
 | 6 | Design system | `phase-06-design-system.md` |
 | 7 | Frontend lobby | `phase-07-frontend-lobby.md` |

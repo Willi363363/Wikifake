@@ -90,6 +90,28 @@ describe('workspace dependency graph', () => {
     );
   });
 
+  // The application is a leaf. It may import every package — that is what an
+  // application is for — but nothing may import it back: a package that depends
+  // on the app can no longer be tested without Next, React and a bundler, which
+  // is the whole reason the rules live outside it.
+  it('keeps the application a leaf', () => {
+    const app = JSON.parse(
+      readFileSync(`${PACKAGES}../apps/web/package.json`, 'utf8'),
+    ) as Manifest;
+    expect(app.name).toBe('@wikifake/web');
+
+    for (const pkg of Object.keys(EXPECTED)) {
+      const manifestOf = manifest(pkg) as Manifest & {
+        devDependencies?: Readonly<Record<string, string>>;
+      };
+      const every = [
+        ...Object.keys(manifestOf.dependencies ?? {}),
+        ...Object.keys(manifestOf.devDependencies ?? {}),
+      ];
+      expect(every).not.toContain('@wikifake/web');
+    }
+  });
+
   it('keeps protocol free of any workspace dependency', () => {
     const deps = Object.keys(manifest('protocol').dependencies ?? {});
     expect(deps.filter((name) => name.startsWith('@wikifake/'))).toEqual([]);
