@@ -50,6 +50,15 @@ export const ERROR_CODES = [
    * validated nor reported today.
    */
   'invalid_target',
+  /**
+   * A message that makes no sense in the room's current phase — `force_start`
+   * during a round, a submission in the lobby.
+   *
+   * The current server returns early on these, so the client is told nothing and
+   * waits for a reply that never comes. A phase guard is a rejection, not a
+   * silence.
+   */
+  'out_of_phase',
 ] as const;
 
 export const errorCode = z.enum(ERROR_CODES);

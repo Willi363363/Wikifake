@@ -46,7 +46,7 @@ contracts, and why: `phase-01-protocol-decisions.md`.
 | 1.5 | Hints: monotonicity and billing | ✅ done |
 | 1.6 | Answer correction | ✅ done |
 | 1.7 | Item catalogue and effects | ✅ done |
-| 1.8 | Room reducer: lobby and host | to do |
+| 1.8 | Room reducer: lobby and host | ✅ done |
 | 1.9 | Room reducer: round | to do |
 
 Definitions: `phase-01-steps-domain.md`.
