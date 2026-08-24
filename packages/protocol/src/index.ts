@@ -15,6 +15,7 @@ export * from './primitives.js';
 export * from './errors.js';
 export * from './article.js';
 export * from './score.js';
+export * from './items.js';
 export * from './rest/routes.js';
 
 export * as clientMessages from './ws/incoming.js';

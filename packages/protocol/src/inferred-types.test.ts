@@ -43,6 +43,7 @@ describe('contract types are inferred, never redeclared', () => {
     expect(files).toEqual([
       'article.ts',
       'errors.ts',
+      'items.ts',
       'primitives.ts',
       'rest/flags.ts',
       'rest/game.ts',

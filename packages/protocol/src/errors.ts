@@ -44,6 +44,12 @@ export const ERROR_CODES = [
   'hint_not_found',
   /** C5.6 — the room registry is full. REST: 503. */
   'room_capacity_reached',
+  /**
+   * D6 — a `use_item` whose targets make no sense: the caster targeting
+   * themselves, the wrong number of them, or the same player twice. Neither
+   * validated nor reported today.
+   */
+  'invalid_target',
 ] as const;
 
 export const errorCode = z.enum(ERROR_CODES);

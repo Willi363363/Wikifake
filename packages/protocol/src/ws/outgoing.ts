@@ -20,6 +20,7 @@ import { z } from 'zod';
 
 import { articleView, solution } from '../article.js';
 import { errorMessage } from '../errors.js';
+import { itemId, itemInstance } from '../items.js';
 import { scoreBreakdown } from '../score.js';
 import {
   falseInfoNumber,
@@ -29,13 +30,6 @@ import {
   timeLimitSeconds,
   topicLabel,
 } from '../primitives.js';
-
-/**
- * The item identifier. It becomes the closed union of the catalogue in step 1.7
- * — the whole point of that step being that front and back can no longer hold
- * different lists (D8).
- */
-const itemId = z.string().min(1);
 
 /** One row of the lobby roster. */
 const lobbyPlayer = z.object({
@@ -122,7 +116,7 @@ export const chatMessage = z.object({
 export const itemsDistributed = z.object({
   type: z.literal('items_distributed'),
   wave: z.number().int().min(1),
-  items: z.record(playerName, z.object({ instanceId: z.string().min(1), itemId })),
+  items: z.record(playerName, itemInstance),
 });
 
 /** An item landed on you, and who sent it. */
