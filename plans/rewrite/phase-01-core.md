@@ -47,13 +47,23 @@ import the contracts, never the reverse.
 **Done when**: `pnpm build`, `pnpm test` and `pnpm typecheck` pass with a
 trivial test in each package, and the dependency graph is exactly that one.
 
-### 1.2 — WebSocket messages
+### ✅ 1.2 — WebSocket messages
 
 One schema per incoming and outgoing message, modelled on the current
 dispatch table. Error codes become a closed union (`room_not_found`,
 `invalid_name`, `name_taken`, `bad_json`, `not_host`, `hints_blocked`, …).
 `game_start` has a single shape for `players`: the divergence between the
 two start paths (§2.1.3) becomes unrepresentable.
+
+Thirteen inbound messages, fifteen outbound, nine error codes. The two
+criteria are checked mechanically rather than by reading: a parity test
+compares the catalogues to the `HANDLERS` table and to the `{"type": …}`
+literals the Python actually emits, and another reads the source to assert
+that every exported contract type comes from `z.infer`.
+
+Where the new shapes depart from the current ones — naming, bounds, the
+three errors that had no code — is written in
+`phase-01-protocol-decisions.md`.
 
 **Done when**: every message of the dispatch table has its schema, the types
 are inferred through `z.infer` (no type redeclared by hand), and invalid
