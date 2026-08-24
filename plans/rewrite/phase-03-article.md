@@ -69,10 +69,16 @@ under 50 characters discarded. Spaces inserted between inline tags
 **Done when**: on every fixture, the index parity, deduplication and
 whitespace normalisation tests pass.
 
-### 3.4 — Falsification via `generateObject`
+### ✅ 3.4 — Falsification via structured output
 
-`generateObject` from the AI SDK with a Zod schema. This removes in one
-stroke the ~130 lines of parsing heuristics that are business logic today:
+Structured output from the AI SDK with a Zod schema. **`generateObject` is the
+API this sheet was written against and it is deprecated** in the version now
+installed: the SDK moved to `generateText` with `Output.object()`. Same
+guarantee, different call — worth writing down, because the next reader would
+otherwise reach for a deprecated function on the sheet's word.
+
+This removes in one stroke the ~130 lines of parsing heuristics that are
+business logic today:
 stripping Markdown fences, falling back from the first `[` to the last `]`,
 unwrapping an envelope object, all-or-nothing policy on indices, positional
 fallback, partial retry. The prompt actually in use is carried over
@@ -146,4 +152,5 @@ key normalisation, copies, TTL, rotation, `cache_hit_rate`,
 - Do not port `core/prompts.py`: it is dead code, the real prompt is inline
   in `misinformation.py`.
 - The falsifiability threshold exists twice today (settings and hardcoded in
-  `misinformation.py`): a single constant in the target.
+  `misinformation.py`): a single constant in the target. **Done in 3.4** —
+  `MIN_FALSIFIABLE_CHARS` in `packages/article`.

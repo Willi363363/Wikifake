@@ -29,7 +29,7 @@ const EXPECTED: Readonly<Record<string, readonly string[]>> = {
   protocol: ['zod'],
   domain: ['@wikifake/protocol'],
   db: ['@wikifake/env', '@wikifake/protocol', 'drizzle-orm', 'postgres'],
-  article: ['cheerio', 'domhandler'],
+  article: ['ai', 'cheerio', 'domhandler', 'zod'],
 };
 
 describe('workspace dependency graph', () => {
