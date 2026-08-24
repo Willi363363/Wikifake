@@ -12,7 +12,17 @@ import {
   falsify,
   FALSIFICATIONS_PER_ARTICLE,
   MIN_FALSIFIABLE_CHARS,
+  type FalsifyOptions,
 } from './falsify.js';
+
+/**
+ * The answer alone.
+ *
+ * Since step 3.7 `falsify` returns what happened *and* what it cost, because a
+ * failed call still has to be billed. Most of these tests are about the answer,
+ * so they read it through here; the ones about the cost call `falsify` directly.
+ */
+const answerOf = async (options: FalsifyOptions) => (await falsify(options)).result;
 
 /** Answers with whatever text it is given, and records the prompt it received. */
 function modelAnswering(text: string) {
@@ -96,7 +106,7 @@ describe('3.4 — a paragraph is never truncated on the way to the model', () =>
       ]),
     );
 
-    const result = await falsify({
+    const result = await answerOf({
       model,
       topic: 'Paris',
       candidates: [{ index: 0, text: long }],
@@ -115,7 +125,7 @@ describe('3.4 — a paragraph is never truncated on the way to the model', () =>
       answer([{ ...GOOD, paragraphIndex: 0, swappedText: falsified }]),
     );
 
-    const result = await falsify({
+    const result = await answerOf({
       model,
       topic: 'Paris',
       candidates: [{ index: 0, text: long }],
@@ -128,7 +138,7 @@ describe('3.4 — a paragraph is never truncated on the way to the model', () =>
 describe('3.4 — the schema is the only judge', () => {
   it('accepts a well-formed answer', async () => {
     const { model } = modelAnswering(answer([GOOD]));
-    const result = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
+    const result = await answerOf({ model, topic: 'Paris', candidates: [CANDIDATE] });
 
     expect(result.ok && result.value.falsifications).toEqual([GOOD]);
   });
@@ -143,7 +153,7 @@ describe('3.4 — the schema is the only judge', () => {
     ['an envelope with the wrong key', '{"results":[]}'],
   ])('rejects %s', async (_name, text) => {
     const { model } = modelAnswering(text);
-    const result = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
+    const result = await answerOf({ model, topic: 'Paris', candidates: [CANDIDATE] });
     expect(result.ok).toBe(false);
   });
 
@@ -155,7 +165,7 @@ describe('3.4 — the schema is the only judge', () => {
     ['a negative index', { ...GOOD, paragraphIndex: -1 }],
   ])('rejects %s', async (_name, item) => {
     const { model } = modelAnswering(answer([item]));
-    const result = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
+    const result = await answerOf({ model, topic: 'Paris', candidates: [CANDIDATE] });
     expect(result.ok).toBe(false);
   });
 });
@@ -166,7 +176,7 @@ describe('3.4 — an index the model was not given', () => {
   // paragraph nobody touched". Dropped instead.
   it('drops a falsification quoting an index that was never offered', async () => {
     const { model } = modelAnswering(answer([GOOD, { ...GOOD, paragraphIndex: 99 }]));
-    const result = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
+    const result = await answerOf({ model, topic: 'Paris', candidates: [CANDIDATE] });
 
     expect(
       result.ok && result.value.falsifications.map((item) => item.paragraphIndex),
@@ -175,7 +185,7 @@ describe('3.4 — an index the model was not given', () => {
 
   it('fails when nothing it returned was offered', async () => {
     const { model } = modelAnswering(answer([{ ...GOOD, paragraphIndex: 99 }]));
-    const result = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
+    const result = await answerOf({ model, topic: 'Paris', candidates: [CANDIDATE] });
 
     expect(result).toMatchObject({ ok: false, reason: 'unexpected_response' });
   });
@@ -186,7 +196,7 @@ describe('3.4 — an index the model was not given', () => {
     const { model } = modelAnswering(
       answer([GOOD, { ...GOOD, swappedText: 'Une autre version.' }]),
     );
-    const result = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
+    const result = await answerOf({ model, topic: 'Paris', candidates: [CANDIDATE] });
 
     expect(result.ok && result.value.falsifications).toHaveLength(1);
   });
@@ -196,7 +206,7 @@ describe('3.4 — an index the model was not given', () => {
     const { model } = modelAnswering(
       answer([GOOD, { ...GOOD, paragraphIndex: 0, swappedText: 'Premier.' }]),
     );
-    const result = await falsify({ model, topic: 'Paris', candidates });
+    const result = await answerOf({ model, topic: 'Paris', candidates });
 
     expect(
       result.ok && result.value.falsifications.map((item) => item.paragraphIndex),
@@ -207,7 +217,7 @@ describe('3.4 — an index the model was not given', () => {
 describe('3.4 — the prompt', () => {
   it('carries the topic and the original text, verbatim', async () => {
     const { model, prompts } = modelAnswering(answer([GOOD]));
-    await falsify({ model, topic: 'Chat domestique', candidates: [CANDIDATE] });
+    await answerOf({ model, topic: 'Chat domestique', candidates: [CANDIDATE] });
 
     const sent = prompts[0] as string;
     expect(sent).toContain('Chat domestique');
@@ -220,21 +230,78 @@ describe('3.4 — the prompt', () => {
 
   it('refuses to ask when no paragraph is long enough', async () => {
     const { model, prompts } = modelAnswering(answer([GOOD]));
-    const result = await falsify({ model, topic: 'Paris', candidates: [] });
+    const result = await answerOf({ model, topic: 'Paris', candidates: [] });
 
     expect(result).toMatchObject({ ok: false, reason: 'unexpected_response' });
     expect(prompts).toEqual([]);
   });
 });
 
-describe('3.4 — what the call cost', () => {
-  it('reports the tokens the provider gave', async () => {
+describe('3.7 — what the call cost', () => {
+  it('records the tokens the provider gave', async () => {
     const { model } = modelAnswering(answer([GOOD]));
-    const result = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
+    const report = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
 
-    expect(result.ok && result.value.usage).toEqual({
+    expect(report.result.ok).toBe(true);
+    expect(report.call).toMatchObject({
+      kind: 'falsification',
       inputTokens: 1200,
       outputTokens: 340,
+      failed: false,
     });
+  });
+
+  it('counts the characters it sent, prompt and system together', async () => {
+    const { model } = modelAnswering(answer([GOOD]));
+    const report = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
+
+    // The whole candidate reaches the model — 3.4's rule — so the count has to be
+    // at least as long as the paragraph it sent. A zero here would mean the
+    // proxy `usage.py` falls back on had silently stopped measuring.
+    expect(report.call?.promptChars).toBeGreaterThan(CANDIDATE.text.length);
+    expect(report.call?.outputChars).toBeGreaterThan(0);
+  });
+
+  // C4.5 read the way it is meant: a failure is *recorded* as a failure. It is
+  // not counted as a generated game, which is a different thing, and losing the
+  // record instead is how `/api/usage` under-reports the bill today.
+  it('records a call that threw as a failure, not as nothing', async () => {
+    const model = new MockLanguageModelV4({
+      doGenerate: async () => {
+        throw new Error('the provider is down');
+      },
+    });
+    const report = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
+
+    expect(report.result.ok).toBe(false);
+    expect(report.call).toMatchObject({
+      kind: 'falsification',
+      failed: true,
+      inputTokens: null,
+      outputTokens: null,
+      outputChars: 0,
+    });
+    // The prompt was sent and billed even though nothing came back.
+    expect(report.call?.promptChars).toBeGreaterThan(0);
+  });
+
+  // A model that answers and is then disbelieved still spent the tokens. Marking
+  // that call failed would hide real spend; what it must not produce is a game.
+  it('records an unusable answer as a call that worked', async () => {
+    const { model } = modelAnswering(
+      JSON.stringify({ falsifications: [{ ...GOOD, paragraphIndex: 99 }] }),
+    );
+    const report = await falsify({ model, topic: 'Paris', candidates: [CANDIDATE] });
+
+    expect(report.result.ok).toBe(false);
+    expect(report.call).toMatchObject({ failed: false, inputTokens: 1200 });
+  });
+
+  it('records nothing when the model was never called', async () => {
+    const { model } = modelAnswering(answer([GOOD]));
+    const report = await falsify({ model, topic: 'Paris', candidates: [] });
+
+    expect(report.result.ok).toBe(false);
+    expect(report.call).toBeNull();
   });
 });

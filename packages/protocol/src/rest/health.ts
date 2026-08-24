@@ -1,6 +1,8 @@
 // The probes: `GET /ping`, `GET /api/health`, `GET /api/usage`.
 import { z } from 'zod';
 
+import { llmCallKind } from '../accounting.js';
+
 /**
  * C7.1 — `GET /ping` answers **exactly** this. Load balancers read it, and the
  * literal is the contract: `z.literal` rather than `z.string`.
@@ -31,7 +33,7 @@ export const healthResponse = z.object({
 });
 export type HealthResponse = z.infer<typeof healthResponse>;
 
-/** Per-kind model call counters: topic choice, falsification, flag verification. */
+/** Per-kind model call counters, keyed by `llmCallKind`. */
 const callCounter = z.object({
   calls: z.number().int().min(0),
   failures: z.number().int().min(0),
@@ -63,7 +65,10 @@ export const usageResponse = z.object({
   usage: z.object({
     gamesGenerated: z.number().int().min(0),
     gamesServedFromCache: z.number().int().min(0),
-    byKind: z.record(z.string().min(1), callCounter),
+    // `partialRecord`: the keys are the three kinds and nothing else, and a
+    // kind with no calls yet is absent rather than zero — which is what the
+    // current endpoint serves.
+    byKind: z.partialRecord(llmCallKind, callCounter),
     totals: z.object({
       llmCalls: z.number().int().min(0),
       inputTokens: z.number().int().min(0),

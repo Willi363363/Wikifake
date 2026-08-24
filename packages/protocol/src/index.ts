@@ -13,6 +13,7 @@ export type { Decoded } from './decode.js';
 
 export * from './primitives.js';
 export * from './errors.js';
+export * from './accounting.js';
 export * from './article.js';
 export * from './score.js';
 export * from './items.js';

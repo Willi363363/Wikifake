@@ -151,7 +151,7 @@ Progress on these phases is read in `plans/README.md`, not here.
 | 0 | Foundations | `phase-00-foundations.md` |
 | 1 | Core (`protocol` + `domain`) | `phase-01-core.md` |
 | 2 | Data | `phase-02-data.md` |
-| 3 | Article | `phase-03-article.md` |
+| 3 | Article | `phase-03-article.md`, `phase-03-steps-generation.md`, `phase-03-steps-cache.md` |
 | 4 | API and auth | `phase-04-api-and-auth.md` |
 | 5 | Realtime | `phase-05-realtime.md` |
 | 6 | Design system | `phase-06-design-system.md` |

@@ -5,7 +5,10 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { createArticleCache, type RedisCommands } from './cache.js';
 import { cachedArticle } from './fixture.js';
-import { INDEX_KEY, CACHE_TTL_SECONDS, variantsKey } from './keys.js';
+import { indexKey, CACHE_TTL_SECONDS, variantsKey } from './keys.js';
+
+/** This file's own keys: Vitest runs test files in parallel. */
+const NS = 'test:cache-failure';
 import { openTestRedis, testRedisUrl, type TestRedis } from '../testing/redis.js';
 
 const url = testRedisUrl();
@@ -54,10 +57,11 @@ describe.skipIf(url === null)('the cache, against a real Redis', () => {
   let store: TestRedis;
   let clock: number;
 
-  const cacheAt = () => createArticleCache({ redis: store.redis, now: () => clock });
+  const cacheAt = () =>
+    createArticleCache({ redis: store.redis, now: () => clock, namespace: NS });
 
   beforeAll(async () => {
-    store = await openTestRedis(url as string);
+    store = await openTestRedis(url as string, NS);
   });
 
   beforeEach(async () => {
@@ -74,7 +78,7 @@ describe.skipIf(url === null)('the cache, against a real Redis', () => {
     // payload shape would have left it. The namespace is versioned to make this
     // rare; the schema is what makes it harmless when the version is not bumped.
     await store.redis.eval(`redis.call('RPUSH', KEYS[1], ARGV[1]) return 1`, {
-      keys: [variantsKey('chocolat')],
+      keys: [variantsKey(NS, 'chocolat')],
       arguments: [`${String(clock)}\n{"article":{"topic":"Chocolat"}}`],
     });
 
@@ -83,7 +87,7 @@ describe.skipIf(url === null)('the cache, against a real Redis', () => {
 
   it('treats an entry that is not JSON as a miss', async () => {
     await store.redis.eval(`redis.call('RPUSH', KEYS[1], ARGV[1]) return 1`, {
-      keys: [variantsKey('chocolat')],
+      keys: [variantsKey(NS, 'chocolat')],
       arguments: [`${String(clock)}\nnot json at all`],
     });
 
@@ -130,6 +134,7 @@ describe.skipIf(url === null)('the cache, against a real Redis', () => {
     const bounded = createArticleCache({
       redis: store.redis,
       now: () => clock,
+      namespace: NS,
       ttlSeconds: 60,
       variantsPerCategory: 1,
       maxCategories: 5,
@@ -143,7 +148,7 @@ describe.skipIf(url === null)('the cache, against a real Redis', () => {
 
   async function indexSize(): Promise<number> {
     const size = await store.redis.eval(`return redis.call('ZCARD', KEYS[1])`, {
-      keys: [INDEX_KEY],
+      keys: [indexKey(NS)],
       arguments: [],
     });
     return Number(size);

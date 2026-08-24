@@ -14,9 +14,11 @@
 // mixing a stack change with a prompt change means never knowing which one moved
 // the quality. It is the prompt actually in use, not the dead one in
 // `core/prompts.py`.
+import type { LlmCallRecord } from '@wikifake/protocol';
 import { generateText, Output, type LanguageModel } from 'ai';
 import { z } from 'zod';
 
+import { callFailed, callSucceeded, type CallShape } from './accounting.js';
 import { failed, ok, type Result } from './result.js';
 
 /**
@@ -116,10 +118,19 @@ export interface FalsifyOptions {
 
 export interface FalsifyOutcome {
   readonly falsifications: readonly Falsification[];
-  readonly usage: {
-    readonly inputTokens: number | null;
-    readonly outputTokens: number | null;
-  };
+}
+
+/**
+ * What happened, and what it cost — separately.
+ *
+ * The two travel together because a failed call still costs money. Returning only
+ * a `Result` is how `usage.py` loses its failures: the error propagates, the
+ * tokens do not, and `/api/usage` reports a spend lower than the invoice.
+ */
+export interface FalsifyReport {
+  /** Null when the model was never called: nothing was spent, so nothing is recorded. */
+  readonly call: LlmCallRecord | null;
+  readonly result: Result<FalsifyOutcome>;
 }
 
 /**
@@ -130,20 +141,30 @@ export interface FalsifyOutcome {
  * paragraph nobody will be graded on, and the current positional fallback turned
  * that into a wrong grade rather than a dropped result.
  */
-export async function falsify(options: FalsifyOptions): Promise<Result<FalsifyOutcome>> {
+export async function falsify(options: FalsifyOptions): Promise<FalsifyReport> {
   if (options.candidates.length === 0) {
-    return failed('unexpected_response', 'no paragraph is long enough to falsify');
+    return {
+      call: null,
+      result: failed('unexpected_response', 'no paragraph is long enough to falsify'),
+    };
   }
 
   const offered = new Set(options.candidates.map((candidate) => candidate.index));
+  const system = systemPrompt(options.topic);
+  const prompt = userPrompt(options.candidates);
+  const shape: CallShape = {
+    model: options.model,
+    kind: 'falsification',
+    promptChars: system.length + prompt.length,
+  };
 
   let generated;
   try {
     generated = await generateText({
       model: options.model,
       output: Output.object({ schema: answer }),
-      system: systemPrompt(options.topic),
-      prompt: userPrompt(options.candidates),
+      system,
+      prompt,
       ...(options.maxOutputTokens === undefined
         ? {}
         : { maxOutputTokens: options.maxOutputTokens }),
@@ -151,17 +172,34 @@ export async function falsify(options: FalsifyOptions): Promise<Result<FalsifyOu
   } catch (error) {
     // A schema the answer does not satisfy lands here, and that is the point:
     // one failure path instead of six heuristics guessing at a string.
-    return failed(
-      'unexpected_response',
-      error instanceof Error ? error.message : String(error),
-    );
+    return {
+      call: callFailed(shape),
+      result: failed(
+        'unexpected_response',
+        error instanceof Error ? error.message : String(error),
+      ),
+    };
   }
+
+  // The model answered, so the call is not a failure even when the answer turns
+  // out to be unusable: the tokens were spent either way, and hiding them would
+  // under-report the bill. What a rejected answer does not produce is a *game*,
+  // which is the other half of C4.5 and is enforced by there being no game row.
+  const call = callSucceeded(shape, {
+    modelId: generated.response.modelId,
+    inputTokens: generated.usage.inputTokens,
+    outputTokens: generated.usage.outputTokens,
+    outputChars: generated.text.length,
+  });
 
   const kept = generated.output.falsifications.filter((item) =>
     offered.has(item.paragraphIndex),
   );
   if (kept.length === 0) {
-    return failed('unexpected_response', 'the model quoted no index it was given');
+    return {
+      call,
+      result: failed('unexpected_response', 'the model quoted no index it was given'),
+    };
   }
 
   // One per paragraph: a model that falsifies the same index twice would
@@ -169,15 +207,12 @@ export async function falsify(options: FalsifyOptions): Promise<Result<FalsifyOu
   const byIndex = new Map<number, Falsification>();
   for (const item of kept) byIndex.set(item.paragraphIndex, item);
 
-  return ok({
-    falsifications: [...byIndex.values()].sort(
-      (a, b) => a.paragraphIndex - b.paragraphIndex,
-    ),
-    // Null rather than zero when the provider reported nothing: a zero looks
-    // like a measurement, and step 3.7 writes this into `llm_call`.
-    usage: {
-      inputTokens: generated.usage.inputTokens ?? null,
-      outputTokens: generated.usage.outputTokens ?? null,
-    },
-  });
+  return {
+    call,
+    result: ok({
+      falsifications: [...byIndex.values()].sort(
+        (a, b) => a.paragraphIndex - b.paragraphIndex,
+      ),
+    }),
+  };
 }

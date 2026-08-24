@@ -6,6 +6,9 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createArticleCache, type ArticleCache } from './cache.js';
 import { cachedArticle } from './fixture.js';
 import { CACHE_TTL_SECONDS } from './keys.js';
+
+/** This file's own keys: Vitest runs test files in parallel. */
+const NS = 'test:cache-rules';
 import { openTestRedis, testRedisUrl, type TestRedis } from '../testing/redis.js';
 
 const url = testRedisUrl();
@@ -16,7 +19,7 @@ describe.skipIf(url === null)('the article cache, on Redis', () => {
   let cache: ArticleCache;
 
   beforeAll(async () => {
-    store = await openTestRedis(url as string);
+    store = await openTestRedis(url as string, NS);
   });
 
   beforeEach(async () => {
@@ -24,7 +27,7 @@ describe.skipIf(url === null)('the article cache, on Redis', () => {
     // A fixed clock, moved by the tests: the TTL is a rule, and a rule tested by
     // sleeping is a rule tested slowly and flakily.
     clock = 1_700_000_000_000;
-    cache = createArticleCache({ redis: store.redis, now: () => clock });
+    cache = createArticleCache({ redis: store.redis, now: () => clock, namespace: NS });
   });
 
   afterAll(async () => {
@@ -135,6 +138,7 @@ describe.skipIf(url === null)('the article cache, on Redis', () => {
       const bounded = createArticleCache({
         redis: store.redis,
         now: () => clock,
+        namespace: NS,
         maxCategories: 2,
       });
 

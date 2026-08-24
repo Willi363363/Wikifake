@@ -73,6 +73,23 @@ describe('workspace dependency graph', () => {
     );
   });
 
+  // `db` reads `article` in one integration test — the one that proves a
+  // generation's call records fit the `llm_call` table. That is a test
+  // dependency, and it must stay one: the data flows from the generator into the
+  // schema, and a runtime edge here would make the persistence layer depend on
+  // the thing it persists.
+  it('lets db read article in tests, never at runtime', () => {
+    const manifestOfDb = manifest('db') as Manifest & {
+      devDependencies?: Readonly<Record<string, string>>;
+    };
+    expect(Object.keys(manifestOfDb.dependencies ?? {})).not.toContain(
+      '@wikifake/article',
+    );
+    expect(Object.keys(manifestOfDb.devDependencies ?? {})).toContain(
+      '@wikifake/article',
+    );
+  });
+
   it('keeps protocol free of any workspace dependency', () => {
     const deps = Object.keys(manifest('protocol').dependencies ?? {});
     expect(deps.filter((name) => name.startsWith('@wikifake/'))).toEqual([]);

@@ -62,24 +62,32 @@ export function normaliseCategory(raw: string): string {
 }
 
 /**
- * The key namespace, versioned.
+ * The default key namespace, versioned.
  *
  * The version is in the key because the cached payload has a shape: change the
  * shape and the entries written by the previous deployment are not stale, they
  * are wrong. Bumping the version retires them without a migration and without a
  * flush that would also drop what other work keeps in the same Redis.
+ *
+ * It is a **parameter** and not only a constant because the cache is now shared:
+ * a staging deployment pointed at the same instance as production would otherwise
+ * serve production's articles and evict its categories, with nothing anywhere
+ * saying so. Two suites of tests against one local Redis have the same problem in
+ * miniature, and it is the same fix.
  */
 export const NAMESPACE = 'article:v1';
 
 /** The list of variants for a category. */
-export function variantsKey(key: string): string {
-  return `${NAMESPACE}:variants:${key}`;
+export function variantsKey(namespace: string, key: string): string {
+  return `${namespace}:variants:${key}`;
 }
 
 /** C4.4 — the rotation counter for a category. */
-export function turnKey(key: string): string {
-  return `${NAMESPACE}:turn:${key}`;
+export function turnKey(namespace: string, key: string): string {
+  return `${namespace}:turn:${key}`;
 }
 
 /** Every live category, scored by when it was last served. The LRU of C4.3. */
-export const INDEX_KEY = `${NAMESPACE}:index`;
+export function indexKey(namespace: string): string {
+  return `${namespace}:index`;
+}

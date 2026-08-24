@@ -7,7 +7,6 @@
 // the fake matches the fake.
 import { createClient } from 'redis';
 
-import { NAMESPACE } from '../cache/keys.js';
 import type { RedisCommands } from '../cache/cache.js';
 
 /**
@@ -36,7 +35,12 @@ export interface TestRedis {
   readonly close: () => Promise<void>;
 }
 
-export async function openTestRedis(url: string): Promise<TestRedis> {
+/**
+ * @param namespace keys to own and to clean up. Each test file passes its own, so
+ * two files running in parallel — Vitest's default — cannot flush each other's
+ * entries. That race made one normalisation case fail about one run in three.
+ */
+export async function openTestRedis(url: string, namespace: string): Promise<TestRedis> {
   const client = createClient({ url });
   await client.connect();
 
@@ -46,7 +50,7 @@ export async function openTestRedis(url: string): Promise<TestRedis> {
   // instance holding a handful of keys, where the argument for `SCAN` — not
   // blocking a production server — does not apply and costs clarity.
   const flush = async (): Promise<void> => {
-    const keys = await client.keys(`${NAMESPACE}:*`);
+    const keys = await client.keys(`${namespace}:*`);
     if (keys.length > 0) await client.del(keys);
   };
 
