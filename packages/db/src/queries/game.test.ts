@@ -251,14 +251,19 @@ describe.skipIf(url === null)('a complete game', () => {
       expect(code).toBe(SQLSTATE.checkViolation);
     });
 
-    it('a participant who is both', async () => {
+    // Both fields together used to be refused — phase 2 required exactly one.
+    // Step 4.3 found that wrong and relaxed it: a guest has an anonymous `user`
+    // row *and* the nickname they typed for this game, so exclusivity forbade the
+    // normal case. What the check still refuses is a row that is neither, which
+    // is the case it was written for and is asserted just below.
+    it('a participant who is both, which is what a guest is', async () => {
       const { gameId } = await seedGame();
       const code = await rejectionCode(
         database.db
           .insert(participant)
           .values({ gameId, userId: 'user_ada', guestName: 'ada', colour: '#000000' }),
       );
-      expect(code).toBe(SQLSTATE.checkViolation);
+      expect(code).toBeNull();
     });
 
     it('a score with no submission behind it', async () => {

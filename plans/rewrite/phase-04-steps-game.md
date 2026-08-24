@@ -1,8 +1,9 @@
 # Phase 4 — steps: the game's routes
 
 > Steps 4.4 to 4.9. The phase sheet, its exit gate and where each step stands:
-> `phase-04-api-and-auth.md`. Identity and deployment:
-> `phase-04-steps-identity.md`.
+> `phase-04-api-and-auth.md`. The deployment probes:
+> `phase-04-steps-probes.md`. Accounts and guests:
+> `phase-04-steps-accounts.md`.
 
 ### 4.4 — `POST /api/game/start`
 

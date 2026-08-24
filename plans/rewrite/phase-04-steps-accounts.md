@@ -1,66 +1,8 @@
-# Phase 4 — steps: identity and deployment
+# Phase 4 — steps: accounts and guests
 
-> Steps 4.1 to 4.3. The phase sheet, its exit gate and where each step stands:
-> `phase-04-api-and-auth.md`. The game's routes:
-> `phase-04-steps-game.md`.
-
-### ✅ 4.1 — `/ping` and `/api/health` field by field
-
-`GET /ping` responds with **exactly** `{"status": "alive"}`. `GET /api/health`
-exposes `status`, `version`, `commit` (string present even when empty
-locally), `commit_short` (7 characters), `model`, `llm_configured`
-(boolean). The API key never appears. The CI probe compares `commit` to the
-pushed SHA: this contract must survive field by field, or the deployment
-verification loop dies silently.
-
-**Done when**: a test compares the response field by field, including the
-locally empty `commit` case, and a by-values test checks that the API key
-does not appear in the serialised JSON.
-
-#### What this step also had to create
-
-`apps/web` did not exist: phase 0 left the `apps/` tree "empty but declared".
-So 4.1 scaffolds the Next.js 16 application — App Router, React 19 — with
-exactly two routes in it.
-
-**Every response leaves through its contract.** `src/respond.ts` encodes with
-the schema from `@wikifake/protocol` rather than with `Response.json`. That is
-not decoration: Zod strips what a schema does not declare, so a handler that
-later spreads the solution into a payload loses it at the encoder instead of in
-a player's console. C1.1 becomes a property of the boundary rather than of
-whoever writes the next handler, and a test asserts the stripping.
-
-**`/api/health` validates no environment.** It reads the three variables it
-needs directly and calls `loadEnv` nowhere. `loadEnv` validates the database,
-the cache and the model key, and a probe that refuses to answer without a
-working database goes silent exactly when someone needs it to speak. The
-default model name is exported from `@wikifake/env` so the fallback is not
-retyped here.
-
-**Both routes are dynamic.** `/api/health` is forced so, because a statically
-evaluated handler would bake in the commit of the machine that built it — on a
-rebuild of an old commit the probe would then report a match that is not one.
-Next made `/ping` dynamic on its own, which is also right: a `/ping` cached at
-the edge answers "alive" for an application that is dead.
-
-**The camelCase rename is safe, and now tested.** Phase 1 decided field names
-are camelCase, so `commit_short` and `llm_configured` become `commitShort` and
-`llmConfigured`. `deploy-check.yml` reads **only** `commit` and `version`,
-neither of which moves — verified in the workflow, and locked by a test that
-asserts those two names specifically, apart from the field-by-field one.
-
-**The version has one source while two applications serve it.** It comes from
-`apps/web/package.json`, and a parity test asserts it equals
-`backend/src/version.py`. That test dies with the Python in phase 10,
-deliberately.
-
-**The build runs on webpack, not Turbopack, and that is debt.** The workspace's
-packages export raw TypeScript whose internal imports carry a `.js` extension,
-and the bundler has to be told that `./x.js` means `./x.ts`. `extensionAlias`
-does that and is a webpack option; Turbopack accepts the flag as an experiment
-and ignores it. Recorded in the debt register with the durable fix — give the
-packages a build step — which is its own piece of work because it changes what
-every package's tests exercise.
+> Steps 4.2 and 4.3. The phase sheet, its exit gate and where each step stands:
+> `phase-04-api-and-auth.md`. The deployment probes:
+> `phase-04-steps-probes.md`. The game's routes: `phase-04-steps-game.md`.
 
 ### ✅ 4.2 — Better Auth
 
@@ -133,7 +75,7 @@ to that. Kept explicit for exactly that reason — a `connect()` that stopped
 embedding its schema would otherwise start depending on the fallback in
 silence.
 
-### 4.3 — Attachable guest sessions
+### ✅ 4.3 — Attachable guest sessions
 
 Playing without an account: `participant` references an account **or** a
 guest. A game played as a guest attaches to an account created afterwards —
@@ -141,3 +83,70 @@ that is the exit gate of batch 5 of the source plan.
 
 **Done when**: in an integration test, a game played as a guest appears in
 the history of the account created afterwards.
+
+#### A nickname is not an identity
+
+The whole difficulty, and the sheet did not say it. `guestName` cannot carry
+the attachment: two guests type the same name, and nothing connects the browser
+that played to the account created twenty minutes later.
+
+Better Auth's `anonymous` plugin supplies that connection. A guest gets a real
+`user` row marked `isAnonymous`, so `participant.userId` is set from the first
+game; `onLinkAccount` fires when they sign up, and the row is deleted
+afterwards. `guestName` keeps a smaller job: the name shown for **that** game,
+which an account's own name may differ from.
+
+#### Which forced a migration, and a decision
+
+Phase 2's check was `(userId is null) != (guestName is null)` — **exactly**
+one. That is wrong, in two ways this step could not work around:
+
+- A guest has **both**: an anonymous identity and a nickname for the game.
+  Exclusivity forbade the normal case.
+- The anonymous row is deleted once the account is real, and
+  `participant.userId` is `set null` on delete. A row left with neither field
+  fails the check, so the delete **aborts** — the attachment could not finish.
+
+Migration `0004` relaxes it to "at least one", which keeps the property it was
+written for: a row that is neither would be a score belonging to nobody. A
+phase 2 test asserted the old rule and is rewritten rather than removed, with
+the reason in the test.
+
+#### The order the step rests on
+
+`onLinkAccount` is awaited **before** the plugin deletes the anonymous row —
+read in the plugin's source, not assumed. It is the only order that works:
+after the delete the rows are unreachable, and before it they still point at a
+user that is about to vanish. A test deletes the anonymous row after attaching
+and asserts the history survives; another asserts that a participant left
+stranded is refused, which is the failure the old check turned into an aborted
+delete.
+
+#### What follows the player
+
+Games, with their answers, hint purchases and item uses — those hang off
+`participant`, so moving it carries them. Flag reports too: `reporterId` is
+`set null` on delete, so leaving them behind loses the author without failing
+anything, the quiet kind of data loss. `attachGuestRecords` refuses to attach
+an account to itself rather than doing nothing quietly: the same id twice means
+a caller confused two variables.
+
+#### The ORM stays out of the application
+
+`apps/web` has no `drizzle-orm` dependency, and the first test that wanted one
+was a signal — phase 2's exit gate says no free-form SQL outside
+`@wikifake/db`. So `selectUserById` and `selectGameHistory` are named queries
+there, and `HISTORY_QUERIES` carries the same negative assertion the
+in-progress reads have: a history list and a debrief look alike, one of them is
+about games somebody else may still be playing, so it must not mention
+`game_position`. Step 4.4 owes the writes the same treatment — the two inserts
+in this step's test are fixtures, not a pattern.
+
+#### The race, for the fourth time
+
+Two test files in `apps/web` truncating one database saw each other's rows, and
+the symptom was the attachment appearing not to happen — the guest's game was
+being deleted mid-test. `fileParallelism: false`, as `@wikifake/db` does.
+Counting: Postgres deadlock in phase 2, Redis namespaces in phase 3, the shared
+database in 4.2, this. Every integration suite sharing one store needs the
+boundary stated, and the failure never says so.

@@ -5,11 +5,19 @@
 // of migrating on arrival. Verified against `getAuthTables` in 1.7.1 rather than
 // against the documentation: `account.issuer` really is required, which the
 // phase 2 sheet had guessed and could have got wrong.
-import { account, session, user, verification, type Database } from '@wikifake/db';
+import {
+  account,
+  attachGuestRecords,
+  session,
+  user,
+  verification,
+  type Database,
+} from '@wikifake/db';
 import { connectFromEnv } from '@wikifake/db';
 import { loadEnv, type Env } from '@wikifake/env';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { anonymous } from 'better-auth/plugins';
 
 import { socialProviders, type OAuthCredentials, type ProviderId } from './providers.js';
 
@@ -45,6 +53,24 @@ export function createAuth(options: AuthOptions) {
     // created, a session opened and closed, which must not depend on a third
     // party being reachable.
     emailAndPassword: { enabled: true },
+    // 4.3 — playing without signing up, without losing it afterwards.
+    //
+    // A guest gets an anonymous `user` row rather than a bare nickname, because
+    // a nickname is not an identity: two guests type the same name, and nothing
+    // else connects the browser that played to the account created later.
+    //
+    // `onLinkAccount` runs **before** the plugin deletes the anonymous row —
+    // checked in its source, not assumed — which is the only order that works:
+    // after the delete the rows are unreachable, and `participant.userId` is
+    // `set null` on delete, so anything still pointing at the guest would come
+    // out belonging to nobody.
+    plugins: [
+      anonymous({
+        onLinkAccount: async ({ anonymousUser, newUser }) => {
+          await attachGuestRecords(options.db, anonymousUser.user.id, newUser.user.id);
+        },
+      }),
+    ],
     ...(options.providers === undefined ? {} : { socialProviders: options.providers }),
   });
 }
