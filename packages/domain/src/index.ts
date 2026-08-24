@@ -7,7 +7,7 @@
 // effects onto BullMQ.
 //
 // Grading, items and the reducer arrive with steps 1.6 to 1.9 of
-// plans/rewrite/phase-01-core.md.
+// plans/rewrite/phase-01-steps-domain.md.
 export { emit, settle } from './reducer.js';
 export type { Reduced, Reducer } from './reducer.js';
 
@@ -25,3 +25,6 @@ export {
   TIME_BONUS_PER_SECOND,
 } from './scoring.js';
 export type { HintLevel, Submission } from './scoring.js';
+
+export { grantHint, hintPenaltyFor, hintsUsedFor, EMPTY_LEDGER } from './hints.js';
+export type { HintGrant, HintLedger, HintPayload, HintRequest } from './hints.js';

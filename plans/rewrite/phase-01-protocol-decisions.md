@@ -41,6 +41,7 @@ the name the solution already uses.
 | `submit_answer` carries only `marked` | C1.3 — `hintsUsed`, `hintPenalty` and `scoreStolen` arrived from the client and were believed. Now they cannot be said at all |
 | `start_game.topic` is required | The server accepted the message without one and asked the generator for `None`, which can only fail |
 | `leaderboard` rows carry `player`, not `id` **and** `name` | They were always the same string |
+| `hint_unlocked.charged` replaces `cost` | `cost` was the *price of the level*, sent again on every repeat request. Since asking for level 1 after buying level 2 legitimately returns level 2, a client summing what it was told it paid over-counted. `charged` is what **this** purchase cost, 0 when the level was already held, and its sum equals `hintPenalty` |
 
 ## Values that are now bounded
 

@@ -43,7 +43,7 @@ contracts, and why: `phase-01-protocol-decisions.md`.
 | # | Step — `packages/domain` | State |
 |---|---|---|
 | 1.4 | Scoring | ✅ done |
-| 1.5 | Hints: monotonicity and billing | to do |
+| 1.5 | Hints: monotonicity and billing | ✅ done |
 | 1.6 | Answer correction | to do |
 | 1.7 | Item catalogue and effects | to do |
 | 1.8 | Room reducer: lobby and host | to do |
