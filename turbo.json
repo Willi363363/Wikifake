@@ -16,7 +16,7 @@
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"],
-      "env": ["DATABASE_URL", "CI"]
+      "env": ["DATABASE_URL", "REDIS_URL", "CI"]
     }
   }
 }

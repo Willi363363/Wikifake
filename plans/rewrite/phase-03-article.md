@@ -102,7 +102,7 @@ two concurrent games do not mutate each other.
 each position designates a paragraph that differs from the original, and
 only those; two concurrent generations exchange no state.
 
-### 3.6 — Redis cache
+### ✅ 3.6 — Redis cache
 
 Same rules as today: normalised keys ("Paris", "paris", "  PARIS  ",
 "PÁRIS" are a single entry, empty category ignored), entries copied on the
@@ -111,8 +111,47 @@ in LRU, variants served in rotation. A failed generation is neither cached
 nor counted. The cache becomes shared between instances and survives
 redeployments.
 
-**Done when**: the cache rules of §3.4 of the contract pass in integration
-tests against a local Redis, including mutating the result of a `get`.
+**The clause to cite is C4**, in `02-contract-transport-and-compliance.md`.
+This sheet said "§3.4" four times; `C3.4` is paragraph deduplication, so
+anyone following the sheet landed on the wrong guarantee. Corrected here.
+
+"Same rules as today" turned out to need a decision twice, because the
+current code is weaker than the text it is supposed to implement. Both are
+recorded as D14; in the target the contract wins:
+
+- **Rotation.** The Python calls `random.choice`, so nothing stops one
+  variant being served ten times running — C4.4 holds only in expectation,
+  and the test only asserts that two different seeds can differ. Redis has
+  `INCR`: the target rotates, and serves every variant once per cycle.
+- **Copies.** `_copy` copies three known keys one level deep and shares
+  everything below them. Storing JSON makes every read its own object graph,
+  so C4.2 holds for the whole payload rather than for the three fields the
+  test happens to poke.
+
+The token usage is deliberately **not** cached. A game served from the cache
+cost nothing, and replaying the tokens of the generation that filled the
+entry would inflate `perGeneratedGame` by however often it was reused — the
+exact dilution C4.6 exists to prevent.
+
+A lookup has **three** outcomes, not two: hit, miss, and unavailable. An
+outage counted as a miss would make `cacheHitRate` partly a measure of Redis
+uptime, and would bill a run of generations to a cache that was simply down
+with nothing in the numbers saying so.
+
+The rules are enforced by three Lua scripts rather than command sequences.
+The reason for moving to Redis at all is that the cache becomes shared, and
+a read that filters expired entries, bumps a counter and touches an LRU index
+is four commands: two instances interleaving them serve one variant twice or
+evict a category the other just wrote. The Python held a `threading.Lock` for
+that and only had to defend against its own threads.
+
+The driver is a **devDependency**: `createArticleCache` takes a
+`RedisCommands` port, as `mediawiki.ts` takes a `WikiTransport`, so nothing
+that consumes the package at runtime drags a Redis client along. The
+concrete client is wired in phase 4.
+
+**Done when**: the cache rules of C4 pass in integration tests against a
+local Redis, including mutating the result of a `get`.
 
 ### 3.7 — Counters in the database
 
@@ -127,7 +166,7 @@ counts only the successful one.
 ## Exit gate
 
 - Index parity and non-duplication verified on real HTML fixtures.
-- Cache rules of §3.4 verified against Redis.
+- Cache rules of C4 verified against Redis.
 - Stateless generator; clean Wikipedia failure, neither cached nor counted.
 - No API or UI code: the package is used only from its tests.
 
@@ -135,7 +174,8 @@ counts only the successful one.
 
 See `01-contract-to-preserve.md`: **article generation** (§3.3 — index
 parity, exact `positions`, deduplication, whitespace normalisation,
-stateless generator, clean failure) and **cache and accounting** (§3.4 —
+stateless generator, clean failure) and, in
+`02-contract-transport-and-compliance.md`, **cache and accounting** (C4 —
 key normalisation, copies, TTL, rotation, `cache_hit_rate`,
 `per_generated_game`).
 

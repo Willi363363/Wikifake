@@ -5,7 +5,7 @@ during the rewrite, a review or a debugging session — is recorded here with
 its `file:line` reference, **without fixing it** in passing: the fix happens
 in the rewrite phase it belongs to, not as an aside.
 
-## The ten defects verified in production
+## The defects verified in production
 
 1. **The items feature is broken in multiplayer.**
    `frontend/src/features/game/GameSession.jsx:376` passes `onUse={useItem}`
@@ -109,6 +109,34 @@ in the rewrite phase it belongs to, not as an aside.
     or against nothing. The same function also calls
     `wikipedia.page(results[0])` without `auto_suggest=False`, so a lookup can
     land on a different article than the one searched for.
+
+14. **The cache does not do what it says, in four ways.** Found while porting it
+    to Redis in phase 3 step 3.6; all four are closed by that port.
+
+    - **Rotation is a coin toss.** `article_cache.py:82` reads
+      `chosen = (rng or random).choice(entries)`. C4.4 says the variants are
+      "served in rotation"; nothing stops one variant being returned ten times
+      running. `test_several_variants_are_reachable`
+      (`backend/tests/test_article_cache.py:101`) asserts only that thirty
+      *different seeds* do not all agree, which a pure random picker satisfies.
+    - **The copy is not a copy.** `_copy` (`article_cache.py:104-111`) rebuilds
+      exactly three known keys one level deep. Anything nested below a
+      `positions` element, and any mutable value under a key added later, is
+      shared by reference between the store and every game holding it. C4.2's
+      "mutating the result of a `get` affects nothing else" is true only for the
+      three fields the test happens to poke.
+    - **The LRU bound applies to phantoms.** When every entry for a category has
+      expired, `get` does `_store.pop(key, None)` and returns
+      (`article_cache.py:76-79`) **before** reaching `_touch`, so the key stays
+      in `_recent` forever. Once that list hits
+      `ARTICLE_CACHE_MAX_CATEGORIES`, eviction starts consuming keys the store
+      no longer holds while live categories survive, and `stats()["categories"]`
+      and the LRU list disagree about what the cache contains.
+    - **The published count outlives the entries.** `stats()`
+      (`article_cache.py:118`) sums raw list lengths with no `expired` filter,
+      unlike `get` and `put`. The `cache` block that `/api/usage` serves
+      (`backend/src/api/health.py:56`) therefore reports articles the cache
+      would refuse to hand out.
 
 ## The remaining `print()` calls in `backend/src/core/`
 

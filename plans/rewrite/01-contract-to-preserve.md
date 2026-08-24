@@ -151,5 +151,16 @@ of the migration.
   the MediaWiki client of phase 3 step 3.2, where both are per-call
   parameters.
 
+- **D14** — The cache does not do what C4 says, in four ways: rotation is
+  `random.choice` and not a rotation (C4.4); `_copy` copies three keys one
+  level deep and shares everything below them (C4.2); a category whose
+  entries have all expired stays in the LRU list forever, so the "200
+  categories" bound starts evicting live categories to make room for phantoms
+  (C4.3); and `stats()` counts expired entries that `get` and `put` filter, so
+  the number `/api/usage` publishes outlives what the cache will serve.
+  Closed by the Redis cache of phase 3 step 3.6, where rotation is an `INCR`,
+  the copy is a JSON round trip, and the index and the store are deleted
+  together.
+
 The rest of the contract — C4 to C8 — is in
 `02-contract-transport-and-compliance.md`.
