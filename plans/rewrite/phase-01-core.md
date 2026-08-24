@@ -35,7 +35,7 @@ define the work and its completion criterion, and carry no state.
 | 1.1 | Skeleton of the two packages | ✅ done |
 | 1.2 | WebSocket messages | ✅ done |
 | 1.3 | REST DTOs and negative assertion | ✅ done |
-| 1.10 | Generated protocol documentation | to do |
+| 1.10 | Generated protocol documentation | ✅ done |
 
 Definitions: `phase-01-steps-protocol.md`. Departures from the current
 contracts, and why: `phase-01-protocol-decisions.md`.
