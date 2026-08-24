@@ -85,6 +85,13 @@ in the rewrite phase it belongs to, not as an aside.
 10. **The nickname is not encoded** in the WebSocket URL
     (`frontend/src/lib/ws.js:13`) while the server regex allows spaces.
 
+11. **A duplicate mark is scored twice.** `check_answer`
+    (`backend/src/core/verification.py:1`) walks the submitted list and counts
+    every element, so marking the same paragraph three times counts three true
+    positives — 450 points for one paragraph. Nothing on the wire forbids the
+    repeat: the message carries a plain list. Found while writing the grading
+    rules of phase 1 step 1.6, which count a paragraph once.
+
 ## The remaining `print()` calls in `backend/src/core/`
 
 The repository rule is "no `print` in application code" (`src/log.py`). Five
