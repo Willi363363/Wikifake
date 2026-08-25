@@ -16,6 +16,7 @@ import type { RoundDependencies } from './round.js';
 import type { SessionContext } from './session.js';
 import type { StartContext } from './start.js';
 import type { SubmitContext } from './submit.js';
+import type { FlagsContext } from './flags.js';
 import type { RoomsContext } from './rooms.js';
 import type { UsageContext } from './usage.js';
 
@@ -35,6 +36,18 @@ export function sessionContext(): SessionContext {
 /** What grading a round needs on top of that: the clock, as a parameter. */
 export function submitContext(): SubmitContext {
   return { ...sessionContext(), now: () => new Date() };
+}
+
+/** What checking a report needs: a model and a Wikipedia to check it against. */
+export function flagsContext(): FlagsContext {
+  const env = loadEnv();
+  return {
+    auth: auth(),
+    db: db(),
+    model: languageModel(env),
+    wiki: wikiRequest(env.BETTER_AUTH_URL),
+    transport: networkTransport,
+  };
 }
 
 /** What opening a room needs: the rows, a draw, and a clock to bound the cap. */

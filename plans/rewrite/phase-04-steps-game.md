@@ -150,5 +150,21 @@ Replaces `complaints.jsonl`: report and model verdict in the `flag_report`
 table. The checker queries Wikipedia with the explicit language from
 phase 3, never global state.
 
+Two decisions taken while writing it:
+
+- **The reporter comes from the session, not from the payload.** The contract's
+  `playerId` was written for a client that had no accounts and is whatever the
+  browser types; a report attributed to whoever claimed to have filed it can be
+  attributed to somebody else. It is ignored.
+- **`gameId` stays null.** The request names a **room**, and a room plays many
+  rounds: nothing in it names the game a claim was read in. A report filed
+  against the wrong round is worse than one filed against none. Naming the game
+  needs a field the contract does not have, and adding one is a protocol
+  decision.
+
+The checker lives in `@wikifake/article`: it needs exactly what that package
+owns — a MediaWiki client with nothing implicit (D13) and a model call validated
+by a schema. It records its call on both paths, which closes D12.
+
 **Done when**: a report in a test writes a complete `flag_report` row, and
 nothing is written to disk.
