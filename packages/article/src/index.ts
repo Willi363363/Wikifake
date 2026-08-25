@@ -31,6 +31,8 @@ export { storedPosition } from './solution.js';
 export type { StoredPosition } from './solution.js';
 export { generateArticle, MIN_ARTICLE_PARAGRAPHS } from './generate.js';
 export type { GeneratedArticle, GenerateOptions, GenerationReport } from './generate.js';
+export { verifyFlag, CONTEXT_CHARS } from './verify.js';
+export type { VerifyOptions, VerifyReport } from './verify.js';
 export { createArticleCache } from './cache/cache.js';
 export type {
   ArticleCache,
