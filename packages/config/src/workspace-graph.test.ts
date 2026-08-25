@@ -30,11 +30,20 @@ const EXPECTED: Readonly<Record<string, readonly string[]>> = {
   domain: ['@wikifake/protocol'],
   db: ['@wikifake/env', '@wikifake/protocol', 'drizzle-orm', 'postgres'],
   article: ['@wikifake/protocol', 'ai', 'cheerio', 'domhandler', 'zod'],
-  // The design system ships a stylesheet and the lists that describe it. No
-  // runtime dependency at all, and that is the interesting part: a theme that
-  // needed a framework to be read would be a theme no test could check against
-  // the one it transcribes.
-  ui: [],
+  // The design system: Radix for the behaviour nobody should write again —
+  // focus traps, roles, keyboard — and three small helpers for the classes.
+  // React is a **peer** dependency, not a runtime one: two copies of React in
+  // one page is the oldest bug in the ecosystem, and a design system that ships
+  // its own is how you get one.
+  ui: [
+    '@radix-ui/react-dialog',
+    '@radix-ui/react-label',
+    '@radix-ui/react-progress',
+    '@radix-ui/react-separator',
+    'class-variance-authority',
+    'clsx',
+    'tailwind-merge',
+  ],
 };
 
 describe('workspace dependency graph', () => {

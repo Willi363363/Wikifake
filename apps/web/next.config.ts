@@ -26,6 +26,7 @@ const config: NextConfig = {
     '@wikifake/domain',
     '@wikifake/env',
     '@wikifake/protocol',
+    '@wikifake/ui',
   ],
 };
 

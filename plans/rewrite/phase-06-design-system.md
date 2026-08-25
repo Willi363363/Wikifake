@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — one step done |
+| **State** | in progress — two steps done |
 | **Branch** | `feat/rewrite-phase-6` |
 | **Depends on** | phase 1 |
 | **Delivers** | `packages/ui`: theme, primitives, animations, token component |
@@ -67,11 +67,45 @@ routes and nothing else, so `app/layout.tsx` is new. It carries `lang="fr"`
 **Done when**: every token of `tokens.css` has its named equivalent in the
 theme, and a gallery page renders the palette in both modes.
 
-### 6.2 — shadcn/ui primitives
+### 6.2 — shadcn/ui primitives ✅
 
 The shadcn/ui primitives installed and dressed by the theme. They bring the
 accessibility groundwork — roles, focus, keyboard — that the legacy
 `<span onClick>` elements lack.
+
+**Seven, chosen for what the current interface gets wrong**, not for
+completeness: `Button` (`.btn`, `.btn.primary`, `.btn.ghost`, `.btn-icon`),
+`Input` (`.expert-input`), `Label` — of which the current game has *none*, a
+placeholder standing in for a name and vanishing the moment anything is typed —
+`Badge` (`Chip`), `Separator` (`Divider`), `Progress` (`HairProgress`) and
+`Dialog`. A primitive nothing will use is a primitive nobody maintains.
+
+Five decisions taken while writing it:
+
+- **`Dialog` is the reason this step is not decoration.** The current modals are
+  a fixed `<div>` over an overlay `<div>`: focus walks out of them into the page
+  behind, Escape does nothing, the overlay is a click target with no role, and a
+  screen reader is told nothing happened. Radix answers all four, and none of
+  them are worth writing again.
+- **`Separator` is decorative by default — the opposite of Radix.** Its
+  `decorative` defaults to false, so every hairline is announced. Most are a rule
+  between two paragraphs, and a screen reader saying "separator" eleven times
+  down a lobby is noise. Found by a test that asserted the behaviour the
+  component's own comment claimed.
+- **No icon library.** The dialog's dismiss is one drawn glyph with an
+  `aria-label`; a dependency for it would be a dependency for one path.
+- **React is a peer dependency.** Two copies of React in one page is the oldest
+  bug in the ecosystem, and a design system that ships its own is how you get
+  one.
+- **Every primitive is a client component**, marked whether or not it needs to
+  be today: one that grows a handler and forgets the directive fails at build
+  time in the application, a long way from here.
+
+The tests drive the components the way a player without a mouse would and read
+the accessibility tree, not the class names — an assertion on
+`class="rounded-full"` passes on a `<span>`, which is exactly what is being
+replaced. Two of them assert what a hurried refactor removes first: the focus
+ring is present, and no variant carries a raw hex.
 
 **Done when**: the selected primitives are rendered in the gallery, in both
 modes, focusable and operable with the keyboard.

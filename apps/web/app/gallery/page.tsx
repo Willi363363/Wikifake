@@ -9,7 +9,22 @@
 // Both modes side by side, on one page. The dark half is the same markup inside
 // `.dark`, which is what the theme's `@custom-variant` reads: what is being
 // compared has to be the same components, not two descriptions of them.
-import { COLOUR_TOKENS, RADIUS_TOKENS, SHADOW_TOKENS } from '@wikifake/ui';
+import {
+  Badge,
+  Button,
+  COLOUR_TOKENS,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+  Input,
+  Label,
+  Progress,
+  RADIUS_TOKENS,
+  Separator,
+  SHADOW_TOKENS,
+} from '@wikifake/ui';
 import type { ColourToken, TokenGroup } from '@wikifake/ui';
 
 const GROUPS: readonly { readonly id: TokenGroup; readonly title: string }[] = [
@@ -95,6 +110,102 @@ function Palette() {
   );
 }
 
+/**
+ * Every primitive the package exports, once.
+ *
+ * Rendered twice by the page — the second inside `.dark` — because "dressed by
+ * the theme" is a claim about both palettes, and a component that hard-codes a
+ * colour looks perfectly fine until it is put on the other ground.
+ */
+function Primitives() {
+  return (
+    <div className="flex-1 space-y-8 rounded-xl border border-line bg-bg p-6 text-ink">
+      <section>
+        <h3 className="mb-3 text-xs font-semibold tracking-widest text-muted uppercase">
+          Button
+        </h3>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button>Default</Button>
+          <Button variant="primary">Primary</Button>
+          <Button variant="ghost">Ghost</Button>
+          <Button variant="danger">Danger</Button>
+          <Button variant="primary" size="lg">
+            Large
+          </Button>
+          <Button size="icon" aria-label="Close">
+            ×
+          </Button>
+          <Button disabled>Disabled</Button>
+        </div>
+      </section>
+
+      <section>
+        <h3 className="mb-3 text-xs font-semibold tracking-widest text-muted uppercase">
+          Badge
+        </h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge>neutral</Badge>
+          <Badge tone="accent">accent</Badge>
+          <Badge tone="bronze">hint · 50</Badge>
+          <Badge tone="green">found</Badge>
+          <Badge tone="warn">missed</Badge>
+          <Badge tone="danger">wrong</Badge>
+        </div>
+      </section>
+
+      <section>
+        <h3 className="mb-3 text-xs font-semibold tracking-widest text-muted uppercase">
+          Input and Label
+        </h3>
+        <div className="max-w-xs space-y-1.5">
+          <Label htmlFor="gallery-topic">Topic</Label>
+          <Input id="gallery-topic" placeholder="Chat" />
+        </div>
+      </section>
+
+      <section>
+        <h3 className="mb-3 text-xs font-semibold tracking-widest text-muted uppercase">
+          Progress
+        </h3>
+        <Progress value={72} max={120} aria-label="Time left" />
+      </section>
+
+      <section>
+        <h3 className="mb-3 text-xs font-semibold tracking-widest text-muted uppercase">
+          Separator
+        </h3>
+        <div className="flex items-center gap-3 text-sm text-muted">
+          <span>solo</span>
+          <Separator orientation="vertical" />
+          <span>multiplayer</span>
+        </div>
+        <Separator className="mt-3" />
+      </section>
+
+      <section>
+        <h3 className="mb-3 text-xs font-semibold tracking-widest text-muted uppercase">
+          Dialog
+        </h3>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="ghost">Report an error</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogTitle>Report an error</DialogTitle>
+            <DialogDescription>
+              Escape closes this, tab stays inside it, and the dismiss has a name.
+            </DialogDescription>
+            <div className="mt-4 space-y-1.5">
+              <Label htmlFor="gallery-report">What is wrong</Label>
+              <Input id="gallery-report" />
+            </div>
+          </DialogContent>
+        </Dialog>
+      </section>
+    </div>
+  );
+}
+
 export default function GalleryPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
@@ -109,6 +220,14 @@ export default function GalleryPage() {
         <Palette />
         <div className="dark flex-1">
           <Palette />
+        </div>
+      </div>
+
+      <h2 className="mt-12 text-lg font-medium text-ink">Primitives</h2>
+      <div className="mt-4 flex flex-col gap-6 lg:flex-row">
+        <Primitives />
+        <div className="dark flex-1">
+          <Primitives />
         </div>
       </div>
     </main>
