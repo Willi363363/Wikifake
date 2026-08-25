@@ -17,3 +17,16 @@
 @source '../app';
 @source '../src';
 @source '../../../packages/ui/src';
+
+/*
+ * The animation utilities, named because nothing else names them.
+ *
+ * The gallery builds its class from the animation's own name —
+ * `animate-{motion.name}` — which is the only way a list of sixteen renders
+ * without sixteen call sites, and is invisible to a scanner that reads source as
+ * text. Without this the utilities are simply absent from the build, and the
+ * failure is a card that sits still rather than an error.
+ *
+ * `motion.test.ts` in `apps/web` holds this list to `MOTIONS`.
+ */
+@source inline('animate-fade-in animate-stagger-in animate-slide-in-right animate-slide-up-fade animate-token-flash animate-pulse-dot animate-scan-sweep animate-frost-pulse animate-damage-pop animate-shake animate-article-spin animate-static-glitch animate-lightning-zap animate-screen-flash animate-snowfall animate-fog-drift');

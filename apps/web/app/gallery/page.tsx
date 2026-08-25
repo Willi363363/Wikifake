@@ -27,6 +27,8 @@ import {
 } from '@wikifake/ui';
 import type { ColourToken, TokenGroup } from '@wikifake/ui';
 
+import { MotionGallery } from './motion.js';
+
 const GROUPS: readonly { readonly id: TokenGroup; readonly title: string }[] = [
   { id: 'surface', title: 'Surfaces' },
   { id: 'text', title: 'Text' },
@@ -221,6 +223,11 @@ export default function GalleryPage() {
         <div className="dark flex-1">
           <Palette />
         </div>
+      </div>
+
+      <h2 className="mt-12 text-lg font-medium text-ink">Motion</h2>
+      <div className="mt-4">
+        <MotionGallery />
       </div>
 
       <h2 className="mt-12 text-lg font-medium text-ink">Primitives</h2>

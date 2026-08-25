@@ -17,12 +17,19 @@
  * — so `bg-surface`, `rounded-lg` and `shadow-md` are utilities rather than
  * strings a component has to remember.
  *
+ * The keyframes and the reduced-motion rules are a file of their own,
+ * `motion.css`, imported below: they are long, they are about time rather than
+ * colour, and the preference that switches half of them off deserves to be read
+ * on its own.
+ *
  * Tailwind itself is not imported here. This file is a theme, and an application
  * assembles it: `@import 'tailwindcss'` first, this second. Importing the
  * framework from inside the theme would mean every application that wanted the
  * palette got a copy of Tailwind's own layers with it, in an order it did not
  * choose.
  */
+
+@import './motion.css';
 
 /*
  * Dark mode follows a class, not only the system preference.
