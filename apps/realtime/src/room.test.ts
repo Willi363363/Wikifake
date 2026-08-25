@@ -64,6 +64,9 @@ describe.skipIf(url === null)('5.2 — a room over sockets', () => {
     service = createService({
       origins: createOriginPolicy(['https://wikifake.example']),
       roomExists: () => Promise.resolve(true),
+      // 5.7 — nothing in this file is about the row: the room's own state is
+      // what it watches.
+      closeRoom: () => Promise.resolve(),
       rooms: createRoomStore({ redis: redis.redis, namespace: NAMESPACE }),
       // One instance, so the channel need not leave the process. Crossing
       // instances is `broadcast.test.ts`, over a real Redis.

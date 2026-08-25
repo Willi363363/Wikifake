@@ -137,5 +137,39 @@ without changing the room state; a guest changes their `ready` but neither
 leaves; the room disappears when the last player leaves. A single
 round-start path: the reducer's.
 
+C1.7 and C1.8 are rules, and phase 1 wrote them. What this step adds is that
+they are enforced **from a socket**, and — for the refusals — that a refused
+message leaves the room exactly as it was. "Refused" is easy to satisfy by
+answering an error after doing the thing anyway, which is what the current
+server does with `force_start`: it applies the options, then checks the host.
+
+What is genuinely new is the end of a room. Redis forgets the state on its own,
+under the same revision guard as a write; the **row** that says the code exists
+is nobody's, and 4.8 deferred it here by name.
+
+Four decisions taken while writing it:
+
+- **The row is deleted, and the games played in it keep everything but its
+  code.** `game.room_code` is declared `onDelete: 'set null'`, which is what
+  makes this safe and is what it was written for. The alternative — keeping the
+  row for ever behind a `closed` flag — makes every reader of `room` responsible
+  for remembering the flag, and a reader that forgets it hands a stranger a
+  socket on a room nobody is in.
+- **`closeRoom` is a required option of the service, not an optional
+  callback.** A service that silently never reaps is exactly the defect; an
+  optional one is a deployment away from it.
+- **A room ends in two ways, and only the first has an event.** Its last player
+  is evicted, which the reducer decides; or its idle alarm rings an hour after
+  anybody touched it, which nothing decides — there is nobody left to evict.
+  The second is D4's other half, and it rides the `room_idle` alarm 5.4 already
+  arms on every event.
+- **The row goes last**, after the state. Forgetting it first would leave a
+  window in which the room is joinable and unfindable.
+
+`until` in the test client now **awaits** its condition. A promise is truthy, so
+an asynchronous condition satisfied every wait immediately and the test raced
+whatever it was waiting for — which is how the first draft of the D3 test
+settled an article into a room that was still in the lobby.
+
 **Done when**: the server-authority invariants pass as protocol tests on
 multiplayer, including the zero breakdown for client-declared penalties.

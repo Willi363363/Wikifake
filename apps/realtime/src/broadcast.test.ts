@@ -50,6 +50,9 @@ describe.skipIf(url === null)('5.3 — one room, several instances', () => {
     const service = createService({
       origins: createOriginPolicy(['https://wikifake.example']),
       roomExists: () => Promise.resolve(true),
+      // 5.7 — nothing in this file is about the row: the room's own state is
+      // what it watches.
+      closeRoom: () => Promise.resolve(),
       rooms: createRoomStore({ redis: redis.redis, namespace: NAMESPACE }),
       bus,
       tokens: createLocalTokens(),

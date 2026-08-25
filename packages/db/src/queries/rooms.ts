@@ -7,7 +7,7 @@
 //
 // So the count is bounded by activity, and the bound comes from the caller.
 // Deciding *when* a room stops being open is phase 5's — it reaps the idle ones
-// (D4) — and this query only has to be able to ask.
+// (D4) — and these queries only have to be able to ask, and to forget.
 import { count, eq, gt } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
@@ -56,4 +56,27 @@ export function selectRoom(db: Db, code: string) {
     })
     .from(room)
     .where(eq(room.code, code));
+}
+
+/**
+ * C1.8, D4 — forgets a room. Returns false when there was nothing to forget.
+ *
+ * Called on the two ways a room ends: its last player is evicted, and its idle
+ * alarm rings an hour after anybody last touched it. Both are decided in
+ * `apps/realtime`, which is where a room's life is known; this only carries it
+ * out.
+ *
+ * The games played in it survive. `game.room_code` is declared
+ * `onDelete: 'set null'`, so a round keeps its article, its positions, its
+ * participants and its scores, and loses only the code of a room that no longer
+ * exists — which is what a code that can be drawn again for a different room is
+ * worth. The alternative, keeping the row for ever behind a `closed` flag, makes
+ * every reader of `room` responsible for remembering the flag.
+ */
+export async function deleteRoom(db: Db, code: string): Promise<boolean> {
+  const forgotten = await db
+    .delete(room)
+    .where(eq(room.code, code))
+    .returning({ code: room.code });
+  return forgotten.length > 0;
 }

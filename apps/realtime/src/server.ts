@@ -41,6 +41,20 @@ export interface ServiceOptions {
    */
   roomExists(roomCode: string): Promise<boolean>;
   /**
+   * C1.8, D4 — this room is over: forget the row that says it exists.
+   *
+   * Called on both ends of a room's life — its last player evicted, and its idle
+   * alarm ringing an hour after anybody touched it. Redis forgets the state on
+   * its own, under the same revision guard as a write; Postgres does not, and a
+   * code nobody reaps is a code that can never be drawn again and a socket a
+   * stranger can still open on a room nobody is in.
+   *
+   * Required, and injected like `roomExists`: a service that silently never
+   * reaps is exactly the defect, and an optional callback is one a deployment
+   * can forget.
+   */
+  closeRoom(roomCode: string): Promise<void>;
+  /**
    * Where the room's state lives. Redis, since 5.2 — never this process.
    *
    * Injected for the same reason as everything else here: a transport that
@@ -162,6 +176,13 @@ export function createService(options: ServiceOptions): Service {
     const applied = await options.rooms.apply(roomCode, event);
     await publish(publisher, roomCode, applied.effects);
     await armFor({ scheduler, idleSeconds }, roomCode, applied.state, applied.effects);
+
+    // C1.8 — last, and only once the room's own state is gone: the row is what
+    // says the code exists, so forgetting it before the state would leave a
+    // window where a room is joinable and unfindable.
+    if (applied.effects.some((effect) => effect.kind === 'close_room')) {
+      await options.closeRoom(roomCode);
+    }
   }
 
   /**
@@ -177,6 +198,10 @@ export function createService(options: ServiceOptions): Service {
   async function rang(alarm: Alarm): Promise<void> {
     if (alarm.kind === 'room_idle') {
       await scheduler.cancel(alarm.roomCode, 'round_end');
+      // D4 — the other end of a room's life, and the one the current server has
+      // no answer for at all: nobody left to evict, so nothing ever decided the
+      // room was over. The state has expired with its key; the row has not.
+      await options.closeRoom(alarm.roomCode);
       return;
     }
 

@@ -12,10 +12,11 @@
 // touches this next has to remember.
 //
 // Three of the six effects are carried elsewhere: `close_room` by the store,
-// which deletes the key under the same revision guard, and the two timers by the
-// scheduler of 5.4 — an alarm is Redis's business, not the room's. One is still
-// nobody's, `generate_article`, and it is handed on rather than dropped so the
-// gap is a fact a test can assert on.
+// which deletes the key under the same revision guard, and by the service, which
+// forgets the row alongside it; and the two timers by the scheduler of 5.4 — an
+// alarm is Redis's business, not the room's. One is still nobody's,
+// `generate_article`, and it is handed on rather than dropped so the gap is a
+// fact a test can assert on.
 import type { RoomEffect } from '@wikifake/domain';
 import type { OutgoingMessage } from '@wikifake/protocol';
 
@@ -94,8 +95,9 @@ export async function publish(
 
       // Carried elsewhere, and nothing crosses the channel for any of them:
       // `close_room` by the store, which deletes the key under the revision the
-      // decision was taken against, and the two timers by the scheduler — an
-      // alarm is Redis's business, not the room's.
+      // decision was taken against, and by the service, which forgets the row;
+      // the two timers by the scheduler — an alarm is Redis's business, not the
+      // room's.
       case 'close_room':
       case 'arm_timer':
       case 'cancel_timer':
