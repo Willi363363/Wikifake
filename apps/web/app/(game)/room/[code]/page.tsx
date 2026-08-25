@@ -1,11 +1,11 @@
 // The waiting room — step 7.3.
 //
-// What is here now is the connection and nothing else: the provider has a room
-// code from the URL, so this is the first screen where a socket actually opens.
-// The roster, the host settings and the ready state are 7.3; the placeholder
-// says so rather than pretending to be them.
-import { RoomPlaceholder } from '../../../../src/lobby/room-placeholder.js';
+// The provider of 7.1 already has this room's code from the URL, so the socket
+// is open by the time this renders. What the screen adds is the roster, the
+// host's settings and the ready state — all of it read from the server's
+// `lobby_update`, none of it tallied here.
+import { RoomScreen } from '../../../../src/lobby/room-screen.js';
 
 export default function RoomPage() {
-  return <RoomPlaceholder />;
+  return <RoomScreen />;
 }
