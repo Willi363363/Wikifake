@@ -1,7 +1,9 @@
-# Phase 6 — steps: the design system
+# Phase 6 — steps: the stylesheet
 
+> Steps 6.1 and 6.3 — what the design system *is*, before anything uses it.
 > The phase sheet, its exit gate and where each step stands:
-> `phase-06-design-system.md`.
+> `phase-06-design-system.md`. The components:
+> `phase-06-steps-components.md`.
 
 ### 6.1 — Tailwind v4 theme
 
@@ -41,49 +43,6 @@ routes and nothing else, so `app/layout.tsx` is new. It carries `lang="fr"`
 
 **Done when**: every token of `tokens.css` has its named equivalent in the
 theme, and a gallery page renders the palette in both modes.
-
-### 6.2 — shadcn/ui primitives
-
-The shadcn/ui primitives installed and dressed by the theme. They bring the
-accessibility groundwork — roles, focus, keyboard — that the legacy
-`<span onClick>` elements lack.
-
-**Seven, chosen for what the current interface gets wrong**, not for
-completeness: `Button` (`.btn`, `.btn.primary`, `.btn.ghost`, `.btn-icon`),
-`Input` (`.expert-input`), `Label` — of which the current game has *none*, a
-placeholder standing in for a name and vanishing the moment anything is typed —
-`Badge` (`Chip`), `Separator` (`Divider`), `Progress` (`HairProgress`) and
-`Dialog`. A primitive nothing will use is a primitive nobody maintains.
-
-Five decisions taken while writing it:
-
-- **`Dialog` is the reason this step is not decoration.** The current modals are
-  a fixed `<div>` over an overlay `<div>`: focus walks out of them into the page
-  behind, Escape does nothing, the overlay is a click target with no role, and a
-  screen reader is told nothing happened. Radix answers all four, and none of
-  them are worth writing again.
-- **`Separator` is decorative by default — the opposite of Radix.** Its
-  `decorative` defaults to false, so every hairline is announced. Most are a rule
-  between two paragraphs, and a screen reader saying "separator" eleven times
-  down a lobby is noise. Found by a test that asserted the behaviour the
-  component's own comment claimed.
-- **No icon library.** The dialog's dismiss is one drawn glyph with an
-  `aria-label`; a dependency for it would be a dependency for one path.
-- **React is a peer dependency.** Two copies of React in one page is the oldest
-  bug in the ecosystem, and a design system that ships its own is how you get
-  one.
-- **Every primitive is a client component**, marked whether or not it needs to
-  be today: one that grows a handler and forgets the directive fails at build
-  time in the application, a long way from here.
-
-The tests drive the components the way a player without a mouse would and read
-the accessibility tree, not the class names — an assertion on
-`class="rounded-full"` passes on a `<span>`, which is exactly what is being
-replaced. Two of them assert what a hurried refactor removes first: the focus
-ring is present, and no variant carries a raw hex.
-
-**Done when**: the selected primitives are rendered in the gallery, in both
-modes, focusable and operable with the keyboard.
 
 ### 6.3 — Theme animations and reduced motion
 
@@ -137,33 +96,3 @@ of work.
 **Done when**: every ported keyframe is named in the theme, and the gallery
 rendered with `prefers-reduced-motion` active plays neither shake nor flash
 (verified by emulating the preference in the browser).
-
-### 6.4 — Paragraph token component
-
-The component carrying the most CSS rules in the project. Its seven visual
-states (`selected`, `edited`, `scanned`, `hinted`, `found`, `missed`,
-`false-positive`) and their pseudo-element badges become a component with
-variants (`cva`), not a cascade of global classes. And it becomes a real
-interactive element: the token **is** the central gesture of the game, and
-today it is a non-focusable `<span onClick>`. Role, visible focus, keyboard
-activation.
-
-**Done when**: the seven states are rendered in the gallery, every variant
-has its render test, and the token is reachable by tab and activated by
-keyboard with a visible focus.
-
-### 6.5 — Responsive
-
-The package's components are built fluid, breakpoints defined in the theme.
-There is a single media query in the whole project today.
-
-**Done when**: the gallery displays without horizontal overflow or overlap
-at 360 px as at 1280 px.
-
-### 6.6 — Gallery and contrast audit
-
-The component gallery is the phase deliverable: every component exported by
-the package appears in it, in both modes. Contrast audit on that rendering.
-
-**Done when**: the gallery renders all exported components and the contrast
-audit passes in both modes.

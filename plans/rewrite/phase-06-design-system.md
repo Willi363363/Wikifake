@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — three steps done |
+| **State** | in progress — four steps done |
 | **Branch** | `feat/rewrite-phase-6` |
 | **Depends on** | phase 1 |
 | **Delivers** | `packages/ui`: theme, primitives, animations, token component |
@@ -27,20 +27,25 @@ stroboscopic flashes, the photosensitivity stake is real —, dark mode,
 responsiveness and accessibility.
 ## Steps
 
-Six steps, and the definitions live in their own sheet. **The table below is
-the only place that says where a step stands** — the sheet defines the work and
-its completion criterion, and carries no state.
+Six steps, so the definitions live in two sheets. **The tables below are the
+only place that says where a step stands** — the sheets define the work and its
+completion criterion, and carry no state.
 
-| # | Step | State |
+| # | Step — the stylesheet | State |
 |---|---|---|
 | 6.1 | Tailwind v4 theme | ✅ done |
-| 6.2 | shadcn/ui primitives | ✅ done |
 | 6.3 | Theme animations and reduced motion | ✅ done |
-| 6.4 | Paragraph token component | to do |
+
+Definitions: `phase-06-steps-stylesheet.md`.
+
+| # | Step — the components | State |
+|---|---|---|
+| 6.2 | shadcn/ui primitives | ✅ done |
+| 6.4 | Paragraph token component | ✅ done |
 | 6.5 | Responsive | to do |
 | 6.6 | Gallery and contrast audit | to do |
 
-Definitions: `phase-06-steps.md`.
+Definitions: `phase-06-steps-components.md`.
 
 ## Exit gate
 
