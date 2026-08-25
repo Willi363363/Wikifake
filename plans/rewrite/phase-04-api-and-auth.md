@@ -51,7 +51,7 @@ Definitions: `phase-04-steps-accounts.md`.
 | 4.4 | `POST /api/game/start` | ✅ done |
 | 4.5 | `POST /api/game/hint` and `POST /api/game/scan` | ✅ done |
 | 4.6 | `POST /api/game/submit` | ✅ done |
-| 4.7 | `GET /api/usage` | to do |
+| 4.7 | `GET /api/usage` | ✅ done |
 | 4.8 | `POST /api/multiplayer/create` | to do |
 | 4.9 | `POST /api/flag-report` | to do |
 

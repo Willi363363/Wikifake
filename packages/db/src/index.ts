@@ -49,6 +49,7 @@ export {
   selectReportsToReview,
 } from './queries/audit.js';
 export {
+  readUsageByKind,
   readUsageTotals,
   recordLlmCalls,
   selectCallsByKind,
@@ -57,5 +58,5 @@ export {
   selectGameCounts,
   usageReport,
 } from './queries/usage.js';
-export type { UsageReport, UsageTotals } from './queries/usage.js';
+export type { CallCounter, UsageReport, UsageTotals } from './queries/usage.js';
 export { seed } from './seed/seed.js';

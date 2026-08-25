@@ -8,7 +8,7 @@
 // The SQL returns totals; the ratios are computed in TypeScript. Division by
 // zero and rounding are easier to be exact about — and to test — outside SQL, and
 // a query that returns raw counts is a query a reader can check.
-import type { LlmCallRecord } from '@wikifake/protocol';
+import type { LlmCallKind, LlmCallRecord } from '@wikifake/protocol';
 import { and, count, eq, sql, sum } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
@@ -167,4 +167,70 @@ export async function readUsageTotals(db: Db): Promise<UsageTotals> {
     gamesGenerated: counts[0]?.generated ?? 0,
     gamesFromCache: counts[0]?.fromCache ?? 0,
   };
+}
+
+/**
+ * What one kind of call has cost, and how often it failed.
+ *
+ * `calls` counts the ones that **produced something**, and failures are counted
+ * beside them rather than inside them. `usage.py` counts a failure as a call, so
+ * its `calls` and its token totals describe different populations — and the cost
+ * per game is computed from the larger one. C4.5 is the rule: a call that failed
+ * bought nothing, so it does not enter the price of a game. A rising failure
+ * count is its own signal and keeps its own field.
+ */
+export interface CallCounter {
+  readonly calls: number;
+  readonly failures: number;
+  readonly promptChars: number;
+  readonly outputChars: number;
+  readonly inputTokens: number;
+  readonly outputTokens: number;
+}
+
+const NO_CALLS: CallCounter = {
+  calls: 0,
+  failures: 0,
+  promptChars: 0,
+  outputChars: 0,
+  inputTokens: 0,
+  outputTokens: 0,
+};
+
+/**
+ * The per-kind counters `/api/usage` serves.
+ *
+ * A kind with no calls at all is **absent** rather than zero, which is what the
+ * current endpoint does and what `partialRecord` in the contract expects: an
+ * endpoint that lists a kind nobody has used yet invites the reader to wonder
+ * why it costs nothing.
+ */
+export async function readUsageByKind(
+  db: Db,
+): Promise<Partial<Record<LlmCallKind, CallCounter>>> {
+  const [succeeded, failed] = await Promise.all([
+    selectCallsByKind(db),
+    selectFailuresByKind(db),
+  ]);
+
+  const byKind: Partial<Record<LlmCallKind, CallCounter>> = {};
+
+  for (const row of succeeded) {
+    byKind[row.kind] = {
+      ...NO_CALLS,
+      calls: row.calls,
+      promptChars: row.promptChars ?? 0,
+      outputChars: row.outputChars ?? 0,
+      inputTokens: row.inputTokens ?? 0,
+      outputTokens: row.outputTokens ?? 0,
+    };
+  }
+
+  // Merged after, so a kind that has only ever failed still appears — with no
+  // cost and a failure count, which is exactly what it is.
+  for (const row of failed) {
+    byKind[row.kind] = { ...(byKind[row.kind] ?? NO_CALLS), failures: row.failures };
+  }
+
+  return byKind;
 }

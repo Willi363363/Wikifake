@@ -104,6 +104,20 @@ From `llm_call` in the database: `cache_hit_rate` and `per_generated_game`
 stay exposed. Today the counters restart from zero on every restart; in the
 database, they survive.
 
+Two decisions taken while writing it:
+
+- **`cache` became nullable in the contract.** An outage is not an empty cache.
+  The current cache is a dictionary in the process and always answers; the
+  shared one can be unreachable, and phase 3 kept `unavailable` distinct from a
+  miss for exactly this reason. Serving `articles: 0` instead would read as
+  "the cache is empty, generation is expensive" — a wrong answer to the one
+  question this endpoint settles. The documentation lock caught the change, as
+  it is meant to.
+- **`byKind.calls` counts successes only.** `usage.py` counts a failure as a
+  call, so its `calls` and its token totals describe different populations and
+  the cost per game is computed from the larger one. C4.5 says a call that
+  failed bought nothing; failures keep their own field beside it.
+
 **Done when**: after generations in an integration test, both measures are
 exact and identical after a restart of the handler.
 
