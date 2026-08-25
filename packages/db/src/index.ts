@@ -15,6 +15,7 @@ export {
   IN_PROGRESS_QUERIES,
 } from './queries/game.js';
 export { createGame } from './queries/start.js';
+export { insertRoom, selectOpenRoomCount, selectRoom } from './queries/rooms.js';
 export {
   recordHintPurchase,
   recordScan,

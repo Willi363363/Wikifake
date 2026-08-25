@@ -82,7 +82,9 @@ export {
   newPlayer,
   playerIn,
   DEFAULT_TIME_LIMIT,
+  MAX_OPEN_ROOMS,
   PLAYER_COLOURS,
+  ROOM_IDLE_LIMIT_SECONDS,
 } from './room/state.js';
 export type {
   Generating,

@@ -8,6 +8,7 @@ import { connectFromEnv } from '@wikifake/db';
 import { loadEnv } from '@wikifake/env';
 
 import { articleCache } from './cache.js';
+import { randomCode } from './rooms.js';
 import { auth } from '../auth/auth.js';
 import { languageModel } from './model.js';
 import { networkTransport, wikiRequest } from './wikipedia.js';
@@ -15,6 +16,7 @@ import type { RoundDependencies } from './round.js';
 import type { SessionContext } from './session.js';
 import type { StartContext } from './start.js';
 import type { SubmitContext } from './submit.js';
+import type { RoomsContext } from './rooms.js';
 import type { UsageContext } from './usage.js';
 
 let connection: ReturnType<typeof connectFromEnv> | undefined;
@@ -33,6 +35,11 @@ export function sessionContext(): SessionContext {
 /** What grading a round needs on top of that: the clock, as a parameter. */
 export function submitContext(): SubmitContext {
   return { ...sessionContext(), now: () => new Date() };
+}
+
+/** What opening a room needs: the rows, a draw, and a clock to bound the cap. */
+export function roomsContext(): RoomsContext {
+  return { db: db(), code: randomCode, now: () => new Date() };
 }
 
 /** What reporting the spend needs: the rows, and the cache to ask for its size. */

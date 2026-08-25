@@ -127,6 +127,20 @@ Unique 6-character room codes, creation capped (503 beyond), room written to
 the database (`room`). The real-time service that will drive it comes in the
 next phase.
 
+Two decisions taken while writing it:
+
+- **Uniqueness is the primary key, not a lookup.** `_new_code` checks the
+  registry before inserting, which a second process defeats: two requests
+  drawing the same code a microsecond apart both find it free, and one
+  overwrites a room in play. The insert reports the collision and the code is
+  drawn again; fifty collisions in a row give up with a 503, as today.
+- **The cap counts rooms touched in the last hour**, not rooms ever created.
+  The rooms are rows now and do not vanish with their last player, so counting
+  history would turn a memory guard into a permanent one — the two-hundredth
+  room ever opened would be the last. `ROOM_IDLE_LIMIT_SECONDS` is named in
+  `@wikifake/domain` and phase 5 reaps the idle rooms with the same number
+  (D4); phase 4 only reads it.
+
 **Done when**: two creations yield distinct 6-character codes, and hitting
 the cap returns 503 in a test.
 
