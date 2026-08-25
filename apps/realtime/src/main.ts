@@ -8,6 +8,7 @@
 import { connectFromEnv, selectRoom } from '@wikifake/db';
 import { loadEnv } from '@wikifake/env';
 
+import { createRedisBus } from './bus.js';
 import { createOriginPolicy, parseOrigins } from './origins.js';
 import { lazyRedis } from './redis.js';
 import { createRoomStore } from './rooms/store.js';
@@ -30,6 +31,9 @@ const service = createService({
   // Postgres says whether a room was ever opened; Redis holds what is happening
   // in it. The two answer different questions and neither is the other's cache.
   rooms: createRoomStore({ redis: lazyRedis(env.REDIS_URL) }),
+  // Every effect crosses this, even for a player connected to this very process:
+  // one delivery path rather than two that have to agree.
+  bus: createRedisBus(env.REDIS_URL),
 });
 
 const port = Number(process.env['PORT'] ?? PORT);

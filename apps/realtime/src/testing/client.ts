@@ -17,9 +17,31 @@ export interface Opened {
   /** Resolves once the socket has closed. */
   closed(): Promise<number>;
   close(): void;
+  /**
+   * Stops taking anything off the wire, without closing.
+   *
+   * What a stalled player looks like from the server: the socket is open, the
+   * kernel keeps acknowledging, and nothing is being read — so everything sent
+   * queues on the server side. There is no other way to produce it, and the
+   * step's criterion is about exactly this client.
+   */
+  pause(): void;
+  resume(): void;
 }
 
 const TIMEOUT_MS = 2000;
+
+/**
+ * The TCP socket under the WebSocket.
+ *
+ * `ws` keeps it on an underscored property and offers no supported way to stop
+ * reading — but "a client that has stopped reading" is the only thing the
+ * backpressure criterion can be about, and mocking it would mock the very thing
+ * under test.
+ */
+function raw(socket: WebSocket): { pause(): void; resume(): void } | undefined {
+  return (socket as unknown as { _socket?: { pause(): void; resume(): void } })._socket;
+}
 
 /**
  * Polls a condition rather than racing a fixed delay, which is how a suite
@@ -74,6 +96,12 @@ export function open(
     },
     close: () => {
       socket.close();
+    },
+    pause: () => {
+      raw(socket)?.pause();
+    },
+    resume: () => {
+      raw(socket)?.resume();
     },
   };
 

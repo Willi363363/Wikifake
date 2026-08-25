@@ -14,6 +14,17 @@ export interface Connection {
   readonly playerName: string;
   send(payload: string): void;
   close(code: number): void;
+  /**
+   * How much this socket has queued and not yet flushed.
+   *
+   * The measure of a slow reader. `send` never blocks — it appends to a buffer —
+   * so a player whose connection has stalled does not delay anybody, but the
+   * buffer grows without bound until the process runs out of memory. This is
+   * what step 5.3 spends against a budget.
+   */
+  bufferedBytes(): number;
+  /** Cut it now, without waiting for a close handshake nobody is reading. */
+  terminate(): void;
 }
 
 export interface Registry {

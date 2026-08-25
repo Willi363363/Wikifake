@@ -14,8 +14,9 @@ import { Hono } from 'hono';
 import { WebSocketServer, type WebSocket } from 'ws';
 import type { IncomingMessage } from 'node:http';
 
+import type { Bus, Unsubscribe } from './bus.js';
 import { createRegistry, type Connection, type Registry } from './connections.js';
-import { deliver } from './effects.js';
+import { channelFor, deliverLocally, publish, readEnvelope } from './effects.js';
 import { readFrame, CLOSE_MESSAGE_TOO_BIG, CLOSE_POLICY_VIOLATION } from './frames.js';
 import { readHandshake } from './handshake.js';
 import type { OriginPolicy } from './origins.js';
@@ -36,6 +37,18 @@ export interface ServiceOptions {
    * opened its own connection would be a transport nobody can test without one.
    */
   readonly rooms: RoomStore;
+  /**
+   * The channel every instance talks over. One per room.
+   *
+   * Since 5.3 nothing is sent straight to a socket: an effect is published, and
+   * whichever instances hold sockets for that room deliver it. The publisher
+   * hears its own messages, so delivery has exactly one path.
+   */
+  readonly bus: Bus;
+  /** Keys and channels are namespaced so two deployments do not share rooms. */
+  readonly namespace?: string;
+  /** How much a socket may have queued before it is cut. Lowered by the tests. */
+  readonly budgetBytes?: number;
   /**
    * Effects this service cannot carry yet — `generate_article` and the timers.
    *
@@ -75,6 +88,65 @@ function refuse(socket: WebSocket, code: ErrorCode, message: string): void {
 
 export function createService(options: ServiceOptions): Service {
   const connections = createRegistry();
+  const namespace = options.namespace ?? 'wikifake:room';
+
+  /**
+   * One subscription per room, however many sockets this instance holds for it.
+   *
+   * Counted rather than reference-free: subscribing twice would deliver twice,
+   * and unsubscribing when the first of two players leaves would make the second
+   * deaf. The count is of local sockets, so it says nothing about the room —
+   * another instance may still be serving it.
+   */
+  const listening = new Map<string, { readonly stop: Unsubscribe; holders: number }>();
+
+  async function listen(roomCode: string): Promise<void> {
+    const held = listening.get(roomCode);
+    if (held !== undefined) {
+      held.holders += 1;
+      return;
+    }
+
+    // Claimed before the await, so two sockets arriving together do not both
+    // open a subscription.
+    const placeholder = { stop: async (): Promise<void> => undefined, holders: 1 };
+    listening.set(roomCode, placeholder);
+
+    const stop = await options.bus.subscribe(
+      channelFor(namespace, roomCode),
+      (payload) => {
+        const envelope = readEnvelope(payload);
+        // Only this service publishes here, so an envelope that does not parse
+        // is a bug rather than an attack — and delivering `undefined` to every
+        // socket in the room would be a worse way to find out.
+        if (envelope !== null) {
+          deliverLocally(
+            {
+              connections,
+              ...(options.budgetBytes === undefined
+                ? {}
+                : { budgetBytes: options.budgetBytes }),
+            },
+            roomCode,
+            envelope,
+          );
+        }
+      },
+    );
+
+    listening.set(roomCode, { stop, holders: placeholder.holders });
+  }
+
+  async function stopListening(roomCode: string): Promise<void> {
+    const held = listening.get(roomCode);
+    if (held === undefined) return;
+
+    held.holders -= 1;
+    if (held.holders > 0) return;
+
+    listening.delete(roomCode);
+    await held.stop();
+  }
 
   const app = new Hono();
 
@@ -121,6 +193,10 @@ export function createService(options: ServiceOptions): Service {
       close: (code) => {
         socket.close(code);
       },
+      bufferedBytes: () => socket.bufferedAmount,
+      terminate: () => {
+        socket.terminate();
+      },
     };
     connections.add(connection);
 
@@ -130,9 +206,10 @@ export function createService(options: ServiceOptions): Service {
     const settle = async (event: Parameters<RoomStore['apply']>[1]): Promise<void> => {
       try {
         const applied = await options.rooms.apply(roomCode, event);
-        deliver(
+        await publish(
           {
-            connections,
+            bus: options.bus,
+            namespace,
             ...(options.onUnhandled === undefined
               ? {}
               : { onUnhandled: options.onUnhandled }),
@@ -145,6 +222,10 @@ export function createService(options: ServiceOptions): Service {
       }
     };
 
+    // Listening before joining: a `lobby_update` published by this very join has
+    // to find a subscription already in place, or the player misses their own
+    // arrival.
+    await listen(roomCode);
     await settle({ kind: 'join', player: playerName });
 
     socket.on('message', (data: Buffer) => {
@@ -177,10 +258,14 @@ export function createService(options: ServiceOptions): Service {
     });
 
     socket.on('close', () => {
-      connections.remove(connection);
       // The registry first: a `leave` that broadcasts must not try to send to
-      // the socket that has just gone.
-      void settle({ kind: 'leave', player: playerName });
+      // the socket that has just gone. The subscription goes last, so this
+      // instance is still listening when the departure it caused comes back
+      // round — a room it still holds other sockets for keeps hearing.
+      connections.remove(connection);
+      void settle({ kind: 'leave', player: playerName }).finally(
+        () => void stopListening(roomCode),
+      );
     });
   }
 
@@ -209,7 +294,10 @@ export function createService(options: ServiceOptions): Service {
       });
     },
 
-    close() {
+    async close() {
+      for (const [, held] of listening) await held.stop();
+      listening.clear();
+
       return new Promise((resolve, reject) => {
         // The sockets first: a Node server does not finish closing while a
         // connection is still open, so a suite that closed them in the other
