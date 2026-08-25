@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | in progress — one step done |
 | **Branch** | `feat/rewrite-phase-5` |
 | **Depends on** | phase 4 |
 | **Delivers** | `apps/realtime`: the complete multiplayer, multi-instance |
@@ -27,11 +27,32 @@ throttled.
 
 ## Steps
 
-### 5.1 — Transport and handshake
+### ✅ 5.1 — Transport and handshake
 
 Hono + `ws`, input validation through `packages/protocol`. The nickname is
 validated **and URL-encoded** — it is not today, even though the server
 regex allows spaces. Explicit WebSocket origins from the start.
+
+Three decisions taken while writing it:
+
+- **A frame has three failure modes, not one.** Too big closes without an
+  answer (C5.7); unreadable answers `bad_json` and keeps the connection
+  (C5.3); an unknown type is dropped in silence. The last two are told apart
+  on the discriminant before the schema: a client one version ahead is
+  entitled to try a message we do not know, and flooding it with rejections
+  would be worse than ignoring it.
+- **The socket registry is per instance, and the room state is not in it.**
+  A socket is a file descriptor and cannot be shared between processes, so
+  the open sockets legitimately live in memory. Until 5.2 that means the
+  homonym check is per instance — which is what the current server does for
+  everything, and what 5.2 fixes for the state.
+- **Origins fail closed.** `REALTIME_ALLOWED_ORIGINS` is declared in
+  `@wikifake/env` and falls back to `BETTER_AUTH_URL`; an empty list refuses
+  every browser rather than accepting all of them. A handshake with no
+  `Origin` header is accepted — browsers always send one, so its absence is a
+  probe or a native client, not a bypass.
+
+Left for phase 9: the service runs through `tsx` and has no build step.
 
 **Done when**: the transport tests pass against the service — invalid JSON
 → `bad_json` and the connection survives, unknown type ignored, connected

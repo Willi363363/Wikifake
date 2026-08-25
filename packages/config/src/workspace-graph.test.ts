@@ -90,16 +90,25 @@ describe('workspace dependency graph', () => {
     );
   });
 
-  // The application is a leaf. It may import every package — that is what an
-  // application is for — but nothing may import it back: a package that depends
+  // The applications are leaves. They may import every package — that is what an
+  // application is for — but nothing may import one back: a package that depends
   // on the app can no longer be tested without Next, React and a bundler, which
   // is the whole reason the rules live outside it.
-  it('keeps the application a leaf', () => {
-    const app = JSON.parse(
-      readFileSync(`${PACKAGES}../apps/web/package.json`, 'utf8'),
-    ) as Manifest;
-    expect(app.name).toBe('@wikifake/web');
+  //
+  // The two apps must not import each other either. They are deployed to two
+  // different platforms — the web on Vercel, the realtime service on Fly — so an
+  // edge between them is a build that only works where both happen to be
+  // present, and the failure surfaces at deploy time.
+  const APPS = ['web', 'realtime'] as const;
 
+  it.each(APPS)('declares apps/%s under the @wikifake scope', (app) => {
+    const found = JSON.parse(
+      readFileSync(`${PACKAGES}../apps/${app}/package.json`, 'utf8'),
+    ) as Manifest;
+    expect(found.name).toBe(`@wikifake/${app}`);
+  });
+
+  it.each(APPS)('keeps apps/%s a leaf', (app) => {
     for (const pkg of Object.keys(EXPECTED)) {
       const manifestOf = manifest(pkg) as Manifest & {
         devDependencies?: Readonly<Record<string, string>>;
@@ -108,7 +117,18 @@ describe('workspace dependency graph', () => {
         ...Object.keys(manifestOf.dependencies ?? {}),
         ...Object.keys(manifestOf.devDependencies ?? {}),
       ];
-      expect(every).not.toContain('@wikifake/web');
+      expect(every).not.toContain(`@wikifake/${app}`);
+    }
+
+    for (const other of APPS.filter((name) => name !== app)) {
+      const manifestOf = JSON.parse(
+        readFileSync(`${PACKAGES}../apps/${other}/package.json`, 'utf8'),
+      ) as Manifest & { devDependencies?: Readonly<Record<string, string>> };
+      const every = [
+        ...Object.keys(manifestOf.dependencies ?? {}),
+        ...Object.keys(manifestOf.devDependencies ?? {}),
+      ];
+      expect(every).not.toContain(`@wikifake/${app}`);
     }
   });
 
