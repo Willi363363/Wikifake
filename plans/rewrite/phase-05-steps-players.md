@@ -35,6 +35,15 @@ inside the shortest round the contract allows.
 items and paid hints are recovered — and a homonym is refused during the
 grace window.
 
+**Found later, during 6.6**: the first of those tests races its own grace
+window. It shortens the window to 300 ms so the suite need not wait, then
+asserts — across an `until` poll, two store reads and a socket handshake — that
+the dropped player is *still there*. Under a full parallel `pnpm test`, that
+sequence can outlast 300 ms, the eviction fires, and the assertion fails: about
+one full-suite run in five, and never in isolation. The window's expiry has its
+own test and needs the short value; the recovery tests do not. Its own fix, and
+its own pull request.
+
 ### 5.6 — Hardening client messages
 
 Server throttle on `cursor` **and** `live_score` — missing on the latter

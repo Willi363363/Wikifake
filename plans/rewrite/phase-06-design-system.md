@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — five steps done |
+| **State** | six steps delivered — the exit gate awaits a decision |
 | **Branch** | `feat/rewrite-phase-6` |
 | **Depends on** | phase 1 |
 | **Delivers** | `packages/ui`: theme, primitives, animations, token component |
@@ -42,19 +42,38 @@ Definitions: `phase-06-steps-stylesheet.md`.
 |---|---|---|
 | 6.2 | shadcn/ui primitives | ✅ done |
 | 6.4 | Paragraph token component | ✅ done |
-| 6.5 | Responsive | ✅ done |
-| 6.6 | Gallery and contrast audit | to do |
 
 Definitions: `phase-06-steps-components.md`.
 
+| # | Step — how it is shown, and checked | State |
+|---|---|---|
+| 6.5 | Responsive | ✅ done |
+| 6.6 | Gallery and contrast audit | ⚠️ delivered — see below |
+
+Definitions: `phase-06-steps-delivery.md`.
+
 ## Exit gate
 
-- The component gallery is rendered, all exported components included.
-- Contrasts are audited in both modes.
-- `prefers-reduced-motion` neutralises shakes and stroboscopic flashes.
-- The paragraph token is playable by keyboard, its seven states rendered
-  and tested.
-- No `style={{}}` object in `packages/ui`.
+**Not passed.** One line of it cannot be, and the reason is a contradiction in
+this sheet rather than an omission in the work.
+
+- ✅ The component gallery is rendered, all exported components included —
+  derived from the package's exports, so the list cannot fall behind.
+- ⚠️ Contrasts are audited in both modes — **audited, and the light palette
+  fails seven pairs**, three of them below 3:1. They are the current game's
+  colours; fixing them is the redesign this phase's own pitfalls forbid. The
+  numbers are in `phase-06-steps-components.md` and the decision is the user's.
+- ✅ `prefers-reduced-motion` neutralises shakes and stroboscopic flashes —
+  seven animations to `none`, verified in a real build's CSS. Emulating the
+  preference in a browser was not possible: there is none in CI.
+- ✅ The paragraph token is playable by keyboard, its seven states rendered and
+  tested.
+- ✅ No `style={{}}` object in `packages/ui`.
+
+Two of the six criteria ask to *see* something — the preference emulated, the
+gallery displayed at 360 px. Both rest on an inference from the emitted CSS
+instead. **Whether CI grows a headless browser is a decision this phase has now
+raised twice**, and it belongs to phase 9.
 
 ## Contract touched
 

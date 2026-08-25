@@ -31,7 +31,7 @@ previous one unless its file says otherwise.
 | 3 | Article — Wikipedia and model | **in progress** — seven steps done | `rewrite/phase-03-article.md` |
 | 4 | API and authentication | **done** | `rewrite/phase-04-api-and-auth.md` |
 | 5 | Realtime — WebSocket and Redis | ✅ **done** | `rewrite/phase-05-realtime.md` |
-| 6 | Design system | **in progress** — five steps done | `rewrite/phase-06-design-system.md` |
+| 6 | Design system | ⚠️ **six steps delivered** — exit gate awaits a decision | `rewrite/phase-06-design-system.md` |
 | 7 | Frontend — lobby and waiting room | to do | `rewrite/phase-07-frontend-lobby.md` |
 | 8 | Frontend — the round | to do | `rewrite/phase-08-frontend-round.md` |
 | 9 | Observability and CI/CD | to do | `rewrite/phase-09-observability-and-cicd.md` |

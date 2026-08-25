@@ -1,9 +1,9 @@
 # Phase 6 — steps: the components
 
-> Steps 6.2, 6.4, 6.5 and 6.6 — what is built out of the theme, and how it is
-> shown. The phase sheet, its exit gate and where each step stands:
-> `phase-06-design-system.md`. The stylesheet underneath:
-> `phase-06-steps-stylesheet.md`.
+> Steps 6.2 and 6.4 — what is built out of the theme. The phase sheet, its exit
+> gate and where each step stands: `phase-06-design-system.md`. The stylesheet
+> underneath: `phase-06-steps-stylesheet.md`. How it is shown and checked:
+> `phase-06-steps-delivery.md`.
 
 ### 6.2 — shadcn/ui primitives
 
@@ -99,56 +99,3 @@ a primitive's; the `edited` state is here, the editing is phase 8.
 **Done when**: the seven states are rendered in the gallery, every variant
 has its render test, and the token is reachable by tab and activated by
 keyboard with a visible focus.
-
-### 6.5 — Responsive
-
-The package's components are built fluid, breakpoints defined in the theme.
-There is a single media query in the whole project today.
-
-**The single media query is real, and it is smaller than it sounds.** It is in
-`settings.css` and it shrinks one popover; every other screen of the game is
-laid out for a desktop and cropped on a phone. Several panels are fixed at 580,
-560 and 440 pixels, which do not look cramped at 360 — they produce a page that
-scrolls sideways.
-
-Three decisions taken while writing it:
-
-- **The breakpoints are Tailwind's own values, declared.** This is not a place
-  to invent a scale. What naming them buys is that a reviewer sees the four
-  sizes without reading a framework's defaults, and moving one becomes a
-  decision with a diff.
-- **`--width-floor: 360px` is a token, and it is the number the rules are
-  written against.** A phone held upright, and the width the criterion names.
-- **The rules are checked in the source, because there is no browser.**
-  `responsive.test.ts` enforces two, per file, across the package *and* the
-  gallery: no fixed length above the floor without a breakpoint in front of it,
-  and no unconditional multi-column layout. Neither is a proxy for a screenshot
-  — both are the actual defect that produces sideways scrolling, and a
-  regression in either is caught here rather than on somebody's phone. Both were
-  checked against a deliberate violation.
-
-The paragraph token grew `break-words hyphens-auto`: Wikipedia prose carries
-chemical names, German compounds and bare URLs, and without it a single word
-decides the width of the page.
-
-`apps/web` declares its viewport explicitly. Next supplies the same by default,
-but without it a phone lays out at about 980 CSS pixels and scales down, which
-makes every breakpoint below `lg` dead code — the state the current game ships
-in.
-
-**Not verified here**: the criterion asks for the gallery *displayed* at 360 px
-and 1280 px. There is no browser in CI. What was verified is the emitted CSS of
-a real build — three `min-width` media queries at the declared breakpoints, and
-no fixed length above the floor anywhere in the package or the gallery. Seeing
-it is a headless browser's job, and that is its own piece of work.
-
-**Done when**: the gallery displays without horizontal overflow or overlap
-at 360 px as at 1280 px.
-
-### 6.6 — Gallery and contrast audit
-
-The component gallery is the phase deliverable: every component exported by
-the package appears in it, in both modes. Contrast audit on that rendering.
-
-**Done when**: the gallery renders all exported components and the contrast
-audit passes in both modes.
