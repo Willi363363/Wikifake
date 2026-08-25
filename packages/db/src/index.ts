@@ -14,6 +14,13 @@ export {
   selectSolution,
   IN_PROGRESS_QUERIES,
 } from './queries/game.js';
+export { createGame } from './queries/start.js';
+export type {
+  NewGame,
+  NewParticipant,
+  NewPosition,
+  StartedGame,
+} from './queries/start.js';
 export type { ConnectionOptions, Database } from './client.js';
 export { selectUserById } from './queries/users.js';
 export {

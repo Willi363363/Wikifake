@@ -9,6 +9,14 @@ import type { ZodType } from 'zod';
 export interface JsonOptions {
   readonly status?: number;
   readonly headers?: Record<string, string>;
+  /**
+   * `Set-Cookie` values, which repeat rather than merge.
+   *
+   * Separate from `headers` because a record cannot hold two of them, and a
+   * sign-in that sets a session cookie and a session-data cookie sends two. The
+   * one that got merged away is the one the browser never keeps.
+   */
+  readonly setCookies?: readonly string[];
 }
 
 /**
@@ -22,8 +30,11 @@ export function json<T>(
   value: T,
   options: JsonOptions = {},
 ): Response {
+  const headers = new Headers({ 'content-type': 'application/json', ...options.headers });
+  for (const cookie of options.setCookies ?? []) headers.append('set-cookie', cookie);
+
   return new Response(JSON.stringify(schema.parse(value)), {
     status: options.status ?? 200,
-    headers: { 'content-type': 'application/json', ...options.headers },
+    headers,
   });
 }
