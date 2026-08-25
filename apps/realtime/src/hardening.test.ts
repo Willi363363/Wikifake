@@ -77,6 +77,9 @@ describe.skipIf(url === null)('5.6 — what a client is allowed to send', () => 
     service = createService({
       origins: createOriginPolicy(['https://wikifake.example']),
       roomExists: () => Promise.resolve(true),
+      // 5.7 — nothing in this file is about the row: the room's own state is
+      // what it watches.
+      closeRoom: () => Promise.resolve(),
       rooms: store,
       bus,
       namespace: NAMESPACE,

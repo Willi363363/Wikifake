@@ -92,6 +92,9 @@ describe('5.1 — the transport', () => {
     service = createService({
       origins: createOriginPolicy([APP]),
       roomExists: (roomCode) => Promise.resolve(roomCode === ROOM),
+      // 5.7 — nothing in this file is about the row: the room's own state is
+      // what it watches.
+      closeRoom: () => Promise.resolve(),
       rooms,
       // The transport's suite is about what a socket may send, not about
       // crossing instances: a bus that stays in the process keeps these tests

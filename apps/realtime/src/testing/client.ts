@@ -51,17 +51,22 @@ function raw(socket: WebSocket): { pause(): void; resume(): void } | undefined {
  * reaching the handler — rather than on something it received. Sleeping for "long
  * enough" instead is the same bug with a slower failure.
  *
+ * The condition may be asynchronous — a test often waits on something only the
+ * store can answer. Awaited rather than merely called: a promise is truthy, so a
+ * condition returning one would satisfy every wait immediately and the test
+ * would race whatever it was waiting for.
+ *
  * @param timeoutMs raise it for a suite whose first request pays a warm-up:
  * BullMQ connects and loads its Lua scripts on the first alarm, which is seconds
  * once and milliseconds afterwards.
  */
 export async function until(
-  condition: () => boolean,
+  condition: () => boolean | Promise<boolean>,
   what: string | (() => string),
   timeoutMs = TIMEOUT_MS,
 ): Promise<void> {
   const deadline = Date.now() + timeoutMs;
-  while (!condition()) {
+  while (!(await condition())) {
     if (Date.now() > deadline) {
       // Described lazily, so a failure can say what the state actually was
       // rather than only what it was supposed to become.

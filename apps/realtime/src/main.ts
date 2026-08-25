@@ -5,7 +5,7 @@
 // also the only one that reads `process.env`, and it does it through `loadEnv`,
 // which refuses a missing variable by name at startup rather than three layers
 // later.
-import { connectFromEnv, selectRoom } from '@wikifake/db';
+import { connectFromEnv, deleteRoom, selectRoom } from '@wikifake/db';
 import { ROOM_IDLE_LIMIT_SECONDS } from '@wikifake/domain';
 import { loadEnv } from '@wikifake/env';
 
@@ -31,6 +31,11 @@ const service = createService({
       : parseOrigins(env.REALTIME_ALLOWED_ORIGINS),
   ),
   roomExists: async (roomCode) => (await selectRoom(db, roomCode)).length > 0,
+  // C1.8, D4 — and the row goes when the room does. Without this the code stays
+  // taken for ever and a stranger can open a socket on a room nobody is in.
+  closeRoom: async (roomCode) => {
+    await deleteRoom(db, roomCode);
+  },
   // Postgres says whether a room was ever opened; Redis holds what is happening
   // in it. The two answer different questions and neither is the other's cache.
   rooms: createRoomStore({ redis: lazyRedis(env.REDIS_URL) }),
