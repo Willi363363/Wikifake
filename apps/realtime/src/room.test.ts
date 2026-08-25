@@ -13,6 +13,7 @@
 // surprise.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { createLocalBus } from './bus.js';
 import { createOriginPolicy } from './origins.js';
 import { createRoomStore } from './rooms/store.js';
 import { createService, type Service } from './server.js';
@@ -62,6 +63,10 @@ describe.skipIf(url === null)('5.2 — a room over sockets', () => {
       origins: createOriginPolicy(['https://wikifake.example']),
       roomExists: () => Promise.resolve(true),
       rooms: createRoomStore({ redis: redis.redis, namespace: NAMESPACE }),
+      // One instance, so the channel need not leave the process. Crossing
+      // instances is `broadcast.test.ts`, over a real Redis.
+      bus: createLocalBus(),
+      namespace: NAMESPACE,
       onUnhandled: (roomCode, effect) => unhandled.push({ roomCode, effect }),
     });
     port = await service.listen(0);

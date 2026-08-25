@@ -5,6 +5,7 @@
 // intact because it was encoded. A mocked handshake would prove the mock.
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { createLocalBus } from './bus.js';
 import { createOriginPolicy } from './origins.js';
 import { createRoomStore, type RoomStore } from './rooms/store.js';
 import { createService, type Service, type ServiceOptions } from './server.js';
@@ -90,6 +91,10 @@ describe('5.1 — the transport', () => {
       origins: createOriginPolicy([APP]),
       roomExists: (roomCode) => Promise.resolve(roomCode === ROOM),
       rooms,
+      // The transport's suite is about what a socket may send, not about
+      // crossing instances: a bus that stays in the process keeps these tests
+      // independent of a server they have nothing to do with.
+      bus: createLocalBus(),
       ...overrides,
     });
     port = await service.listen(0);
