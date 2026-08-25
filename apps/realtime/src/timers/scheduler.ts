@@ -17,13 +17,15 @@
  * is not a rule: nobody is left to be told anything, so it is a clean-up rather
  * than a transition.
  */
-export type TimerKind = 'round_end' | 'item_wave' | 'room_idle';
+export type TimerKind = 'round_end' | 'item_wave' | 'room_idle' | 'grace';
 
 export interface Alarm {
   readonly roomCode: string;
   readonly kind: TimerKind;
   /** Which wave this is, for `item_wave`. Absent otherwise. */
   readonly wave?: number;
+  /** Whose grace window this is, for `grace`. Absent otherwise. */
+  readonly player?: string;
 }
 
 export interface Scheduler {
@@ -36,8 +38,11 @@ export interface Scheduler {
    * (room, kind), so there can only ever be one.
    */
   arm(alarm: Alarm, delayMs: number): Promise<void>;
-  /** @param wave which wave to drop, for the one kind there are several of. */
-  cancel(roomCode: string, kind: TimerKind, wave?: number): Promise<void>;
+  /**
+   * @param of which one to drop, for the kinds there are several of: a wave
+   * number, or the player whose grace window it is.
+   */
+  cancel(roomCode: string, kind: TimerKind, of?: string | number): Promise<void>;
   /** Stops consuming and lets go of the connections. */
   close(): Promise<void>;
 }
@@ -46,8 +51,9 @@ export interface Scheduler {
 export type OnAlarm = (alarm: Alarm) => Promise<void>;
 
 /**
- * `A1B2C3-round_end`, or `A1B2C3-item_wave-3` — one alarm per room and kind, and
- * one per wave for the kind there are several of.
+ * `A1B2C3-round_end`, `A1B2C3-item_wave-3`, `A1B2C3-grace-ada` — one alarm per
+ * room and kind, and one per wave or per player for the kinds there are several
+ * of.
  *
  * The waves are numbered because they are armed together, at fixed offsets, and
  * a single id would collide with itself: BullMQ will not remove a job that is
@@ -59,8 +65,6 @@ export type OnAlarm = (alarm: Alarm) => Promise<void>;
  * upper-case letters and digits and kinds are snake_case, so a hyphen appears in
  * neither half and the two stay unambiguous.
  */
-export function alarmId(roomCode: string, kind: TimerKind, wave?: number): string {
-  return wave === undefined
-    ? `${roomCode}-${kind}`
-    : `${roomCode}-${kind}-${String(wave)}`;
+export function alarmId(roomCode: string, kind: TimerKind, of?: string | number): string {
+  return of === undefined ? `${roomCode}-${kind}` : `${roomCode}-${kind}-${String(of)}`;
 }

@@ -10,6 +10,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { createRedisBus, type Bus } from './bus.js';
 import { createOriginPolicy } from './origins.js';
 import { createLocalScheduler } from './timers/local.js';
+import { createLocalTokens } from './rooms/tokens.js';
 import { createRoomStore } from './rooms/store.js';
 import { createService, type Service } from './server.js';
 import { open, until, type Opened } from './testing/client.js';
@@ -51,6 +52,10 @@ describe.skipIf(url === null)('5.3 — one room, several instances', () => {
       roomExists: () => Promise.resolve(true),
       rooms: createRoomStore({ redis: redis.redis, namespace: NAMESPACE }),
       bus,
+      tokens: createLocalTokens(),
+      // D5 — a dropped socket is a departure only once the window has run.
+      // Shortened so a test can watch it happen rather than wait for it.
+      graceSeconds: 0.05,
       namespace: NAMESPACE,
       scheduler: createLocalScheduler,
       ...(budgetBytes === undefined ? {} : { budgetBytes }),
@@ -135,7 +140,7 @@ describe.skipIf(url === null)('5.3 — one room, several instances', () => {
     bob.close();
   });
 
-  it('tells the other instance when a player leaves', async () => {
+  it('tells the other instance when a player is evicted', async () => {
     const first = await instance();
     const second = await instance();
 

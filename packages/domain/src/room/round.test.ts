@@ -319,15 +319,20 @@ describe('D4 — the second way out: the clock runs out', () => {
   });
 });
 
-describe('D4 — the third way out: the last unsubmitted player leaves', () => {
+describe('D4 — the third way out: the last unsubmitted player is evicted', () => {
   // The current server waits for a player who is gone, and the room stays in
   // `playing` indefinitely.
+  //
+  // D5 changed which event this is. A dropped socket no longer ends anything —
+  // the player may be back, and the round-end timer is what covers them if they
+  // are not. What ends a round early is an **eviction**: the grace window ran
+  // out, and they are gone for good.
   it('ends the round when the only one left has already submitted', () => {
     const state = reduceRoom(
       inRound('ada', 'bob'),
       says('ada', { type: 'submit_answer', marked: [2] }),
     ).state;
-    const outcome = reduceRoom(state, { kind: 'leave', player: 'bob' });
+    const outcome = reduceRoom(state, { kind: 'evict', player: 'bob' });
     expect(outcome.state.phase).toBe('lobby');
     expect(
       broadcasts(outcome.effects).some((message) => message.type === 'game_end'),
@@ -336,15 +341,47 @@ describe('D4 — the third way out: the last unsubmitted player leaves', () => {
 
   it('keeps the round open while someone still has to submit', () => {
     const outcome = reduceRoom(inRound('ada', 'bob', 'cyd'), {
-      kind: 'leave',
+      kind: 'evict',
       player: 'cyd',
     });
     expect(outcome.state.phase).toBe('round');
   });
 
-  it('closes the room when the last player leaves mid-round', () => {
-    const outcome = reduceRoom(inRound('ada'), { kind: 'leave', player: 'ada' });
+  it('closes the room when the last player is evicted mid-round', () => {
+    const outcome = reduceRoom(inRound('ada'), { kind: 'evict', player: 'ada' });
     expect(outcome.effects).toEqual([{ kind: 'cancel_timer' }, { kind: 'close_room' }]);
+  });
+
+  // D5 — the exit gate of the phase, as a rule: a round survives one player's
+  // network cut. The current server ends it, because the player is deleted.
+  it('does not end the round on a dropped socket', () => {
+    const state = reduceRoom(
+      inRound('ada', 'bob'),
+      says('ada', { type: 'submit_answer', marked: [2] }),
+    ).state;
+    const outcome = reduceRoom(state, { kind: 'leave', player: 'bob' });
+
+    expect(outcome.state.phase).toBe('round');
+    expect(
+      broadcasts(outcome.effects).some((message) => message.type === 'game_end'),
+    ).toBe(false);
+    // And what bob had is still bob's, which is what makes coming back worth
+    // anything.
+    expect(outcome.state.players.map((player) => player.name)).toEqual(['ada', 'bob']);
+  });
+
+  it('keeps a submitted score through a disconnection and a reconnection', () => {
+    const submitted = reduceRoom(
+      inRound('ada', 'bob'),
+      says('ada', { type: 'submit_answer', marked: [2] }),
+    ).state;
+    const dropped = reduceRoom(submitted, { kind: 'leave', player: 'ada' }).state;
+    const back = reduceRoom(dropped, { kind: 'join', player: 'ada' }).state;
+
+    const found = back.players.find((player) => player.name === 'ada');
+    expect(found?.connected).toBe(true);
+    expect(found?.answered).toBe(true);
+    expect(found?.submission).not.toBeNull();
   });
 });
 

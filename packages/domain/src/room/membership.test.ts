@@ -17,6 +17,7 @@ describe('arriving', () => {
           {
             name: 'ada',
             colour: PLAYER_COLOURS[0],
+            connected: true,
             ready: false,
             answered: false,
             isHost: true,
@@ -35,10 +36,12 @@ describe('arriving', () => {
     ]);
   });
 
+  // D5 — freed by an **eviction**, which is what a departure is now. A dropped
+  // socket keeps the seat and the colour with it: the player may be back.
   it('reuses a colour freed by a departure rather than cycling past it', () => {
     const { state } = run([
       ...joined('ada', 'bob'),
-      { kind: 'leave', player: 'ada' },
+      { kind: 'evict', player: 'ada' },
       ...joined('cyd'),
     ]);
     expect(state.players.map((player) => player.colour)).toEqual([
@@ -68,16 +71,24 @@ describe('C1.8 — the host', () => {
     expect(hostOf(state)).toBe('ada');
   });
 
-  it('passes to the next player when they leave', () => {
+  it('passes to the next player when they are evicted', () => {
     const { state } = run([
       ...joined('ada', 'bob', 'cyd'),
-      { kind: 'leave', player: 'ada' },
+      { kind: 'evict', player: 'ada' },
     ]);
     expect(hostOf(state)).toBe('bob');
   });
 
-  it('does not change when a guest leaves', () => {
-    const { state } = run([...joined('ada', 'bob'), { kind: 'leave', player: 'bob' }]);
+  // D5 — a host whose connection dropped is still the host. Promoting on a
+  // network hiccup hands the room to somebody else and takes it back a second
+  // later, which is worse than waiting out the grace window.
+  it('stays with a host whose socket merely dropped', () => {
+    const { state } = run([...joined('ada', 'bob'), { kind: 'leave', player: 'ada' }]);
+    expect(hostOf(state)).toBe('ada');
+  });
+
+  it('does not change when a guest is evicted', () => {
+    const { state } = run([...joined('ada', 'bob'), { kind: 'evict', player: 'bob' }]);
     expect(hostOf(state)).toBe('ada');
   });
 
@@ -86,16 +97,89 @@ describe('C1.8 — the host', () => {
   });
 });
 
-describe('leaving', () => {
-  it('closes the room with its last player', () => {
+// D5 — a dropped socket is not a departure. The current server deletes the
+// player, so their score, their items and the hints they paid for go with them,
+// and their nickname is immediately claimable by a stranger.
+describe('losing a socket', () => {
+  it('keeps the player, marked disconnected', () => {
+    const { state } = run([...joined('ada', 'bob'), { kind: 'leave', player: 'ada' }]);
+
+    expect(state.players.map((player) => player.name)).toEqual(['ada', 'bob']);
+    expect(state.players.map((player) => player.connected)).toEqual([false, true]);
+  });
+
+  it('tells the room, so a rival can see who is away', () => {
+    const { effects } = run([...joined('ada', 'bob'), { kind: 'leave', player: 'ada' }]);
+    const [last] = broadcasts(effects).slice(-1);
+
+    expect(last).toMatchObject({
+      type: 'lobby_update',
+      players: [
+        { name: 'ada', connected: false },
+        { name: 'bob', connected: true },
+      ],
+    });
+  });
+
+  // The room is not empty: its only player may be reconnecting. Closing it here
+  // would throw a round away over a network hiccup.
+  it('does not close a room whose last player merely dropped', () => {
     const { state, effects } = run([...joined('ada'), { kind: 'leave', player: 'ada' }]);
+
+    expect(state.players.map((player) => player.name)).toEqual(['ada']);
+    expect(effects.some((effect) => effect.kind === 'close_room')).toBe(false);
+  });
+
+  it('does nothing for someone who was never there', () => {
+    const before = run(joined('ada'));
+    const after = reduceRoom(before.state, { kind: 'leave', player: 'zoe' });
+    expect(after.state).toBe(before.state);
+    expect(after.effects).toEqual([]);
+  });
+
+  it('does nothing twice over', () => {
+    const once = run([...joined('ada', 'bob'), { kind: 'leave', player: 'ada' }]);
+    const twice = reduceRoom(once.state, { kind: 'leave', player: 'ada' });
+    expect(twice.state).toBe(once.state);
+    expect(twice.effects).toEqual([]);
+  });
+});
+
+// The criterion of step 5.5, as a rule: what a player had is still theirs.
+describe('coming back', () => {
+  it('reclaims the seat, the colour and everything earned', () => {
+    const dropped = run([...joined('ada', 'bob'), { kind: 'leave', player: 'ada' }]);
+    const back = reduceRoom(dropped.state, { kind: 'join', player: 'ada' });
+
+    const ada = back.state.players.find((player) => player.name === 'ada');
+    expect(ada?.connected).toBe(true);
+    expect(ada?.colour).toBe(PLAYER_COLOURS[0]);
+    // Their seat: the order is what decides the host, so a reconnection that
+    // appended them would quietly demote them.
+    expect(back.state.players.map((player) => player.name)).toEqual(['ada', 'bob']);
+    expect(hostOf(back.state)).toBe('ada');
+  });
+
+  // C5.2 still holds for a player who is actually there.
+  it('is still refused while the socket is up', () => {
+    const held = run(joined('ada'));
+    const again = reduceRoom(held.state, { kind: 'join', player: 'ada' });
+
+    expect(refusal(again.effects)).toBe('name_taken');
+    expect(again.state).toBe(held.state);
+  });
+});
+
+describe('being evicted', () => {
+  it('closes the room with its last player', () => {
+    const { state, effects } = run([...joined('ada'), { kind: 'evict', player: 'ada' }]);
     expect(state.players).toEqual([]);
     expect(effects).toEqual([{ kind: 'close_room' }]);
   });
 
   it('does nothing for someone who was never there', () => {
     const before = run(joined('ada'));
-    const after = reduceRoom(before.state, { kind: 'leave', player: 'zoe' });
+    const after = reduceRoom(before.state, { kind: 'evict', player: 'zoe' });
     expect(after.state).toBe(before.state);
     expect(after.effects).toEqual([]);
   });

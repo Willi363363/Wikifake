@@ -12,6 +12,7 @@ Fifteen messages. `game_end` is the only one that carries the solution
 - `players` — array of objects
   - `name` — string (1–24 chars, matching `^[\p{L}\p{N}_\-. ]+$`)
   - `colour` — string (matching `^#[0-9a-fA-F]{6}$`)
+  - `connected` — boolean
   - `ready` — boolean
   - `answered` — boolean
   - `isHost` — boolean

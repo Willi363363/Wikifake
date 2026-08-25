@@ -40,7 +40,15 @@ export function reduceRoom(state: RoomState, event: RoomEvent): Outcome {
         : settle(state);
 
     case 'leave':
-      // D4 — leaving mid-round can end it, which the lobby has no way to know.
+      // D5 — a dropped socket is not a departure, in a round or out of it: the
+      // player stays, marked disconnected, and keeps what they have earned.
+      // Ending the round on it would be ending it on a network hiccup, which is
+      // what the round-end timer is for instead.
+      return reduceLobby(state, event);
+
+    case 'evict':
+      // D4 — being removed mid-round can end it, which the lobby has no way to
+      // know: the last player who had not submitted is gone for good.
       return state.phase === 'round'
         ? leaveDuringRound(state, event.player)
         : reduceLobby(state, event);

@@ -20,6 +20,7 @@ import type { ArticleView, FalsifiedPosition } from '@wikifake/protocol';
 
 import { createLocalBus, type Bus } from './bus.js';
 import { createOriginPolicy } from './origins.js';
+import { createLocalTokens } from './rooms/tokens.js';
 import { createRoomStore, type RoomStore } from './rooms/store.js';
 import { createService, type Service } from './server.js';
 import { createQueueScheduler } from './timers/queue.js';
@@ -127,6 +128,9 @@ describe.skipIf(url === null)('5.4 — the server ends what nobody ends', () => 
       roomExists: () => Promise.resolve(true),
       rooms: store,
       bus,
+      tokens: createLocalTokens(),
+      // D5 — a dropped socket becomes a departure only after the window.
+      graceSeconds: 0.05,
       namespace: NAMESPACE,
       scheduler: (onAlarm) => impatient(onAlarm, shorten),
       // Always the first item, so a wave is something a test can name.
@@ -219,9 +223,10 @@ describe.skipIf(url === null)('5.4 — the server ends what nobody ends', () => 
     bob.close();
   });
 
-  // The other half of the same sentence: the last non-submitted player leaves,
-  // and there is nobody left for the round to be waiting on.
-  it('ends a round when the last non-submitted player disconnects', async () => {
+  // The other half of the same sentence. D5 moved which event it is: a dropped
+  // socket no longer ends anything — the player may be back — and what ends the
+  // round early is the eviction at the end of their grace window.
+  it('ends a round when the last non-submitted player is evicted', async () => {
     await start([]);
     const { ada, bob } = await playRound(false);
 

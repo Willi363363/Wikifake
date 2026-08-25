@@ -67,7 +67,7 @@ export function createQueueScheduler(options: QueueOptions): Scheduler {
 
   return {
     async arm(alarm, delayMs) {
-      const id = alarmId(alarm.roomCode, alarm.kind, alarm.wave);
+      const id = alarmId(alarm.roomCode, alarm.kind, alarm.wave ?? alarm.player);
 
       // Removed first, then added. BullMQ ignores an `add` whose `jobId` already
       // exists, so arming a second round-end without this would keep the *old*
@@ -81,11 +81,11 @@ export function createQueueScheduler(options: QueueOptions): Scheduler {
       });
     },
 
-    async cancel(roomCode, kind, wave) {
+    async cancel(roomCode, kind, of) {
       // A job that has already started cannot be removed, which is the right
       // outcome: the transition it carries is happening, and cancelling it
       // halfway would be worse than letting it finish.
-      await queue.remove(alarmId(roomCode, kind, wave)).catch(() => undefined);
+      await queue.remove(alarmId(roomCode, kind, of)).catch(() => undefined);
     },
 
     async close() {

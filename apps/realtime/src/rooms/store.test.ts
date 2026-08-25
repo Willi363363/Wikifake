@@ -18,6 +18,7 @@ const ROOM = 'A1B2C3';
 
 const join = (player: string): RoomEvent => ({ kind: 'join', player });
 const leave = (player: string): RoomEvent => ({ kind: 'leave', player });
+const evict = (player: string): RoomEvent => ({ kind: 'evict', player });
 
 describe.skipIf(url === null)('5.2 — the room lives in Redis', () => {
   let redis: TestRedis;
@@ -163,11 +164,21 @@ describe.skipIf(url === null)('5.2 — the room lives in Redis', () => {
     });
   });
 
-  describe('C1.8 — the room ends when the last player leaves', () => {
-    it('forgets the key entirely', async () => {
+  // D5 — a dropped socket is not a departure, so it is `evict` that ends a room
+  // now. The grace window between the two is the transport's.
+  describe('C1.8 — the room ends when the last player is evicted', () => {
+    it('keeps a room whose last player merely dropped', async () => {
       await store.apply(ROOM, join('ada'));
 
       const applied = await store.apply(ROOM, leave('ada'));
+      expect(applied.effects.map((effect) => effect.kind)).not.toContain('close_room');
+      expect((await store.read(ROOM)).state.players).toHaveLength(1);
+    });
+
+    it('forgets the key entirely', async () => {
+      await store.apply(ROOM, join('ada'));
+
+      const applied = await store.apply(ROOM, evict('ada'));
       expect(applied.effects.map((effect) => effect.kind)).toContain('close_room');
 
       expect(await redis.client.exists(roomKey(NAMESPACE, ROOM))).toBe(0);
@@ -179,7 +190,7 @@ describe.skipIf(url === null)('5.2 — the room lives in Redis', () => {
       await store.apply(ROOM, join('ada'));
       await store.apply(ROOM, join('bob'));
 
-      await store.apply(ROOM, leave('ada'));
+      await store.apply(ROOM, evict('ada'));
 
       expect(await redis.client.exists(roomKey(NAMESPACE, ROOM))).toBe(1);
       expect((await store.read(ROOM)).state.players.map((p) => p.name)).toEqual(['bob']);
@@ -192,7 +203,7 @@ describe.skipIf(url === null)('5.2 — the room lives in Redis', () => {
       await store.apply(ROOM, join('ada'));
 
       await Promise.all([
-        store.apply(ROOM, leave('ada')),
+        store.apply(ROOM, evict('ada')),
         store.apply(ROOM, join('bob')),
       ]);
 
