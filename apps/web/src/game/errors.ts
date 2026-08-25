@@ -7,7 +7,9 @@
 // The union is closed and this table is partial on purpose: a code with no entry
 // is a code no REST route has ever returned, and it answers 500 rather than
 // getting a number invented for it here.
-import type { ErrorCode } from '@wikifake/protocol';
+import { restError, type ErrorCode } from '@wikifake/protocol';
+
+import { json } from '../respond.js';
 
 export const BAD_REQUEST = 400;
 
@@ -32,4 +34,16 @@ const STATUS: Readonly<Partial<Record<ErrorCode, number>>> = {
 
 export function statusFor(code: ErrorCode): number {
   return STATUS[code] ?? 500;
+}
+
+/**
+ * A typed rejection, as a response.
+ *
+ * Every REST failure carries a `code` a client can branch on. FastAPI answers
+ * `{"detail": "<a French sentence>"}` today, so a 404 on a hint and a 404 on a
+ * session are the same thing to a client — which is why both end up handled as
+ * "something went wrong", or not at all.
+ */
+export function refuse(code: ErrorCode, message: string): Response {
+  return json(restError, { code, message }, { status: statusFor(code) });
 }

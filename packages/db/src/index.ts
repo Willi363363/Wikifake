@@ -18,13 +18,14 @@ export { createGame } from './queries/start.js';
 export {
   recordHintPurchase,
   recordScan,
+  recordSubmission,
   selectFalsifiedIndices,
   selectHintFor,
   selectParticipantFor,
   selectRoundStatus,
   selectScannedParagraphs,
 } from './queries/session.js';
-export type { BilledHint } from './queries/session.js';
+export type { BilledHint, GradedSubmission } from './queries/session.js';
 export type {
   NewGame,
   NewParticipant,

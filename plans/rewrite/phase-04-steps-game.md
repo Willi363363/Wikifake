@@ -77,9 +77,26 @@ from `packages/domain`. Penalties declared by the client are ignored:
 breakdown of zero. The complete solution arrives with the response, not
 before.
 
-**Done when**: the scoring reference case (`tp=3, fp=1, penalty=20,
-stolen=50, 200 s left out of 300 → 400`) passes through the API, and
-client-declared penalties have no effect on the breakdown.
+Two decisions taken while writing it:
+
+- **Submission is idempotent.** A second submission hands back the grading that
+  landed rather than grading again: the clock has moved, so regrading would
+  quietly replace a player's score with a smaller one. The update is conditional
+  on `submitted_at` still being null, so two submissions racing produce one
+  grading and the loser is told.
+- **Solo ends on the submission.** `game.ended_at` is set here because solo has
+  one player. Multiplayer ends on the last submission or on the timer, and that
+  belongs to the reducer in phase 5.
+
+**On the reference case**: two of its terms cannot be produced through the solo
+API. A hint costs 50 or 200, never 20, and nothing steals points when there is
+no rival. C2.5 stays pinned in `packages/domain/src/scoring.test.ts`; what the
+API test pins is the same scale on terms a solo round can reach — `tp=3, fp=1`,
+one nudge, 200 s left of 300 → 420 — plus the total agreeing with the breakdown
+it reports.
+
+**Done when**: the scoring scale passes through the API, and client-declared
+penalties have no effect on the breakdown.
 
 ### 4.7 — `GET /api/usage`
 

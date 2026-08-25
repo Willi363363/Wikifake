@@ -16,24 +16,40 @@ export interface SessionContext {
   readonly db: Database['db'];
 }
 
-export interface OpenRound {
+/**
+ * The round, and the caller's place in it.
+ *
+ * Descriptive, not normative: whether a round that is over may still be acted on
+ * is a question each route answers differently — a hint cannot be bought after
+ * the end, and a submission that already happened must still be able to hand
+ * back its debrief. Deciding it here would force one of the two to work around
+ * the other.
+ */
+export interface Round {
   readonly gameId: string;
   readonly participantId: string;
+  readonly timeLimit: number;
+  readonly startedAt: Date;
+  /** Null while the round is still running. */
+  readonly endedAt: Date | null;
+  /** Null until this player has submitted. */
+  readonly submittedAt: Date | null;
 }
 
 export type RoundAccess =
-  | { readonly ok: true; readonly round: OpenRound }
+  | { readonly ok: true; readonly round: Round }
   | { readonly ok: false; readonly code: ErrorCode; readonly message: string };
 
 /**
  * One refusal for every way this can fail.
  *
- * No session, a game that does not exist, a game that is somebody else's, a
- * round that is over: all `session_not_found`. Telling them apart would answer
- * "does this game exist" — and, worse, "is this the right identifier" — to
- * someone who has no business in the round.
+ * No session, a game that does not exist, a game that is somebody else's: all
+ * `session_not_found`. Telling them apart would answer "does this game exist" —
+ * and, worse, "is this the right identifier" — to someone who has no business in
+ * the round. The routes that also refuse a finished round answer with the same
+ * code, for the same reason.
  */
-const REFUSED = {
+export const REFUSED = {
   ok: false,
   code: 'session_not_found',
   message: 'This session does not exist, or is over.',
@@ -65,10 +81,20 @@ export async function openRound(
   if (!UUID.test(sessionId)) return REFUSED;
 
   const [round] = await selectRoundStatus(context.db, sessionId);
-  if (round === undefined || round.endedAt !== null) return REFUSED;
+  if (round === undefined) return REFUSED;
 
   const [player] = await selectParticipantFor(context.db, sessionId, session.user.id);
   if (player === undefined) return REFUSED;
 
-  return { ok: true, round: { gameId: round.id, participantId: player.id } };
+  return {
+    ok: true,
+    round: {
+      gameId: round.id,
+      participantId: player.id,
+      timeLimit: round.timeLimit,
+      startedAt: round.startedAt,
+      endedAt: round.endedAt,
+      submittedAt: player.submittedAt,
+    },
+  };
 }

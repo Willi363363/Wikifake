@@ -16,8 +16,8 @@ import {
 } from '@wikifake/db';
 import { decode, gameApi, restError } from '@wikifake/protocol';
 
-import { BAD_REQUEST, statusFor } from './errors.js';
-import { openRound, type SessionContext } from './session.js';
+import { BAD_REQUEST, refuse } from './errors.js';
+import { openRound, REFUSED, type SessionContext } from './session.js';
 import { json } from '../respond.js';
 import { readJson } from './body.js';
 
@@ -42,13 +42,11 @@ export async function handleHint(
   }
 
   const access = await openRound(context, parsed.value.sessionId, request);
-  if (!access.ok) {
-    return json(
-      restError,
-      { code: access.code, message: access.message },
-      { status: statusFor(access.code) },
-    );
-  }
+  if (!access.ok) return refuse(access.code, access.message);
+  // A round that is over is a session that is over, and answers as one: nothing
+  // may be bought or revealed after the debrief.
+  if (access.round.endedAt !== null) return refuse(REFUSED.code, REFUSED.message);
+
   const { gameId, participantId } = access.round;
 
   // One position, the one asked for: the narrow read of `queries/session.ts`, so
@@ -65,13 +63,7 @@ export async function handleHint(
     // phase 5, which is where a rival exists to cast it.
   });
 
-  if (!grant.ok) {
-    return json(
-      restError,
-      { code: grant.code, message: 'That hint is not available.' },
-      { status: statusFor(grant.code) },
-    );
-  }
+  if (!grant.ok) return refuse(grant.code, 'That hint is not available.');
 
   let payload = grant.payload;
 
