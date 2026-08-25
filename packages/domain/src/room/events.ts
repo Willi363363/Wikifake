@@ -42,13 +42,19 @@ export type RoomEvent =
       readonly from: string;
       readonly message: IncomingMessage;
       /**
-       * Seconds since the round started. Ignored outside a round.
+       * When this message was sent, in milliseconds since the epoch.
        *
        * The clock is a parameter (see the phase pitfalls): the reducer never
        * reads one, so a round that ends on a timeout is testable without
-       * waiting five minutes.
+       * waiting five minutes. What the rules need is the *elapsed* time, and
+       * they work it out from `round.startedAt` — an instant is something the
+       * transport can stamp without reading the room first, and seconds since
+       * the start is not.
+       *
+       * Required, and deliberately so: it was optional, nothing supplied it,
+       * and every message was decided as though the round had just begun.
        */
-      readonly elapsedSeconds?: number;
+      readonly at: number;
       /**
        * A number the caller draws, used where the game is deliberately random —
        * picking one topic out of several proposals.
@@ -68,6 +74,8 @@ export type RoomEvent =
       readonly kind: 'article_ready';
       readonly article: ArticleView;
       readonly solution: readonly FalsifiedPosition[];
+      /** When the round begins, in milliseconds since the epoch. */
+      readonly startedAt: number;
     }
   /**
    * The article could not be produced. The next candidate is tried, and the

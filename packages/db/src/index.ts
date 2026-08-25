@@ -18,6 +18,7 @@ export { createGame } from './queries/start.js';
 export {
   deleteRoom,
   insertRoom,
+  selectGamesInRoom,
   selectOpenRoomCount,
   selectRoom,
 } from './queries/rooms.js';

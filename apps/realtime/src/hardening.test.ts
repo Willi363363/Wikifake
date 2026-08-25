@@ -18,6 +18,7 @@ import { createService, type Service } from './server.js';
 import { createLocalScheduler } from './timers/local.js';
 import { open, until, type Opened } from './testing/client.js';
 import { openTestRedis, testRedisUrl, type TestRedis } from './testing/redis.js';
+import { canned } from './testing/articles.js';
 
 const url = testRedisUrl();
 const NAMESPACE = 'wikifake:test:hardening';
@@ -30,6 +31,15 @@ const TIME_LIMIT = 120;
 
 /** Wide enough that one burst yields exactly one frame, on any machine. */
 const WIDE_MS = 60_000;
+
+/**
+ * A clock that does not move.
+ *
+ * The time bonus depends on how long a player took, so a test that read the wall
+ * clock would be asserting how fast the machine was. Nothing here is about time
+ * passing — only about the ten seconds `FREEZE_TIME` takes off.
+ */
+const FROZEN = 1_700_000_000_000;
 
 const ARTICLE: ArticleView = {
   topic: 'Chat',
@@ -85,6 +95,9 @@ describe.skipIf(url === null)('5.6 — what a client is allowed to send', () => 
       namespace: NAMESPACE,
       scheduler: createLocalScheduler,
       tokens: createLocalTokens(),
+      // 5.8 — the pipeline starts the round; the test does not settle it by hand.
+      articles: canned(ARTICLE, SOLUTION),
+      now: () => FROZEN,
       // A minute, so "what got through" is one frame rather than a race with
       // the scheduler. The interval itself is `throttle.test.ts`.
       throttleMs: { cursor: WIDE_MS, live_score: WIDE_MS },
@@ -109,8 +122,8 @@ describe.skipIf(url === null)('5.6 — what a client is allowed to send', () => 
   /**
    * Two players in a round, ada hosting, on a chosen time limit.
    *
-   * The article comes through `settle` — the door step 5.8 will use — because
-   * `generate_article` is an effect nothing answers yet.
+   * The article comes from the pipeline of step 5.8, with the model and
+   * Wikipedia mocked: picking a topic is now enough to start a round.
    */
   async function playRound(): Promise<{ ada: Opened; bob: Opened }> {
     const ada = await join('ada');
@@ -122,12 +135,6 @@ describe.skipIf(url === null)('5.6 — what a client is allowed to send', () => 
     ada.send({ type: 'submit_theme', topic: 'Chat' });
     ada.send({ type: 'force_pick' });
     await seen(ada, 'theme_selected');
-
-    await service.settle(ROOM, {
-      kind: 'article_ready',
-      article: ARTICLE,
-      solution: SOLUTION,
-    });
     await seen(ada, 'game_start');
     await seen(bob, 'game_start');
 

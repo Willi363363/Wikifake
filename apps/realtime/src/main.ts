@@ -5,11 +5,15 @@
 // also the only one that reads `process.env`, and it does it through `loadEnv`,
 // which refuses a missing variable by name at startup rather than three layers
 // later.
+import { createArticleCache } from '@wikifake/article';
 import { connectFromEnv, deleteRoom, selectRoom } from '@wikifake/db';
 import { ROOM_IDLE_LIMIT_SECONDS } from '@wikifake/domain';
 import { loadEnv } from '@wikifake/env';
 
 import { createRedisBus } from './bus.js';
+import { createRoundSource } from './generation.js';
+import { languageModel } from './model.js';
+import { networkTransport, wikiRequest } from './wikipedia.js';
 import { createOriginPolicy, parseOrigins } from './origins.js';
 import { lazyRedis } from './redis.js';
 import { createRoomStore } from './rooms/store.js';
@@ -47,6 +51,19 @@ const service = createService({
   // round in flight.
   scheduler: (onAlarm) => createQueueScheduler({ url: env.REDIS_URL, onAlarm }),
   // D5 — a dropped player keeps their seat, and only they can take it back.
+  // D3 — what answers `generate_article`, and therefore the only thing that can
+  // start a multiplayer round. The chain is `@wikifake/article`'s, the same one
+  // the solo route uses.
+  articles: createRoundSource({
+    db,
+    cache: createArticleCache({ redis: lazyRedis(env.REDIS_URL), now: () => Date.now() }),
+    model: languageModel(env),
+    wiki: wikiRequest(env.BETTER_AUTH_URL),
+    transport: networkTransport,
+    // The draw the current `random.sample` makes: the same article played twice
+    // does not hide its fakes in the same places.
+    seed: () => Math.floor(Math.random() * 0xffff_ffff),
+  }),
   tokens: createTokenStore({
     redis: lazyRedis(env.REDIS_URL),
     namespace: 'wikifake:room',

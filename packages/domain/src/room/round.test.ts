@@ -28,7 +28,15 @@ const SOLUTION: FalsifiedPosition[] = [
   },
 ];
 
-const READY: RoomEvent = { kind: 'article_ready', article: ARTICLE, solution: SOLUTION };
+/** The round begins at the epoch, so a message stamped `at` is `at` seconds in. */
+const STARTED_AT = 0;
+
+const READY: RoomEvent = {
+  kind: 'article_ready',
+  article: ARTICLE,
+  solution: SOLUTION,
+  startedAt: STARTED_AT,
+};
 
 /** A room in a round, with the given players, started through the topic vote. */
 function inRound(...names: readonly string[]): RoomState {

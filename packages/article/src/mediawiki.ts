@@ -13,6 +13,16 @@
 import { failed, ok, type Result } from './result.js';
 
 /** Wikimedia's policy asks for an identifiable agent; an empty one gets refused. */
+/**
+ * The Wikipedia this game reads. French, and it is not a setting.
+ *
+ * The topics players type, the article they read and the falsifications the
+ * model writes are all French. A deployment reading another Wikipedia would be a
+ * different game, not a configured one — and two deployments each naming their
+ * own language is D13 with better manners.
+ */
+export const WIKI_LANGUAGE = 'fr';
+
 export interface WikiRequest {
   /** A wiki language code: `fr`, `en`, `pt-br`. */
   readonly language: string;

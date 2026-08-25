@@ -11,7 +11,7 @@
 import { count, eq, gt } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
-import { room } from '../schema/game.js';
+import { game, room } from '../schema/game.js';
 
 type Db = Database['db'];
 
@@ -56,6 +56,30 @@ export function selectRoom(db: Db, code: string) {
     })
     .from(room)
     .where(eq(room.code, code));
+}
+
+/**
+ * The rounds played in one room, oldest first.
+ *
+ * Multiplayer rounds are rows like any other since step 5.8: without them C4.6
+ * would count a room's model calls in the numerator of `perGeneratedGame` and
+ * its rounds nowhere in the denominator. This is how anything outside this
+ * package can see that they landed, without reaching for the ORM — which phase
+ * 2's exit gate forbids.
+ */
+export function selectGamesInRoom(db: Db, roomCode: string) {
+  return db
+    .select({
+      id: game.id,
+      mode: game.mode,
+      topic: game.topic,
+      timeLimit: game.timeLimit,
+      totalFakes: game.totalFakes,
+      fromCache: game.fromCache,
+    })
+    .from(game)
+    .where(eq(game.roomCode, roomCode))
+    .orderBy(game.startedAt);
 }
 
 /**

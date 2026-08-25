@@ -85,6 +85,17 @@ export interface ScoredSubmission {
 export interface RoundState {
   readonly article: ArticleView;
   readonly solution: readonly FalsifiedPosition[];
+  /**
+   * When the round began, in milliseconds since the epoch.
+   *
+   * A number rather than a clock: the rules never read one, and this survives
+   * `JSON.stringify` into Redis, where every instance reads the same instant.
+   * It is what makes "how long has this player been playing" answerable at all —
+   * without it the reducer decides every message as though the round had just
+   * begun, which blocks `HINT_LOCK` for ever and pays a full time bonus to
+   * everybody.
+   */
+  readonly startedAt: number;
 }
 
 /** The options the host controls. A guest can change neither (C1.7). */

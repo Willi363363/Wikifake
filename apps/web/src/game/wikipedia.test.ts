@@ -4,7 +4,9 @@
 import { describe, expect, it } from 'vitest';
 
 import { VERSION } from '../deployment.js';
-import { networkTransport, wikiRequest, WIKI_LANGUAGE } from './wikipedia.js';
+import { WIKI_LANGUAGE } from '@wikifake/article';
+
+import { networkTransport, wikiRequest } from './wikipedia.js';
 
 describe('the Wikipedia this deployment reads', () => {
   it('is the French one', () => {

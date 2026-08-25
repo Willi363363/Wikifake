@@ -29,7 +29,15 @@ const SOLUTION: FalsifiedPosition[] = [
   },
 ];
 
-const READY: RoomEvent = { kind: 'article_ready', article: ARTICLE, solution: SOLUTION };
+/** The round begins at the epoch, so a message stamped `at` is `at` seconds in. */
+const STARTED_AT = 0;
+
+const READY: RoomEvent = {
+  kind: 'article_ready',
+  article: ARTICLE,
+  solution: SOLUTION,
+  startedAt: STARTED_AT,
+};
 
 /** A room in a round, started through the topic vote. */
 function inRound(...names: readonly string[]): RoomState {
@@ -242,5 +250,78 @@ describe('every message a round emits is a real protocol message', () => {
       }
     }
     expect(state.phase).toBe('lobby');
+  });
+});
+
+// The round clock. Until step 5.8 nothing stamped a message, so `elapsed` was
+// always zero: a `HINT_LOCK` blocked its target for ever, and every player was
+// paid a time bonus as though they had answered instantly.
+describe('the clock the round is decided against', () => {
+  it('lets a jammed player buy again once the block has run out', () => {
+    const jammed = (() => {
+      const state = inRound('ada', 'bob');
+      return {
+        ...state,
+        players: state.players.map((player) =>
+          player.name === 'ada'
+            ? {
+                ...player,
+                items: { ...player.items, hintsBlockedUntil: HINT_BLOCK_SECONDS },
+              }
+            : player,
+        ),
+      };
+    })();
+
+    const early = reduceRoom(
+      jammed,
+      says('ada', { type: 'unlock_hint', falseInfoNumber: 1, level: 1 }, 0, 1000),
+    );
+    expect(refusal(early.effects)).toBe('hints_blocked');
+
+    // The same message, the same state, twenty seconds later.
+    const later = reduceRoom(
+      jammed,
+      says(
+        'ada',
+        { type: 'unlock_hint', falseInfoNumber: 1, level: 1 },
+        0,
+        HINT_BLOCK_SECONDS * 1000,
+      ),
+    );
+    expect(refusal(later.effects)).toBeNull();
+    expect(sent(later.effects, 'hint_unlocked')).toHaveLength(1);
+  });
+
+  it('pays the time bonus for the time that actually passed', () => {
+    const state = inRound('ada');
+    const limit = state.options.timeLimit;
+
+    const instant = reduceRoom(state, says('ada', { type: 'submit_answer', marked: [] }));
+    const hundred = reduceRoom(
+      state,
+      says('ada', { type: 'submit_answer', marked: [] }, 0, 100_000),
+    );
+
+    const bonusOf = (outcome: { state: RoomState }): number | undefined =>
+      outcome.state.players.find((player) => player.name === 'ada')?.submission?.breakdown
+        .timeBonus;
+
+    // C2.1 — half a point per second left, truncated.
+    expect(bonusOf(instant)).toBe(Math.floor(limit * 0.5));
+    expect(bonusOf(hundred)).toBe(Math.floor((limit - 100) * 0.5));
+  });
+
+  // A message stamped before the round began is clock skew between instances,
+  // not a player who has been playing for minus three seconds.
+  it('never runs backwards', () => {
+    const state = inRound('ada');
+    const outcome = reduceRoom(
+      state,
+      says('ada', { type: 'submit_answer', marked: [] }, 0, -5000),
+    );
+
+    const bonus = outcome.state.players[0]?.submission?.breakdown.timeBonus;
+    expect(bonus).toBe(Math.floor(state.options.timeLimit * 0.5));
   });
 });

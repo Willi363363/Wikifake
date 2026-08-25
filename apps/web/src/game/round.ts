@@ -1,22 +1,24 @@
 // Starting a solo round: cache, Wikipedia, model, database.
 //
-// Everything here takes its collaborators as parameters. Not for elegance: it is
-// what lets the leak assertion of C1.1 run against the real assembly with a
-// mocked model and a frozen page, rather than against a hand-built payload that
-// proves the test author knows the contract.
+// The chain that produces the article is `sourceArticle`, in `@wikifake/article`
+// — multiplayer needs exactly the same one (step 5.8), and two copies of "how a
+// round gets its article" would be two answers to C3.7 and C4.5 with nothing
+// making them agree. What is left here is what is solo's: a game row, the
+// participant, and the response a player may see.
+//
+// Everything takes its collaborators as parameters. Not for elegance: it is what
+// lets the leak assertion of C1.1 run against the real assembly with a mocked
+// model and a frozen page, rather than against a hand-built payload that proves
+// the test author knows the contract.
 //
 // The one rule that is not negotiable in this file: **the solution is never put
 // into the response object at all**. `startGameResponse` would strip it, and that
 // encoder is the guarantee — but a payload that never held it cannot be leaked
 // by a future schema change either.
 import {
-  fetchRenderedPage,
-  generateArticle,
-  searchTitles,
-  type ArticleCache,
-  type CachedArticle,
-  type WikiRequest,
-  type WikiTransport,
+  sourceArticle,
+  type SourceDependencies,
+  type SourceFailure,
 } from '@wikifake/article';
 import {
   createGame,
@@ -24,24 +26,29 @@ import {
   type Database,
   type NewParticipant,
 } from '@wikifake/db';
-import type { ErrorCode, LlmCallRecord, gameApi } from '@wikifake/protocol';
-import type { LanguageModel } from 'ai';
+import type { ErrorCode, gameApi } from '@wikifake/protocol';
 
 type Db = Database['db'];
 
-export interface RoundDependencies {
+export interface RoundDependencies extends SourceDependencies {
   readonly db: Db;
-  /** Null when this deployment runs without a cache: every round is generated. */
-  readonly cache: ArticleCache | null;
-  readonly model: LanguageModel;
-  readonly wiki: WikiRequest;
-  readonly transport: WikiTransport;
-  /**
-   * Which paragraphs get falsified. A parameter, so a test pins the draw — the
-   * same reason `generateArticle` takes it rather than calling `Math.random`.
-   */
-  readonly seed: () => number;
 }
+
+/** What a failure is called to a player. The chain itself names no code. */
+const REFUSAL: Readonly<Record<SourceFailure, { code: ErrorCode; message: string }>> = {
+  topic_not_found: {
+    code: 'topic_not_found',
+    message: 'No Wikipedia article matches that topic.',
+  },
+  wikipedia_unreachable: {
+    code: 'generation_failed',
+    message: 'Wikipedia could not be read right now.',
+  },
+  falsification_failed: {
+    code: 'generation_failed',
+    message: 'That article could not be falsified.',
+  },
+};
 
 export interface RoundRequest {
   /** What the player typed. Also the cache category. */
@@ -61,114 +68,6 @@ export type RoundOutcome =
   | { readonly ok: true; readonly value: gameApi.StartGameResponse }
   | { readonly ok: false; readonly code: ErrorCode; readonly message: string };
 
-/** A round's article, however it was obtained, and whether it cost anything. */
-interface Sourced {
-  readonly entry: CachedArticle;
-  /** C4.6 — reused rather than generated. The denominator of `cacheHitRate`. */
-  readonly fromCache: boolean;
-  readonly calls: readonly LlmCallRecord[];
-}
-
-type SourceOutcome =
-  | { readonly ok: true; readonly value: Sourced }
-  | {
-      readonly ok: false;
-      readonly code: ErrorCode;
-      readonly message: string;
-      readonly calls: readonly LlmCallRecord[];
-    };
-
-/**
- * The article for this round: from the cache when there is one, generated
- * otherwise.
- *
- * A cache that is down is treated exactly like a miss — the round is generated —
- * and the difference is recorded rather than smoothed over, because a hit rate
- * that silently counts outages measures Redis uptime instead of the cache.
- */
-async function sourceArticle(
-  dependencies: RoundDependencies,
-  topic: string,
-): Promise<SourceOutcome> {
-  if (dependencies.cache !== null) {
-    const lookup = await dependencies.cache.get(topic);
-    if (lookup.kind === 'hit') {
-      return { ok: true, value: { entry: lookup.entry, fromCache: true, calls: [] } };
-    }
-  }
-
-  const titles = await searchTitles(topic, dependencies.wiki, dependencies.transport);
-  if (!titles.ok) {
-    return {
-      ok: false,
-      code: 'topic_not_found',
-      message: `No Wikipedia article matches "${topic}".`,
-      calls: [],
-    };
-  }
-
-  // The first hit, and no auto-suggestion beyond it. `fetchRenderedPage` resolves
-  // the exact title: the Python asked for `results[0]` without disabling the
-  // library's guessing, so a lookup could land on an article nobody chose and the
-  // player be graded on it.
-  const [best] = titles.value;
-  const page = await fetchRenderedPage(
-    best ?? topic,
-    dependencies.wiki,
-    dependencies.transport,
-  );
-  if (!page.ok) {
-    return page.reason === 'not_found'
-      ? {
-          ok: false,
-          code: 'topic_not_found',
-          message: `No Wikipedia article matches "${topic}".`,
-          calls: [],
-        }
-      : {
-          ok: false,
-          code: 'generation_failed',
-          message: 'Wikipedia could not be read right now.',
-          calls: [],
-        };
-  }
-
-  const report = await generateArticle({
-    html: page.value.html,
-    // The resolved page title, not what the player typed: it is what the article
-    // is actually about, and what the debrief will name.
-    topic: page.value.title,
-    sourceUrl: page.value.url,
-    model: dependencies.model,
-    seed: dependencies.seed(),
-  });
-
-  if (!report.result.ok) {
-    // C4.5 — the calls come back on the failing path too. The generation bought
-    // nothing, but it was billed, and dropping the record is what makes the cost
-    // of failure invisible today.
-    return {
-      ok: false,
-      code: 'generation_failed',
-      message: `The article about "${topic}" could not be falsified.`,
-      calls: report.calls,
-    };
-  }
-
-  const generated = report.result.value;
-  const entry: CachedArticle = {
-    article: generated.article,
-    solution: [...generated.solution],
-    html: generated.html,
-  };
-
-  // C3.7 — only a successful generation is cached, and a cache that refuses the
-  // write costs the round nothing: `put` reports, it does not throw.
-  if (dependencies.cache !== null) await dependencies.cache.put(topic, entry);
-
-  return { ok: true, value: { entry, fromCache: false, calls: report.calls } };
-}
-
 /**
  * Starts a solo round and returns what the player may see.
  *
@@ -185,8 +84,11 @@ export async function startRound(
   const sourced = await sourceArticle(dependencies, request.topic);
 
   if (!sourced.ok) {
+    // C4.5 — the calls are written even though nothing came of them: a failed
+    // generation is billed, and dropping the record is what makes the cost of
+    // failure invisible today.
     await recordLlmCalls(dependencies.db, sourced.calls, null);
-    return { ok: false, code: sourced.code, message: sourced.message };
+    return { ok: false, ...REFUSAL[sourced.reason] };
   }
 
   const { entry, fromCache, calls } = sourced.value;

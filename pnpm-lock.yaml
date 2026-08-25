@@ -32,9 +32,15 @@ importers:
 
   apps/realtime:
     dependencies:
+      '@ai-sdk/google':
+        specifier: ^4.0.51
+        version: 4.0.51(zod@4.4.3)
       '@hono/node-server':
         specifier: 2.1.1
         version: 2.1.1(hono@4.13.3)
+      '@wikifake/article':
+        specifier: workspace:*
+        version: link:../../packages/article
       '@wikifake/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -47,6 +53,9 @@ importers:
       '@wikifake/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
+      ai:
+        specifier: ^7.0.77
+        version: 7.0.77(zod@4.4.3)
       bullmq:
         specifier: 6.1.2
         version: 6.1.2(ioredis@5.11.1(supports-color@7.2.0))(redis@6.2.1)

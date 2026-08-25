@@ -49,13 +49,24 @@ describe.skipIf(url === null)('5.2 — the room lives in Redis', () => {
       const events: RoomEvent[] = [
         join('ada'),
         join('bob'),
-        { kind: 'message', from: 'ada', message: { type: 'set_ready', ready: true } },
+        {
+          kind: 'message',
+          from: 'ada',
+          message: { type: 'set_ready', ready: true },
+          at: 0,
+        },
         {
           kind: 'message',
           from: 'ada',
           message: { type: 'set_ready', ready: true, timeLimit: 120, withItems: false },
+          at: 0,
         },
-        { kind: 'message', from: 'bob', message: { type: 'set_ready', ready: true } },
+        {
+          kind: 'message',
+          from: 'bob',
+          message: { type: 'set_ready', ready: true },
+          at: 0,
+        },
       ];
 
       // The same events against the same rules, decided entirely in memory. If
@@ -150,6 +161,7 @@ describe.skipIf(url === null)('5.2 — the room lives in Redis', () => {
           kind: 'message',
           from: 'ada',
           message: { type: 'set_ready', ready: true },
+          at: 0,
         }),
       ]);
 
