@@ -8,6 +8,7 @@ import { sql } from 'drizzle-orm';
 import { fileURLToPath } from 'node:url';
 
 import { connect, type Database } from '../client.js';
+import { room } from '../schema/game.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../migrations', import.meta.url));
 
@@ -97,4 +98,19 @@ export async function openTestDatabase(url: string): Promise<TestDatabase> {
 
   await truncate();
   return { db, truncate, close };
+}
+
+/**
+ * Makes every room look as though nobody has touched it since `at`.
+ *
+ * A fixture, and it lives here rather than beside the test that needs it: the
+ * application declares no ORM — phase 2's exit gate, no free-form SQL outside
+ * this package — and "a room that has been idle for an hour" is not something a
+ * caller can produce by waiting.
+ *
+ * No production path writes `updated_at` by hand; phase 5 refreshes it as rooms
+ * are used.
+ */
+export async function backdateRooms(db: Database['db'], at: Date): Promise<void> {
+  await db.update(room).set({ updatedAt: at });
 }

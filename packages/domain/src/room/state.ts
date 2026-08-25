@@ -114,6 +114,32 @@ export interface RoomState {
 /** Default round length, from `GAME_DURATION`. */
 export const DEFAULT_TIME_LIMIT = 300;
 
+/**
+ * C5.6 — how many rooms may be open at once.
+ *
+ * Carried over from `MAX_ROOMS`. There it guards the memory of one process; here
+ * the rooms are rows, so what it guards is the game against somebody opening
+ * ten thousand of them.
+ */
+export const MAX_OPEN_ROOMS = 200;
+
+/**
+ * How long a room with no activity still holds its slot, in seconds.
+ *
+ * D4 — "no idle room has a TTL" is a defect the rewrite has to close, and phase
+ * 5 closes it properly: a delayed job that reaps the room. This constant is the
+ * first half of that fix, and it is named here so both halves use one number.
+ *
+ * Phase 4 only **reads** it: a room nobody has touched for an hour no longer
+ * counts against the cap. Without that, the rooms being rows instead of
+ * dictionary entries would turn a memory guard into a permanent one — the
+ * two-hundredth room ever created would be the last.
+ *
+ * An hour, from `SESSION_TTL_SECONDS` in `solo.py`: the same order of magnitude
+ * as the other thing the current code lets expire.
+ */
+export const ROOM_IDLE_LIMIT_SECONDS = 3600;
+
 export function emptyRoom(): RoomState {
   return {
     phase: 'lobby',

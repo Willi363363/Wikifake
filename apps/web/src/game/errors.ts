@@ -30,6 +30,8 @@ const STATUS: Readonly<Partial<Record<ErrorCode, number>>> = {
   hint_not_found: 404,
   /** C1.5 — `HINT_LOCK` is in effect. Refused, and it is the caller's state. */
   hints_blocked: 403,
+  /** C5.6 — too many rooms are open. Temporary, hence 503 and not 429. */
+  room_capacity_reached: 503,
 };
 
 export function statusFor(code: ErrorCode): number {
