@@ -18,14 +18,16 @@ import { Hono } from 'hono';
 import { WebSocketServer, type WebSocket } from 'ws';
 import type { IncomingMessage } from 'node:http';
 
-import type { Bus, Unsubscribe } from './bus.js';
+import type { Bus } from './bus.js';
 import { createRegistry, type Connection, type Registry } from './connections.js';
-import { channelFor, deliverLocally, publish, readEnvelope } from './effects.js';
+import { publish } from './effects.js';
 import { readFrame, CLOSE_MESSAGE_TOO_BIG, CLOSE_POLICY_VIOLATION } from './frames.js';
 import { readHandshake } from './handshake.js';
 import type { OriginPolicy } from './origins.js';
 import type { RoomStore } from './rooms/store.js';
 import type { TokenStore } from './rooms/tokens.js';
+import { createSubscriptions } from './subscriptions.js';
+import { createThrottle, DEFAULT_INTERVALS, type Intervals } from './throttle.js';
 import { armFor } from './timers/arming.js';
 import type { Alarm, OnAlarm, Scheduler } from './timers/scheduler.js';
 import { drawWave, randomPick } from './timers/waves.js';
@@ -71,6 +73,14 @@ export interface ServiceOptions {
   readonly pick?: (upperBound: number) => number;
   /** D5 — who is entitled to reclaim a nickname whose socket dropped. */
   readonly tokens: TokenStore;
+  /**
+   * C5.5, D6 — how often one socket may send `cursor` and `live_score`.
+   *
+   * Widened by the tests, where the point is that a burst is cut rather than
+   * how fast the limit is: at the production interval a flood and its throttled
+   * remainder differ by a handful of frames and a slow machine.
+   */
+  readonly throttleMs?: Partial<Intervals>;
   /**
    * D5 — how long a dropped player keeps their seat, in seconds.
    *
@@ -130,6 +140,7 @@ export function createService(options: ServiceOptions): Service {
   const idleSeconds = options.idleSeconds ?? ROOM_IDLE_LIMIT_SECONDS;
   const graceSeconds = options.graceSeconds ?? GRACE_SECONDS;
   const pick = options.pick ?? randomPick;
+  const intervals: Intervals = { ...DEFAULT_INTERVALS, ...options.throttleMs };
 
   const publisher = {
     bus: options.bus,
@@ -206,15 +217,12 @@ export function createService(options: ServiceOptions): Service {
 
   const scheduler = options.scheduler(ring);
 
-  /**
-   * One subscription per room, however many sockets this instance holds for it.
-   *
-   * Counted rather than reference-free: subscribing twice would deliver twice,
-   * and unsubscribing when the first of two players leaves would make the second
-   * deaf. The count is of local sockets, so it says nothing about the room —
-   * another instance may still be serving it.
-   */
-  const listening = new Map<string, { readonly stop: Unsubscribe; holders: number }>();
+  const subscriptions = createSubscriptions({
+    bus: options.bus,
+    namespace,
+    connections,
+    ...(options.budgetBytes === undefined ? {} : { budgetBytes: options.budgetBytes }),
+  });
 
   /**
    * Work started and not yet finished.
@@ -230,54 +238,6 @@ export function createService(options: ServiceOptions): Service {
     inFlight.add(work);
     void work.catch(() => undefined).finally(() => inFlight.delete(work));
     return work;
-  }
-
-  async function listen(roomCode: string): Promise<void> {
-    const held = listening.get(roomCode);
-    if (held !== undefined) {
-      held.holders += 1;
-      return;
-    }
-
-    // Claimed before the await, so two sockets arriving together do not both
-    // open a subscription.
-    const placeholder = { stop: async (): Promise<void> => undefined, holders: 1 };
-    listening.set(roomCode, placeholder);
-
-    const stop = await options.bus.subscribe(
-      channelFor(namespace, roomCode),
-      (payload) => {
-        const envelope = readEnvelope(payload);
-        // Only this service publishes here, so an envelope that does not parse
-        // is a bug rather than an attack — and delivering `undefined` to every
-        // socket in the room would be a worse way to find out.
-        if (envelope !== null) {
-          deliverLocally(
-            {
-              connections,
-              ...(options.budgetBytes === undefined
-                ? {}
-                : { budgetBytes: options.budgetBytes }),
-            },
-            roomCode,
-            envelope,
-          );
-        }
-      },
-    );
-
-    listening.set(roomCode, { stop, holders: placeholder.holders });
-  }
-
-  async function stopListening(roomCode: string): Promise<void> {
-    const held = listening.get(roomCode);
-    if (held === undefined) return;
-
-    held.holders -= 1;
-    if (held.holders > 0) return;
-
-    listening.delete(roomCode);
-    await held.stop();
   }
 
   const app = new Hono();
@@ -354,6 +314,10 @@ export function createService(options: ServiceOptions): Service {
      * suite whose first request paid a connection warm-up lost both of its
      * `set_ready` frames, and the room simply never became ready.
      */
+    // C5.5, D6 — one allowance per socket, so a flood costs its sender their own
+    // frames and nobody else's.
+    const throttle = createThrottle(intervals, Date.now);
+
     let queued: Promise<void> = Promise.resolve();
 
     const enqueue = (event: Parameters<RoomStore['apply']>[1]): Promise<void> => {
@@ -394,6 +358,11 @@ export function createService(options: ServiceOptions): Service {
           return;
 
         case 'message':
+          // C5.5, D6 — over the limit, and dropped where it stands: not
+          // settled, not answered, not passed on. `cursor` and `live_score` are
+          // the only two, and both are superseded by the next one anyway.
+          if (!throttle.admits(frame.message)) return;
+
           void enqueue({ kind: 'message', from: playerName, message: frame.message });
       }
     });
@@ -401,7 +370,7 @@ export function createService(options: ServiceOptions): Service {
     // Listening before joining: a `lobby_update` published by this very join has
     // to find a subscription already in place, or the player misses their own
     // arrival.
-    await listen(roomCode);
+    await subscriptions.listen(roomCode);
     // D5 — they are back, so the window that would have evicted them is dropped.
     // Before the join rather than after: a grace alarm ringing between the two
     // would evict the player who has just reconnected.
@@ -423,7 +392,7 @@ export function createService(options: ServiceOptions): Service {
             graceSeconds * 1000,
           ),
         )
-        .finally(() => void stopListening(roomCode));
+        .finally(() => void subscriptions.stopListening(roomCode));
     });
   }
 
@@ -466,8 +435,7 @@ export function createService(options: ServiceOptions): Service {
       for (const socket of sockets.clients) socket.terminate();
       await Promise.allSettled([...inFlight]);
 
-      for (const [, held] of listening) await held.stop();
-      listening.clear();
+      await subscriptions.closeAll();
 
       return new Promise((resolve, reject) => {
         sockets.close();

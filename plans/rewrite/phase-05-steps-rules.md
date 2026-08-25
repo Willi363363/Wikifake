@@ -44,9 +44,19 @@ This step was not in the original plan. It surfaced in 5.4, whose criterion
 needs a round to exist, and is written down rather than absorbed into whichever
 step noticed it last.
 
+It also owns the **round clock**, which nothing supplies today. The reducer
+takes `elapsedSeconds` as a parameter and the transport never stamps it, so
+every message is decided as though the round had just begun. Two rules read it
+and are wrong because of it: `HINT_LOCK` blocks its target until second 20 of a
+clock stuck at 0, so it blocks for ever; and every time bonus is computed on a
+full remaining limit. Found in 5.6, whose `FREEZE_TIME` criterion reads a bonus
+rather than a block for that reason. It belongs here because the instant a round
+starts is decided here, and nowhere else can know it.
+
 **Done when**: a topic voted for in a room produces a round over the socket,
-with the model and Wikipedia mocked; and a topic that yields no article falls
-back to the next candidate and then to the lobby (C3.7).
+with the model and Wikipedia mocked; a topic that yields no article falls
+back to the next candidate and then to the lobby (C3.7); and a message settled
+during a round carries the seconds elapsed since it started.
 
 ### 5.5 — Reconnection
 
@@ -86,6 +96,34 @@ amplification vector. `targets` of a `use_item` validated: no
 self-targeting, closed target count. `set_ready` refuses a `time_limit`
 from the host mid-round. `FREEZE_TIME` gets its server-side effect: the
 −10 s actually eat into the time bonus instead of being purely visual.
+
+Three of those four are rules, and phase 1 already wrote them:
+`validateTargets`, `setReady`'s refusal outside the lobby and
+`applyItemToTarget`'s time penalty each have their unit test in
+`@wikifake/domain`. What this step adds for them is not a second
+implementation but the proof that they are **reachable from a socket** — a
+rule nothing routes to is a rule that is not enforced, and that is exactly
+what D6 and D7 are.
+
+Only the throttle is new, and it is the only one of the four that never
+reaches the rules at all: a frame over the limit is dropped in the transport.
+
+Four decisions taken while writing it:
+
+- **A frame over the limit is dropped in silence, not refused.** An error per
+  dropped frame turns a flood of small messages into a flood of replies, which
+  is the amplification the throttle exists to prevent. The sender loses nothing
+  they can notice: the next position and the next tally supersede the ones that
+  did not make it.
+- **Dropped where it stands, rather than held back and sent late.** Coalescing
+  would need a timer per socket per type and would deliver a position the player
+  has already left. What arrives is the first frame of a burst, not the last.
+- **The cursor's interval is carried over exactly**: 40 ms, the value of
+  `CURSOR_MIN_INTERVAL`, so a limit is not quietly loosened during a rewrite.
+  `live_score` gets 200 ms — a human does not tick five paragraphs a second.
+- **The allowance is per socket and per type.** Per socket, so a flood costs its
+  sender their own frames and nobody else's; per type, so a cursor flood cannot
+  silence a score.
 
 **Done when**: each point has its protocol test — a `live_score` flood is
 not rebroadcast beyond the throttle, self-targeting is refused,

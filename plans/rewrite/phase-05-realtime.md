@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — five steps done |
+| **State** | in progress — six steps done |
 | **Branch** | `feat/rewrite-phase-5` |
 | **Depends on** | phase 4 |
 | **Delivers** | `apps/realtime`: the complete multiplayer, multi-instance |
@@ -43,7 +43,7 @@ Definitions: `phase-05-steps-transport.md`.
 |---|---|---|
 | 5.4 | BullMQ timers | ✅ done |
 | 5.5 | Reconnection | ✅ done |
-| 5.6 | Hardening client messages | to do |
+| 5.6 | Hardening client messages | ✅ done |
 | 5.7 | Host authority and room end | to do |
 | 5.8 | The article pipeline | to do |
 
