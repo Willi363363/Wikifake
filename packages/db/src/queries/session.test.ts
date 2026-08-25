@@ -17,6 +17,7 @@ import { game, gamePosition, participant, user } from '../schema/index.js';
 import {
   recordHintPurchase,
   recordScan,
+  recordSubmission,
   selectFalsifiedIndices,
   selectHintFor,
   selectParticipantFor,
@@ -24,6 +25,7 @@ import {
   selectScannedParagraphs,
 } from './session.js';
 import { selectHintPurchases } from './audit.js';
+import { selectAnswers, selectGameInProgress, selectLeaderboard } from './game.js';
 
 const url = testDatabaseUrl();
 
@@ -289,6 +291,127 @@ describe.skipIf(url === null)('a round in progress', () => {
           recordScan(database.db, { gameId, casterId: adaId, paragraphIndex: 0 }),
         ),
       ).toBe(SQLSTATE.checkViolation);
+    });
+  });
+
+  describe('settling the round', () => {
+    const GRADED = {
+      score: 420,
+      truePositives: 3,
+      falsePositives: 1,
+      hintsUsed: 1,
+      hintPenalty: 50,
+      scoreStolen: 0,
+      timeBonus: 100,
+    };
+
+    it('writes the breakdown, the marks and the end of the game at once', async () => {
+      const { gameId, adaId } = await seedRound();
+      const at = new Date('2026-08-25T10:00:00.000Z');
+
+      expect(
+        await recordSubmission(database.db, {
+          gameId,
+          participantId: adaId,
+          marked: [2, 4, 6, 5],
+          at,
+          ...GRADED,
+        }),
+      ).toBe(true);
+
+      const [standing] = (await selectLeaderboard(database.db, gameId)).filter(
+        (row) => row.id === adaId,
+      );
+      expect(standing).toMatchObject(GRADED);
+
+      expect(
+        (await selectAnswers(database.db, adaId)).map((row) => row.paragraphIndex),
+      ).toEqual([2, 4, 5, 6]);
+
+      const [round] = await selectGameInProgress(database.db, gameId);
+      expect(round?.endedAt).toEqual(at);
+    });
+
+    // D11 — one row per paragraph, however many times it was sent. The unique
+    // constraint would refuse the second, and refusing it would abort the whole
+    // submission over a repeat the player is allowed to make.
+    it('writes one mark per paragraph, however often it was marked', async () => {
+      const { gameId, adaId } = await seedRound();
+
+      await recordSubmission(database.db, {
+        gameId,
+        participantId: adaId,
+        marked: [2, 2, 2, 4],
+        at: new Date(),
+        ...GRADED,
+      });
+
+      expect(
+        (await selectAnswers(database.db, adaId)).map((row) => row.paragraphIndex),
+      ).toEqual([2, 4]);
+    });
+
+    // The conditional update is the guarantee: a second submission does not
+    // regrade. Reported rather than raised, because the caller has a correct
+    // answer to give — the grading that landed.
+    it('grades once, and says so the second time', async () => {
+      const { gameId, adaId } = await seedRound();
+
+      expect(
+        await recordSubmission(database.db, {
+          gameId,
+          participantId: adaId,
+          marked: [2],
+          at: new Date(),
+          ...GRADED,
+        }),
+      ).toBe(true);
+
+      expect(
+        await recordSubmission(database.db, {
+          gameId,
+          participantId: adaId,
+          marked: [4],
+          at: new Date(),
+          ...GRADED,
+          score: 1,
+        }),
+      ).toBe(false);
+
+      const [standing] = (await selectLeaderboard(database.db, gameId)).filter(
+        (row) => row.id === adaId,
+      );
+      expect(standing?.score).toBe(GRADED.score);
+      expect(
+        (await selectAnswers(database.db, adaId)).map((row) => row.paragraphIndex),
+      ).toEqual([2]);
+    });
+
+    it('leaves one player’s submission alone when another submits', async () => {
+      const { gameId, adaId, bobParticipantId } = await seedRound();
+
+      await recordSubmission(database.db, {
+        gameId,
+        participantId: adaId,
+        marked: [2],
+        at: new Date(),
+        ...GRADED,
+      });
+      expect(
+        await recordSubmission(database.db, {
+          gameId,
+          participantId: bobParticipantId,
+          marked: [4],
+          at: new Date(),
+          ...GRADED,
+          score: 300,
+        }),
+      ).toBe(true);
+
+      const standings = await selectLeaderboard(database.db, gameId);
+      expect(
+        standings.map((row) => row.score).sort((a, b) => (a ?? 0) - (b ?? 0)),
+      ).toEqual([300, 420]);
     });
   });
 });

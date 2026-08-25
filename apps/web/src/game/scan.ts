@@ -18,8 +18,8 @@ import {
 } from '@wikifake/db';
 import { decode, gameApi, restError } from '@wikifake/protocol';
 
-import { BAD_REQUEST, statusFor } from './errors.js';
-import { openRound, type SessionContext } from './session.js';
+import { BAD_REQUEST, refuse } from './errors.js';
+import { openRound, REFUSED, type SessionContext } from './session.js';
 import { json } from '../respond.js';
 import { readJson } from './body.js';
 
@@ -47,13 +47,11 @@ export async function handleScan(
   }
 
   const access = await openRound(context, parsed.value.sessionId, request);
-  if (!access.ok) {
-    return json(
-      restError,
-      { code: access.code, message: access.message },
-      { status: statusFor(access.code) },
-    );
-  }
+  if (!access.ok) return refuse(access.code, access.message);
+  // A round that is over is a session that is over, and answers as one: nothing
+  // may be bought or revealed after the debrief.
+  if (access.round.endedAt !== null) return refuse(REFUSED.code, REFUSED.message);
+
   const { gameId, participantId } = access.round;
 
   // Indices and no prose: the scanner query cannot hand over an explanation.

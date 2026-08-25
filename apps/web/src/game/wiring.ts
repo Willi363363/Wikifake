@@ -14,6 +14,7 @@ import { networkTransport, wikiRequest } from './wikipedia.js';
 import type { RoundDependencies } from './round.js';
 import type { SessionContext } from './session.js';
 import type { StartContext } from './start.js';
+import type { SubmitContext } from './submit.js';
 
 let connection: ReturnType<typeof connectFromEnv> | undefined;
 let generation: RoundDependencies | undefined;
@@ -26,6 +27,11 @@ function db(): SessionContext['db'] {
 /** What a round in progress needs: who is asking, and where the rows are. */
 export function sessionContext(): SessionContext {
   return { auth: auth(), db: db() };
+}
+
+/** What grading a round needs on top of that: the clock, as a parameter. */
+export function submitContext(): SubmitContext {
+  return { ...sessionContext(), now: () => new Date() };
 }
 
 /** What starting a round needs on top of that: a cache, a model, Wikipedia. */

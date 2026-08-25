@@ -11,11 +11,11 @@
 // the debrief, its comment says "read once the round is over, and nowhere
 // before", and a route that contradicted it would leave the next reader with a
 // guarantee they cannot trust.
-import { and, asc, eq, isNotNull } from 'drizzle-orm';
+import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
 import { hintPurchase, itemUse } from '../schema/audit.js';
-import { game, gamePosition, participant } from '../schema/game.js';
+import { answer, game, gamePosition, participant } from '../schema/game.js';
 
 type Db = Database['db'];
 
@@ -158,4 +158,85 @@ export async function recordScan(
     .onConflictDoNothing()
     .returning({ id: itemUse.id });
   return written.length > 0;
+}
+
+/** What a submission settles, once the rules have graded it. */
+export interface GradedSubmission {
+  readonly gameId: string;
+  readonly participantId: string;
+  /** The paragraphs the player marked. Written once each, however often sent. */
+  readonly marked: readonly number[];
+  readonly score: number;
+  readonly truePositives: number;
+  readonly falsePositives: number;
+  readonly hintsUsed: number;
+  readonly hintPenalty: number;
+  readonly scoreStolen: number;
+  readonly timeBonus: number;
+  /** Injected: the rules take the clock as a parameter, and so does the record. */
+  readonly at: Date;
+}
+
+/**
+ * Settles a round: the marks, the breakdown, and the end of the game.
+ *
+ * Returns whether **this** call is the one that graded it. The update is
+ * conditional on `submitted_at` still being null, so two submissions landing at
+ * once produce one grading — and the loser is told, rather than silently
+ * overwriting a score with a second one computed a moment later against a
+ * different clock.
+ *
+ * One transaction, for the same reason `createGame` is one: a participant
+ * carrying a score whose answers did not land is a debrief that cannot say what
+ * the player marked, and `participant_score_with_submission` would let it
+ * through because the score is there.
+ *
+ * `endedAt` is set here because solo has one player: when they submit, the round
+ * is over. Multiplayer ends on the last submission or on the timer, and that
+ * decision belongs to the reducer in phase 5 — not here.
+ */
+export async function recordSubmission(
+  db: Db,
+  submission: GradedSubmission,
+): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    const graded = await tx
+      .update(participant)
+      .set({
+        submittedAt: submission.at,
+        score: submission.score,
+        truePositives: submission.truePositives,
+        falsePositives: submission.falsePositives,
+        hintsUsed: submission.hintsUsed,
+        hintPenalty: submission.hintPenalty,
+        scoreStolen: submission.scoreStolen,
+        timeBonus: submission.timeBonus,
+      })
+      .where(
+        and(
+          eq(participant.id, submission.participantId),
+          isNull(participant.submittedAt),
+        ),
+      )
+      .returning({ id: participant.id });
+
+    if (graded.length === 0) return false;
+
+    const unique = [...new Set(submission.marked)].sort((a, b) => a - b);
+    if (unique.length > 0) {
+      await tx.insert(answer).values(
+        unique.map((paragraphIndex) => ({
+          participantId: submission.participantId,
+          paragraphIndex,
+        })),
+      );
+    }
+
+    await tx
+      .update(game)
+      .set({ endedAt: submission.at })
+      .where(and(eq(game.id, submission.gameId), isNull(game.endedAt)));
+
+    return true;
+  });
 }
