@@ -6,6 +6,7 @@ import {
   grantHint,
   hintPenaltyFor,
   hintsUsedFor,
+  ledgerFrom,
   type HintLedger,
 } from './hints.js';
 import { gradeSubmission } from './scoring.js';
@@ -232,5 +233,59 @@ describe('C1.3 — a client cannot declare its own penalty', () => {
     ]);
     expect(hintsUsedFor(ledger)).toBe(2);
     expect(hintPenaltyFor(ledger)).toBe(REVEAL_COST + HINT_COST);
+  });
+});
+
+// A round in progress lives in the database from phase 4 onwards, so the ledger
+// is rebuilt from the purchase rows on every request. If that fold disagreed
+// with `grantHint` by one level, the player would be charged again for something
+// they already own — which is exactly what C1.4 forbids, arriving through the
+// back door.
+describe('rebuilding the ledger from what was billed', () => {
+  it('is empty when nothing was bought', () => {
+    expect(ledgerFrom([])).toEqual(EMPTY_LEDGER);
+  });
+
+  it('keeps the highest level, whatever order the rows arrive in', () => {
+    const ascending = ledgerFrom([
+      { falseInfoNumber: 1, level: 1 },
+      { falseInfoNumber: 1, level: 2 },
+    ]);
+    const descending = ledgerFrom([
+      { falseInfoNumber: 1, level: 2 },
+      { falseInfoNumber: 1, level: 1 },
+    ]);
+
+    expect(ascending).toEqual({ 1: 2 });
+    expect(descending).toEqual({ 1: 2 });
+  });
+
+  // C2.2 — non-cumulative. Level 1 then level 2 was billed 50 then 150, and the
+  // rebuilt ledger has to price the result at 200 rather than at 250.
+  it('prices a rebuilt ledger exactly like the one that was accumulated', () => {
+    const requests = [
+      { falseInfoNumber: 1, level: 1 as const },
+      { falseInfoNumber: 1, level: 2 as const },
+      { falseInfoNumber: 2, level: 1 as const },
+    ];
+    const accumulated = buy(requests).ledger;
+
+    // What the rows would look like: one per level actually charged.
+    const rebuilt = ledgerFrom([
+      { falseInfoNumber: 1, level: 1 },
+      { falseInfoNumber: 1, level: 2 },
+      { falseInfoNumber: 2, level: 1 },
+    ]);
+
+    expect(rebuilt).toEqual(accumulated);
+    expect(hintPenaltyFor(rebuilt)).toBe(REVEAL_COST + HINT_COST);
+    expect(hintsUsedFor(rebuilt)).toBe(2);
+  });
+
+  it('ignores a level the ledger cannot represent', () => {
+    // The column is constrained to 1 and 2, so this row cannot exist. Pricing it
+    // silently would be worse than dropping it.
+    expect(ledgerFrom([{ falseInfoNumber: 1, level: 3 }])).toEqual(EMPTY_LEDGER);
+    expect(ledgerFrom([{ falseInfoNumber: 1, level: 0 }])).toEqual(EMPTY_LEDGER);
   });
 });
