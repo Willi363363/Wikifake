@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createLocalBus } from './bus.js';
 import { createOriginPolicy } from './origins.js';
 import { createLocalScheduler } from './timers/local.js';
+import { createLocalTokens } from './rooms/tokens.js';
 import { createRoomStore, type RoomStore } from './rooms/store.js';
 import { createService, type Service, type ServiceOptions } from './server.js';
 import { open, until } from './testing/client.js';
@@ -96,6 +97,7 @@ describe('5.1 — the transport', () => {
       // crossing instances: a bus that stays in the process keeps these tests
       // independent of a server they have nothing to do with.
       bus: createLocalBus(),
+      tokens: createLocalTokens(),
       // Not about surviving a redeployment: `timers.test.ts` is.
       scheduler: createLocalScheduler,
       ...overrides,

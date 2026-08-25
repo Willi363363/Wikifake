@@ -16,6 +16,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { createLocalBus } from './bus.js';
 import { createOriginPolicy } from './origins.js';
 import { createLocalScheduler } from './timers/local.js';
+import { createLocalTokens } from './rooms/tokens.js';
 import { createRoomStore } from './rooms/store.js';
 import { createService, type Service } from './server.js';
 import { open, until, type Opened } from './testing/client.js';
@@ -67,6 +68,10 @@ describe.skipIf(url === null)('5.2 — a room over sockets', () => {
       // One instance, so the channel need not leave the process. Crossing
       // instances is `broadcast.test.ts`, over a real Redis.
       bus: createLocalBus(),
+      tokens: createLocalTokens(),
+      // D5 — a dropped socket is a departure only once the window has run.
+      // Shortened so a test can watch it happen rather than wait for it.
+      graceSeconds: 0.05,
       // Not about surviving a redeployment: `timers.test.ts` is.
       scheduler: createLocalScheduler,
       namespace: NAMESPACE,
@@ -167,7 +172,7 @@ describe.skipIf(url === null)('5.2 — a room over sockets', () => {
     bob.close();
   });
 
-  it('promotes the next player when the host leaves', async () => {
+  it('promotes the next player once the host is evicted', async () => {
     const ada = await join('ada');
     const bob = await join('bob');
     await rosterOf(bob, ['ada', 'bob']);
@@ -179,7 +184,7 @@ describe.skipIf(url === null)('5.2 — a room over sockets', () => {
     bob.close();
   });
 
-  it('forgets the room when the last player leaves', async () => {
+  it('forgets the room once its last player is evicted', async () => {
     const ada = await join('ada');
     await rosterOf(ada, ['ada']);
 

@@ -35,6 +35,15 @@ import {
 const lobbyPlayer = z.object({
   name: playerName,
   colour: playerColour,
+  /**
+   * D5 — whether their socket is up.
+   *
+   * The current server never sends this, because it has nothing to send: a
+   * disconnection deletes the player, so "away for a moment" and "gone" look
+   * identical to everybody else in the room. A player waiting to see whether a
+   * rival is coming back has no way to tell.
+   */
+  connected: z.boolean(),
   ready: z.boolean(),
   answered: z.boolean(),
   /** C1.7 — decided server-side. The client used to infer it, so anyone could start. */

@@ -67,7 +67,14 @@ const VALID: Readonly<Record<string, unknown>> = {
   lobby_update: {
     type: 'lobby_update',
     players: [
-      { name: 'ada', colour: '#e63946', ready: true, answered: false, isHost: true },
+      {
+        name: 'ada',
+        colour: '#e63946',
+        connected: true,
+        ready: true,
+        answered: false,
+        isHost: true,
+      },
     ],
   },
   theme_vote_start: { type: 'theme_vote_start' },

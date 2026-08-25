@@ -14,8 +14,23 @@ import type {
 export type RoomEvent =
   /** A player's socket opened. Transport has already validated the nickname. */
   | { readonly kind: 'join'; readonly player: string }
-  /** A player's socket closed. */
+  /**
+   * D5 — a player's socket closed.
+   *
+   * Not a departure. The player stays in the room, marked disconnected, keeping
+   * their score, their items and the hints they paid for; `evict` is what
+   * removes them once the grace window has run out. The current server deletes
+   * them here and loses all three, and frees their nickname for a stranger.
+   */
   | { readonly kind: 'leave'; readonly player: string }
+  /**
+   * The grace window ran out, or the player asked to go.
+   *
+   * The only thing that removes a player from a room. Kept apart from `leave`
+   * because a dropped socket and a departure look identical from the outside and
+   * are not the same event — telling them apart is the whole of D5.
+   */
+  | { readonly kind: 'evict'; readonly player: string }
   /**
    * A validated message from a player.
    *

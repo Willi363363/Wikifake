@@ -46,6 +46,16 @@ export type RoomPhase = 'lobby' | 'voting' | 'generating' | 'round';
 export interface PlayerState {
   readonly name: string;
   readonly colour: string;
+  /**
+   * D5 — whether their socket is up.
+   *
+   * The current server never sets this to false: a disconnection deletes the
+   * player outright, so their score, their items and the hints they paid for go
+   * with them, and their nickname is immediately claimable by a stranger. Here a
+   * dropped socket leaves the player in the room, unreachable, until the grace
+   * window of step 5.5 evicts them.
+   */
+  readonly connected: boolean;
   readonly ready: boolean;
   /** Whether they have submitted this round. Driven by step 1.9. */
   readonly answered: boolean;
@@ -140,6 +150,17 @@ export const MAX_OPEN_ROOMS = 200;
  */
 export const ROOM_IDLE_LIMIT_SECONDS = 3600;
 
+/**
+ * D5 — how long a player whose socket dropped keeps their seat, in seconds.
+ *
+ * The current server has no such window, because it has no such state: a
+ * disconnection deletes the player. Thirty seconds is long enough for a lift, a
+ * tunnel or a laptop lid, and short enough that a room is not held open by
+ * somebody who closed the tab — and it is well inside the shortest round the
+ * contract allows, so a reconnection lands in the round it left.
+ */
+export const GRACE_SECONDS = 30;
+
 export function emptyRoom(): RoomState {
   return {
     phase: 'lobby',
@@ -194,6 +215,7 @@ export function newPlayer(name: string, colour: string): PlayerState {
   return {
     name,
     colour,
+    connected: true,
     ready: false,
     answered: false,
     hints: EMPTY_LEDGER,
@@ -218,6 +240,10 @@ export function forNewRound(player: PlayerState): PlayerState {
   return {
     name: player.name,
     colour: player.colour,
+    // Not reset: whether a socket is up is not a property of the round. A player
+    // whose connection dropped in the debrief is still disconnected in the next
+    // lobby, and their grace window is still running.
+    connected: player.connected,
     ready: false,
     answered: false,
     hints: EMPTY_LEDGER,

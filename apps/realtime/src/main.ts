@@ -6,12 +6,14 @@
 // which refuses a missing variable by name at startup rather than three layers
 // later.
 import { connectFromEnv, selectRoom } from '@wikifake/db';
+import { ROOM_IDLE_LIMIT_SECONDS } from '@wikifake/domain';
 import { loadEnv } from '@wikifake/env';
 
 import { createRedisBus } from './bus.js';
 import { createOriginPolicy, parseOrigins } from './origins.js';
 import { lazyRedis } from './redis.js';
 import { createRoomStore } from './rooms/store.js';
+import { createTokenStore } from './rooms/tokens.js';
 import { createQueueScheduler } from './timers/queue.js';
 import { createService } from './server.js';
 
@@ -39,6 +41,12 @@ const service = createService({
   // a timeout dies with its process, and a redeployment would forget every
   // round in flight.
   scheduler: (onAlarm) => createQueueScheduler({ url: env.REDIS_URL, onAlarm }),
+  // D5 — a dropped player keeps their seat, and only they can take it back.
+  tokens: createTokenStore({
+    redis: lazyRedis(env.REDIS_URL),
+    namespace: 'wikifake:room',
+    idleSeconds: ROOM_IDLE_LIMIT_SECONDS,
+  }),
 });
 
 const port = Number(process.env['PORT'] ?? PORT);

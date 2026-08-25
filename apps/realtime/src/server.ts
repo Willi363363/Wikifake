@@ -9,7 +9,11 @@
 // remembering things between frames is the drift this phase is written to avoid.
 import { serve, type ServerType } from '@hono/node-server';
 import { healthApi, type ErrorCode } from '@wikifake/protocol';
-import { ROOM_IDLE_LIMIT_SECONDS, type RoomEffect } from '@wikifake/domain';
+import {
+  GRACE_SECONDS,
+  ROOM_IDLE_LIMIT_SECONDS,
+  type RoomEffect,
+} from '@wikifake/domain';
 import { Hono } from 'hono';
 import { WebSocketServer, type WebSocket } from 'ws';
 import type { IncomingMessage } from 'node:http';
@@ -21,6 +25,7 @@ import { readFrame, CLOSE_MESSAGE_TOO_BIG, CLOSE_POLICY_VIOLATION } from './fram
 import { readHandshake } from './handshake.js';
 import type { OriginPolicy } from './origins.js';
 import type { RoomStore } from './rooms/store.js';
+import type { TokenStore } from './rooms/tokens.js';
 import { armFor } from './timers/arming.js';
 import type { Alarm, OnAlarm, Scheduler } from './timers/scheduler.js';
 import { drawWave, randomPick } from './timers/waves.js';
@@ -64,6 +69,15 @@ export interface ServiceOptions {
   readonly idleSeconds?: number;
   /** Which item a wave draws. Pinned by the tests; random in production. */
   readonly pick?: (upperBound: number) => number;
+  /** D5 — who is entitled to reclaim a nickname whose socket dropped. */
+  readonly tokens: TokenStore;
+  /**
+   * D5 — how long a dropped player keeps their seat, in seconds.
+   *
+   * Long enough for a lift, a tunnel or a laptop lid; short enough that a room
+   * is not held by somebody who has closed the tab. Shortened by the tests.
+   */
+  readonly graceSeconds?: number;
   /**
    * Effects this service cannot carry yet — `generate_article` and the timers.
    *
@@ -114,6 +128,7 @@ export function createService(options: ServiceOptions): Service {
   const connections = createRegistry();
   const namespace = options.namespace ?? 'wikifake:room';
   const idleSeconds = options.idleSeconds ?? ROOM_IDLE_LIMIT_SECONDS;
+  const graceSeconds = options.graceSeconds ?? GRACE_SECONDS;
   const pick = options.pick ?? randomPick;
 
   const publisher = {
@@ -146,9 +161,24 @@ export function createService(options: ServiceOptions): Service {
    * with its key, and what is left to do is stop the other alarms ringing
    * against a room somebody may rebuild under the same code.
    */
-  const ring: OnAlarm = async (alarm: Alarm) => {
+  const ring: OnAlarm = (alarm: Alarm) => track(rang(alarm));
+
+  async function rang(alarm: Alarm): Promise<void> {
     if (alarm.kind === 'room_idle') {
       await scheduler.cancel(alarm.roomCode, 'round_end');
+      return;
+    }
+
+    // D5 — the grace window ran out. Now, and only now, is the player gone: the
+    // round may end on it, the host may pass, and the room may close.
+    if (alarm.kind === 'grace') {
+      const player = alarm.player;
+      if (player === undefined) return;
+
+      await settle(alarm.roomCode, { kind: 'evict', player });
+      // Their claim on the nickname goes with them. Left behind, it would keep
+      // the slot locked for a player who is not coming back.
+      await options.tokens.forget(alarm.roomCode, player);
       return;
     }
 
@@ -172,7 +202,7 @@ export function createService(options: ServiceOptions): Service {
         pick,
       ),
     });
-  };
+  }
 
   const scheduler = options.scheduler(ring);
 
@@ -185,6 +215,22 @@ export function createService(options: ServiceOptions): Service {
    * another instance may still be serving it.
    */
   const listening = new Map<string, { readonly stop: Unsubscribe; holders: number }>();
+
+  /**
+   * Work started and not yet finished.
+   *
+   * A departure is settled without anybody awaiting it — nothing should wait on
+   * a player who has gone — which is right until the service is shutting down.
+   * Then it is a write racing a closing connection, and it surfaces as an
+   * unhandled rejection somewhere unrelated. `close` waits for these.
+   */
+  const inFlight = new Set<Promise<unknown>>();
+
+  function track<T>(work: Promise<T>): Promise<T> {
+    inFlight.add(work);
+    void work.catch(() => undefined).finally(() => inFlight.delete(work));
+    return work;
+  }
 
   async function listen(roomCode: string): Promise<void> {
     const held = listening.get(roomCode);
@@ -256,7 +302,7 @@ export function createService(options: ServiceOptions): Service {
       refuse(socket, handshake.code, handshake.message);
       return;
     }
-    const { roomCode, playerName } = handshake.credentials;
+    const { roomCode, playerName, token } = handshake.credentials;
 
     if (!(await options.roomExists(roomCode))) {
       refuse(socket, 'room_not_found', 'That room does not exist.');
@@ -266,6 +312,14 @@ export function createService(options: ServiceOptions): Service {
     // C5.2 — a connected homonym is refused, and the player already in place is
     // not touched: no state of theirs is read, written or replaced above.
     if (connections.holds(roomCode, playerName)) {
+      refuse(socket, 'name_taken', `The nickname ${playerName} is already in use.`);
+      return;
+    }
+
+    // D5 — and a homonym arriving while the rightful player is reconnecting is
+    // refused too, on a claim they cannot satisfy. Without this, keeping a
+    // dropped player's score and items would be a way to steal both.
+    if (!(await options.tokens.claim(roomCode, playerName, token))) {
       refuse(socket, 'name_taken', `The nickname ${playerName} is already in use.`);
       return;
     }
@@ -303,13 +357,15 @@ export function createService(options: ServiceOptions): Service {
     let queued: Promise<void> = Promise.resolve();
 
     const enqueue = (event: Parameters<RoomStore['apply']>[1]): Promise<void> => {
-      queued = queued.then(async () => {
-        try {
-          await settle(roomCode, event);
-        } catch {
-          apologise(connection, 'room_not_found');
-        }
-      });
+      queued = track(
+        queued.then(async () => {
+          try {
+            await settle(roomCode, event);
+          } catch {
+            apologise(connection, 'room_not_found');
+          }
+        }),
+      );
       return queued;
     };
 
@@ -346,6 +402,10 @@ export function createService(options: ServiceOptions): Service {
     // to find a subscription already in place, or the player misses their own
     // arrival.
     await listen(roomCode);
+    // D5 — they are back, so the window that would have evicted them is dropped.
+    // Before the join rather than after: a grace alarm ringing between the two
+    // would evict the player who has just reconnected.
+    await scheduler.cancel(roomCode, 'grace', playerName);
     await enqueue({ kind: 'join', player: playerName });
 
     socket.on('close', () => {
@@ -354,9 +414,16 @@ export function createService(options: ServiceOptions): Service {
       // instance is still listening when the departure it caused comes back
       // round — a room it still holds other sockets for keeps hearing.
       connections.remove(connection);
-      void enqueue({ kind: 'leave', player: playerName }).finally(
-        () => void stopListening(roomCode),
-      );
+      // D5 — a dropped socket is not a departure. The player is marked away and
+      // keeps everything; the window is what decides whether they were gone.
+      void enqueue({ kind: 'leave', player: playerName })
+        .then(() =>
+          scheduler.arm(
+            { roomCode, kind: 'grace', player: playerName },
+            graceSeconds * 1000,
+          ),
+        )
+        .finally(() => void stopListening(roomCode));
     });
   }
 
@@ -390,14 +457,19 @@ export function createService(options: ServiceOptions): Service {
       // The scheduler first: a worker that rings mid-teardown would settle an
       // event against a store whose connection is on its way out.
       await scheduler.close();
+
+      // Then the sockets, which is what produces the last round of departures,
+      // and then those departures. Closing the subscriptions before them would
+      // publish a `lobby_update` onto a channel nobody is listening to; closing
+      // the connections before them would make the write fail on a closed
+      // client, somewhere far from here.
+      for (const socket of sockets.clients) socket.terminate();
+      await Promise.allSettled([...inFlight]);
+
       for (const [, held] of listening) await held.stop();
       listening.clear();
 
       return new Promise((resolve, reject) => {
-        // The sockets first: a Node server does not finish closing while a
-        // connection is still open, so a suite that closed them in the other
-        // order would hang rather than fail.
-        for (const socket of sockets.clients) socket.terminate();
         sockets.close();
 
         if (server === undefined) {

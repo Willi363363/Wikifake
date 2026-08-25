@@ -9,9 +9,27 @@
 // a nickname is" has one definition.
 import { playerName, roomCode, type ErrorCode } from '@wikifake/protocol';
 
+/**
+ * D5 — the secret that says a returning player is the one who left.
+ *
+ * The **client** owns it: it generates one, keeps it for as long as the tab
+ * lives, and sends it on every connection including the first. Nothing is minted
+ * server-side and no secret is ever sent down the wire — which is why the
+ * protocol grows no message for this.
+ *
+ * A connection that offers none still plays; what it cannot do is reclaim a
+ * nickname afterwards, because there is nothing to prove it is the same player.
+ * That fails closed: the alternative is a slot anybody can walk into by typing a
+ * nickname, which is worse than today, where a dropped player is deleted and has
+ * nothing left to steal.
+ */
+const sessionToken = /^[A-Za-z0-9_-]{16,128}$/;
+
 export interface Credentials {
   readonly roomCode: string;
   readonly playerName: string;
+  /** Empty when the client offered none, or offered something malformed. */
+  readonly token: string;
 }
 
 export type Handshake =
@@ -27,8 +45,8 @@ export type Handshake =
  * lost" for what was a rejected nickname.
  */
 export function readHandshake(url: string): Handshake {
-  const path = new URL(url, 'ws://realtime.invalid').pathname;
-  const segments = path.split('/').filter((segment) => segment !== '');
+  const asked = new URL(url, 'ws://realtime.invalid');
+  const segments = asked.pathname.split('/').filter((segment) => segment !== '');
 
   if (segments.length !== 3 || segments[0] !== 'ws') {
     return { ok: false, code: 'room_not_found', message: 'This is not a room.' };
@@ -60,5 +78,15 @@ export function readHandshake(url: string): Handshake {
     };
   }
 
-  return { ok: true, credentials: { roomCode: room.data, playerName: name.data } };
+  // A malformed token is dropped rather than refused: it is not a credential the
+  // player typed, and answering `invalid_name` for a mangled query parameter
+  // would tell them their nickname is wrong. Without one they still get in — and
+  // still cannot reclaim a nickname later.
+  const offered = asked.searchParams.get('token') ?? '';
+  const token = sessionToken.test(offered) ? offered : '';
+
+  return {
+    ok: true,
+    credentials: { roomCode: room.data, playerName: name.data, token },
+  };
 }

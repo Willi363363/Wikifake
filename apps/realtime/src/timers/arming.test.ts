@@ -21,7 +21,7 @@ interface Armed {
 interface Cancelled {
   readonly roomCode: string;
   readonly kind: TimerKind;
-  readonly wave: number | undefined;
+  readonly of: string | number | undefined;
 }
 
 function recorder(): Scheduler & {
@@ -38,8 +38,8 @@ function recorder(): Scheduler & {
       armed.push({ alarm, delayMs });
       return Promise.resolve();
     },
-    cancel: (roomCode, kind, wave) => {
-      cancelled.push({ roomCode, kind, wave });
+    cancel: (roomCode, kind, of) => {
+      cancelled.push({ roomCode, kind, of });
       return Promise.resolve();
     },
     close: () => Promise.resolve(),

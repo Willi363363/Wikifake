@@ -28,7 +28,7 @@ type Outcome = Reduced<RoomState, RoomEffect>;
  */
 export type LobbyEvent = Extract<
   RoomEvent,
-  { kind: 'join' } | { kind: 'leave' } | { kind: 'message' }
+  { kind: 'join' } | { kind: 'leave' } | { kind: 'evict' } | { kind: 'message' }
 >;
 
 /** The roster, as the protocol carries it. */
@@ -39,6 +39,7 @@ export function lobbyUpdate(state: RoomState): OutgoingMessage {
     players: state.players.map((player) => ({
       name: player.name,
       colour: player.colour,
+      connected: player.connected,
       ready: player.ready,
       answered: player.answered,
       isHost: player.name === host,
@@ -56,10 +57,27 @@ function announce(state: RoomState): Outcome {
 }
 
 function join(state: RoomState, name: string): Outcome {
-  // C5.2 — a connected duplicate is refused without touching the player already
-  // in place. Their socket, their score and their paid hints stay theirs.
-  if (playerIn(state, name) !== undefined) {
+  const held = playerIn(state, name);
+
+  // C5.2 — a **connected** duplicate is refused without touching the player
+  // already in place. Their socket, their score and their paid hints stay
+  // theirs.
+  if (held !== undefined && held.connected) {
     return refuse(state, name, 'name_taken', `the nickname ${name} is already in use`);
+  }
+
+  // D5 — the same nickname on a player whose socket dropped is that player
+  // coming back. Everything they had is still here, because `leave` did not
+  // take it: score, items, paid hints, their seat in the order and their
+  // colour. Whoever is entitled to reclaim it is the transport's question — the
+  // rules only know that this slot is reclaimable.
+  if (held !== undefined) {
+    return announce({
+      ...state,
+      players: state.players.map((player) =>
+        player.name === name ? { ...player, connected: true } : player,
+      ),
+    });
   }
 
   const next: RoomState = {
@@ -69,7 +87,27 @@ function join(state: RoomState, name: string): Outcome {
   return announce(next);
 }
 
-function leave(state: RoomState, name: string): Outcome {
+/**
+ * D5 — a socket dropped. The player stays.
+ *
+ * Nothing is removed and nothing is lost. What changes is one flag, and what
+ * follows from it is a grace window the transport runs; `evict` is what ends it.
+ * The room is not closed here even when nobody is left connected: an empty-
+ * looking room whose only player is reconnecting is not an empty room.
+ */
+function disconnect(state: RoomState, name: string): Outcome {
+  const held = playerIn(state, name);
+  if (held === undefined || !held.connected) return settle(state);
+
+  return announce({
+    ...state,
+    players: state.players.map((player) =>
+      player.name === name ? { ...player, connected: false } : player,
+    ),
+  });
+}
+
+function evict(state: RoomState, name: string): Outcome {
   const players = state.players.filter((player) => player.name !== name);
   if (players.length === state.players.length) return settle(state);
 
@@ -223,7 +261,9 @@ export function reduceLobby(state: RoomState, event: LobbyEvent): Outcome {
     case 'join':
       return join(state, event.player);
     case 'leave':
-      return leave(state, event.player);
+      return disconnect(state, event.player);
+    case 'evict':
+      return evict(state, event.player);
     case 'message':
       break;
   }

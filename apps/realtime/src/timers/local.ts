@@ -29,7 +29,7 @@ export function createLocalScheduler(onAlarm: OnAlarm): Scheduler {
 
   return {
     arm(alarm: Alarm, delayMs: number) {
-      const id = alarmId(alarm.roomCode, alarm.kind, alarm.wave);
+      const id = alarmId(alarm.roomCode, alarm.kind, alarm.wave ?? alarm.player);
       // Replaces, like the queue: one alarm of each kind per room, never two.
       drop(id);
 
@@ -44,8 +44,8 @@ export function createLocalScheduler(onAlarm: OnAlarm): Scheduler {
       return Promise.resolve();
     },
 
-    cancel(roomCode: string, kind: TimerKind, wave?: number) {
-      drop(alarmId(roomCode, kind, wave));
+    cancel(roomCode: string, kind: TimerKind, of?: string | number) {
+      drop(alarmId(roomCode, kind, of));
       return Promise.resolve();
     },
 

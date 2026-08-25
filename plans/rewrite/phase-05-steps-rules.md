@@ -54,6 +54,26 @@ Session token carried by the client, `connected: false` actually written on
 disconnect, grace window before eviction. During the window, the nickname
 cannot be taken over by a third party.
 
+Three decisions taken while writing it:
+
+- **The client owns the token, and the server never mints one.** It generates a
+  secret, keeps it for as long as its tab lives, and sends it as a query
+  parameter on every connection including the first. No secret travels
+  downwards, and the protocol grows no message for any of this.
+- **A connection that brings no token plays, and can never come back.** Its slot
+  is bound to a value no client can present. That fails closed: the alternative
+  is a slot anybody can walk into by typing a nickname, which is worse than
+  today, where a dropped player is deleted and has nothing left to steal.
+- **`leave` and `evict` are two events.** A dropped socket marks the player away
+  and takes nothing; the eviction at the end of the grace window is the only
+  thing that removes them, and therefore the only thing that can end a round
+  early or close a room. That is why the round-end tests of 5.4 now say
+  "evicted" — the same rule, moved to the event that means it.
+
+`GRACE_SECONDS` is thirty: long enough for a lift, a tunnel or a laptop lid,
+short enough that a room is not held by somebody who closed the tab, and well
+inside the shortest round the contract allows.
+
 **Done when**: a test cuts the socket mid-round then reconnects — score,
 items and paid hints are recovered — and a homonym is refused during the
 grace window.
