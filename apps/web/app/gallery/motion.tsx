@@ -32,13 +32,15 @@ function Card({ motion }: { motion: Motion }) {
           <code className="block text-sm text-ink">animate-{motion.name}</code>
           <span className="mt-0.5 block text-xs text-muted">{motion.role}</span>
         </div>
-        <Badge tone={TONE[motion.kind]}>{motion.kind}</Badge>
+        <Badge tone={TONE[motion.kind]} className="shrink-0">
+          {motion.kind}
+        </Badge>
       </div>
 
       <div className="mt-4 flex items-center gap-3">
         {/* The stage. `overflow-hidden` because two of these travel the width of
             the viewport and one of them travels its height. */}
-        <div className="relative h-12 flex-1 overflow-hidden rounded-md bg-bg-grain">
+        <div className="relative h-12 min-w-0 flex-1 overflow-hidden rounded-md bg-bg-grain">
           <span
             key={playing ? 'on' : 'off'}
             className={cn(
@@ -51,6 +53,7 @@ function Card({ motion }: { motion: Motion }) {
         {motion.reducible ? (
           <Button
             size="default"
+            className="shrink-0"
             variant={playing ? 'danger' : 'ghost'}
             onClick={() => {
               setPlaying((was) => !was);
