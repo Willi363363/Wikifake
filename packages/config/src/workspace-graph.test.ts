@@ -30,6 +30,11 @@ const EXPECTED: Readonly<Record<string, readonly string[]>> = {
   domain: ['@wikifake/protocol'],
   db: ['@wikifake/env', '@wikifake/protocol', 'drizzle-orm', 'postgres'],
   article: ['@wikifake/protocol', 'ai', 'cheerio', 'domhandler', 'zod'],
+  // The design system ships a stylesheet and the lists that describe it. No
+  // runtime dependency at all, and that is the interesting part: a theme that
+  // needed a framework to be read would be a theme no test could check against
+  // the one it transcribes.
+  ui: [],
 };
 
 describe('workspace dependency graph', () => {
