@@ -11,11 +11,14 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.51",
     "@hono/node-server": "2.1.1",
+    "@wikifake/article": "workspace:*",
     "@wikifake/db": "workspace:*",
     "@wikifake/domain": "workspace:*",
     "@wikifake/env": "workspace:*",
     "@wikifake/protocol": "workspace:*",
+    "ai": "^7.0.77",
     "bullmq": "6.1.2",
     "hono": "4.13.3",
     "ioredis": "^5.11.1",

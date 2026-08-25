@@ -1,7 +1,9 @@
 # Phase 5 — steps: the transport and what crosses it
 
 > Steps 5.1 to 5.3. The phase sheet, its exit gate and where each step stands:
-> `phase-05-realtime.md`. The rules over the wire: `phase-05-steps-rules.md`.
+> `phase-05-realtime.md`. How a round begins and ends:
+> `phase-05-steps-rounds.md`. What a player may do:
+> `phase-05-steps-players.md`.
 
 ### 5.1 — Transport and handshake
 

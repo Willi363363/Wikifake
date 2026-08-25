@@ -5,6 +5,7 @@
 // somebody already migrated proves the queries and nothing about the schema.
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import { sql } from 'drizzle-orm';
+import postgres from 'postgres';
 import { fileURLToPath } from 'node:url';
 
 import { connect, type Database } from '../client.js';
@@ -98,6 +99,82 @@ export async function openTestDatabase(url: string): Promise<TestDatabase> {
 
   await truncate();
   return { db, truncate, close };
+}
+
+/** Postgres says "database already exists" with this SQLSTATE. */
+const DUPLICATE_DATABASE = '42P04';
+
+/** `…/wikifake` becomes `…/wikifake_web`, `…/wikifake_realtime`, and so on. */
+export function scratchDatabaseUrl(base: string, suffix: string): string {
+  const url = new URL(base);
+  url.pathname = `${url.pathname.replace(/\/+$/, '')}_${suffix}`;
+  return url.toString();
+}
+
+/**
+ * Where an application's own test database is, or why there is none.
+ *
+ * Absent locally is a skip, absent in CI is a failure — the same contract as
+ * `testDatabaseUrl`, for the same reason: a suite that quietly skips on the
+ * machine deciding whether to merge reports green for work it never did.
+ */
+export function scratchDatabaseUrlOrNull(suffix: string): string | null {
+  const base = process.env['DATABASE_URL'];
+  if (base !== undefined && base !== '') return scratchDatabaseUrl(base, suffix);
+  if (process.env['CI'] === 'true') {
+    throw new Error(
+      'DATABASE_URL is required in CI: the integration tests must actually run',
+    );
+  }
+  return null;
+}
+
+function sqlstate(error: unknown): string | undefined {
+  let current: unknown = error;
+  while (typeof current === 'object' && current !== null) {
+    if ('code' in current && typeof (current as { code: unknown }).code === 'string') {
+      return (current as { code: string }).code;
+    }
+    current = (current as { cause?: unknown }).cause;
+  }
+  return undefined;
+}
+
+/** Creates the database if it is not there yet. Idempotent, and concurrent-safe. */
+async function ensureDatabase(base: string, name: string): Promise<void> {
+  const admin = postgres(base, { max: 1 });
+  try {
+    // `create database` cannot run inside a transaction, hence `unsafe`. The name
+    // is derived from DATABASE_URL, not from anything a request supplied.
+    await admin.unsafe(`create database "${name}"`);
+  } catch (error) {
+    // Already there — including because a parallel run got here first.
+    if (sqlstate(error) !== DUPLICATE_DATABASE) throw error;
+  } finally {
+    await admin.end();
+  }
+}
+
+/**
+ * Creates, migrates and truncates a database of one application's own.
+ *
+ * Not the shared one. This package's own suite truncates every table in `public`
+ * between tests and Turbo runs package tasks in parallel, so a test elsewhere
+ * touching the shared database has its rows deleted mid-flight. That race has now
+ * come up three times in the rewrite — a Postgres deadlock in phase 2, Redis
+ * namespaces in phase 3, this in phase 4 — so it gets a boundary rather than a
+ * third workaround.
+ */
+export async function openScratchDatabase(suffix: string): Promise<TestDatabase> {
+  const base = process.env['DATABASE_URL'];
+  if (base === undefined || base === '') {
+    throw new Error('openScratchDatabase needs DATABASE_URL');
+  }
+
+  const target = scratchDatabaseUrl(base, suffix);
+  const name = new URL(target).pathname.replace(/^\//, '');
+  await ensureDatabase(base, name);
+  return openTestDatabase(target);
 }
 
 /**

@@ -19,13 +19,26 @@ import { playerIn, type RoomState } from './state.js';
 
 type Outcome = Reduced<RoomState, RoomEffect>;
 
+/**
+ * How long this player has been playing, in seconds.
+ *
+ * Worked out here rather than sent in: the transport can stamp *when* a message
+ * was sent without reading the room, and cannot know when the round started
+ * without reading it. Clamped at zero, because a message stamped before the
+ * round began is a clock skew between instances, not a negative duration.
+ */
+function elapsedIn(state: RoomState, at: number): number {
+  const round = state.round;
+  return round === null ? 0 : Math.max(0, (at - round.startedAt) / 1000);
+}
+
 export function reduceRoom(state: RoomState, event: RoomEvent): Outcome {
   switch (event.kind) {
     case 'article_ready':
       // D3 — the one way into a round. Refused anywhere else, so a late article
       // from an abandoned generation cannot restart a round that already ended.
       return state.phase === 'generating'
-        ? startRound(state, event.article, event.solution)
+        ? startRound(state, event.article, event.solution, event.startedAt)
         : settle(state);
 
     case 'article_failed':
@@ -61,7 +74,7 @@ export function reduceRoom(state: RoomState, event: RoomEvent): Outcome {
   }
 
   const { from, message } = event;
-  const elapsed = event.elapsedSeconds ?? 0;
+  const elapsed = elapsedIn(state, event.at);
 
   if (state.phase !== 'round' || playerIn(state, from) === undefined) {
     return reduceLobby(state, event);

@@ -32,11 +32,22 @@ export function run(
 export const joined = (...names: readonly string[]): RoomEvent[] =>
   names.map((player) => ({ kind: 'join', player }) as const);
 
-export const says = (from: string, message: IncomingMessage, seed = 0): RoomEvent => ({
+/**
+ * @param at when the message was sent, in epoch milliseconds. Defaults to zero,
+ * which for a round started at zero means "the moment it began" — the tests that
+ * care about the clock pass one.
+ */
+export const says = (
+  from: string,
+  message: IncomingMessage,
+  seed = 0,
+  at = 0,
+): RoomEvent => ({
   kind: 'message',
   from,
   message,
   seed,
+  at,
 });
 
 /** The code an outcome refused with, or null if it did not refuse. */

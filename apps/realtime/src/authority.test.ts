@@ -21,6 +21,7 @@ import { createService, type Service, type ServiceOptions } from './server.js';
 import { createLocalScheduler } from './timers/local.js';
 import { open, until, type Opened } from './testing/client.js';
 import { openTestRedis, testRedisUrl, type TestRedis } from './testing/redis.js';
+import { canned } from './testing/articles.js';
 
 const url = testRedisUrl();
 const NAMESPACE = 'wikifake:test:authority';
@@ -31,6 +32,9 @@ const nextRoom = (): string => `A${String(++rooms).padStart(5, '0')}`;
 const TIME_LIMIT = 120;
 /** Long enough not to race a test, short enough to wait out on purpose. */
 const GRACE_SECONDS = 0.05;
+
+/** A clock that does not move: nothing here is about time passing. */
+const FROZEN = 1_700_000_000_000;
 
 const ARTICLE: ArticleView = {
   topic: 'Chat',
@@ -87,6 +91,9 @@ describe.skipIf(url === null)('5.7 — who decides, and what ends a room', () =>
       namespace: NAMESPACE,
       scheduler: createLocalScheduler,
       tokens: createLocalTokens(),
+      // 5.8 — the pipeline, mocked: picking a topic starts the round.
+      articles: canned(ARTICLE, SOLUTION),
+      now: () => FROZEN,
       graceSeconds: GRACE_SECONDS,
       ...overrides,
     });
@@ -269,18 +276,6 @@ describe.skipIf(url === null)('5.7 — who decides, and what ends a room', () =>
       const { ada, bob } = await lobby();
 
       ada.send({ type: 'start_game', topic: 'Chat' });
-      // Waited for, not assumed: `article_ready` is refused outside `generating`
-      // (D3), so settling before the start_game has landed starts nothing and
-      // the failure looks like a lost article.
-      await until(
-        async () => (await store.read(ROOM)).state.phase === 'generating',
-        'the generation to open',
-      );
-      await service.settle(ROOM, {
-        kind: 'article_ready',
-        article: ARTICLE,
-        solution: SOLUTION,
-      });
       await seen(ada, 'game_start');
       await seen(bob, 'game_start');
 
@@ -336,6 +331,7 @@ describe.skipIf(url === null)('5.7 — who decides, and what ends a room', () =>
         kind: 'article_ready',
         article: { ...ARTICLE, topic: 'Chien' },
         solution: SOLUTION,
+        startedAt: Date.now(),
       });
       // A fence: chat rides the same channel, so once it has arrived any second
       // `game_start` would already be behind it.

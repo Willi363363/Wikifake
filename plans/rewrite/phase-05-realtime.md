@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — seven steps done |
+| **State** | done — exit gate passed |
 | **Branch** | `feat/rewrite-phase-5` |
 | **Depends on** | phase 4 |
 | **Delivers** | `apps/realtime`: the complete multiplayer, multi-instance |
@@ -27,7 +27,7 @@ throttled.
 
 ## Steps
 
-Seven steps, so the definitions live in two sheets. **The tables below are
+Eight steps, so the definitions live in three sheets. **The tables below are
 the only place that says where a step stands** — the sheets define the work
 and its completion criterion, and carry no state.
 
@@ -39,19 +39,24 @@ and its completion criterion, and carry no state.
 
 Definitions: `phase-05-steps-transport.md`.
 
-| # | Step — the rules over the wire | State |
+| # | Step — how a round begins and ends | State |
 |---|---|---|
 | 5.4 | BullMQ timers | ✅ done |
+| 5.8 | The article pipeline | ✅ done |
+
+Definitions: `phase-05-steps-rounds.md`.
+
+| # | Step — what a player may do | State |
+|---|---|---|
 | 5.5 | Reconnection | ✅ done |
 | 5.6 | Hardening client messages | ✅ done |
 | 5.7 | Host authority and room end | ✅ done |
-| 5.8 | The article pipeline | to do |
 
-Definitions: `phase-05-steps-rules.md`.
+Definitions: `phase-05-steps-players.md`.
 
-5.8 was not in the original plan and is not a change of scope: `generate_article`
-is an effect the reducer emits and nothing in this service answers, so a round
-cannot start at all. Written down when 5.4 found it, rather than absorbed into
+5.8 was not in the original plan and was not a change of scope: `generate_article`
+is an effect the reducer emits and nothing in this service answered, so a round
+could not start at all. Written down when 5.4 found it, rather than absorbed into
 whichever step noticed it last.
 
 5.1 creates `apps/realtime` itself — phase 0 left the `apps/` tree "empty but
@@ -62,11 +67,34 @@ several.
 
 ## Exit gate
 
-- The server-authority and transport-robustness guarantees pass as protocol
-  tests against the service, on the multiplayer side.
-- A round survives one player's network cut.
-- Two instances serve the same room in the test suite.
-- Round end by timeout and idle-room TTL are effective.
+Passed. Where each one is proved, in `apps/realtime/src`:
+
+- **The server-authority and transport-robustness guarantees pass as protocol
+  tests against the service, on the multiplayer side** — `server.test.ts`
+  (handshake, frames, refusals), `hardening.test.ts` (throttles, targets, frozen
+  options, `FREEZE_TIME`), `authority.test.ts` (host-only actions that change
+  nothing when refused, promotion, client-declared penalties worth zero).
+- **A round survives one player's network cut** — `reconnect.test.ts`: score,
+  items and paid hints come back, and a homonym cannot take the seat during the
+  grace window.
+- **Two instances serve the same room in the test suite** — `broadcast.test.ts`,
+  over a real Redis channel.
+- **Round end by timeout and idle-room TTL are effective** — `timers.test.ts`
+  over BullMQ, and `authority.test.ts` for the row an idle room leaves behind.
+
+And the one the gate did not name, because nobody had noticed it was missing: a
+multiplayer round can start at all (`article.test.ts`, `generation.test.ts`).
+
+## What phase 5 leaves for later
+
+Recorded rather than absorbed:
+
+- **A multiplayer round's *results* are not persisted.** The `game`, its
+  positions and its participants are written when the round starts (C4.6 needs
+  it); the scores stay in Redis and reach the players through `game_end`. Solo
+  writes them through `recordSubmission`; multiplayer has no equivalent yet.
+- **A room's `phase` and `host_name` columns are never written.** The live room
+  is Redis's; those columns date from phase 2 and no reader depends on them.
 
 ## Contract touched
 

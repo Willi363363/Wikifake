@@ -6,6 +6,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { createLocalBus } from './bus.js';
+import { stubArticles } from './testing/articles.js';
 import { createOriginPolicy } from './origins.js';
 import { createLocalScheduler } from './timers/local.js';
 import { createLocalTokens } from './rooms/tokens.js';
@@ -101,6 +102,8 @@ describe('5.1 — the transport', () => {
       // independent of a server they have nothing to do with.
       bus: createLocalBus(),
       tokens: createLocalTokens(),
+      // 5.8 — the article pipeline, mocked. Nothing here is about a round.
+      articles: stubArticles(),
       // Not about surviving a redeployment: `timers.test.ts` is.
       scheduler: createLocalScheduler,
       ...overrides,

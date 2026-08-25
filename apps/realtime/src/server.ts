@@ -9,11 +9,7 @@
 // remembering things between frames is the drift this phase is written to avoid.
 import { serve, type ServerType } from '@hono/node-server';
 import { healthApi, type ErrorCode } from '@wikifake/protocol';
-import {
-  GRACE_SECONDS,
-  ROOM_IDLE_LIMIT_SECONDS,
-  type RoomEffect,
-} from '@wikifake/domain';
+import { GRACE_SECONDS, ROOM_IDLE_LIMIT_SECONDS } from '@wikifake/domain';
 import { Hono } from 'hono';
 import { WebSocketServer, type WebSocket } from 'ws';
 import type { IncomingMessage } from 'node:http';
@@ -27,10 +23,12 @@ import type { OriginPolicy } from './origins.js';
 import type { RoomStore } from './rooms/store.js';
 import type { TokenStore } from './rooms/tokens.js';
 import { createSubscriptions } from './subscriptions.js';
+import type { RoundOutcome, RoundSource } from './generation.js';
 import { createThrottle, DEFAULT_INTERVALS, type Intervals } from './throttle.js';
 import { armFor } from './timers/arming.js';
+import { createRinging } from './timers/ringing.js';
 import type { Alarm, OnAlarm, Scheduler } from './timers/scheduler.js';
-import { drawWave, randomPick } from './timers/waves.js';
+import { randomPick } from './timers/waves.js';
 
 export interface ServiceOptions {
   readonly origins: OriginPolicy;
@@ -85,6 +83,14 @@ export interface ServiceOptions {
   readonly idleSeconds?: number;
   /** Which item a wave draws. Pinned by the tests; random in production. */
   readonly pick?: (upperBound: number) => number;
+  /**
+   * What time it is, in milliseconds since the epoch.
+   *
+   * A parameter for the same reason `pick` is: a round's time bonus depends on
+   * how long the player took, so a test asserting one against the wall clock
+   * asserts how fast the machine was. Production passes `Date.now`.
+   */
+  readonly now?: () => number;
   /** D5 — who is entitled to reclaim a nickname whose socket dropped. */
   readonly tokens: TokenStore;
   /**
@@ -103,13 +109,13 @@ export interface ServiceOptions {
    */
   readonly graceSeconds?: number;
   /**
-   * Effects this service cannot carry yet — `generate_article` and the timers.
+   * D3 — what answers `generate_article`.
    *
-   * Steps 5.3 and 5.4 take them. A callback rather than a silent drop, so the
-   * gap is something a test can assert on rather than something a reader has to
-   * notice.
+   * The effect the reducer emits when a topic has been picked, and the only
+   * thing that can lead to `article_ready` — which is the only way into a round.
+   * Injected, so the service is testable with the model and Wikipedia mocked.
    */
-  onUnhandled?: (roomCode: string, effect: RoomEffect) => void;
+  readonly articles: RoundSource;
 }
 
 export interface Service {
@@ -154,13 +160,10 @@ export function createService(options: ServiceOptions): Service {
   const idleSeconds = options.idleSeconds ?? ROOM_IDLE_LIMIT_SECONDS;
   const graceSeconds = options.graceSeconds ?? GRACE_SECONDS;
   const pick = options.pick ?? randomPick;
+  const now = options.now ?? ((): number => Date.now());
   const intervals: Intervals = { ...DEFAULT_INTERVALS, ...options.throttleMs };
 
-  const publisher = {
-    bus: options.bus,
-    namespace,
-    ...(options.onUnhandled === undefined ? {} : { onUnhandled: options.onUnhandled }),
-  };
+  const publisher = { bus: options.bus, namespace };
 
   /**
    * Settles an event and carries out everything that follows from it.
@@ -183,62 +186,72 @@ export function createService(options: ServiceOptions): Service {
     if (applied.effects.some((effect) => effect.kind === 'close_room')) {
       await options.closeRoom(roomCode);
     }
+
+    // D3 — and the slow one, started and not waited for. Reading Wikipedia and
+    // asking a model takes seconds; awaiting it here would hold up every other
+    // message for this room, which is the very defect `generate_article` was
+    // made an effect to avoid.
+    for (const effect of applied.effects) {
+      if (effect.kind === 'generate_article') {
+        void track(produce(roomCode, effect.topic, applied.state));
+      }
+    }
   }
 
   /**
-   * What a fired alarm does.
+   * Turns a topic into a round, or into the next candidate's turn.
    *
-   * Each one becomes an event the reducer already understands, or — for an idle
-   * room — nothing at all: there is nobody left to tell, the state has expired
-   * with its key, and what is left to do is stop the other alarms ringing
-   * against a room somebody may rebuild under the same code.
+   * The room is read from the state the decision was taken against, not read
+   * back afterwards: the players and the time limit that go into the row are the
+   * ones the round is being started for.
    */
-  const ring: OnAlarm = (alarm: Alarm) => track(rang(alarm));
+  async function produce(
+    roomCode: string,
+    topic: string,
+    decided: Awaited<ReturnType<RoomStore['apply']>>['state'],
+  ): Promise<void> {
+    // A generation that throws is a generation that failed, and the room has to
+    // be told: nothing else will ever settle this one, and a room left in
+    // `generating` waits for an article that is not coming — which is exactly
+    // the state the current server gets stuck in.
+    const outcome = await options.articles
+      .open({
+        roomCode,
+        topic,
+        timeLimit: decided.options.timeLimit,
+        players: decided.players.map((player) => ({
+          name: player.name,
+          colour: player.colour,
+        })),
+      })
+      .catch((): RoundOutcome => ({ ok: false }));
 
-  async function rang(alarm: Alarm): Promise<void> {
-    if (alarm.kind === 'room_idle') {
-      await scheduler.cancel(alarm.roomCode, 'round_end');
-      // D4 — the other end of a room's life, and the one the current server has
-      // no answer for at all: nobody left to evict, so nothing ever decided the
-      // room was over. The state has expired with its key; the row has not.
-      await options.closeRoom(alarm.roomCode);
-      return;
-    }
-
-    // D5 — the grace window ran out. Now, and only now, is the player gone: the
-    // round may end on it, the host may pass, and the room may close.
-    if (alarm.kind === 'grace') {
-      const player = alarm.player;
-      if (player === undefined) return;
-
-      await settle(alarm.roomCode, { kind: 'evict', player });
-      // Their claim on the nickname goes with them. Left behind, it would keep
-      // the slot locked for a player who is not coming back.
-      await options.tokens.forget(alarm.roomCode, player);
-      return;
-    }
-
-    if (alarm.kind === 'round_end') {
-      await settle(alarm.roomCode, { kind: 'timer_expired' });
-      return;
-    }
-
-    const wave = alarm.wave ?? 1;
-    const held = await options.rooms.read(alarm.roomCode);
-    // A wave for a round that is over is a wave nobody wants: the alarm outlived
-    // its round, which `cancel_timer` normally prevents and a crash does not.
-    if (held.state.phase !== 'round') return;
-
-    await settle(alarm.roomCode, {
-      kind: 'items_granted',
-      wave,
-      grants: drawWave(
-        held.state.players.map((player) => player.name),
-        wave,
-        pick,
-      ),
-    });
+    await settle(
+      roomCode,
+      outcome.ok
+        ? {
+            kind: 'article_ready',
+            article: outcome.article,
+            solution: outcome.solution,
+            // The round starts now, not when the topic was picked: the minutes
+            // spent reading Wikipedia are not minutes anybody was playing.
+            startedAt: now(),
+          }
+        : { kind: 'article_failed' },
+    );
   }
+
+  const ring: OnAlarm = (alarm: Alarm) =>
+    track(
+      createRinging({
+        settle,
+        rooms: options.rooms,
+        tokens: options.tokens,
+        closeRoom: options.closeRoom,
+        pick,
+        scheduler: () => scheduler,
+      })(alarm),
+    );
 
   const scheduler = options.scheduler(ring);
 
@@ -388,7 +401,15 @@ export function createService(options: ServiceOptions): Service {
           // the only two, and both are superseded by the next one anyway.
           if (!throttle.admits(frame.message)) return;
 
-          void enqueue({ kind: 'message', from: playerName, message: frame.message });
+          void enqueue({
+            kind: 'message',
+            from: playerName,
+            message: frame.message,
+            // When it was sent, which is all the transport can know: how long
+            // the round has been running is the reducer's arithmetic, against
+            // the instant the round itself started.
+            at: now(),
+          });
       }
     });
 

@@ -20,6 +20,7 @@ import { createService, type Service } from './server.js';
 import { createLocalScheduler } from './timers/local.js';
 import { open, until, type Opened } from './testing/client.js';
 import { openTestRedis, testRedisUrl, type TestRedis } from './testing/redis.js';
+import { canned } from './testing/articles.js';
 
 const url = testRedisUrl();
 const NAMESPACE = 'wikifake:test:reconnect';
@@ -97,6 +98,8 @@ describe.skipIf(url === null)(
           idleSeconds: 60,
         }),
         graceSeconds: GRACE_MS / 1000,
+        // 5.8 — the pipeline, mocked: picking a topic starts the round.
+        articles: canned(ARTICLE, SOLUTION),
       });
       port = await service.listen(0);
     });
@@ -151,11 +154,6 @@ describe.skipIf(url === null)(
         'the topic to be picked',
       );
 
-      await service.settle(ROOM, {
-        kind: 'article_ready',
-        article: ARTICLE,
-        solution: SOLUTION,
-      });
       await until(
         () =>
           ada.received.some(

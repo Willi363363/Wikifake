@@ -9,6 +9,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 import { createRedisBus, type Bus } from './bus.js';
 import { createOriginPolicy } from './origins.js';
+import { stubArticles } from './testing/articles.js';
 import { createLocalScheduler } from './timers/local.js';
 import { createLocalTokens } from './rooms/tokens.js';
 import { createRoomStore } from './rooms/store.js';
@@ -56,6 +57,8 @@ describe.skipIf(url === null)('5.3 — one room, several instances', () => {
       rooms: createRoomStore({ redis: redis.redis, namespace: NAMESPACE }),
       bus,
       tokens: createLocalTokens(),
+      // 5.8 — the article pipeline, mocked. Nothing here is about a round.
+      articles: stubArticles(),
       // D5 — a dropped socket is a departure only once the window has run.
       // Shortened so a test can watch it happen rather than wait for it.
       graceSeconds: 0.05,

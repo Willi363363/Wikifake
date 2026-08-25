@@ -53,6 +53,7 @@ export function startRound(
   state: RoomState,
   article: ArticleView,
   solution: readonly FalsifiedPosition[],
+  startedAt: number,
 ): Outcome {
   const next: RoomState = {
     ...state,
@@ -60,7 +61,7 @@ export function startRound(
     players: state.players.map(forNewRound),
     ballots: {},
     generating: null,
-    round: { article, solution },
+    round: { article, solution, startedAt },
   };
 
   return emit<RoomState, RoomEffect>(

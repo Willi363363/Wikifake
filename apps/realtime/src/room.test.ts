@@ -21,7 +21,7 @@ import { createRoomStore } from './rooms/store.js';
 import { createService, type Service } from './server.js';
 import { open, until, type Opened } from './testing/client.js';
 import { openTestRedis, testRedisUrl, type TestRedis } from './testing/redis.js';
-import type { RoomEffect } from '@wikifake/domain';
+import { stubArticles, type StubSource } from './testing/articles.js';
 
 const url = testRedisUrl();
 const NAMESPACE = 'wikifake:test:room';
@@ -47,7 +47,7 @@ describe.skipIf(url === null)('5.2 — a room over sockets', () => {
   let redis: TestRedis;
   let service: Service;
   let port: number;
-  let unhandled: { roomCode: string; effect: RoomEffect }[];
+  let articles: StubSource;
   let ROOM: string;
 
   beforeAll(async () => {
@@ -60,7 +60,7 @@ describe.skipIf(url === null)('5.2 — a room over sockets', () => {
   beforeEach(async () => {
     await redis.flush();
     ROOM = nextRoom();
-    unhandled = [];
+    articles = stubArticles();
     service = createService({
       origins: createOriginPolicy(['https://wikifake.example']),
       roomExists: () => Promise.resolve(true),
@@ -78,7 +78,9 @@ describe.skipIf(url === null)('5.2 — a room over sockets', () => {
       // Not about surviving a redeployment: `timers.test.ts` is.
       scheduler: createLocalScheduler,
       namespace: NAMESPACE,
-      onUnhandled: (roomCode, effect) => unhandled.push({ roomCode, effect }),
+      // 5.8 — the pipeline, with the model and Wikipedia mocked. Before it, a
+      // room could pick a topic and no round ever began.
+      articles,
     });
     port = await service.listen(0);
   });
@@ -228,14 +230,9 @@ describe.skipIf(url === null)('5.2 — a room over sockets', () => {
     ada.send({ type: 'submit_theme', topic: 'Chat' });
     ada.send({ type: 'force_pick' });
 
-    await until(
-      () => unhandled.some((each) => each.effect.kind === 'generate_article'),
-      'the article to be asked for',
-    );
+    await until(() => articles.asked.length > 0, 'the article to be asked for');
 
-    const asked = unhandled.find((each) => each.effect.kind === 'generate_article');
-    expect(asked?.roomCode).toBe(ROOM);
-    expect(asked?.effect).toMatchObject({ kind: 'generate_article', topic: 'Chat' });
+    expect(articles.asked[0]).toMatchObject({ roomCode: ROOM, topic: 'Chat' });
     ada.close();
     bob.close();
   });

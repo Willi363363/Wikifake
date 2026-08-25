@@ -26,6 +26,7 @@ import { createService, type Service } from './server.js';
 import { createQueueScheduler } from './timers/queue.js';
 import { open, until, type Opened } from './testing/client.js';
 import { openTestRedis, testRedisUrl, type TestRedis } from './testing/redis.js';
+import { canned } from './testing/articles.js';
 import { alarmId, type Alarm, type OnAlarm, type Scheduler } from './timers/scheduler.js';
 
 const url = testRedisUrl();
@@ -34,14 +35,7 @@ const NAMESPACE = 'wikifake:test:timers';
 let rooms = 0;
 const nextRoom = (): string => `T${String(++rooms).padStart(5, '0')}`;
 
-/**
- * An article, handed to the room through the door 5.8 will use.
- *
- * `generate_article` is still nobody's effect: no step had claimed the article
- * pipeline for this service, which is why 5.8 now exists in the sheet. A round
- * has to start somehow, and `article_ready` is the only thing that starts one
- * (D3), so the test plays the part the pipeline will play.
- */
+/** The article the mocked pipeline of step 5.8 answers with. */
 const ARTICLE: ArticleView = {
   topic: 'Chat',
   paragraphs: ['Le chat dort seize heures par jour.', 'Sa vision nocturne est bonne.'],
@@ -132,6 +126,8 @@ describe.skipIf(url === null)('5.4 — the server ends what nobody ends', () => 
       rooms: store,
       bus,
       tokens: createLocalTokens(),
+      // 5.8 — the pipeline, mocked: picking a topic starts the round.
+      articles: canned(ARTICLE, SOLUTION),
       // D5 — a dropped socket becomes a departure only after the window.
       graceSeconds: 0.05,
       namespace: NAMESPACE,
@@ -191,11 +187,6 @@ describe.skipIf(url === null)('5.4 — the server ends what nobody ends', () => 
       PATIENCE_MS,
     );
 
-    await service.settle(ROOM, {
-      kind: 'article_ready',
-      article: ARTICLE,
-      solution: SOLUTION,
-    });
     await until(
       () => of(ada, 'game_start').length > 0,
       'the round to start',
