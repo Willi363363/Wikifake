@@ -103,13 +103,40 @@ export const itemUse = pgTable(
       .references(() => participant.id, { onDelete: 'cascade' }),
     targetId: uuid('target_id').references(() => participant.id, { onDelete: 'cascade' }),
     itemId: itemIdEnum('item_id').notNull(),
+    /**
+     * C1.6 — which paragraph the item designated. The SCANNER is the only item
+     * that designates one; null for every other.
+     *
+     * Not decoration, and not derivable: the SCANNER answers with the lowest
+     * falsified paragraph the player has neither marked nor already been shown,
+     * so what it may answer next depends on what it answered before. A count of
+     * uses cannot be replayed into that list, because the marks it was compared
+     * against are gone. Without this column the item repeats itself after a
+     * restart — which is the in-memory state phase 2 exists to remove.
+     */
+    paragraphIndex: integer('paragraph_index'),
     usedAt: timestamp('used_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
     index('item_use_game_idx').on(table.gameId, table.usedAt),
+    index('item_use_caster_idx').on(table.casterId, table.itemId),
+    // C1.6 — the SCANNER cannot point one player at the same paragraph twice.
+    // Postgres treats nulls as distinct in a unique index, so this bites only on
+    // the one item that designates a paragraph: an item with no index is free to
+    // be used again.
+    unique('item_use_designated_once').on(
+      table.casterId,
+      table.itemId,
+      table.paragraphIndex,
+    ),
     check(
       'item_use_no_self_target',
       sql`${table.targetId} is null or ${table.targetId} != ${table.casterId}`,
+    ),
+    // C3.3 — 1-based, when there is one at all.
+    check(
+      'item_use_paragraph_1_based',
+      sql`${table.paragraphIndex} is null or ${table.paragraphIndex} >= 1`,
     ),
   ],
 );
