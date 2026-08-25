@@ -61,6 +61,36 @@ is what the screen shows.
 `ThemeVoting` ported: proposals, votes, `force_pick` reserved to the host,
 result announced by the server.
 
+**The current screen breaks a smaller version of the same rule before the
+election is reached.** It sets a local `submitted` flag the moment the form is
+sent, so a ballot the server refused — the vote had closed, or the socket was
+already down — still reads as submitted, and the player waits for a vote they
+are not in. Here "you have voted" is `theme_vote_update.submitted` containing
+your name, which is the server's answer to the same question.
+
+Two decisions taken while writing it:
+
+- **The phase is derived from the messages that arrive**, because nothing
+  carries it. `theme_vote_start` opens the vote, `theme_selected` closes it,
+  `game_start` and `game_end` bracket the round. That works for a player who was
+  there; see the gap below for the one who was not.
+- **`proposer: null` is rendered as "drawn by the server".** The current server
+  sends the string `"Système"` there — both a magic value and the last French
+  string on the wire — and the contract replaced it with `null` precisely so a
+  screen would have to say what it means.
+
+**Found here, and larger than this step**: nothing tells a client what phase a
+room is in. Neither `lobby_update` nor the answer to `get_lobby` carries it, and
+`game_start` is broadcast once, at the start. So a player who reconnects
+mid-vote sees a lobby, and one who reconnects mid-round **cannot re-enter the
+round at all** — the article is not sent again.
+
+That is the client half of D5. The server keeps the seat, the score, the paid
+hints and the items, all of which 5.5 proved; the browser coming back has no way
+to ask what it is holding. It wants a protocol message — a room's current state
+on demand — and that is phase 1's contract, not a screen's business. Recorded
+alongside the missing room options of 7.3, which is the same shape of gap.
+
 **Done when**: the theme displayed as elected is the one from the server
 message, never a local tally.
 

@@ -23,7 +23,37 @@ export interface RoomPlayer {
   readonly isHost: boolean;
 }
 
+/**
+ * Where the room is, as far as this client has been told.
+ *
+ * Worked out from the messages that arrive, because nothing carries it: neither
+ * `lobby_update` nor the answer to `get_lobby` says what phase a room is in.
+ * That is a gap rather than a design — see the note in
+ * `phase-07-steps-room.md` — and it is why a player who reconnects mid-vote
+ * sees a lobby until the next message happens to arrive.
+ */
+export type RoomPhase = 'lobby' | 'voting' | 'generating' | 'round';
+
+/** The vote, as the server reports it. Never as this client counts it. */
+export interface VoteView {
+  /** Who has voted. C1.7 — the server's list, not a local flag. */
+  readonly submitted: readonly string[];
+  readonly total: number;
+}
+
+/** The topic the server elected, and who proposed it. */
+export interface ElectedTopic {
+  readonly topic: string;
+  /** Null when no ballot decided it and a fallback was used. */
+  readonly proposer: string | null;
+}
+
 export interface RoomView {
+  readonly phase: RoomPhase;
+  readonly vote: VoteView;
+  readonly elected: ElectedTopic | null;
+  /** Whether *this* player has voted, according to the server. */
+  readonly hasVoted: boolean;
   readonly players: readonly RoomPlayer[];
   /** The player this browser is, or null before the first roster arrives. */
   readonly me: RoomPlayer | null;
@@ -36,13 +66,50 @@ export interface RoomView {
 
 type Lobby = Extract<OutgoingMessage, { type: 'lobby_update' }>;
 
+const NO_VOTE: VoteView = { submitted: [], total: 0 };
+
 export function useRoom(nickname: string | null): RoomView {
   const [players, setPlayers] = useState<readonly RoomPlayer[]>([]);
   const [refusal, setRefusal] = useState<RoomView['refusal']>(null);
+  const [phase, setPhase] = useState<RoomPhase>('lobby');
+  const [vote, setVote] = useState<VoteView>(NO_VOTE);
+  const [elected, setElected] = useState<ElectedTopic | null>(null);
 
   useRealtimeMessages((message) => {
     if (message.type === 'lobby_update') {
       setPlayers((message as Lobby).players);
+      return;
+    }
+
+    if (message.type === 'theme_vote_start') {
+      setPhase('voting');
+      setVote(NO_VOTE);
+      setElected(null);
+      return;
+    }
+
+    if (message.type === 'theme_vote_update') {
+      setVote({ submitted: message.submitted, total: message.total });
+      return;
+    }
+
+    // The criterion: the topic on screen is this message's, never a tally.
+    if (message.type === 'theme_selected') {
+      setPhase('generating');
+      setElected({ topic: message.topic, proposer: message.proposer });
+      return;
+    }
+
+    if (message.type === 'game_start') {
+      setPhase('round');
+      return;
+    }
+
+    // C1.2 — the round is over and the room is a lobby again. `ready` is
+    // cleared server-side, and the roster that follows says so.
+    if (message.type === 'game_end') {
+      setPhase('lobby');
+      setElected(null);
       return;
     }
     // C1.7 — a refusal is the server telling this client it was wrong about
@@ -59,6 +126,13 @@ export function useRoom(nickname: string | null): RoomView {
   return {
     players,
     me,
+    phase,
+    vote,
+    elected,
+    // Not "I pressed submit". The current screen sets a local flag the moment
+    // the form is sent, so a ballot the server refused — out of phase, or on a
+    // socket that was already down — still reads as submitted and never counts.
+    hasVoted: nickname !== null && vote.submitted.includes(nickname),
     isHost: me?.isHost ?? false,
     isReady: me?.ready ?? false,
     refusal,
