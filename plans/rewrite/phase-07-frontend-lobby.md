@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — one step done |
+| **State** | in progress — two steps done |
 | **Branch** | `feat/rewrite-phase-7` |
 | **Depends on** | phases 4, 5 and 6 |
 | **Delivers** | the whole pre-round in Next.js, and a playable solo game |
@@ -67,12 +67,46 @@ page's own host, which is what a single-origin development setup wants.
 **Done when**: no component receives the socket as a prop any more, and a
 lobby → round navigation does not reopen the connection.
 
-### 7.2 — Entry: solo, host, join
+### 7.2 — Entry: solo, host, join ✅
 
 `LobbyEntry` and `LobbyCard` ported: nickname choice, the three tabs, room
 creation, code input. The nickname is validated client-side with the same
 `protocol` schema as the server, and **encoded** in the WebSocket URL — bug
 2.1.10: the server regex allows spaces, the client does not encode them.
+
+Four decisions taken while writing it:
+
+- **The nickname is refused by the contract's own schema, before any network
+  call.** Today the client checks `!username`, which a 200-character name full
+  of emoji passes: the socket opens, the server refuses it, and the player is
+  shown a closed connection rather than a reason. `playerName` from
+  `@wikifake/protocol` is the same schema the server refuses with, so the two
+  cannot disagree.
+- **Length is capped by the field, not refused after the fact.** A player who
+  pastes a paragraph gets the first 24 characters, rather than an error about
+  something they cannot see the end of. The schema still guards what a cap
+  cannot — emoji, punctuation, a name that is only spaces.
+- **The room code is upper-cased as it is typed.** `a1b2c3` is a room; the
+  server's codes are upper-case by construction, and lower case is a 404 nobody
+  can diagnose.
+- **The code is checked before the nickname.** A player who mistyped both is
+  told about the code, and their nickname is not remembered against a room that
+  does not exist.
+
+**Solo needs no nickname.** There is no room and no socket: the round is played
+by whoever is holding the browser. The current screen asks for one anyway on two
+of its three tabs and ignores it on the third.
+
+The entry lives inside the `(game)` group, so opening or joining a room is a
+navigation *within* the provider of 7.1 and the socket opens exactly once. Its
+three destinations — `/solo`, `/room/[code]` — are real routes with placeholders
+that say which step fills them in. The room placeholder reports the connection
+status, which is the one thing 7.1 delivered and the one thing a reviewer can
+check by hand today: two tabs on the same code, both `open`.
+
+One trap: Next refuses to prerender a page that reads the query string
+unbounded, so `/solo` wraps that read in `Suspense`. The build fails outright
+without it, which is the right failure.
 
 **Done when**: the three entries lead to the right screen, an invalid
 nickname is refused before any network call, a nickname with a space
