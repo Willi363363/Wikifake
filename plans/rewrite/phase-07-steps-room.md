@@ -101,5 +101,37 @@ message, never a local tally.
 screen becomes state-driven — it reads `game_start` from the context of
 7.1, and its progress is data, not a handle.
 
+The handle goes because it is unnecessary, not because it is unfashionable.
+Progress is a function of two things — how long we have waited, and whether the
+round has arrived — and neither needs one component to reach into another. It is
+`progressAt(elapsedMs, arrived)`, tested as arithmetic: it never runs backwards,
+never leaves the scale, and **never passes 85% on its own**, because a bar that
+reaches 100% before the article does is a bar that has lied.
+
+Three decisions taken while writing it:
+
+- **The screen decides when it is finished.** It stays mounted after
+  `game_start` arrives, fills its bar, and then announces that it is done. That
+  is what replaces `ref.ready(data)`: the lobby no longer reaches in to end it.
+- **It hands over exactly once.** A handle invoked twice pushes a player into a
+  round they are already in; a test re-renders and advances the clock four times
+  over and asserts one handover.
+- **One screen for solo and multiplayer.** What differs is who decides `ready` —
+  a socket message in one, a resolved request in the other — and that is not this
+  component's business. It is what lets 7.8 wire solo through the same screen
+  without a second copy.
+
+C3.7 is honoured on the way: an `error` with `generation_failed` puts the room
+back in the lobby, because the server already has. Without it the screen waits
+for an article that is not coming, which is the state the current server leaves
+it in.
+
 **Done when**: no more `forwardRef` or handle, and the screen leads into
 the round in solo as in multiplayer.
+
+Two of the tests check the shape of the file rather than its behaviour, which is
+unusual enough to justify: this phase's own pitfall list names "the temptation to
+port the handle just for now", and a rule nobody can enforce is a rule that comes
+back. They assert the calls are absent and that neither name is imported — the
+bare words appear in the file's comment explaining why it uses neither, which is
+how the first version of that test failed.

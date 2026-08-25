@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — four steps done |
+| **State** | in progress — five steps done |
 | **Branch** | `feat/rewrite-phase-7` |
 | **Depends on** | phases 4, 5 and 6 |
 | **Delivers** | the whole pre-round in Next.js, and a playable solo game |
@@ -39,7 +39,7 @@ Definitions: `phase-07-steps-entry.md`.
 |---|---|---|
 | 7.3 | Waiting room | ✅ done |
 | 7.4 | Theme voting | ✅ done |
-| 7.5 | Generation screen | to do |
+| 7.5 | Generation screen | ✅ done |
 
 Definitions: `phase-07-steps-room.md`.
 
