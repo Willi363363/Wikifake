@@ -77,12 +77,24 @@ export const usageResponse = z.object({
     perGeneratedGame,
     cacheHitRate: z.number().min(0).max(1),
   }),
-  cache: z.object({
-    categories: z.number().int().min(0),
-    articles: z.number().int().min(0),
-    maxCategories: z.number().int().min(1),
-    variantsPerCategory: z.number().int().min(1),
-    ttlSeconds: z.number().int().min(1),
-  }),
+  /**
+   * What the cache holds, or `null` when it did not answer.
+   *
+   * Nullable because an outage is not an empty cache. The current cache is a
+   * dictionary in the process, so it always answers; the shared one can be
+   * unreachable, and phase 3 went out of its way to keep `unavailable` distinct
+   * from a miss for exactly this reason. Serving `articles: 0` instead would
+   * read as "the cache is empty, generation is expensive" — a wrong answer to
+   * the one question this endpoint exists to settle.
+   */
+  cache: z
+    .object({
+      categories: z.number().int().min(0),
+      articles: z.number().int().min(0),
+      maxCategories: z.number().int().min(1),
+      variantsPerCategory: z.number().int().min(1),
+      ttlSeconds: z.number().int().min(1),
+    })
+    .nullable(),
 });
 export type UsageResponse = z.infer<typeof usageResponse>;

@@ -45,7 +45,7 @@ Nine routes. A `GET` takes no body.
     - `inputTokens` — number (≥ 0)
     - `outputTokens` — number (≥ 0)
   - `cacheHitRate` — number (0–1)
-- `cache` — object
+- `cache` — object | null
   - `categories` — integer (≥ 0)
   - `articles` — integer (≥ 0)
   - `maxCategories` — integer (≥ 1)

@@ -15,6 +15,7 @@ import type { RoundDependencies } from './round.js';
 import type { SessionContext } from './session.js';
 import type { StartContext } from './start.js';
 import type { SubmitContext } from './submit.js';
+import type { UsageContext } from './usage.js';
 
 let connection: ReturnType<typeof connectFromEnv> | undefined;
 let generation: RoundDependencies | undefined;
@@ -32,6 +33,11 @@ export function sessionContext(): SessionContext {
 /** What grading a round needs on top of that: the clock, as a parameter. */
 export function submitContext(): SubmitContext {
   return { ...sessionContext(), now: () => new Date() };
+}
+
+/** What reporting the spend needs: the rows, and the cache to ask for its size. */
+export function usageContext(): UsageContext {
+  return { db: db(), cache: articleCache(loadEnv()) };
 }
 
 /** What starting a round needs on top of that: a cache, a model, Wikipedia. */
