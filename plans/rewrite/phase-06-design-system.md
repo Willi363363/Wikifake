@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | in progress — one step done |
 | **Branch** | `feat/rewrite-phase-6` |
 | **Depends on** | phase 1 |
 | **Delivers** | `packages/ui`: theme, primitives, animations, token component |
@@ -28,11 +28,41 @@ responsiveness and accessibility.
 
 ## Steps
 
-### 6.1 — Tailwind v4 theme
+### 6.1 — Tailwind v4 theme ✅
 
 The tokens of `tokens.css` transcribed into the theme: palette, five
 accents, shadows, radii. A dark variant of the tokens — dark mode is one of
 the non-negotiable additions.
+
+Five decisions taken while writing it:
+
+- **`@theme static`, not `@theme`.** Tailwind emits only the theme variables it
+  can see a utility using. For an application that is right; for a design system
+  it is a trap, because a colour read through `var(--color-…)` — a swatch built
+  from a name, a component picking its colour at runtime — is invisible to it.
+  Not hypothetical: the first build of this theme shipped **eight colours out of
+  twenty-two**, and the failure was a transparent swatch rather than an error.
+- **The theme does not import Tailwind.** `packages/ui` ships tokens and no
+  framework; the application assembles the two, in the order it chooses.
+  Importing the framework from inside the theme gives every consumer a copy of
+  Tailwind's layers in an order it did not pick.
+- **Dark mode follows a class as well as the system preference.** The gallery
+  has to show both palettes at once, which `prefers-color-scheme` alone cannot
+  do: it is one global answer per machine, and half of what this phase delivers
+  is the comparison.
+- **The gallery renders the package's own lists.** A gallery edited by hand
+  whenever a token is added stops being complete on the first token somebody
+  forgets. `tokens.ts` is the list, `theme.test.ts` holds it to the stylesheet,
+  and "every token is shown" is true by construction.
+- **The dark palette is a translation of the same roles**, not a second
+  identity: warm paper becomes warm dark, the ink inverts, the five accents are
+  lightened just enough to stay legible. The corners do not move — they are
+  geometry, not light — and the elevations do, because a light haze is invisible
+  on a dark ground.
+
+This step also gives the application its first page: until now `apps/web` served
+routes and nothing else, so `app/layout.tsx` is new. It carries `lang="fr"`
+(C6.3) and nothing else — the screens are phases 7 and 8.
 
 **Done when**: every token of `tokens.css` has its named equivalent in the
 theme, and a gallery page renders the palette in both modes.

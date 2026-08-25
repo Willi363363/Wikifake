@@ -1,0 +1,19 @@
+/*
+ * The stylesheet the application assembles.
+ *
+ * Tailwind first, then the theme — `packages/ui` ships tokens and no framework,
+ * so the order is decided here rather than inherited from an import three files
+ * deep.
+ *
+ * `@source` is what Tailwind scans for class names. It defaults to the tree
+ * around this file, which would miss both the components under `src/` and,
+ * later, the design system's own — a utility used only there would be absent
+ * from the build and the failure would be an unstyled component rather than an
+ * error.
+ */
+@import 'tailwindcss';
+@import '@wikifake/ui/theme.css';
+
+@source '../app';
+@source '../src';
+@source '../../../packages/ui/src';
