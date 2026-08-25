@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress |
+| **State** | done — exit gate passed |
 | **Branch** | `feat/rewrite-phase-4` |
 | **Depends on** | phase 3 |
 | **Delivers** | the solo game's REST API and Better Auth, guests included |
@@ -53,7 +53,7 @@ Definitions: `phase-04-steps-accounts.md`.
 | 4.6 | `POST /api/game/submit` | ✅ done |
 | 4.7 | `GET /api/usage` | ✅ done |
 | 4.8 | `POST /api/multiplayer/create` | ✅ done |
-| 4.9 | `POST /api/flag-report` | to do |
+| 4.9 | `POST /api/flag-report` | ✅ done |
 
 Definitions: `phase-04-steps-game.md`.
 
@@ -64,12 +64,17 @@ the moment it is written.
 
 ## Exit gate
 
-- All the §3.1 invariants (server authority) on solo, tested through the
-  API.
-- `/api/health` contract preserved field by field; `/ping` responds exactly
+- ✅ All the §3.1 invariants (server authority) on solo, tested through the
+  API — **except C1.5**, which is unreachable in solo: `HINT_LOCK` and
+  `SCORE_STEAL` are cast by a rival and there is none. Both are proved as rules
+  in `@wikifake/domain`; the transport that lets a rival cast them is phase 5,
+  and that is where they get their API-level test.
+- ✅ `/api/health` contract preserved field by field; `/ping` responds exactly
   `{"status": "alive"}`.
-- A guest game attaches to an account created afterwards.
-- A solo game plays end to end through the API, without UI.
+- ✅ A guest game attaches to an account created afterwards.
+- ✅ A solo game plays end to end through the API, without UI —
+  `apps/web/src/game/journey.test.ts`, with and without an account, every
+  request served by a context built from scratch.
 
 ## Contract touched
 

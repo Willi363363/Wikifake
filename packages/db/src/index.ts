@@ -17,6 +17,12 @@ export {
 export { createGame } from './queries/start.js';
 export { insertRoom, selectOpenRoomCount, selectRoom } from './queries/rooms.js';
 export {
+  insertFlagReport,
+  selectFlagReport,
+  selectFlagReportsFor,
+} from './queries/flags.js';
+export type { NewFlagReport } from './queries/flags.js';
+export {
   recordHintPurchase,
   recordScan,
   recordSubmission,
