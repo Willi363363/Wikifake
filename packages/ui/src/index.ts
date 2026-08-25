@@ -9,6 +9,23 @@ export type { ColourToken, TokenGroup } from './tokens.js';
 export { MOTIONS, REDUCIBLE } from './motion.js';
 export type { Motion, MotionKind } from './motion.js';
 
+export {
+  auditContrast,
+  contrastRatio,
+  CONTRAST_PAIRS,
+  gradeOf,
+  over,
+  parseColour,
+  relativeLuminance,
+} from './contrast.js';
+export type {
+  ContrastGrade,
+  ContrastPair,
+  ContrastResult,
+  ReadColour,
+  Rgba,
+} from './contrast.js';
+
 export { cn } from './cn.js';
 
 export { Button, buttonVariants } from './primitives/button.js';
@@ -44,11 +61,22 @@ export {
 } from './token/state.js';
 export type { TokenFacts, TokenState } from './token/state.js';
 
-/** Every component, by name. The gallery renders this, and a test holds it. */
+/**
+ * Every component this package exports, by name.
+ *
+ * The gallery renders each of these, and `page.test.ts` derives the same list
+ * from the module's own exports — so a component added here and forgotten in the
+ * gallery fails, and so does one exported and never listed.
+ */
 export const PRIMITIVES: readonly string[] = [
   'Badge',
   'Button',
   'Dialog',
+  'DialogClose',
+  'DialogContent',
+  'DialogDescription',
+  'DialogTitle',
+  'DialogTrigger',
   'Input',
   'Label',
   'ParagraphToken',

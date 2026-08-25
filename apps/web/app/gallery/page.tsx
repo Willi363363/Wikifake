@@ -14,6 +14,7 @@ import {
   Button,
   COLOUR_TOKENS,
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogTitle,
@@ -27,6 +28,7 @@ import {
 } from '@wikifake/ui';
 import type { ColourToken, TokenGroup } from '@wikifake/ui';
 
+import { ContrastAudit } from './contrast.js';
 import { MotionGallery } from './motion.js';
 import { TokenGallery } from './token.js';
 
@@ -202,6 +204,13 @@ function Primitives() {
               <Label htmlFor="gallery-report">What is wrong</Label>
               <Input id="gallery-report" />
             </div>
+            <div className="mt-4 flex justify-end">
+              {/* The dismiss a caller writes, as opposed to the one the sheet
+                  draws in its corner. */}
+              <DialogClose asChild>
+                <Button variant="ghost">Cancel</Button>
+              </DialogClose>
+            </div>
           </DialogContent>
         </Dialog>
       </section>
@@ -223,6 +232,21 @@ export default function GalleryPage() {
         <Palette />
         <div className="dark flex-1">
           <Palette />
+        </div>
+      </div>
+
+      <h2 className="mt-12 text-lg font-medium text-ink">Contrast</h2>
+      <p className="mt-2 max-w-prose text-sm text-muted">
+        Measured from what the browser painted, in both palettes. The three pairs below
+        3:1 in the light column are the current game&rsquo;s colours, transcribed — see
+        step 6.6.
+      </p>
+      <div className="mt-4 flex flex-col gap-6 lg:flex-row">
+        <div className="flex-1">
+          <ContrastAudit />
+        </div>
+        <div className="dark flex-1">
+          <ContrastAudit />
         </div>
       </div>
 
