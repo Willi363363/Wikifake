@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — three steps done |
+| **State** | in progress — four steps done |
 | **Branch** | `feat/rewrite-phase-5` |
 | **Depends on** | phase 4 |
 | **Delivers** | `apps/realtime`: the complete multiplayer, multi-instance |
@@ -41,12 +41,18 @@ Definitions: `phase-05-steps-transport.md`.
 
 | # | Step — the rules over the wire | State |
 |---|---|---|
-| 5.4 | BullMQ timers | to do |
+| 5.4 | BullMQ timers | ✅ done |
 | 5.5 | Reconnection | to do |
 | 5.6 | Hardening client messages | to do |
 | 5.7 | Host authority and room end | to do |
+| 5.8 | The article pipeline | to do |
 
 Definitions: `phase-05-steps-rules.md`.
+
+5.8 was not in the original plan and is not a change of scope: `generate_article`
+is an effect the reducer emits and nothing in this service answers, so a round
+cannot start at all. Written down when 5.4 found it, rather than absorbed into
+whichever step noticed it last.
 
 5.1 creates `apps/realtime` itself — phase 0 left the `apps/` tree "empty but
 declared" — so it comes first whatever else is urgent. 5.2 and 5.3 come

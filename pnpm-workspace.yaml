@@ -6,6 +6,11 @@ packages:
 # esbuild compiles its native binary, and vitest depends on it.
 allowBuilds:
   esbuild: true
+  # A native accelerator for `msgpackr`, which BullMQ uses to encode job data.
+  # Optional by design: msgpackr falls back to its JavaScript path, and a queue
+  # holding a handful of room timers has nothing to accelerate. Refused rather
+  # than allowed, because a build script is a build script.
+  msgpackr-extract: false
 
 # Exempted from the release-age gate, deliberately and reluctantly.
 #

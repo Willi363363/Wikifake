@@ -16,7 +16,9 @@
     "@wikifake/domain": "workspace:*",
     "@wikifake/env": "workspace:*",
     "@wikifake/protocol": "workspace:*",
+    "bullmq": "6.1.2",
     "hono": "4.13.3",
+    "ioredis": "^5.11.1",
     "redis": "^6.2.1",
     "ws": "8.21.3"
   },

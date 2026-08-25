@@ -30,7 +30,7 @@ previous one unless its file says otherwise.
 | 2 | Data — Drizzle and Postgres | **in progress** | `rewrite/phase-02-data.md` |
 | 3 | Article — Wikipedia and model | **in progress** — seven steps done | `rewrite/phase-03-article.md` |
 | 4 | API and authentication | **done** | `rewrite/phase-04-api-and-auth.md` |
-| 5 | Realtime — WebSocket and Redis | **in progress** — three steps done | `rewrite/phase-05-realtime.md` |
+| 5 | Realtime — WebSocket and Redis | **in progress** — four steps done | `rewrite/phase-05-realtime.md` |
 | 6 | Design system | to do | `rewrite/phase-06-design-system.md` |
 | 7 | Frontend — lobby and waiting room | to do | `rewrite/phase-07-frontend-lobby.md` |
 | 8 | Frontend — the round | to do | `rewrite/phase-08-frontend-round.md` |

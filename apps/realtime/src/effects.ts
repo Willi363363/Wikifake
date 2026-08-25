@@ -11,11 +11,11 @@
 // message for the instance that produced it, or need a marker that whoever
 // touches this next has to remember.
 //
-// Two of the six effects belong to steps that do not exist yet —
-// `generate_article` needs the article pipeline, `arm_timer` and `cancel_timer`
-// need BullMQ — and `close_room` is carried by the store, which deletes the key
-// under the same revision guard. Handing those on rather than ignoring them is
-// the difference between a seam and a silent hole.
+// Three of the six effects are carried elsewhere: `close_room` by the store,
+// which deletes the key under the same revision guard, and the two timers by the
+// scheduler of 5.4 — an alarm is Redis's business, not the room's. One is still
+// nobody's, `generate_article`, and it is handed on rather than dropped so the
+// gap is a fact a test can assert on.
 import type { RoomEffect } from '@wikifake/domain';
 import type { OutgoingMessage } from '@wikifake/protocol';
 
@@ -51,8 +51,8 @@ export interface Publisher {
   readonly bus: Bus;
   readonly namespace: string;
   /**
-   * Effects this service has nowhere to send. Step 5.4 takes the timers, and
-   * the article pipeline takes `generate_article`.
+   * Effects this service has nowhere to send — `generate_article`, and only it
+   * since 5.4 took the timers.
    *
    * Called rather than logged, so the gap is a fact a test can assert on.
    */
@@ -92,14 +92,19 @@ export async function publish(
         );
         break;
 
-      // Carried by the store, which deletes the key under the revision the
-      // decision was taken against. Nothing to send.
+      // Carried elsewhere, and nothing crosses the channel for any of them:
+      // `close_room` by the store, which deletes the key under the revision the
+      // decision was taken against, and the two timers by the scheduler — an
+      // alarm is Redis's business, not the room's.
       case 'close_room':
-        break;
-
-      case 'generate_article':
       case 'arm_timer':
       case 'cancel_timer':
+        break;
+
+      // The article pipeline is not wired to this service yet, and no step has
+      // claimed it — see 5.8 in `phase-05-steps-rules.md`. Handed on rather than
+      // dropped, so the gap is a fact a test can assert on.
+      case 'generate_article':
         publisher.onUnhandled?.(roomCode, effect);
         break;
     }

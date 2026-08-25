@@ -50,11 +50,25 @@ function raw(socket: WebSocket): { pause(): void; resume(): void } | undefined {
  * Exported because a test often waits on something the *server* did — a frame
  * reaching the handler — rather than on something it received. Sleeping for "long
  * enough" instead is the same bug with a slower failure.
+ *
+ * @param timeoutMs raise it for a suite whose first request pays a warm-up:
+ * BullMQ connects and loads its Lua scripts on the first alarm, which is seconds
+ * once and milliseconds afterwards.
  */
-export async function until(condition: () => boolean, what: string): Promise<void> {
-  const deadline = Date.now() + TIMEOUT_MS;
+export async function until(
+  condition: () => boolean,
+  what: string | (() => string),
+  timeoutMs = TIMEOUT_MS,
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
   while (!condition()) {
-    if (Date.now() > deadline) throw new Error(`timed out waiting for ${what}`);
+    if (Date.now() > deadline) {
+      // Described lazily, so a failure can say what the state actually was
+      // rather than only what it was supposed to become.
+      throw new Error(
+        `timed out waiting for ${typeof what === 'string' ? what : what()}`,
+      );
+    }
     await new Promise((resolve) => setTimeout(resolve, 5));
   }
 }
