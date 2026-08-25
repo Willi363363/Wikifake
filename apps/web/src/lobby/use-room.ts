@@ -118,6 +118,13 @@ export function useRoom(nickname: string | null): RoomView {
     // agrees with it.
     if (message.type === 'error') {
       setRefusal({ code: message.code, message: message.message });
+      // C3.7 — every candidate failed and the server put the room back in the
+      // lobby. Without this the screen waits for an article that is not coming,
+      // which is the state the current server leaves it in.
+      if (message.code === 'generation_failed') {
+        setPhase('lobby');
+        setElected(null);
+      }
     }
   });
 

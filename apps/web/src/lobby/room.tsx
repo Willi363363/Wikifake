@@ -14,8 +14,9 @@
 // wants a protocol change, and this is not the step for one.
 import { DEFAULT_TIME_LIMIT_SECONDS } from '@wikifake/protocol';
 import { Badge, Button, Separator } from '@wikifake/ui';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import { GenerationScreen } from './generation.js';
 import { HostSettings } from './host-settings.js';
 import { PlayerList } from './player-list.js';
 import { ThemeVote } from './theme-vote.js';
@@ -37,6 +38,15 @@ export function Room({ roomCode, nickname }: RoomProps) {
 
   const everyoneReady =
     room.players.length > 0 && room.players.every((player) => player.ready);
+
+  // Whether the player has been handed over to the round. The generation screen
+  // sets it when its bar has finished, and a new generation clears it.
+  const [entered, setEntered] = useState(false);
+  useEffect(() => {
+    if (room.phase === 'generating') setEntered(false);
+  }, [room.phase]);
+
+  const generating = room.phase === 'generating' || (room.phase === 'round' && !entered);
 
   /** The host's options ride with every `set_ready`, as the protocol allows. */
   const declare = (
@@ -81,21 +91,26 @@ export function Room({ roomCode, nickname }: RoomProps) {
         />
       ) : null}
 
-      {room.phase === 'generating' ? (
-        // Step 7.5 replaces this with the generation screen and its minigames.
-        // What it says now is the one thing the criterion of 7.4 is about: the
-        // topic on screen is the server's, not a tally.
+      {/*
+        The generation screen outlives the arrival of the round on purpose: it
+        stays until it says it is done, so the bar is seen to fill. That is what
+        replaces the imperative handle — the screen decides when it is finished,
+        rather than the lobby reaching in to finish it.
+      */}
+      {generating ? (
+        <GenerationScreen
+          topic={room.elected?.topic ?? ''}
+          proposer={room.elected?.proposer ?? null}
+          ready={room.phase === 'round'}
+          onEnter={() => {
+            setEntered(true);
+          }}
+        />
+      ) : null}
+
+      {room.phase === 'round' && entered ? (
         <div className="rounded-xl border border-line bg-surface p-6 text-center shadow-md">
-          <p className="text-xs tracking-widest text-muted uppercase">Topic</p>
-          <p className="mt-1 text-xl text-ink">{room.elected?.topic}</p>
-          <p className="mt-2 text-sm text-muted">
-            {room.elected?.proposer === null
-              ? 'drawn by the server'
-              : `proposed by ${room.elected?.proposer ?? ''}`}
-          </p>
-          <p className="mt-4 text-sm text-muted">
-            The generation screen arrives in step 7.5.
-          </p>
+          <p className="text-sm text-muted">The round is phase 8.</p>
         </div>
       ) : null}
 
