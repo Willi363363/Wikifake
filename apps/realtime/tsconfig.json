@@ -1,0 +1,10 @@
+{
+  "extends": "@wikifake/config/tsconfig.base.json",
+  "include": ["src/**/*.ts", "*.config.ts"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "types": ["node"]
+  }
+}

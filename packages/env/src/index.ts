@@ -53,6 +53,20 @@ const schema = z.object({
   /** Where the app answers. OAuth redirect URIs are built from it. */
   BETTER_AUTH_URL: z.url().default('http://localhost:3000'),
 
+  /**
+   * Which origins the realtime service accepts sockets from — phase 5.
+   *
+   * A comma-separated list. Optional, and the service falls back to
+   * `BETTER_AUTH_URL`: the web app is the only legitimate origin, and a
+   * deployment that has not thought about it should accept its own app rather
+   * than everything. Preview deployments and a second domain are what the list
+   * is for.
+   *
+   * Declared here rather than read raw in the service, so a typo in the variable
+   * name fails at startup like every other one.
+   */
+  REALTIME_ALLOWED_ORIGINS: z.string().min(1).optional(),
+
   // Social sign-in, per provider, both halves or neither. Optional because the
   // game must stay playable — and developable — without any provider
   // configured: `providers.ts` turns on exactly the ones whose credentials are
