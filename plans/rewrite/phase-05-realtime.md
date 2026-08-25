@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — one step done |
+| **State** | in progress — two steps done |
 | **Branch** | `feat/rewrite-phase-5` |
 | **Depends on** | phase 4 |
 | **Delivers** | `apps/realtime`: the complete multiplayer, multi-instance |
@@ -59,11 +59,33 @@ Left for phase 9: the service runs through `tsx` and has no build step.
 homonym refused, frame beyond 64,000 characters → close 1009, nickname with
 a space accepted through the encoded URL.
 
-### 5.2 — Room state in Redis
+### ✅ 5.2 — Room state in Redis
 
 The pure reducer from `packages/domain` decides, a Lua script applies the
 transition atomically. No instance holds the truth: no room structure lives
 in process memory.
+
+Three decisions taken while writing it:
+
+- **The script is a compare-and-set, not a reducer.** It holds one `if`, and
+  it compares two integers — the phase's first pitfall says a business `if` in
+  Lua is a sign of drift. Two instances that both read revision 7 do not need
+  a lock: one commits 8, the other is told 7 is gone and decides again against
+  8. A read-modify-write without the compare loses one of the two silently.
+- **The idle TTL is a fact about the data, not a job.** Every commit refreshes
+  `PEXPIRE` with `ROOM_IDLE_LIMIT_SECONDS` — the number step 4.8 already reads
+  for the room cap. The BullMQ job of 5.4 announces the closure; this makes
+  sure the state is gone even when it never runs.
+- **Delivery is to the sockets this instance holds.** The naive version, on
+  purpose: it is what a single-instance deployment needs, and 5.3 replaces it
+  with a channel per room. Until then a room split across two instances hears
+  half of itself. The effects this step cannot carry — `generate_article` and
+  the timers — are handed to a callback rather than dropped, so the gap is
+  something a test asserts on rather than something a reader has to notice.
+
+A socket is registered **before** its own `join` is committed, which is what
+stops two homonyms racing from both getting in. The visible consequence: a
+player's first `lobby_update` may be somebody else's join, not their own.
 
 **Done when**: on a local Redis, two concurrent transitions on the same
 room are not lost, and the state re-read after every event is exactly the

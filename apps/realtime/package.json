@@ -17,6 +17,7 @@
     "@wikifake/env": "workspace:*",
     "@wikifake/protocol": "workspace:*",
     "hono": "4.13.3",
+    "redis": "^6.2.1",
     "ws": "8.21.3"
   },
   "devDependencies": {

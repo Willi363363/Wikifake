@@ -8,19 +8,18 @@
 // not belong here — it moves to Redis in 5.2, and a `handle` that starts
 // remembering things between frames is the drift this phase is written to avoid.
 import { serve, type ServerType } from '@hono/node-server';
-import {
-  healthApi,
-  type ErrorCode,
-  type IncomingMessage as Incoming,
-} from '@wikifake/protocol';
+import { healthApi, type ErrorCode } from '@wikifake/protocol';
+import type { RoomEffect } from '@wikifake/domain';
 import { Hono } from 'hono';
 import { WebSocketServer, type WebSocket } from 'ws';
 import type { IncomingMessage } from 'node:http';
 
 import { createRegistry, type Connection, type Registry } from './connections.js';
+import { deliver } from './effects.js';
 import { readFrame, CLOSE_MESSAGE_TOO_BIG, CLOSE_POLICY_VIOLATION } from './frames.js';
 import { readHandshake } from './handshake.js';
 import type { OriginPolicy } from './origins.js';
+import type { RoomStore } from './rooms/store.js';
 
 export interface ServiceOptions {
   readonly origins: OriginPolicy;
@@ -31,18 +30,20 @@ export interface ServiceOptions {
    */
   roomExists(roomCode: string): Promise<boolean>;
   /**
-   * What to do with a message the transport accepted.
+   * Where the room's state lives. Redis, since 5.2 — never this process.
    *
-   * Receives a decoded message, never a frame: everything a frame can be other
-   * than a message is a transport concern and is dealt with before this is
-   * called. A handler that had to ask "was this readable" would be a second
-   * place implementing C5.3.
-   *
-   * Step 5.2 plugs the reducer in here. It is a parameter rather than a `TODO`
-   * because the seam is the point — the transport is finished before the rules
-   * arrive, and stays finished.
+   * Injected for the same reason as everything else here: a transport that
+   * opened its own connection would be a transport nobody can test without one.
    */
-  onMessage?: (connection: Connection, message: Incoming) => void;
+  readonly rooms: RoomStore;
+  /**
+   * Effects this service cannot carry yet — `generate_article` and the timers.
+   *
+   * Steps 5.3 and 5.4 take them. A callback rather than a silent drop, so the
+   * gap is something a test can assert on rather than something a reader has to
+   * notice.
+   */
+  onUnhandled?: (roomCode: string, effect: RoomEffect) => void;
 }
 
 export interface Service {
@@ -51,6 +52,19 @@ export interface Service {
   close(): Promise<void>;
   /** The sockets this instance holds. Read by the tests, and by 5.3. */
   readonly connections: Registry;
+}
+
+/**
+ * A rejection the rules could not be asked about.
+ *
+ * Reaching Redis can fail, and a player whose message vanished into a rejected
+ * promise is a player watching a lobby that never updates. They are told, and
+ * the socket survives — the same treatment a malformed frame gets.
+ */
+function apologise(connection: Connection, code: ErrorCode): void {
+  connection.send(
+    JSON.stringify({ type: 'error', code, message: 'The room could not be reached.' }),
+  );
 }
 
 /** A typed refusal, sent before the close so the client knows why (C5.1). */
@@ -110,6 +124,29 @@ export function createService(options: ServiceOptions): Service {
     };
     connections.add(connection);
 
+    // Every event goes through the store: read, decide, commit. Nothing about
+    // the room is remembered here between one frame and the next, which is what
+    // makes a second instance safe.
+    const settle = async (event: Parameters<RoomStore['apply']>[1]): Promise<void> => {
+      try {
+        const applied = await options.rooms.apply(roomCode, event);
+        deliver(
+          {
+            connections,
+            ...(options.onUnhandled === undefined
+              ? {}
+              : { onUnhandled: options.onUnhandled }),
+          },
+          roomCode,
+          applied.effects,
+        );
+      } catch {
+        apologise(connection, 'room_not_found');
+      }
+    };
+
+    await settle({ kind: 'join', player: playerName });
+
     socket.on('message', (data: Buffer) => {
       const frame = readFrame(data.toString('utf8'));
 
@@ -135,12 +172,15 @@ export function createService(options: ServiceOptions): Service {
           return;
 
         case 'message':
-          options.onMessage?.(connection, frame.message);
+          void settle({ kind: 'message', from: playerName, message: frame.message });
       }
     });
 
     socket.on('close', () => {
       connections.remove(connection);
+      // The registry first: a `leave` that broadcasts must not try to send to
+      // the socket that has just gone.
+      void settle({ kind: 'leave', player: playerName });
     });
   }
 
