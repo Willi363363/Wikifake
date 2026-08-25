@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | in progress — one step done |
 | **Branch** | `feat/rewrite-phase-7` |
 | **Depends on** | phases 4, 5 and 6 |
 | **Delivers** | the whole pre-round in Next.js, and a playable solo game |
@@ -25,13 +25,44 @@ laying them down twice.
 
 ## Steps
 
-### 7.1 — Client WebSocket context
+### 7.1 — Client WebSocket context ✅
 
 Today the socket is created by `useRoomConnection`, survives the round, and
 travels as a prop (`ws={socket}`) from component to component. It becomes a
 React provider mounted in the client layout of the `(game)` group:
 connection, token-based reconnection (phase 6), messages typed by
 `packages/protocol`, a single consumption hook.
+
+Five decisions taken while writing it:
+
+- **The provider knows nothing about routing.** It takes a room code and a
+  nickname and owns a socket; a separate `RoomGate` reads them from the URL and
+  from `sessionStorage`. That is what makes the connection testable without a
+  router, and it is the seam every later step plugs into.
+- **The nickname lives in `sessionStorage`, beside the token.** Same lifetime,
+  same tab. It is what the player typed on the entry screen, not something the
+  URL carries, and a refresh mid-game must not cost them their seat.
+- **`sessionStorage`, not `localStorage`, for the token.** "As long as the tab
+  lives" is exactly what `sessionStorage` means. In `localStorage` a tab opened
+  tomorrow could reclaim a seat from last week, and two tabs would share one
+  token and fight over the same nickname.
+- **A refusal is final; a network drop is not.** Close 1008 carries the server's
+  reason — `name_taken`, `room_not_found` — and retrying it produces the same
+  answer for ever. Anything else is retried after a second, comfortably inside
+  D5's thirty-second window.
+- **Messages are dropped rather than queued while the socket is down.** Every
+  message this client sends is about the room as it is *now*, and a `set_ready`
+  delivered after a reconnection is about a room that has moved on.
+
+**Bug 2.1.10 is fixed here** rather than in 7.2, because this is the only place
+a socket URL is built: the nickname is percent-encoded, so "Jean Dupont"
+connects. The server's own schema has always allowed the space.
+
+`NEXT_PUBLIC_REALTIME_URL` is new. The current client connects to
+`window.location.host`, which works only because a dev proxy forwards `/ws` to
+the backend; the rewrite deploys the app and the socket service to two
+platforms, so the address is a deployment fact. Left empty it falls back to the
+page's own host, which is what a single-origin development setup wants.
 
 **Done when**: no component receives the socket as a prop any more, and a
 lobby → round navigation does not reopen the connection.
