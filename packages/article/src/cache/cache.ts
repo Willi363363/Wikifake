@@ -10,7 +10,7 @@
 // nothing, and replaying the tokens of the generation that filled the entry would
 // inflate `perGeneratedGame` by however often the entry was reused — the exact
 // dilution C4.6 exists to prevent.
-import { articleView, falsifiedPosition } from '@wikifake/protocol';
+import { articleView } from '@wikifake/protocol';
 import { z } from 'zod';
 
 import {
@@ -24,6 +24,7 @@ import {
   VARIANTS_PER_CATEGORY,
 } from './keys.js';
 import { ENTRY_SEPARATOR, GET_SCRIPT, PUT_SCRIPT, STATS_SCRIPT } from './scripts.js';
+import { storedPosition } from '../solution.js';
 
 /**
  * The one Redis command this package needs.
@@ -45,10 +46,16 @@ export interface RedisCommands {
   ): Promise<unknown>;
 }
 
-/** What an entry holds: the round, without what it cost. */
+/**
+ * What an entry holds: the round, without what it cost.
+ *
+ * `storedPosition`, so a game replayed from the cache is recorded with the same
+ * columns as a freshly generated one — including the paragraph the model
+ * replaced, which `game_position.original_text` requires.
+ */
 const cachedArticle = z.object({
   article: articleView,
-  solution: z.array(falsifiedPosition).min(1),
+  solution: z.array(storedPosition).min(1),
   html: z.string().min(1),
 });
 

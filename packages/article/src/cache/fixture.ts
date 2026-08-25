@@ -21,6 +21,7 @@ export function cachedArticle(variant: string): CachedArticle {
         paragraphIndex: 1,
         falseInfoNumber: 1,
         falseStatement: `Le chocolat est un aliment — variante ${variant}.`,
+        originalText: 'Le chocolat est un aliment issu de la fève de cacao.',
         explanation: `La vérité de la variante ${variant}.`,
         hint: 'Vérifiez cette date.',
       },
