@@ -9,7 +9,7 @@
 // remembering things between frames is the drift this phase is written to avoid.
 import { serve, type ServerType } from '@hono/node-server';
 import { healthApi, type ErrorCode } from '@wikifake/protocol';
-import type { RoomEffect } from '@wikifake/domain';
+import { ROOM_IDLE_LIMIT_SECONDS, type RoomEffect } from '@wikifake/domain';
 import { Hono } from 'hono';
 import { WebSocketServer, type WebSocket } from 'ws';
 import type { IncomingMessage } from 'node:http';
@@ -21,6 +21,9 @@ import { readFrame, CLOSE_MESSAGE_TOO_BIG, CLOSE_POLICY_VIOLATION } from './fram
 import { readHandshake } from './handshake.js';
 import type { OriginPolicy } from './origins.js';
 import type { RoomStore } from './rooms/store.js';
+import { armFor } from './timers/arming.js';
+import type { Alarm, OnAlarm, Scheduler } from './timers/scheduler.js';
+import { drawWave, randomPick } from './timers/waves.js';
 
 export interface ServiceOptions {
   readonly origins: OriginPolicy;
@@ -50,6 +53,18 @@ export interface ServiceOptions {
   /** How much a socket may have queued before it is cut. Lowered by the tests. */
   readonly budgetBytes?: number;
   /**
+   * D4 — what makes a round end when nobody ends it.
+   *
+   * A factory rather than an instance: what an alarm does is settle an event
+   * against this service's own room, so the handler cannot exist before the
+   * service does. Closing it is the service's job in return.
+   */
+  readonly scheduler: (onAlarm: OnAlarm) => Scheduler;
+  /** How long a room with nothing happening in it survives. Shortened by tests. */
+  readonly idleSeconds?: number;
+  /** Which item a wave draws. Pinned by the tests; random in production. */
+  readonly pick?: (upperBound: number) => number;
+  /**
    * Effects this service cannot carry yet — `generate_article` and the timers.
    *
    * Steps 5.3 and 5.4 take them. A callback rather than a silent drop, so the
@@ -65,6 +80,15 @@ export interface Service {
   close(): Promise<void>;
   /** The sockets this instance holds. Read by the tests, and by 5.3. */
   readonly connections: Registry;
+  /**
+   * Settles an event that did not come from a socket.
+   *
+   * Two of the reducer's events arrive from outside the socket loop by design:
+   * `article_ready` and `article_failed`, which answer the `generate_article`
+   * effect. The pipeline that will send them is step 5.8; this is the door it
+   * comes through, and it is the same door an alarm uses.
+   */
+  settle(roomCode: string, event: Parameters<RoomStore['apply']>[1]): Promise<void>;
 }
 
 /**
@@ -89,6 +113,68 @@ function refuse(socket: WebSocket, code: ErrorCode, message: string): void {
 export function createService(options: ServiceOptions): Service {
   const connections = createRegistry();
   const namespace = options.namespace ?? 'wikifake:room';
+  const idleSeconds = options.idleSeconds ?? ROOM_IDLE_LIMIT_SECONDS;
+  const pick = options.pick ?? randomPick;
+
+  const publisher = {
+    bus: options.bus,
+    namespace,
+    ...(options.onUnhandled === undefined ? {} : { onUnhandled: options.onUnhandled }),
+  };
+
+  /**
+   * Settles an event and carries out everything that follows from it.
+   *
+   * Publish first, arm second. The players see the transition as soon as it is
+   * decided; the alarms it implies are Redis bookkeeping and nobody is waiting
+   * on them.
+   */
+  async function settle(
+    roomCode: string,
+    event: Parameters<RoomStore['apply']>[1],
+  ): Promise<void> {
+    const applied = await options.rooms.apply(roomCode, event);
+    await publish(publisher, roomCode, applied.effects);
+    await armFor({ scheduler, idleSeconds }, roomCode, applied.state, applied.effects);
+  }
+
+  /**
+   * What a fired alarm does.
+   *
+   * Each one becomes an event the reducer already understands, or — for an idle
+   * room — nothing at all: there is nobody left to tell, the state has expired
+   * with its key, and what is left to do is stop the other alarms ringing
+   * against a room somebody may rebuild under the same code.
+   */
+  const ring: OnAlarm = async (alarm: Alarm) => {
+    if (alarm.kind === 'room_idle') {
+      await scheduler.cancel(alarm.roomCode, 'round_end');
+      return;
+    }
+
+    if (alarm.kind === 'round_end') {
+      await settle(alarm.roomCode, { kind: 'timer_expired' });
+      return;
+    }
+
+    const wave = alarm.wave ?? 1;
+    const held = await options.rooms.read(alarm.roomCode);
+    // A wave for a round that is over is a wave nobody wants: the alarm outlived
+    // its round, which `cancel_timer` normally prevents and a crash does not.
+    if (held.state.phase !== 'round') return;
+
+    await settle(alarm.roomCode, {
+      kind: 'items_granted',
+      wave,
+      grants: drawWave(
+        held.state.players.map((player) => player.name),
+        wave,
+        pick,
+      ),
+    });
+  };
+
+  const scheduler = options.scheduler(ring);
 
   /**
    * One subscription per room, however many sockets this instance holds for it.
@@ -200,33 +286,32 @@ export function createService(options: ServiceOptions): Service {
     };
     connections.add(connection);
 
-    // Every event goes through the store: read, decide, commit. Nothing about
-    // the room is remembered here between one frame and the next, which is what
-    // makes a second instance safe.
-    const settle = async (event: Parameters<RoomStore['apply']>[1]): Promise<void> => {
-      try {
-        const applied = await options.rooms.apply(roomCode, event);
-        await publish(
-          {
-            bus: options.bus,
-            namespace,
-            ...(options.onUnhandled === undefined
-              ? {}
-              : { onUnhandled: options.onUnhandled }),
-          },
-          roomCode,
-          applied.effects,
-        );
-      } catch {
-        apologise(connection, 'room_not_found');
-      }
-    };
+    /**
+     * Every event for this socket, one after another.
+     *
+     * A chain rather than a set of independent promises, for two reasons. The
+     * join has to settle before anything a player sends is decided against the
+     * room — otherwise their first message is graded against a room they are not
+     * in yet. And frames must not be **dropped** while it does: the message
+     * handler is registered before the join is settled, so a client that sends
+     * the moment its socket opens is queued rather than ignored.
+     *
+     * That was not hypothetical. With the handler registered after the join, a
+     * suite whose first request paid a connection warm-up lost both of its
+     * `set_ready` frames, and the room simply never became ready.
+     */
+    let queued: Promise<void> = Promise.resolve();
 
-    // Listening before joining: a `lobby_update` published by this very join has
-    // to find a subscription already in place, or the player misses their own
-    // arrival.
-    await listen(roomCode);
-    await settle({ kind: 'join', player: playerName });
+    const enqueue = (event: Parameters<RoomStore['apply']>[1]): Promise<void> => {
+      queued = queued.then(async () => {
+        try {
+          await settle(roomCode, event);
+        } catch {
+          apologise(connection, 'room_not_found');
+        }
+      });
+      return queued;
+    };
 
     socket.on('message', (data: Buffer) => {
       const frame = readFrame(data.toString('utf8'));
@@ -253,9 +338,15 @@ export function createService(options: ServiceOptions): Service {
           return;
 
         case 'message':
-          void settle({ kind: 'message', from: playerName, message: frame.message });
+          void enqueue({ kind: 'message', from: playerName, message: frame.message });
       }
     });
+
+    // Listening before joining: a `lobby_update` published by this very join has
+    // to find a subscription already in place, or the player misses their own
+    // arrival.
+    await listen(roomCode);
+    await enqueue({ kind: 'join', player: playerName });
 
     socket.on('close', () => {
       // The registry first: a `leave` that broadcasts must not try to send to
@@ -263,7 +354,7 @@ export function createService(options: ServiceOptions): Service {
       // instance is still listening when the departure it caused comes back
       // round — a room it still holds other sockets for keeps hearing.
       connections.remove(connection);
-      void settle({ kind: 'leave', player: playerName }).finally(
+      void enqueue({ kind: 'leave', player: playerName }).finally(
         () => void stopListening(roomCode),
       );
     });
@@ -271,6 +362,7 @@ export function createService(options: ServiceOptions): Service {
 
   return {
     connections,
+    settle,
 
     listen(port) {
       return new Promise((resolve) => {
@@ -295,6 +387,9 @@ export function createService(options: ServiceOptions): Service {
     },
 
     async close() {
+      // The scheduler first: a worker that rings mid-teardown would settle an
+      // event against a store whose connection is on its way out.
+      await scheduler.close();
       for (const [, held] of listening) await held.stop();
       listening.clear();
 

@@ -12,6 +12,7 @@ import { createRedisBus } from './bus.js';
 import { createOriginPolicy, parseOrigins } from './origins.js';
 import { lazyRedis } from './redis.js';
 import { createRoomStore } from './rooms/store.js';
+import { createQueueScheduler } from './timers/queue.js';
 import { createService } from './server.js';
 
 const PORT = 8080;
@@ -34,6 +35,10 @@ const service = createService({
   // Every effect crosses this, even for a player connected to this very process:
   // one delivery path rather than two that have to agree.
   bus: createRedisBus(env.REDIS_URL),
+  // D4 — a round nobody ends, ends anyway. Delayed jobs rather than timeouts:
+  // a timeout dies with its process, and a redeployment would forget every
+  // round in flight.
+  scheduler: (onAlarm) => createQueueScheduler({ url: env.REDIS_URL, onAlarm }),
 });
 
 const port = Number(process.env['PORT'] ?? PORT);

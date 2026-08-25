@@ -15,6 +15,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 
 import { createLocalBus } from './bus.js';
 import { createOriginPolicy } from './origins.js';
+import { createLocalScheduler } from './timers/local.js';
 import { createRoomStore } from './rooms/store.js';
 import { createService, type Service } from './server.js';
 import { open, until, type Opened } from './testing/client.js';
@@ -66,6 +67,8 @@ describe.skipIf(url === null)('5.2 — a room over sockets', () => {
       // One instance, so the channel need not leave the process. Crossing
       // instances is `broadcast.test.ts`, over a real Redis.
       bus: createLocalBus(),
+      // Not about surviving a redeployment: `timers.test.ts` is.
+      scheduler: createLocalScheduler,
       namespace: NAMESPACE,
       onUnhandled: (roomCode, effect) => unhandled.push({ roomCode, effect }),
     });
