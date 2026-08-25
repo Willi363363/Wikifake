@@ -6,6 +6,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { createOriginPolicy } from './origins.js';
+import { createRoomStore, type RoomStore } from './rooms/store.js';
 import { createService, type Service, type ServiceOptions } from './server.js';
 import { open, until } from './testing/client.js';
 import {
@@ -13,28 +14,82 @@ import {
   CLOSE_POLICY_VIOLATION,
   MAX_FRAME_CHARS,
 } from './frames.js';
-import type { Connection } from './connections.js';
-import type { IncomingMessage } from '@wikifake/protocol';
+import type { RoomEvent } from '@wikifake/domain';
 
 const ROOM = 'A1B2C3';
 const APP = 'https://wikifake.example';
 
-interface Delivered {
-  readonly connection: Connection;
-  readonly message: IncomingMessage;
+/**
+ * A store that records what it was asked, and answers from memory.
+ *
+ * The store's own suite drives a real Redis; what this file is about is the
+ * transport, so it watches the events the transport produced rather than the
+ * rows they became.
+ */
+function recordingStore(): RoomStore & { readonly seen: RoomEvent[] } {
+  const seen: RoomEvent[] = [];
+  const inner = createRoomStore({ redis: memoryRedis(), namespace: 'transport-test' });
+
+  return {
+    seen,
+    read: (code) => inner.read(code),
+    apply: (code, event) => {
+      seen.push(event);
+      return inner.apply(code, event);
+    },
+  };
+}
+
+/**
+ * The two commands the store uses, over a `Map`.
+ *
+ * Not a stand-in for Redis — `store.test.ts` runs the scripts against the real
+ * one. This exists so the transport's suite needs no service at all: what it
+ * asserts is which events reached the rules, and that is true whatever holds
+ * the state.
+ */
+function memoryRedis() {
+  const rooms = new Map<string, { revision: number; state: string }>();
+
+  return {
+    hmGet: (key: string) => {
+      const held = rooms.get(key);
+      return Promise.resolve(
+        held === undefined ? [null, null] : [String(held.revision), held.state],
+      );
+    },
+    eval: (script: string, options: { keys: string[]; arguments: string[] }) => {
+      const key = options.keys[0] as string;
+      const held = rooms.get(key);
+      const revision = held?.revision ?? 0;
+      if (String(revision) !== options.arguments[0]) {
+        return Promise.resolve([0, String(revision)]);
+      }
+      if (script.includes('DEL')) {
+        rooms.delete(key);
+        return Promise.resolve([1, '0']);
+      }
+      rooms.set(key, { revision: revision + 1, state: options.arguments[1] as string });
+      return Promise.resolve([1, String(revision + 1)]);
+    },
+  };
 }
 
 describe('5.1 — the transport', () => {
   let service: Service;
   let port: number;
-  let delivered: Delivered[];
+  let rooms: ReturnType<typeof recordingStore>;
+
+  /** Only the messages: joins and leaves are the transport's own bookkeeping. */
+  const delivered = (): RoomEvent[] =>
+    rooms.seen.filter((event) => event.kind === 'message');
 
   const start = async (overrides: Partial<ServiceOptions> = {}): Promise<void> => {
-    delivered = [];
+    rooms = recordingStore();
     service = createService({
       origins: createOriginPolicy([APP]),
       roomExists: (roomCode) => Promise.resolve(roomCode === ROOM),
-      onMessage: (connection, message) => delivered.push({ connection, message }),
+      rooms,
       ...overrides,
     });
     port = await service.listen(0);
@@ -51,6 +106,17 @@ describe('5.1 — the transport', () => {
   /** The path a browser would build for this nickname. */
   const pathFor = (name: string, room = ROOM): string =>
     `/ws/${room}/${encodeURIComponent(name)}`;
+
+  /**
+   * The errors a client was sent.
+   *
+   * Since 5.2 a socket that gets in receives the room's `lobby_update` first —
+   * the reducer's answer to a join. Filtering rather than indexing keeps these
+   * assertions about the thing they are about: an accepted socket's first
+   * message is the lobby, and a refused one's is the refusal.
+   */
+  const errorsOn = (client: { received: unknown[] }): unknown[] =>
+    client.received.filter((message) => (message as { type?: string }).type === 'error');
 
   describe('C5.1 — the nickname', () => {
     // The criterion. The server's own regex has always allowed spaces and
@@ -124,9 +190,13 @@ describe('5.1 — the transport', () => {
       expect(second.received[0]).toMatchObject({ type: 'error', code: 'name_taken' });
       expect(await second.closed()).toBe(CLOSE_POLICY_VIOLATION);
 
-      // The first socket is still open, still registered, and was told nothing.
+      // The first socket is still open, still registered, and heard nothing of
+      // the refusal: its only message is the lobby its own join produced.
       expect(first.closedWith()).toBeUndefined();
-      expect(first.received).toEqual([]);
+      expect(errorsOn(first)).toEqual([]);
+      expect(first.received.map((message) => (message as { type: string }).type)).toEqual(
+        ['lobby_update'],
+      );
       expect(service.connections.size).toBe(1);
       first.close();
     });
@@ -162,14 +232,16 @@ describe('5.1 — the transport', () => {
       const client = await open(port, pathFor('ada'));
 
       client.send('{ not json');
-      await client.waitForMessages(1);
-      expect(client.received[0]).toMatchObject({ type: 'error', code: 'bad_json' });
+      await until(() => errorsOn(client).length === 1, 'the rejection');
+      expect(errorsOn(client)[0]).toMatchObject({ type: 'error', code: 'bad_json' });
       expect(client.closedWith()).toBeUndefined();
 
       // Still usable: the next frame is handled normally.
       client.send({ type: 'get_lobby' });
-      await until(() => delivered.length === 1, 'the next frame to be handled');
-      expect(delivered.map((each) => each.message.type)).toEqual(['get_lobby']);
+      await until(() => delivered().length === 1, 'the next frame to be handled');
+      expect(
+        delivered().map((event) => event.kind === 'message' && event.message.type),
+      ).toEqual(['get_lobby']);
       expect(client.closedWith()).toBeUndefined();
       client.close();
     });
@@ -178,8 +250,8 @@ describe('5.1 — the transport', () => {
       const client = await open(port, pathFor('ada'));
 
       client.send('[1, 2, 3]');
-      await client.waitForMessages(1);
-      expect(client.received[0]).toMatchObject({ code: 'bad_json' });
+      await until(() => errorsOn(client).length === 1, 'the rejection');
+      expect(errorsOn(client)[0]).toMatchObject({ code: 'bad_json' });
       client.close();
     });
 
@@ -189,9 +261,9 @@ describe('5.1 — the transport', () => {
       const client = await open(port, pathFor('ada'));
 
       client.send({ type: 'submit_theme', topic: '' });
-      await client.waitForMessages(1);
-      expect(client.received[0]).toMatchObject({ code: 'bad_json' });
-      expect(delivered).toEqual([]);
+      await until(() => errorsOn(client).length === 1, 'the rejection');
+      expect(errorsOn(client)[0]).toMatchObject({ code: 'bad_json' });
+      expect(delivered()).toEqual([]);
       client.close();
     });
 
@@ -205,10 +277,10 @@ describe('5.1 — the transport', () => {
       client.send({ type: 'get_lobby' });
       // The known frame is sent second, so waiting for it to arrive proves the
       // unknown one was already dealt with — and dealt with in silence.
-      await until(() => delivered.length > 0, 'the known frame to be handled');
+      await until(() => delivered().length > 0, 'the known frame to be handled');
 
-      expect(delivered).toHaveLength(1);
-      expect(client.received).toEqual([]);
+      expect(delivered()).toHaveLength(1);
+      expect(errorsOn(client)).toEqual([]);
       expect(client.closedWith()).toBeUndefined();
       client.close();
     });
@@ -217,11 +289,14 @@ describe('5.1 — the transport', () => {
       const client = await open(port, pathFor('ada'));
 
       client.send({ type: 'set_ready' });
-      await until(() => delivered.length === 1, 'the frame to be handled');
+      await until(() => delivered().length === 1, 'the frame to be handled');
 
-      const [first] = delivered;
-      expect(first?.connection.playerName).toBe('ada');
-      expect(first?.message).toMatchObject({ type: 'set_ready', ready: true });
+      const [first] = delivered();
+      expect(first?.kind === 'message' && first.from).toBe('ada');
+      expect(first?.kind === 'message' && first.message).toMatchObject({
+        type: 'set_ready',
+        ready: true,
+      });
       client.close();
     });
   });
@@ -234,8 +309,8 @@ describe('5.1 — the transport', () => {
       client.send(JSON.stringify({ type: 'chat_message', content: 'x'.repeat(70_000) }));
 
       expect(await client.closed()).toBe(CLOSE_MESSAGE_TOO_BIG);
-      expect(client.received).toEqual([]);
-      expect(delivered).toEqual([]);
+      expect(errorsOn(client)).toEqual([]);
+      expect(delivered()).toEqual([]);
     });
 
     it('lets a frame just under the limit through', async () => {
@@ -250,8 +325,8 @@ describe('5.1 — the transport', () => {
       expect(payload.length).toBeLessThanOrEqual(MAX_FRAME_CHARS);
 
       client.send(payload);
-      await client.waitForMessages(1);
-      expect(client.received[0]).toMatchObject({ code: 'bad_json' });
+      await until(() => errorsOn(client).length === 1, 'the rejection');
+      expect(errorsOn(client)[0]).toMatchObject({ code: 'bad_json' });
       expect(client.closedWith()).toBeUndefined();
       client.close();
     });

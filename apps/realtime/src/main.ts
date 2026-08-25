@@ -9,6 +9,8 @@ import { connectFromEnv, selectRoom } from '@wikifake/db';
 import { loadEnv } from '@wikifake/env';
 
 import { createOriginPolicy, parseOrigins } from './origins.js';
+import { lazyRedis } from './redis.js';
+import { createRoomStore } from './rooms/store.js';
 import { createService } from './server.js';
 
 const PORT = 8080;
@@ -25,6 +27,9 @@ const service = createService({
       : parseOrigins(env.REALTIME_ALLOWED_ORIGINS),
   ),
   roomExists: async (roomCode) => (await selectRoom(db, roomCode)).length > 0,
+  // Postgres says whether a room was ever opened; Redis holds what is happening
+  // in it. The two answer different questions and neither is the other's cache.
+  rooms: createRoomStore({ redis: lazyRedis(env.REDIS_URL) }),
 });
 
 const port = Number(process.env['PORT'] ?? PORT);
