@@ -147,6 +147,25 @@ describe('C3.1 — positions designate exactly what changed', () => {
     }
   });
 
+  // `game_position.original_text` is `not null`, and the column exists so that
+  // what the model actually changed can be audited after the fact. Read from the
+  // **collected** paragraphs rather than the served ones: the served ones already
+  // hold the lie at that index, and recording it there would file the falsehood
+  // as the truth — while still passing a test that only checked the field was
+  // populated.
+  it('keeps the paragraph it replaced, not the one it served', async () => {
+    const before = collectParagraphs(CHAT).paragraphs;
+    const result = await roundOf({ ...BASE, html: CHAT, model: falsifier() });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    for (const position of result.value.solution) {
+      expect(position.originalText).toBe(before[position.paragraphIndex - 1]);
+      expect(position.originalText).not.toContain('FAUX-');
+      expect(position.originalText).not.toBe(position.falseStatement);
+    }
+  });
+
   // The nastiest shape of the historical bug, and the one the assertion above
   // cannot see: the right *set* of paragraphs is falsified, but the explanation
   // and the hint belong to a different one. A player then reads a hint about

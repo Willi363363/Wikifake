@@ -7,7 +7,7 @@
 //
 // C3.6 — stateless. Nothing is memoised, nothing is module-level, and two
 // concurrent generations share nothing but the fixture they were handed.
-import type { ArticleView, FalsifiedPosition, LlmCallRecord } from '@wikifake/protocol';
+import type { ArticleView, LlmCallRecord } from '@wikifake/protocol';
 import type { LanguageModel } from 'ai';
 
 import {
@@ -18,6 +18,7 @@ import {
 } from './falsify.js';
 import { collectParagraphs, injectFalsifications } from './paragraphs.js';
 import { failed, ok, type Result } from './result.js';
+import type { StoredPosition } from './solution.js';
 
 /** How many usable paragraphs an article needs to be worth playing, from `MIN_ARTICLE_PARAGRAPHS`. */
 export const MIN_ARTICLE_PARAGRAPHS = 3;
@@ -44,8 +45,13 @@ export interface GenerateOptions {
 export interface GeneratedArticle {
   /** C1.1 — what the round may show: the article and the count, nothing else. */
   readonly article: ArticleView;
-  /** C1.2 — the solution, which travels separately and arrives at the end. */
-  readonly solution: readonly FalsifiedPosition[];
+  /**
+   * C1.2 — the solution, which travels separately and arrives at the end.
+   *
+   * `StoredPosition`, not `FalsifiedPosition`: it carries the paragraph the model
+   * replaced, which the database requires and which the wire schemas strip.
+   */
+  readonly solution: readonly StoredPosition[];
   /** The page with the falsifications in it, for the reader view. */
   readonly html: string;
 }
@@ -176,11 +182,15 @@ export async function generateArticle(
 
   // Sorted first, numbered second: the two orders cannot disagree.
   const ordered = [...effective].sort((a, b) => a.paragraphIndex - b.paragraphIndex);
-  const solution: FalsifiedPosition[] = ordered.map((item, at) => ({
+  const solution: StoredPosition[] = ordered.map((item, at) => ({
     // C3.3 — 1-based in the client contract.
     paragraphIndex: item.paragraphIndex + 1,
     falseInfoNumber: at + 1,
     falseStatement: injected.paragraphs[item.paragraphIndex] ?? item.swappedText,
+    // Read from `collected`, before injection: `injected` already holds the
+    // falsified text at that index, so taking it from there would record the lie
+    // as the truth.
+    originalText: collected.paragraphs[item.paragraphIndex] ?? item.swappedText,
     explanation: item.explanation,
     hint: item.hint,
   }));
