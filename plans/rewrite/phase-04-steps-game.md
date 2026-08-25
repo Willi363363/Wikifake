@@ -41,6 +41,31 @@ re-bill. A hint's text is never transmitted before payment; each purchase
 writes a `hint_purchase` row. SCANNER is resolved server-side: a real fake
 not yet designated, remembered per player, `null` when none remain.
 
+Three decisions taken while writing it:
+
+- **Nothing is held between requests.** The ledger is rebuilt from the
+  `hint_purchase` rows on every call — `ledgerFrom` in `@wikifake/domain` —
+  because the current server keeps it in a dictionary in a process, so a
+  restart hands the player back every hint they paid for. A second row for a
+  level already billed does not land and says so, which is the honest answer
+  to a double-click: the player owns it, and is served it for free.
+- **`item_use` gained `paragraph_index`.** The SCANNER answers with the lowest
+  falsified paragraph the player has neither marked nor already been shown, so
+  what it may answer next depends on what it answered before — and a count of
+  uses cannot be replayed into that list, because the marks it was compared
+  against are gone. A unique constraint on (caster, item, paragraph) makes
+  "remembered per player" a property of the schema rather than of a handler.
+- **Authorisation is the cookie, never the handle.** The session handle is the
+  game's identifier and is not a secret; what decides is whether the caller has
+  a `participant` row in that game. No session, no such game, somebody else's
+  game and a round that is over all answer the same `session_not_found`, so the
+  refusal cannot be used to ask whether a game exists.
+
+Left open: `sessionId` in the contract is still any URL-safe string of 16 to 64
+characters, written for `secrets.token_urlsafe(12)`. The handle is a uuid since
+4.4, so the routes check the shape before querying. Narrowing the schema is a
+protocol decision and belongs to a step that owns the protocol.
+
 **Done when**: the monotonicity and no-re-billing cases of §3.1 pass through
 the API, and `scan` returns `null` after exhaustion.
 

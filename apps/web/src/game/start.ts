@@ -10,52 +10,25 @@ import {
   gameApi,
   restError,
   DEFAULT_TIME_LIMIT_SECONDS,
-  type ErrorCode,
 } from '@wikifake/protocol';
 
 import type { auth } from '../auth/auth.js';
+import { readJson } from './body.js';
+import { BAD_REQUEST, statusFor } from './errors.js';
 import { identify } from './player.js';
 import { startRound, type RoundDependencies } from './round.js';
 import { json } from '../respond.js';
-
-const BAD_REQUEST = 400;
-
-/**
- * How a failure answers.
- *
- * `topic_not_found` is a 404 about the topic, not about the route: the player
- * typed something with no article behind it, which is an ordinary outcome of
- * letting them type anything. `generation_failed` is a 502 because what failed is
- * upstream — Wikipedia or the model — and the difference is what tells a client
- * whether retrying the same topic is worth anything.
- */
-const STATUS: Readonly<Partial<Record<ErrorCode, number>>> = {
-  bad_json: BAD_REQUEST,
-  topic_not_found: 404,
-  generation_failed: 502,
-};
 
 export interface StartContext {
   readonly auth: ReturnType<typeof auth>;
   readonly round: RoundDependencies;
 }
 
-/** Whatever the request carried, or null if it was not JSON at all. */
-async function body(request: Request): Promise<unknown> {
-  try {
-    return await request.json();
-  } catch {
-    // Told apart from a body the schema refuses only in the message: both mean
-    // "this route cannot read what you sent".
-    return null;
-  }
-}
-
 export async function handleStart(
   context: StartContext,
   request: Request,
 ): Promise<Response> {
-  const parsed = decode(gameApi.startGameRequest, await body(request));
+  const parsed = decode(gameApi.startGameRequest, await readJson(request));
   if (!parsed.ok) {
     return json(
       restError,
@@ -81,7 +54,7 @@ export async function handleStart(
       { code: outcome.code, message: outcome.message },
       // The cookies travel on the failing path too: the guest identity exists
       // now, and dropping it here would make the retry a different player.
-      { status: STATUS[outcome.code] ?? 500, setCookies },
+      { status: statusFor(outcome.code), setCookies },
     );
   }
 
