@@ -18,7 +18,12 @@ import {
   type WikiRequest,
   type WikiTransport,
 } from '@wikifake/article';
-import { createGame, recordLlmCalls, type Database, type NewParticipant } from '@wikifake/db';
+import {
+  createGame,
+  recordLlmCalls,
+  type Database,
+  type NewParticipant,
+} from '@wikifake/db';
 import type { ErrorCode, LlmCallRecord, gameApi } from '@wikifake/protocol';
 import type { LanguageModel } from 'ai';
 
@@ -66,7 +71,12 @@ interface Sourced {
 
 type SourceOutcome =
   | { readonly ok: true; readonly value: Sourced }
-  | { readonly ok: false; readonly code: ErrorCode; readonly message: string; readonly calls: readonly LlmCallRecord[] };
+  | {
+      readonly ok: false;
+      readonly code: ErrorCode;
+      readonly message: string;
+      readonly calls: readonly LlmCallRecord[];
+    };
 
 /**
  * The article for this round: from the cache when there is one, generated

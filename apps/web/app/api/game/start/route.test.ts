@@ -28,7 +28,10 @@ import type { ArticleCache, CachedArticle, WikiTransport } from '@wikifake/artic
 
 import { createAuth } from '../../../../src/auth/auth.js';
 import { handleStart, type StartContext } from '../../../../src/game/start.js';
-import { openWebTestDatabase, webTestDatabaseUrl } from '../../../../src/testing/database.js';
+import {
+  openWebTestDatabase,
+  webTestDatabaseUrl,
+} from '../../../../src/testing/database.js';
 import type { RoundDependencies } from '../../../../src/game/round.js';
 
 const url = webTestDatabaseUrl();
@@ -96,7 +99,12 @@ function falsifier(): MockLanguageModelV4 {
         ],
         finishReason: { unified: 'stop' as const, raw: undefined },
         usage: {
-          inputTokens: { total: 500, noCache: 500, cacheRead: undefined, cacheWrite: undefined },
+          inputTokens: {
+            total: 500,
+            noCache: 500,
+            cacheRead: undefined,
+            cacheWrite: undefined,
+          },
           outputTokens: { total: 90, text: 90, reasoning: undefined },
         },
         warnings: [],
@@ -210,7 +218,10 @@ describe.skipIf(url === null)('4.4 — POST /api/game/start', () => {
     // the strongest leak test in the repository would be measuring nothing.
     it('still serves the article and says how many fakes there are', async () => {
       const response = await handleStart(context(), post({ topic: 'chat' }));
-      const payload = (await response.json()) as { paragraphs: string[]; totalFakes: number };
+      const payload = (await response.json()) as {
+        paragraphs: string[];
+        totalFakes: number;
+      };
 
       expect(payload.paragraphs).toHaveLength(PARAGRAPHS.length);
       expect(payload.paragraphs.join(' ')).toContain('FAUX-');
@@ -325,7 +336,9 @@ describe.skipIf(url === null)('4.4 — POST /api/game/start', () => {
       const entry: CachedArticle = {
         article: {
           topic: 'Chat',
-          paragraphs: ['Un paragraphe déjà falsifié, gardé en cache pour la prochaine fois.'],
+          paragraphs: [
+            'Un paragraphe déjà falsifié, gardé en cache pour la prochaine fois.',
+          ],
           totalFakes: 1,
           wikipediaUrl: 'https://fr.wikipedia.org/wiki/Chat',
         },
@@ -333,7 +346,8 @@ describe.skipIf(url === null)('4.4 — POST /api/game/start', () => {
           {
             paragraphIndex: 1,
             falseInfoNumber: 1,
-            falseStatement: 'Un paragraphe déjà falsifié, gardé en cache pour la prochaine fois.',
+            falseStatement:
+              'Un paragraphe déjà falsifié, gardé en cache pour la prochaine fois.',
             originalText: `${ORIGINAL}-cache`,
             explanation: `${TRUTH}-cache`,
             hint: `${HINT}-cache`,
