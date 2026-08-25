@@ -6,7 +6,11 @@
 // cache miss and an unreachable cache as different things, and the cache itself
 // already reports `unavailable` rather than throwing — the connection has to be
 // as forgiving as the code above it.
-import { createArticleCache, type ArticleCache, type RedisCommands } from '@wikifake/article';
+import {
+  createArticleCache,
+  type ArticleCache,
+  type RedisCommands,
+} from '@wikifake/article';
 import type { Env } from '@wikifake/env';
 import { createClient } from 'redis';
 
@@ -26,7 +30,8 @@ async function withinTimeout<T>(work: Promise<T>): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const expiry = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(
-      () => reject(new Error(`the cache did not answer in ${String(CACHE_TIMEOUT_MS)}ms`)),
+      () =>
+        reject(new Error(`the cache did not answer in ${String(CACHE_TIMEOUT_MS)}ms`)),
       CACHE_TIMEOUT_MS,
     );
   });
