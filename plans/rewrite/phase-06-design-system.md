@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — four steps done |
+| **State** | in progress — five steps done |
 | **Branch** | `feat/rewrite-phase-6` |
 | **Depends on** | phase 1 |
 | **Delivers** | `packages/ui`: theme, primitives, animations, token component |
@@ -42,7 +42,7 @@ Definitions: `phase-06-steps-stylesheet.md`.
 |---|---|---|
 | 6.2 | shadcn/ui primitives | ✅ done |
 | 6.4 | Paragraph token component | ✅ done |
-| 6.5 | Responsive | to do |
+| 6.5 | Responsive | ✅ done |
 | 6.6 | Gallery and contrast audit | to do |
 
 Definitions: `phase-06-steps-components.md`.

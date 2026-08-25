@@ -28,6 +28,10 @@ import { isInteractive, TOKEN_LABELS, type TokenState } from './state.js';
 export const tokenVariants = cva(
   cn(
     'relative block w-full rounded-sm px-1 py-0.5 text-left',
+    // Wikipedia prose carries chemical names, German compounds and bare URLs.
+    // Without this a single word decides the width of the page, and at 360 CSS
+    // pixels that is a page which scrolls sideways.
+    'break-words hyphens-auto',
     'transition-[background-color,color,box-shadow] duration-150',
   ),
   {

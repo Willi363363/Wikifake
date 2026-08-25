@@ -89,6 +89,34 @@
   --radius-md: 12px;
   --radius-lg: 18px;
   --radius-xl: 24px;
+
+  /*
+   * The breakpoints, named here rather than inherited silently.
+   *
+   * They are Tailwind's own values and that is the point: this is not a place to
+   * invent a scale. What declaring them buys is that they are *ours* — a
+   * reviewer can see what the four sizes are without reading a framework's
+   * defaults, and moving one is a decision with a diff.
+   *
+   * The floor is `--width-floor` below, and it is the number that matters: the
+   * current game has a single media query in the whole project, so every screen
+   * of it is laid out for a desktop and cropped on a phone.
+   */
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+
+  /*
+   * The narrowest viewport anything here is allowed to break at.
+   *
+   * 360 CSS pixels: a phone held upright, and the width the phase's own
+   * criterion names. Nothing in `packages/ui` may declare a length larger than
+   * this without a breakpoint in front of it, and `responsive.test.ts` is what
+   * enforces it — a fixed 380px panel does not look cramped at 360, it produces
+   * a page that scrolls sideways.
+   */
+  --width-floor: 360px;
 }
 
 /*

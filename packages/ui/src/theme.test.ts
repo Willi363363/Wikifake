@@ -114,9 +114,16 @@ describe('6.1 — the tokens, transcribed', () => {
   // And nothing appeared along the way. A colour the theme invented is a colour
   // no screen of the current game uses, which is the redesign this phase is
   // written not to do.
+  //
+  // Colours only, and deliberately: step 6.5 adds breakpoints and a viewport
+  // floor, which are not in `tokens.css` because the current game has one media
+  // query in the whole project. The elevations and the corners are held to the
+  // legacy exactly by the gallery-list tests below.
   it('invents no colour of its own', () => {
     const carried = new Set([...legacy.keys()].map(themeNameFor));
-    const extra = [...theme.keys()].filter((name) => !carried.has(name));
+    const extra = [...theme.keys()]
+      .filter((name) => name.startsWith('--color-'))
+      .filter((name) => !carried.has(name));
     expect(extra).toEqual([]);
   });
 
@@ -168,6 +175,22 @@ describe('6.1 — the tokens, transcribed', () => {
       expect(RADIUS_TOKENS.map((size) => `--radius-${size}`).sort()).toEqual(
         [...theme.keys()].filter((name) => name.startsWith('--radius-')).sort(),
       );
+    });
+
+    // The breakpoints and the floor are neither colour nor corner, so nothing
+    // above covers them. They are what step 6.5 rests on: a length larger than
+    // the floor with no breakpoint in front of it is a page that scrolls
+    // sideways on a phone.
+    it('names the breakpoints and the viewport floor', () => {
+      expect(
+        [...theme.keys()].filter((name) => name.startsWith('--breakpoint-')),
+      ).toEqual([
+        '--breakpoint-sm',
+        '--breakpoint-md',
+        '--breakpoint-lg',
+        '--breakpoint-xl',
+      ]);
+      expect(theme.get('--width-floor')).toBe('360px');
     });
 
     it('gives every colour a role to show beside it', () => {

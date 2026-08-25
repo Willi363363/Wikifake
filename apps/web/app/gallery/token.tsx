@@ -27,7 +27,7 @@ function Card({ state, children }: { state: TokenState; children: React.ReactNod
   return (
     <li className="rounded-lg border border-line bg-surface p-4">
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <code className="text-sm text-ink">{state}</code>
+        <code className="min-w-0 text-sm text-ink">{state}</code>
         <span className="text-right text-xs text-muted">{WHEN[state]}</span>
       </div>
       {/* Room above for the badges, which sit outside the box. */}
