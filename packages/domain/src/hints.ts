@@ -39,6 +39,39 @@ export function hintPenaltyFor(ledger: HintLedger): number {
   return Object.values(ledger).reduce((total, level) => total + hintCostFor(level), 0);
 }
 
+/** One billed level, as the record of it comes back. */
+export interface HintPurchase {
+  readonly falseInfoNumber: number;
+  readonly level: number;
+}
+
+/**
+ * The ledger a sequence of purchases adds up to.
+ *
+ * Here rather than at the call site because "what has this player unlocked" is a
+ * rule about the ledger, and a handler that folded the rows itself would be a
+ * second place deciding that level 2 subsumes level 1. Highest level wins, so
+ * the fold does not depend on the order the rows come back in.
+ *
+ * A level outside {1, 2} is dropped rather than trusted: the column is
+ * constrained to those two, and a ledger is the thing the penalty is computed
+ * from — silently pricing a level 3 would be worse than ignoring a row that
+ * cannot exist.
+ */
+export function ledgerFrom(purchases: readonly HintPurchase[]): HintLedger {
+  const ledger: Record<number, HintLevel> = {};
+
+  for (const purchase of purchases) {
+    if (purchase.level !== 1 && purchase.level !== 2) continue;
+    const held = ledger[purchase.falseInfoNumber];
+    if (held === undefined || purchase.level > held) {
+      ledger[purchase.falseInfoNumber] = purchase.level;
+    }
+  }
+
+  return ledger;
+}
+
 /** How many falsifications the player has bought a hint on. Display only. */
 export function hintsUsedFor(ledger: HintLedger): number {
   return Object.keys(ledger).length;

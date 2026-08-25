@@ -26,12 +26,19 @@ export {
 } from './scoring.js';
 export type { HintLevel, Submission } from './scoring.js';
 
-export { grantHint, hintPenaltyFor, hintsUsedFor, EMPTY_LEDGER } from './hints.js';
+export {
+  grantHint,
+  hintPenaltyFor,
+  hintsUsedFor,
+  ledgerFrom,
+  EMPTY_LEDGER,
+} from './hints.js';
 export type {
   HintGrant,
   HintGuard,
   HintLedger,
   HintPayload,
+  HintPurchase,
   HintRequest,
 } from './hints.js';
 
