@@ -55,8 +55,22 @@ const SOLUTION: readonly FalsifiedPosition[] = [
   },
 ];
 
-/** Long enough that no test races it, short enough to wait out on purpose. */
-const GRACE_MS = 300;
+/**
+ * The window, for the tests that need it *not* to close.
+ *
+ * Five seconds, and generous on purpose. Four of these tests assert that a
+ * dropped player is still in the room — across an `until` poll, two store reads
+ * and a socket handshake — and a window short enough to wait out is a window
+ * that sequence can outlast. It did: about one full parallel `pnpm test` in
+ * five, never in isolation, and the failure read as "the player was not
+ * recovered" rather than as "the test was too slow".
+ *
+ * One constant cannot serve both needs, so there are two.
+ */
+const GRACE_MS = 5000;
+
+/** The window, for the one test whose whole point is waiting it out. */
+const SHORT_GRACE_MS = 300;
 
 describe.skipIf(url === null)(
   '5.5 — a socket that dropped is not a player who left',
@@ -75,10 +89,11 @@ describe.skipIf(url === null)(
       await redis.close();
     });
 
-    beforeEach(async () => {
-      await redis.flush();
-      ROOM = nextRoom();
-
+    /**
+     * @param graceMs how long a dropped player keeps their seat. The default
+     * outlives the test; only the expiry test shortens it.
+     */
+    const start = async (graceMs: number): Promise<void> => {
       store = createRoomStore({ redis: redis.redis, namespace: NAMESPACE });
       bus = createLocalBus();
       service = createService({
@@ -97,11 +112,17 @@ describe.skipIf(url === null)(
           namespace: NAMESPACE,
           idleSeconds: 60,
         }),
-        graceSeconds: GRACE_MS / 1000,
+        graceSeconds: graceMs / 1000,
         // 5.8 — the pipeline, mocked: picking a topic starts the round.
         articles: canned(ARTICLE, SOLUTION),
       });
       port = await service.listen(0);
+    };
+
+    beforeEach(async () => {
+      await redis.flush();
+      ROOM = nextRoom();
+      await start(GRACE_MS);
     });
 
     afterEach(async () => {
@@ -258,6 +279,12 @@ describe.skipIf(url === null)(
     });
 
     it('frees the nickname once the grace window has run out', async () => {
+      // The one test that wants the window to close, so it is the one that
+      // shortens it. Everything else would rather it never did.
+      await service.close();
+      await bus.close();
+      await start(SHORT_GRACE_MS);
+
       const first = await join('ada', ADA_CLAIM);
       const bob = await join('bob', OTHER_CLAIM);
       await rosterOf(first, ['ada', 'bob']);
@@ -267,7 +294,7 @@ describe.skipIf(url === null)(
       await until(
         () => sees(bob, 'ada') === undefined,
         'ada to be evicted',
-        GRACE_MS * 10,
+        SHORT_GRACE_MS * 10,
       );
 
       expect((await players()).map((player) => player.name)).toEqual(['bob']);
