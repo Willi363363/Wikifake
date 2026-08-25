@@ -12,6 +12,7 @@
     "test": "vitest run --coverage"
   },
   "dependencies": {
+    "@ai-sdk/google": "^4.0.51",
     "@wikifake/article": "workspace:*",
     "@wikifake/db": "workspace:*",
     "@wikifake/domain": "workspace:*",
@@ -21,6 +22,7 @@
     "next": "^16.3.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "redis": "^6.2.1",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -29,6 +31,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitest/coverage-v8": "^3.2.4",
     "@wikifake/config": "workspace:*",
+    "ai": "^7.0.77",
     "eslint": "^9.39.0",
     "postgres": "^3.4.9",
     "typescript": "^5.9.3",

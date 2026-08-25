@@ -44,4 +44,21 @@ describe('json', () => {
     expect(response.headers.get('cache-control')).toBe('no-store');
     expect(response.headers.get('content-type')).toBe('application/json');
   });
+
+  // A record of headers cannot hold two `Set-Cookie` entries, and Better Auth's
+  // sign-in sends two. Merging them loses one, and the one lost is a cookie the
+  // browser never keeps — which, for a guest identity, means the next request is
+  // a different person.
+  it('sends every cookie it was given, not the last one', () => {
+    const response = json(
+      view,
+      { topic: 'x', totalFakes: 1 },
+      { setCookies: ['session=abc; Path=/', 'session_data=def; Path=/'] },
+    );
+
+    expect(response.headers.getSetCookie()).toEqual([
+      'session=abc; Path=/',
+      'session_data=def; Path=/',
+    ]);
+  });
 });

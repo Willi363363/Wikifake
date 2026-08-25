@@ -12,6 +12,24 @@ database (`game`, `game_position`, `participant`). The payload contains the
 article and the **count** of falsified paragraphs. Never which ones, never
 the explanations, never the hints, never `original_text`.
 
+Three decisions taken while writing it:
+
+- **The session handle is the game's identifier.** Not a bearer token: the
+  routes that follow authorise on the session cookie — is this caller a
+  participant of that game — which is what `secrets.token_urlsafe(12)` was
+  standing in for, from an in-memory registry a restart emptied.
+- **The generator now carries `original_text`.** `game_position.original_text`
+  is `not null` and nothing produced it: phase 3 dropped the paragraph the
+  model replaced, and the cache dropped it a second time. Both now keep it, so
+  a round served from the cache is recorded exactly like a generated one. It
+  travels nowhere — every wire schema is built on `falsifiedPosition`, which
+  has no such field, so Zod strips it on the way out.
+- **A refused body answers `bad_json`, 400.** The union of error codes is
+  closed and has no member for "this route cannot read your request"; `bad_json`
+  is the one that means it. `topic_not_found` is 404, `generation_failed` 502 —
+  what failed there is upstream, and the difference tells a client whether
+  retrying the same topic is worth anything.
+
 **Done when**: a test checks **by keys and by values** that no truth text or
 hint appears in the serialised JSON of the response.
 

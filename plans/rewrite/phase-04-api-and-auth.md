@@ -48,7 +48,7 @@ Definitions: `phase-04-steps-accounts.md`.
 
 | # | Step — the game's routes | State |
 |---|---|---|
-| 4.4 | `POST /api/game/start` | to do |
+| 4.4 | `POST /api/game/start` | ✅ done |
 | 4.5 | `POST /api/game/hint` and `POST /api/game/scan` | to do |
 | 4.6 | `POST /api/game/submit` | to do |
 | 4.7 | `GET /api/usage` | to do |
