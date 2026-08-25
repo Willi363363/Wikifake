@@ -33,13 +33,25 @@ export {
 } from './primitives/dialog.js';
 export type { DialogContentProps } from './primitives/dialog.js';
 
-/** Every primitive, by name. The gallery renders this, and a test holds it. */
+export { ParagraphToken, tokenVariants } from './token/paragraph-token.js';
+export type { ParagraphTokenProps } from './token/paragraph-token.js';
+export {
+  isInteractive,
+  tokenStateFor,
+  TOKEN_LABELS,
+  TOKEN_STATES,
+  VERDICT_STATES,
+} from './token/state.js';
+export type { TokenFacts, TokenState } from './token/state.js';
+
+/** Every component, by name. The gallery renders this, and a test holds it. */
 export const PRIMITIVES: readonly string[] = [
   'Badge',
   'Button',
   'Dialog',
   'Input',
   'Label',
+  'ParagraphToken',
   'Progress',
   'Separator',
 ];

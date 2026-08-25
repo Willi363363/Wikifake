@@ -10,12 +10,25 @@
 // and a React runtime in an application whose suite is otherwise about route
 // handlers; what it would buy is the difference between "mentioned" and
 // "rendered", and every mention below is a JSX tag.
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { PRIMITIVES } from '@wikifake/ui';
 import { describe, expect, it } from 'vitest';
 
-const PAGE = readFileSync(fileURLToPath(new URL('./page.tsx', import.meta.url)), 'utf8');
+const HERE = fileURLToPath(new URL('.', import.meta.url));
+
+/**
+ * The whole gallery, not just its page.
+ *
+ * It is several files now: the page lays the sections out, and the ones that
+ * need a viewer to press something are their own client components. Reading
+ * only `page.tsx` would report a component as missing the moment it moved into
+ * a section of its own.
+ */
+const PAGE = readdirSync(HERE)
+  .filter((name) => name.endsWith('.tsx'))
+  .map((name) => readFileSync(HERE + name, 'utf8'))
+  .join('\n');
 
 describe('6.2 — the gallery', () => {
   it.each(PRIMITIVES)('shows %s', (primitive) => {
