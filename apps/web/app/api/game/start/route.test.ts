@@ -21,10 +21,9 @@ import {
   selectSolution,
   selectUserById,
 } from '@wikifake/db';
-import { MockLanguageModelV4 } from 'ai/test';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import type { TestDatabase } from '@wikifake/db/testing';
-import type { ArticleCache, CachedArticle, WikiTransport } from '@wikifake/article';
+import type { ArticleCache, CachedArticle } from '@wikifake/article';
 
 import { createAuth } from '../../../../src/auth/auth.js';
 import { handleStart, type StartContext } from '../../../../src/game/start.js';
@@ -32,108 +31,24 @@ import {
   openWebTestDatabase,
   webTestDatabaseUrl,
 } from '../../../../src/testing/database.js';
+import {
+  allKeys,
+  cookieFrom,
+  falsifier,
+  refuser,
+  wikipedia,
+  HINT,
+  ORIGINAL,
+  PAGE,
+  PARAGRAPHS,
+  SEARCH,
+  TRUTH,
+} from '../../../../src/testing/round.js';
 import type { RoundDependencies } from '../../../../src/game/round.js';
 
 const url = webTestDatabaseUrl();
 const BASE = 'http://localhost:3000';
 const SECRET = 'a-fake-test-signing-secret-32-chars-min';
-
-/**
- * The three markers. Unique strings, so finding one in the serialised payload
- * means it came from the solution and not from French prose that happens to
- * rhyme.
- */
-const TRUTH = 'TRUTHMARKER-le-chat-dort-seize-heures';
-const HINT = 'HINTMARKER-comptez-les-heures';
-const ORIGINAL = 'ORIGINALMARKER';
-
-/** A page with three paragraphs long enough to be worth falsifying. */
-const PARAGRAPHS = [
-  `${ORIGINAL}-1 Le chat est un mammifère carnivore de la famille des félidés, domestiqué depuis plusieurs milliers d'années par l'être humain.`,
-  `${ORIGINAL}-2 Il dort en moyenne seize heures par jour, réparties en de nombreuses siestes courtes tout au long de la journée et de la nuit.`,
-  `${ORIGINAL}-3 Sa vision nocturne est excellente, mais il distingue mal les couleurs, en particulier les nuances situées dans le rouge.`,
-];
-
-const HTML = `<div id="bodyContent">${PARAGRAPHS.map((text) => `<p>${text}</p>`).join('')}</div>`;
-
-const SEARCH = { query: { search: [{ title: 'Chat' }] } };
-const PAGE = { parse: { title: 'Chat', revid: 238196699, text: HTML } };
-
-/** A transport that answers the search, then the page, then repeats the page. */
-function wikipedia(answers: readonly unknown[]): WikiTransport {
-  let at = 0;
-  const fetch: typeof globalThis.fetch = () => {
-    const body = answers[Math.min(at, answers.length - 1)];
-    at += 1;
-    return Promise.resolve(
-      new Response(JSON.stringify(body), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }),
-    );
-  };
-  return { fetch };
-}
-
-/** A model that falsifies every paragraph it is offered, stamping the markers. */
-function falsifier(): MockLanguageModelV4 {
-  return new MockLanguageModelV4({
-    doGenerate: (options) => {
-      const sent = JSON.stringify(options.prompt);
-      const offered = [...sent.matchAll(/paragraph_index\\?":\s*(\d+)/g)].map((match) =>
-        Number(match[1]),
-      );
-      return Promise.resolve({
-        content: [
-          {
-            type: 'text' as const,
-            text: JSON.stringify({
-              falsifications: offered.map((index) => ({
-                paragraphIndex: index,
-                swappedText: `FAUX-${String(index)} le chat dort quatre heures par jour selon les études les plus récentes.`,
-                explanation: `${TRUTH}-${String(index)}`,
-                hint: `${HINT}-${String(index)}`,
-              })),
-            }),
-          },
-        ],
-        finishReason: { unified: 'stop' as const, raw: undefined },
-        usage: {
-          inputTokens: {
-            total: 500,
-            noCache: 500,
-            cacheRead: undefined,
-            cacheWrite: undefined,
-          },
-          outputTokens: { total: 90, text: 90, reasoning: undefined },
-        },
-        warnings: [],
-      });
-    },
-  });
-}
-
-/** A model that refuses. C4.5 — the call still happened and still costs. */
-function refuser(): MockLanguageModelV4 {
-  return new MockLanguageModelV4({
-    doGenerate: () => Promise.reject(new Error('the model is unreachable')),
-  });
-}
-
-/** Every key of an object graph, at any depth. */
-function allKeys(value: unknown, found: string[] = []): string[] {
-  if (Array.isArray(value)) {
-    for (const item of value) allKeys(item, found);
-    return found;
-  }
-  if (value !== null && typeof value === 'object') {
-    for (const [key, nested] of Object.entries(value)) {
-      found.push(key);
-      allKeys(nested, found);
-    }
-  }
-  return found;
-}
 
 const FORBIDDEN_KEYS = [
   'positions',
@@ -186,13 +101,6 @@ describe.skipIf(url === null)('4.4 — POST /api/game/start', () => {
       },
       body: typeof body === 'string' ? body : JSON.stringify(body),
     });
-
-  const cookieFrom = (response: Response): string =>
-    response.headers
-      .getSetCookie()
-      .map((raw) => raw.split(';')[0])
-      .filter((pair): pair is string => pair !== undefined)
-      .join('; ');
 
   describe('C1.1 — the solution stays on the server', () => {
     it('carries no forbidden key', async () => {
