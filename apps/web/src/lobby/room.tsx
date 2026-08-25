@@ -18,6 +18,7 @@ import { useState } from 'react';
 
 import { HostSettings } from './host-settings.js';
 import { PlayerList } from './player-list.js';
+import { ThemeVote } from './theme-vote.js';
 import { useRoom } from './use-room.js';
 import { useRealtime } from '../realtime/provider.js';
 
@@ -64,73 +65,109 @@ export function Room({ roomCode, nickname }: RoomProps) {
         )}
       </header>
 
-      <div className="rounded-xl border border-line bg-surface p-6 shadow-md">
-        <PlayerList players={room.players} />
+      {room.phase === 'voting' ? (
+        <ThemeVote
+          vote={room.vote}
+          hasVoted={room.hasVoted}
+          isHost={room.isHost}
+          onPropose={(topic) => {
+            room.clearRefusal();
+            send({ type: 'submit_theme', topic });
+          }}
+          onForcePick={() => {
+            room.clearRefusal();
+            send({ type: 'force_pick' });
+          }}
+        />
+      ) : null}
 
-        <Separator className="my-5" />
-
-        {room.isHost ? (
-          <div className="space-y-4">
-            <HostSettings
-              timeLimit={timeLimit}
-              withItems={withItems}
-              onTimeLimitChange={(seconds) => {
-                setTimeLimit(seconds);
-                declare(room.isReady, { timeLimit: seconds });
-              }}
-              onWithItemsChange={(next) => {
-                setWithItems(next);
-                declare(room.isReady, { withItems: next });
-              }}
-            />
-            <Separator />
-          </div>
-        ) : (
-          <p className="mb-4 text-center text-sm text-muted">
-            Waiting for the host to start the round.
+      {room.phase === 'generating' ? (
+        // Step 7.5 replaces this with the generation screen and its minigames.
+        // What it says now is the one thing the criterion of 7.4 is about: the
+        // topic on screen is the server's, not a tally.
+        <div className="rounded-xl border border-line bg-surface p-6 text-center shadow-md">
+          <p className="text-xs tracking-widest text-muted uppercase">Topic</p>
+          <p className="mt-1 text-xl text-ink">{room.elected?.topic}</p>
+          <p className="mt-2 text-sm text-muted">
+            {room.elected?.proposer === null
+              ? 'drawn by the server'
+              : `proposed by ${room.elected?.proposer ?? ''}`}
           </p>
-        )}
+          <p className="mt-4 text-sm text-muted">
+            The generation screen arrives in step 7.5.
+          </p>
+        </div>
+      ) : null}
 
-        <div className="mt-4 flex flex-col gap-2">
-          <Button
-            variant={room.isReady ? 'default' : 'primary'}
-            size="lg"
-            aria-pressed={room.isReady}
-            onClick={() => {
-              declare(!room.isReady);
-            }}
-          >
-            {room.isReady ? 'Ready — cancel' : "I'm ready"}
-          </Button>
+      {room.phase !== 'lobby' ? null : (
+        <div className="rounded-xl border border-line bg-surface p-6 shadow-md">
+          <PlayerList players={room.players} />
+
+          <Separator className="my-5" />
 
           {room.isHost ? (
+            <div className="space-y-4">
+              <HostSettings
+                timeLimit={timeLimit}
+                withItems={withItems}
+                onTimeLimitChange={(seconds) => {
+                  setTimeLimit(seconds);
+                  declare(room.isReady, { timeLimit: seconds });
+                }}
+                onWithItemsChange={(next) => {
+                  setWithItems(next);
+                  declare(room.isReady, { withItems: next });
+                }}
+              />
+              <Separator />
+            </div>
+          ) : (
+            <p className="mb-4 text-center text-sm text-muted">
+              Waiting for the host to start the round.
+            </p>
+          )}
+
+          <div className="mt-4 flex flex-col gap-2">
             <Button
-              variant={everyoneReady ? 'primary' : 'ghost'}
+              variant={room.isReady ? 'default' : 'primary'}
               size="lg"
+              aria-pressed={room.isReady}
               onClick={() => {
-                room.clearRefusal();
-                send({ type: 'force_start', timeLimit, withItems });
+                declare(!room.isReady);
               }}
             >
-              {everyoneReady ? 'Start the round' : 'Start without waiting'}
+              {room.isReady ? 'Ready — cancel' : "I'm ready"}
             </Button>
-          ) : null}
-        </div>
 
-        {room.refusal === null ? null : (
-          // C1.7 — the server said no. It is displayed and it changes nothing:
-          // the roster that arrives next is the truth. A guest whose client
-          // sends a host-only message sees this rather than a dead screen.
-          <p role="alert" className="mt-4 text-center text-sm text-danger">
-            {room.refusal.message}
-          </p>
-        )}
-        {transportRefusal === null ? null : (
-          <p role="alert" className="mt-4 text-center text-sm text-danger">
-            {transportRefusal}
-          </p>
-        )}
-      </div>
+            {room.isHost ? (
+              <Button
+                variant={everyoneReady ? 'primary' : 'ghost'}
+                size="lg"
+                onClick={() => {
+                  room.clearRefusal();
+                  send({ type: 'force_start', timeLimit, withItems });
+                }}
+              >
+                {everyoneReady ? 'Start the round' : 'Start without waiting'}
+              </Button>
+            ) : null}
+          </div>
+
+          {room.refusal === null ? null : (
+            // C1.7 — the server said no. It is displayed and it changes nothing:
+            // the roster that arrives next is the truth. A guest whose client
+            // sends a host-only message sees this rather than a dead screen.
+            <p role="alert" className="mt-4 text-center text-sm text-danger">
+              {room.refusal.message}
+            </p>
+          )}
+          {transportRefusal === null ? null : (
+            <p role="alert" className="mt-4 text-center text-sm text-danger">
+              {transportRefusal}
+            </p>
+          )}
+        </div>
+      )}
     </main>
   );
 }
