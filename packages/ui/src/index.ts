@@ -6,6 +6,9 @@
 export { COLOUR_TOKENS, RADIUS_TOKENS, SHADOW_TOKENS } from './tokens.js';
 export type { ColourToken, TokenGroup } from './tokens.js';
 
+export { MOTIONS, REDUCIBLE } from './motion.js';
+export type { Motion, MotionKind } from './motion.js';
+
 export { cn } from './cn.js';
 
 export { Button, buttonVariants } from './primitives/button.js';

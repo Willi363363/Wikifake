@@ -1,0 +1,328 @@
+/*
+ * The keyframes, and the preference that switches the dangerous ones off.
+ *
+ * `frontend/src/styles/animations.css` defines eighteen keyframes and every one
+ * of them is referenced by **string** from an inline style — `animation:
+ * "screen-flash 0.45s ease-in-out infinite"`. Nothing checks that the name
+ * exists, nothing collects them, and nothing can turn them off. Here each one is
+ * a theme animation, so `animate-screen-flash` is a utility and the timing lives
+ * in one place.
+ *
+ * That is what makes the second half possible. The current game ships **no**
+ * `prefers-reduced-motion` rule at all, and three of these are a genuine
+ * photosensitivity hazard rather than a comfort question:
+ *
+ *   - `screen-flash` and `lightning-zap` run at `0.45s infinite` with two peaks
+ *     per cycle: about **4.4 flashes a second**, against a threshold of three.
+ *   - `static-glitch` displaces the article at `0.1s infinite` — 10 Hz.
+ *   - `shake` displaces it at `0.15s infinite` — about 7 Hz.
+ *
+ * Because each is a variable, a media query can redefine it, and every utility
+ * that uses it stops. That is the whole argument for typing them.
+ *
+ * Two keyframes are **not** here: `ring-progress` and `drift`. Both are defined
+ * in the legacy stylesheet and referenced by nothing at all — verified — and a
+ * transcription is not the place to carry dead CSS across.
+ */
+
+@theme static {
+  /* — Interface. Fades and small settles: nothing that moves the page. — */
+  --animate-fade-in: fade-in 200ms ease-out;
+  --animate-stagger-in: stagger-in 300ms ease-out both;
+  --animate-slide-in-right: slide-in-right 200ms ease-out;
+  --animate-slide-up-fade: slide-up-fade 200ms ease;
+  --animate-token-flash: token-flash 360ms ease-out;
+  --animate-pulse-dot: pulse-dot 1.4s ease-in-out infinite;
+  --animate-scan-sweep: scan-sweep 2.4s ease-in-out infinite;
+  --animate-frost-pulse: frost-pulse 2.2s ease-in-out infinite;
+  --animate-damage-pop: damage-pop 3s ease-out forwards;
+
+  /* — Sabotage. What an item does to the article, and what a preference
+       switches off. — */
+  --animate-shake: shake 0.15s linear infinite;
+  --animate-article-spin: article-spin 1.2s linear infinite;
+  --animate-static-glitch: static-glitch 0.1s linear infinite;
+  --animate-lightning-zap: lightning-zap 0.45s ease-in-out infinite;
+  --animate-screen-flash: screen-flash 0.45s ease-in-out infinite;
+  --animate-snowfall: snowfall 8s linear infinite;
+  --animate-fog-drift: fog-drift 9s ease-in-out infinite alternate;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes stagger-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in-right {
+    from {
+      opacity: 0;
+      transform: translateX(32px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-up-fade {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* The one place a raw colour survives: it is a fade from the accent to its
+     own wash, and both ends come from the theme. */
+  @keyframes token-flash {
+    0% {
+      background-color: color-mix(in srgb, var(--color-accent) 35%, transparent);
+    }
+    100% {
+      background-color: var(--color-accent-soft);
+    }
+  }
+
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+  }
+
+  @keyframes scan-sweep {
+    0% {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    20%,
+    80% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes frost-pulse {
+    0%,
+    100% {
+      opacity: 0.7;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes damage-pop {
+    0% {
+      transform: scale(0.4) translateY(20px);
+      opacity: 0;
+    }
+    12% {
+      transform: scale(1.25) translateY(0);
+      opacity: 1;
+    }
+    25% {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+    75% {
+      transform: scale(1) translateY(0);
+      opacity: 0.85;
+    }
+    100% {
+      transform: scale(0.95) translateY(-30px);
+      opacity: 0;
+    }
+  }
+
+  @keyframes shake {
+    0% {
+      transform: translate(1px, 1px) rotate(0deg);
+    }
+    10% {
+      transform: translate(-4px, -6px) rotate(-1.5deg);
+    }
+    20% {
+      transform: translate(-8px, 2px) rotate(2deg);
+    }
+    30% {
+      transform: translate(7px, 5px) rotate(-1deg);
+    }
+    40% {
+      transform: translate(3px, -5px) rotate(1.5deg);
+    }
+    50% {
+      transform: translate(-6px, 6px) rotate(-2deg);
+    }
+    60% {
+      transform: translate(-9px, 2px) rotate(1deg);
+    }
+    70% {
+      transform: translate(8px, 3px) rotate(-1.5deg);
+    }
+    80% {
+      transform: translate(-3px, -4px) rotate(2deg);
+    }
+    90% {
+      transform: translate(5px, 7px) rotate(0.5deg);
+    }
+    100% {
+      transform: translate(3px, -5px) rotate(-1deg);
+    }
+  }
+
+  @keyframes article-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes static-glitch {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20% {
+      transform: translateX(-3px);
+    }
+    40% {
+      transform: translateX(3px);
+    }
+    60% {
+      transform: translateX(-2px);
+    }
+    80% {
+      transform: translateX(2px);
+    }
+  }
+
+  @keyframes lightning-zap {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    6%,
+    14% {
+      opacity: 1;
+    }
+    10% {
+      opacity: 0.15;
+    }
+    18% {
+      opacity: 0;
+    }
+    58%,
+    66% {
+      opacity: 1;
+    }
+    62% {
+      opacity: 0.2;
+    }
+    70% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes screen-flash {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    6% {
+      opacity: 0.85;
+    }
+    12%,
+    52% {
+      opacity: 0;
+    }
+    58% {
+      opacity: 0.6;
+    }
+    64% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes snowfall {
+    0% {
+      transform: translateY(-30px) translateX(0) rotate(0deg);
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    92% {
+      opacity: 0.9;
+    }
+    100% {
+      transform: translateY(105vh) translateX(var(--drift, 40px)) rotate(400deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes fog-drift {
+    0% {
+      transform: translate(-50%, -50%) translateX(0) translateY(0);
+      opacity: 0.3;
+    }
+    100% {
+      transform: translate(-50%, -50%) translateX(var(--drift-x, 60px))
+        translateY(var(--drift-y, -30px));
+      opacity: 0.85;
+    }
+  }
+}
+
+/*
+ * The preference, honoured.
+ *
+ * Seven animations go to `none`: the two strobes, the three displacements, and
+ * the two full-screen weather effects. What is left is opacity — a fade is not
+ * motion, and removing every one of them makes state changes snap rather than
+ * settle, which helps nobody.
+ *
+ * Neutralised by redefining the variable rather than by a blanket
+ * `animation: none !important`. The blanket rule reads as safer and is not: it
+ * also kills the fades, and it still misses an inline `animation:` written as a
+ * string — which is exactly how the current game applies all eighteen. Nothing
+ * in `packages/ui` may use one, and the phase's exit gate is what holds that.
+ */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animate-shake: none;
+    --animate-article-spin: none;
+    --animate-static-glitch: none;
+    --animate-lightning-zap: none;
+    --animate-screen-flash: none;
+    --animate-snowfall: none;
+    --animate-fog-drift: none;
+  }
+}
