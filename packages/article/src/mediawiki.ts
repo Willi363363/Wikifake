@@ -28,6 +28,17 @@ export interface WikiRequest {
   readonly language: string;
   /** Something that identifies this application and a way to reach its owner. */
   readonly userAgent: string;
+  /**
+   * Where the API actually is, when it is not where the language says.
+   *
+   * Absent in every deployment, and that is the point: the endpoint is derived
+   * from the language, and this is the one way to say otherwise. It exists for
+   * the browser tests of step 9.5, which serve the article from a fixture rather
+   * than reading Wikipedia four times a run — and it is configuration rather
+   * than a seam in the code, so nothing about the request path differs between a
+   * test run and a real one.
+   */
+  readonly endpoint?: string | undefined;
 }
 
 /** Injected so tests never touch the network and can read the URL that was built. */
@@ -59,6 +70,10 @@ function endpoint(request: WikiRequest): Result<string> {
   if (request.userAgent.trim() === '') {
     return failed('unexpected_response', 'a user agent is required by Wikimedia policy');
   }
+  // The language is still validated when an endpoint is given: it is carried in
+  // the query and read back, and the checks above are not the endpoint's alone.
+  if (request.endpoint !== undefined && request.endpoint !== '')
+    return ok(request.endpoint);
   return ok(`https://${request.language}.wikipedia.org/w/api.php`);
 }
 

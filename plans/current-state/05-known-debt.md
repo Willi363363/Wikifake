@@ -138,6 +138,26 @@ in the rewrite phase it belongs to, not as an aside.
       (`backend/src/api/health.py:56`) therefore reports articles the cache
       would refuse to hand out.
 
+## Fixed on discovery: the socket never opened after "Open a room"
+
+Not carried, because it was found by the step that had to pass with it fixed —
+recorded here because it is the clearest argument in the register for what a
+browser test is for.
+
+`RoomGate` lives in the layout of the `(game)` route group so that it survives
+the navigation from the entry screen into a room, which is the whole point of
+step 7.1. It therefore **mounts before the nickname exists**, and its
+`useEffect(..., [])` read `sessionStorage` once, then never again. The nickname
+the entry screen writes on its way out was never read, so `RealtimeProvider`
+stayed idle on a `playerName` of null — **for the whole life of the room**. No
+roster, no chat, no round: nothing any other player did was ever seen.
+
+It survived every unit suite because every one of them passes the nickname in as
+a prop. `RoomGate` is the one piece that reads it, and the one piece nothing was
+rendering. Step 9.5's first browser run found it in a minute; the effect is now
+keyed on the room code, and `realtime/room-gate.test.tsx` locks it at the cheap
+level too.
+
 ## The structural debt is its own file
 
 The entries above are defects with a `file:line`. The notes that are about the

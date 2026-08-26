@@ -45,7 +45,7 @@ export function flagsContext(): FlagsContext {
     auth: auth(),
     db: db(),
     model: languageModel(env),
-    wiki: wikiRequest(env.BETTER_AUTH_URL),
+    wiki: wikiRequest(env.BETTER_AUTH_URL, env.WIKIPEDIA_API_URL),
     transport: networkTransport,
   };
 }
@@ -68,7 +68,7 @@ export function startContext(): StartContext {
       db: db(),
       cache: articleCache(env),
       model: languageModel(env),
-      wiki: wikiRequest(env.BETTER_AUTH_URL),
+      wiki: wikiRequest(env.BETTER_AUTH_URL, env.WIKIPEDIA_API_URL),
       transport: networkTransport,
       // The draw the current `random.sample` makes: the same article played twice
       // does not hide its fakes in the same places.

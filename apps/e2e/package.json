@@ -1,0 +1,22 @@
+{
+  "name": "@wikifake/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "e2e": "playwright test",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "upstream": "tsx upstream/serve.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^22.20.1",
+    "@wikifake/article": "workspace:*",
+    "@wikifake/config": "workspace:*",
+    "@wikifake/protocol": "workspace:*",
+    "eslint": "^9.39.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3"
+  }
+}

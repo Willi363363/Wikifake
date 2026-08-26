@@ -20,10 +20,12 @@ import pkg from '../package.json' with { type: 'json' };
  * The version is this service's own, so a Wikimedia operator reading their logs
  * can tell which of the two deployments is making the requests.
  */
-export function wikiRequest(baseUrl: string): WikiRequest {
+export function wikiRequest(baseUrl: string, endpoint?: string): WikiRequest {
   return {
     language: WIKI_LANGUAGE,
     userAgent: `WikiFake-realtime/${pkg.version} (educational fact-checking game; ${baseUrl})`,
+    // Absent in every deployment; step 9.5's browser tests set it.
+    ...(endpoint === undefined ? {} : { endpoint }),
   };
 }
 

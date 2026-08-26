@@ -33,8 +33,8 @@ previous one unless its file says otherwise.
 | 5 | Realtime — WebSocket and Redis | ✅ **done** | `rewrite/phase-05-realtime.md` |
 | 6 | Design system | ⚠️ **six steps delivered** — exit gate awaits a decision | `rewrite/phase-06-design-system.md` |
 | 7 | Frontend — lobby and waiting room | ✅ **done** | `rewrite/phase-07-frontend-lobby.md` |
-| 8 | Frontend — the round | **in progress** — nine steps done, 8.9 blocked on 9.5 | `rewrite/phase-08-frontend-round.md` |
-| 9 | Observability and CI/CD | to do | `rewrite/phase-09-observability-and-cicd.md` |
+| 8 | Frontend — the round | **in progress** — nine steps done, 8.9 unblocked | `rewrite/phase-08-frontend-round.md` |
+| 9 | Observability and CI/CD | **in progress** — 9.5 brought forward | `rewrite/phase-09-observability-and-cicd.md` |
 | 10 | Cutover — removing the Python | to do | `rewrite/phase-10-cutover.md` |
 | 11 | Internationalisation | to do | `rewrite/phase-11-i18n.md` |
 

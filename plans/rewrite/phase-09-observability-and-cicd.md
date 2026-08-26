@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | **in progress** — 9.5 done, brought forward |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
@@ -81,8 +81,26 @@ LLM call: article served from a fixture, fake key as today.
 **This step owns the harness**, and it is the only one that does. 7.8 asked
 for a Playwright run of the solo journey and was cut back to jsdom for that
 reason: the browser, its CI job and the fixture-served article are set up
-once, here, on top of the `ci.yml` 9.4 rewrites. The solo journey is one of
-the runs it should carry.
+once, here. The solo journey is one of the runs it should carry.
+
+✅ **Done, out of order** — brought forward from this phase to unblock step
+8.9, which cannot be written without it. Three notes:
+
+- Written on the **current** `ci.yml`, not on the one 9.4 will produce. The
+  job is deliberately dull, and everything that decides anything lives in
+  `apps/e2e/playwright.config.ts`, so 9.4 moves a block rather than
+  rewriting a harness.
+- **No seam in the application.** `WIKIPEDIA_API_URL` and `MODEL_BASE_URL`
+  are two optional environment variables, absent in every deployment, and
+  the run points both applications at a stub answering from
+  `@wikifake/article/testing`. What differs between a browser run and a real
+  one is configuration.
+- **Two contexts, not four browsers** — the pitfall list below asks for a
+  short journey, and two isolated contexts are two players as far as the
+  server is concerned. 8.9 adds the four-player round with items on top.
+
+It found a defect on its first run: the socket never opened after "Open a
+room". See `plans/current-state/05-known-debt.md`.
 
 **Done when**: the e2e job passes in CI, and fails if a field of the
 solution is deliberately leaked into the start payload.

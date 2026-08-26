@@ -58,7 +58,7 @@ const service = createService({
     db,
     cache: createArticleCache({ redis: lazyRedis(env.REDIS_URL), now: () => Date.now() }),
     model: languageModel(env),
-    wiki: wikiRequest(env.BETTER_AUTH_URL),
+    wiki: wikiRequest(env.BETTER_AUTH_URL, env.WIKIPEDIA_API_URL),
     transport: networkTransport,
     // The draw the current `random.sample` makes: the same article played twice
     // does not hide its fakes in the same places.

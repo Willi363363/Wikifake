@@ -43,10 +43,21 @@ export function RoomGate({ children }: { children: ReactNode }) {
   // Read after mount, never during render: `sessionStorage` does not exist on
   // the server, and a value read during render is a hydration mismatch waiting
   // to happen.
+  //
+  // Keyed on the room code, and that is not a detail. This gate lives in the
+  // layout of the `(game)` group precisely so it survives the navigation from
+  // the entry screen into a room — which means it mounts while there is no
+  // nickname yet, and an effect that ran once would never see the one the entry
+  // screen writes a moment later. The socket would then never open at all: the
+  // provider stays idle on a `playerName` of null, for the whole life of the
+  // room.
+  //
+  // Found by the browser tests of step 9.5, on the first run. Every unit suite
+  // passes the nickname in as a prop, so none of them could have seen it.
   const [nickname, setNickname] = useState<string | null>(null);
   useEffect(() => {
     setNickname(readNickname());
-  }, []);
+  }, [code]);
 
   return (
     <RealtimeProvider roomCode={code} playerName={nickname}>

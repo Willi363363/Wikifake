@@ -16,10 +16,13 @@ import { VERSION } from '../deployment.js';
  * The version is the app's own, so a Wikimedia operator reading their logs can
  * tell which build is making the requests.
  */
-export function wikiRequest(baseUrl: string): WikiRequest {
+export function wikiRequest(baseUrl: string, endpoint?: string): WikiRequest {
   return {
     language: WIKI_LANGUAGE,
     userAgent: `WikiFake/${VERSION} (educational fact-checking game; ${baseUrl})`,
+    // Absent in every deployment. Step 9.5's browser tests set it so the article
+    // comes from a fixture rather than from four real reads of Wikipedia a run.
+    ...(endpoint === undefined ? {} : { endpoint }),
   };
 }
 

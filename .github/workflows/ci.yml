@@ -160,6 +160,90 @@ jobs:
       - run: pnpm build
       - run: pnpm format:check
 
+  # Step 9.5 — the browser journeys. Its own job, and not part of `monorepo`:
+  # it needs a browser and three processes, and a suite that takes a minute has
+  # no business slowing down the one that takes four seconds.
+  #
+  # Step 9.4 rewrites this file. This job is written to be moved, not to be
+  # clever: everything it needs is in `apps/e2e/playwright.config.ts`, and what
+  # is here is the machine.
+  e2e:
+    name: Browser journeys
+    needs: guard
+    if: needs.guard.outputs.run == 'true'
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: wikifake
+          POSTGRES_DB: wikifake
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgres://postgres:wikifake@localhost:5432/wikifake
+      REDIS_URL: redis://localhost:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable pnpm
+        run: corepack enable pnpm
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-
+
+      - run: pnpm install --frozen-lockfile
+
+      # Keyed on the Playwright version: a browser build is 130 MB, and
+      # downloading it on every run is a minute nobody gets back.
+      - uses: actions/cache@v4
+        id: browser
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Chromium
+        run: pnpm --filter @wikifake/e2e exec playwright install --with-deps chromium
+
+      - run: pnpm --filter @wikifake/db migrate
+
+      # The config starts the stub upstream, the realtime service and a
+      # production build of the web app, and points the first two at the stub.
+      # No Wikipedia, no model, and a key that is deliberately not real.
+      - run: pnpm e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: apps/e2e/test-results
+          retention-days: 7
+
   frontend:
     needs: guard
     if: needs.guard.outputs.run == 'true'
