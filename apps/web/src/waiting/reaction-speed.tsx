@@ -11,7 +11,7 @@ import { Badge } from '@wikifake/ui';
 import { useEffect, useState } from 'react';
 
 import { PlayAgain } from './controls.js';
-import { useTimers } from './timers.js';
+import { useTimers } from '../timers.js';
 
 /** The wait before the target shows: long enough that it cannot be predicted. */
 const WAIT_MS = 1000;

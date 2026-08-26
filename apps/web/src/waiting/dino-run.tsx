@@ -10,7 +10,7 @@
 import { useEffect, useState } from 'react';
 
 import { GameOver } from './controls.js';
-import { useTimers } from './timers.js';
+import { useTimers } from '../timers.js';
 
 /** The frame, in milliseconds. The current loop's, kept: 50 frames a second. */
 export const TICK_MS = 20;

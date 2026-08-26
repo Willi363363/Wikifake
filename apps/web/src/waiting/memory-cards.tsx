@@ -10,7 +10,7 @@ import { cn } from '@wikifake/ui';
 import { useEffect, useState } from 'react';
 
 import { PlayAgain } from './controls.js';
-import { useTimers } from './timers.js';
+import { useTimers } from '../timers.js';
 
 /** Four pairs: eight cards, which fills the panel without crowding a phone. */
 export const PAIRS = 4;

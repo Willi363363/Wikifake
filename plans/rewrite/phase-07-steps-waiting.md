@@ -32,8 +32,23 @@ Wire solo entry → generation screen → round onto the REST routes of phase 4
 article and submission; the rich article, hints, items and debriefing
 belong to phase 8, which replaces it.
 
-**Done when**: the solo Playwright test passes — enter a nickname, pick a
-topic, play, see your score.
+**Done when**: the journey plays through — a topic, a wait that ends when the
+article does, paragraphs marked as 1-based numbers, and the score the server
+decided on screen.
+
+Two corrections to what this step used to say, both made when it was done:
+
+- **No nickname.** 7.2 settled that solo asks for none: there is no room and no
+  socket, and the round is played by whoever is holding the browser. The
+  criterion said "enter a nickname" from before that decision.
+- **The browser run is 9.5's.** This step's criterion used to be "the solo
+  Playwright test passes", and step 9.5 already owns *Playwright e2e in CI* —
+  with the fixture-served article and the fake key that run needs, and 9.4
+  rewriting `ci.yml` underneath it. Two homes for one harness is how a harness
+  gets built twice. The journey is proved here the way every other screen in
+  this phase is, in jsdom with the two routes stubbed at `fetch`; what those
+  routes *do* is phase 4's exit gate and is tested against a real database in
+  `apps/web/src/game/journey.test.ts`.
 
 ## Exit gate
 

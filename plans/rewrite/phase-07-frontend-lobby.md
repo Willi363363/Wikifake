@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — seven steps done |
+| **State** | ✅ **done** — exit gate passed |
 | **Branch** | `feat/rewrite-phase-7` |
 | **Depends on** | phases 4, 5 and 6 |
 | **Delivers** | the whole pre-round in Next.js, and a playable solo game |
@@ -47,15 +47,20 @@ Definitions: `phase-07-steps-room.md`.
 |---|---|---|
 | 7.6 | The six waiting minigames | ✅ done |
 | 7.7 | A single chat | ✅ done |
-| 7.8 | Solo journey end to end | to do |
+| 7.8 | Solo journey end to end | ✅ done |
 
 Definitions: `phase-07-steps-waiting.md`.
 
 ## Exit gate
 
-- A solo game plays end to end.
-- No socket prop left in the tree, no imperative handle.
-- The chat survives the lobby → round transition.
+- A solo game plays end to end. — 7.8, `src/solo/solo.test.tsx`. The browser
+  run of the same journey is step 9.5's, which owns the harness.
+- No socket prop left in the tree, no imperative handle. — locked by
+  `src/realtime/tree.test.ts`, which scans the whole application rather than the
+  one file each was removed from.
+- The chat survives the lobby → round transition. — 7.7,
+  `src/chat/chat.test.tsx`, alongside the same tree with the chat inside a
+  screen, which loses it.
 
 ## Contract touched
 
