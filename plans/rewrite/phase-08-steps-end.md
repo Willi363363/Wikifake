@@ -17,6 +17,26 @@ attribution stays visible after the round.
 **Done when**: slowing the animation down no longer desynchronises the
 reveal, and the attribution assertion passes on the end screen.
 
+Notes written when the step was done:
+
+- **The debrief is a panel, not an overlay.** The current one is a fixed
+  full-screen modal, which covers the article — and with it the CC BY-SA
+  attribution C6.1 requires *after* the round as well as during it. Here it
+  sits above the article, which keeps its verdicts and its attribution
+  underneath. That is also what makes the "after" assertion possible at all.
+- **The round is kept through the debrief.** `game_end` no longer returns the
+  room to the lobby: the phase becomes `debrief`, and the player leaves it
+  when they choose. The verdicts are drawn against the paragraphs *they*
+  marked, and a screen that replaced this one would have thrown them away.
+- **The verdicts come from `gradeAnswer`** — the same function the server
+  graded with. Not for economy: a debrief that decided for itself which marks
+  were right would be a second opinion on the score the player was given.
+- **`SCORE_STEAL` is in the tally.** The current stage sequence has no place
+  for it, so on any round where a rival cast it the animation ended on a
+  different number from the score.
+- **The solo score screen is gone**, replaced by this. `SoloScore` said "the
+  full correction arrives in phase 8"; it has.
+
 ### 8.8 — Factual error flagging
 
 `FlagButton`, `FlagCaptureModal`, `FlagReportForm`, `FlagToast`, wired to
