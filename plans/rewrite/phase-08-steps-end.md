@@ -73,6 +73,26 @@ on every client.
 **Done when**: the 4-player game plays end to end, items included, and the
 negative assertions pass on all four clients.
 
+Notes written when the step was done:
+
+- **Four contexts, not four browsers.** Four isolated contexts are four
+  players as far as the server can tell — four `sessionStorage`s, four
+  session tokens — and they cost one browser launch. The pitfall list asks
+  for a single short journey, and four engines would have been four times the
+  wall clock for nothing.
+- **It waits thirty seconds, once.** The first item wave is thirty seconds
+  into the round, a rule carried over from `item_distribution_loop` so that a
+  round opens item-free. There is no honest way to have items without waiting
+  for them; everything else in the journey is as short as it can be.
+- **Which item is dealt is a draw**, so the journey does not know whether the
+  one it throws asks for a target. It reads the card's own accessible name —
+  a card that needs one says so — and branches. That is the interface being
+  legible enough to be driven, rather than the test knowing a secret.
+- **Two lists in the debrief got names.** The ranking and the falsifications
+  were both unnamed `<ol>`s inside one region, which a screen reader reads as
+  one long run of items — and which made "four players are ranked"
+  unassertable. Found by writing the assertion.
+
 ### 8.10 — English user interface
 
 The user interface is now written in English: every player-facing string —
