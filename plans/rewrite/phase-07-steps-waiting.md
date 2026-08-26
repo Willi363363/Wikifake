@@ -6,9 +6,10 @@
 
 ### 7.6 — The six waiting minigames
 
-Snake, DinoRun, MemoryCards, ReactionSpeed, PatternMatch, TicTacToe, plus
-`ProgressTracker` and `GameLauncher`. All DOM + CSS, no canvas: the port is
-mechanical — client components, inline styles to the theme, timers and
+Snake, DinoRun, MemoryCards, ReactionSpeed, PatternMatch, TicTacToe and
+`GameLauncher`. `ProgressTracker` came with 7.5 — the bar is arithmetic in
+`progress.ts` and the generation screen draws it. All DOM + CSS, no canvas: the
+port is mechanical — client components, styled from the theme, timers and
 keyboard listeners cleaned up on unmount.
 
 **Done when**: all six launch and replay from the waiting screen, with no
