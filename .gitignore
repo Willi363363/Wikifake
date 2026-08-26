@@ -27,3 +27,7 @@ next-env.d.ts
 
 # TypeScript incremental build state
 *.tsbuildinfo
+
+# Playwright, step 9.5: traces and reports of a failed run.
+test-results/
+playwright-report/

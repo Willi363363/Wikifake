@@ -12,7 +12,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "e2e": "pnpm --filter @wikifake/e2e e2e"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

@@ -38,6 +38,16 @@ const schema = z.object({
   /** Language model — phase 3. */
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().min(1, 'model API key is missing'),
   MODEL_NAME: z.string().min(1).default(DEFAULT_MODEL_NAME),
+  /**
+   * Where the two upstreams are, when they are not where they normally are.
+   *
+   * Both absent in every deployment. They exist so the browser tests of step
+   * 9.5 can serve the article from a fixture and answer the model call locally,
+   * without a seam in the application: what differs between a test run and a
+   * real one is two environment variables, not a branch in the code.
+   */
+  WIKIPEDIA_API_URL: z.url().optional(),
+  MODEL_BASE_URL: z.url().optional(),
 
   /**
    * Better Auth — phase 4.

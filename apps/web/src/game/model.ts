@@ -20,6 +20,13 @@ import type { LanguageModel } from 'ai';
  * second, silent source would make that check decorative.
  */
 export function languageModel(env: Env): LanguageModel {
-  const google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY });
+  const google = createGoogleGenerativeAI({
+    apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
+    // Absent in every deployment, and set by step 9.5's browser tests so the
+    // call is answered locally. The key is still required and still passed: a
+    // run with no key is a run that would pass and prove nothing about the one
+    // that has one.
+    ...(env.MODEL_BASE_URL === undefined ? {} : { baseURL: env.MODEL_BASE_URL }),
+  });
   return google(env.MODEL_NAME);
 }
