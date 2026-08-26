@@ -114,8 +114,10 @@ export function Debrief({
 
           {/* C1.2 — every falsification, and the truth behind it. This is the
               first moment any of it has been on this client at all. */}
-          <h3 className="text-sm font-medium text-ink">What was altered</h3>
-          <ol className="mt-3 space-y-4">
+          <h3 id="what-was-altered" className="text-sm font-medium text-ink">
+            What was altered
+          </h3>
+          <ol aria-labelledby="what-was-altered" className="mt-3 space-y-4">
             {solution.map((position) => (
               <li key={position.falseInfoNumber} className="text-sm">
                 <p className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">

@@ -96,7 +96,10 @@ export function AnimatedRanking({
       </p>
       <p className="mt-0.5 text-xs text-muted">{shown?.note}</p>
 
-      <ol className="mt-4 space-y-2">
+      {/* Named, because the debrief holds two lists — this one and the
+          falsifications — and a region with two unnamed lists in it is a region
+          a screen reader reads as one long run of items. */}
+      <ol aria-label="Final ranking" className="mt-4 space-y-2">
         {scored.map((standing, at) => (
           <li
             key={standing.name}

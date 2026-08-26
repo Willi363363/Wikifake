@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — nine steps done |
+| **State** | ✅ **done** — exit gate passed |
 | **Branch** | `feat/rewrite-phase-8` |
 | **Depends on** | phase 7 |
 | **Delivers** | the complete round, from first paragraph to debriefing |
@@ -48,22 +48,31 @@ Definitions: `phase-08-steps-play.md`.
 |---|---|---|
 | 8.7 | Debriefing | ✅ done |
 | 8.8 | Factual error flagging | ✅ done |
-| 8.9 | Multiplayer end to end | to do — 9.5 is in |
+| 8.9 | Multiplayer end to end | ✅ done |
 | 8.10 | English user interface | ✅ done |
 
 Definitions: `phase-08-steps-end.md`.
 
-**8.9 is unblocked.** It asked for four Playwright browsers and step 9.5 owns
-that harness, so 9.5 was brought forward and is done — with a two-player
-journey already in it. What 8.9 adds on top is the four-player round with
-items, on a harness that now exists.
+**8.9 needed step 9.5**, which owns the browser harness. 9.5 was brought
+forward, and 8.9 is the four-player journey written on it — four contexts
+rather than four engines, which is what this phase's own pitfall list asks for.
+
+The exit gate below is passed by `apps/e2e/specs/multiplayer.spec.ts`, which is
+also the only place three of its four items can be asserted at all.
 
 ## Exit gate
 
-- A 4-player multiplayer game plays end to end, items included.
-- The negative assertions pass during the round, on all clients.
-- The CC BY-SA attribution is visible during **and** after the round.
-- No hydration warning on the round screens.
+- A 4-player multiplayer game plays end to end, items included. — the reference
+  journey, `apps/e2e/specs/multiplayer.spec.ts`.
+- The negative assertions pass during the round, on all clients. — asserted on
+  each of the four, twice: after the round starts and after an item lands. The
+  assertion itself is proved to have teeth by `leak.spec.ts`.
+- The CC BY-SA attribution is visible during **and** after the round. — on all
+  four, in both places. The debrief of 8.7 is a panel rather than an overlay
+  precisely so the second half can be true.
+- No hydration warning on the round screens. — the particles of 8.4 are
+  generated after mount, and `prefers-reduced-motion` is read with
+  `useSyncExternalStore`, which is the pair of them that could produce one.
 
 ## Contract touched
 
