@@ -7,10 +7,22 @@
 // the connection on every screen. The server would see a departure and an
 // arrival it cannot tell from a flapping network, and D5's grace window would
 // be spent on a player who never left.
+//
+// The chat is mounted here for the same reason, and it is the whole of step
+// 7.7: one instance, beside the provider rather than inside a screen. The
+// current game mounts one in the lobby and another in the round, so the history
+// dies with the screen that held it. Here no screen owns it, and none of them
+// has to remember to mount it.
 import type { ReactNode } from 'react';
 
+import { ChatDock } from '../../src/chat/chat.js';
 import { RoomGate } from '../../src/realtime/room-gate.js';
 
 export default function GameLayout({ children }: { children: ReactNode }) {
-  return <RoomGate>{children}</RoomGate>;
+  return (
+    <RoomGate>
+      {children}
+      <ChatDock />
+    </RoomGate>
+  );
 }
