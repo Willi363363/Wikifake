@@ -11,11 +11,14 @@
 // assertions worth writing once. What differs is who submits and what comes
 // back — a REST response in one, `game_end` in the other — and neither is this
 // component's business.
-import type { ItemInstance } from '@wikifake/protocol';
+import type { FalsifiedPosition, ItemInstance, ScoreBreakdown } from '@wikifake/protocol';
 import { useEffect, useState } from 'react';
 
 import { ArticleCard, type ArticleFacts } from './article.js';
 import { Brief } from './brief.js';
+import { Debrief } from './debrief/panel.js';
+import type { FinalStanding } from './debrief/ranking.js';
+import type { Stage } from './debrief/stages.js';
 import { optimisticScore, type Standing } from './leaderboard.js';
 import { LiveRanking } from './live-ranking.js';
 import { PlayerCursors, type CursorView } from './player-cursors.js';
@@ -30,11 +33,30 @@ import { ItemTarget } from './item-target.js';
 import { ItemToasts } from './item-toasts.js';
 import type { ItemsState } from './items.js';
 import { RoundTopBar } from './top-bar.js';
+import { verdictsFor, type Verdict } from './verdicts.js';
 import { useTimers } from '../timers.js';
 
 /** Shared, so a round with no items does not allocate a set per render. */
 const EMPTY: ReadonlySet<number> = new Set();
 const NOTHING: ReadonlySet<never> = new Set();
+const NO_VERDICTS: ReadonlyMap<number, Verdict> = new Map<number, Verdict>();
+
+/**
+ * C1.2 — everything the debrief needs, and none of it available before the end.
+ *
+ * Absent while the round runs. Not empty: absent, so there is no shape for a
+ * solution to arrive early in.
+ */
+export interface DebriefFacts {
+  readonly score: number;
+  readonly breakdown: ScoreBreakdown;
+  readonly solution: readonly FalsifiedPosition[];
+  /** One entry in solo, everybody's in a room. */
+  readonly standings: readonly FinalStanding[];
+  readonly stages?: readonly Stage[] | undefined;
+  readonly onwardLabel: string;
+  onOnward(): void;
+}
 
 export interface RoundProps {
   readonly article: ArticleFacts;
@@ -68,6 +90,8 @@ export interface RoundProps {
    * here and in `hints`.
    */
   onLiveScore?: ((score: number) => void) | undefined;
+  /** C1.2 — present only once the round is over. */
+  readonly debrief?: DebriefFacts | undefined;
   onSubmit(marked: readonly number[]): void;
   /** Absent where a submission cannot be taken back — solo, over REST. */
   readonly onUnsubmit?: (() => void) | undefined;
@@ -99,6 +123,7 @@ export function Round({
   onUnlockHint,
   onUseItem,
   onLiveScore,
+  debrief,
 }: RoundProps) {
   const timers = useTimers();
   const [marked, setMarked] = useState<readonly number[]>([]);
@@ -108,6 +133,8 @@ export function Round({
   /** The item waiting for a target, or null. The chain's missing middle. */
   const [aiming, setAiming] = useState<ItemInstance | null>(null);
   const over = left <= 0;
+  const ended = debrief !== undefined;
+  const verdicts = ended ? verdictsFor(debrief.solution, marked) : NO_VERDICTS;
 
   const throwIt = (item: ItemInstance, targets: readonly string[]): void => {
     setAiming(null);
@@ -115,7 +142,7 @@ export function Round({
   };
 
   useEffect(() => {
-    if (over || submitted) return undefined;
+    if (over || submitted || ended) return undefined;
     // Registered once: a dependency on the second would rebuild the interval
     // every second and drift.
     return timers.every(1000, () => {
@@ -124,7 +151,7 @@ export function Round({
   }, [over, submitted, timers]);
 
   useEffect(() => {
-    if (!over || submitted || busy) return;
+    if (!over || submitted || busy || ended) return;
     // The round ends by itself. The current game leaves `time_limit` to the
     // client and does nothing when it runs out, so a player who walks away
     // never gets a score at all — defect 4 of the debt register.
@@ -175,14 +202,31 @@ export function Round({
         }}
       />
 
-      <main className="mx-auto max-w-4xl px-4 py-6">
+      <main className="mx-auto max-w-4xl space-y-5 px-4 py-6">
+        {/* Above the article, not over it. The current debrief is a fixed
+            full-screen modal, which covers the CC BY-SA attribution that C6.1
+            requires to stay visible *after* the round as well as during it. */}
+        {debrief === undefined ? null : (
+          <Debrief
+            breakdown={debrief.breakdown}
+            score={debrief.score}
+            totalFakes={article.totalFakes}
+            solution={debrief.solution}
+            standings={debrief.standings}
+            {...(debrief.stages === undefined ? {} : { stages: debrief.stages })}
+            onwardLabel={debrief.onwardLabel}
+            onOnward={debrief.onOnward}
+          />
+        )}
+
         <ArticleCard
           article={article}
           marked={marked}
           hinted={hints.hintedParagraphs}
           scanned={items?.scanned ?? EMPTY}
           distortions={effects?.distortions ?? NOTHING}
-          locked={submitted || busy}
+          verdicts={verdicts}
+          locked={submitted || busy || ended}
           onToggle={toggle}
         />
 
@@ -201,7 +245,7 @@ export function Round({
           </p>
         )}
 
-        {submitted ? (
+        {submitted && !ended ? (
           <p aria-live="polite" className="mt-4 text-center text-sm text-muted">
             Your answer is with the server. The correction arrives when the round ends.
           </p>

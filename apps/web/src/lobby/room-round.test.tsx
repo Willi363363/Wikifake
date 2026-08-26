@@ -111,7 +111,7 @@ describe('8.1 — the round, in a room', () => {
     expect(sent().at(-1)).toEqual({ type: 'unsubmit_answer' });
   });
 
-  it('returns to the lobby when the round ends', () => {
+  it('shows the debrief when the round ends, and keeps the article', () => {
     mountRoom();
     deliver(roster(player('ada', { isHost: true })));
     startRound();
@@ -122,10 +122,27 @@ describe('8.1 — the round, in a room', () => {
     // test that never ended a round.
     deliver(ROUND_ENDS);
 
+    // Step 8.7 — the debrief, above the article rather than over it, so C6.1's
+    // attribution is still on screen after the round.
+    expect(screen.getByRole('region', { name: 'Debrief' })).not.toBeNull();
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Chat');
+    expect(screen.queryByText('Players (1)')).toBeNull();
+  });
+
+  it('goes back to the lobby when the player says so, not when the message lands', () => {
+    mountRoom();
+    deliver(roster(player('ada', { isHost: true })));
+    startRound();
+    deliver(ROUND_ENDS);
+
+    // The ranking has to finish before the way onward is offered.
+    act(() => {
+      vi.advanceTimersByTime(10_000);
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Back to the room' }));
+
     expect(screen.getByText('Players (1)')).not.toBeNull();
-    // The debrief is step 8.7. Until it exists the article goes with the round
-    // rather than lingering under a lobby.
-    expect(screen.queryByRole('heading', { level: 1, name: 'Chat' })).toBeNull();
+    expect(screen.queryByRole('region', { name: 'Debrief' })).toBeNull();
   });
 });
 

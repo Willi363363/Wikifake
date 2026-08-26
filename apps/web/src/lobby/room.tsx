@@ -20,7 +20,7 @@ import { GenerationScreen } from './generation.js';
 import { HostSettings } from './host-settings.js';
 import { PlayerList } from './player-list.js';
 import { ThemeVote } from './theme-vote.js';
-import { useRoom } from './use-room.js';
+import { useRoom, type Outcome } from './use-room.js';
 import { useRoomHints } from './room-hints.js';
 import { useRoomItems } from './room-items.js';
 import { useRoomCursors } from './room-cursors.js';
@@ -28,6 +28,21 @@ import { useRoomLeaderboard } from './room-leaderboard.js';
 import { useRealtime } from '../realtime/provider.js';
 import { ranked } from '../round/leaderboard.js';
 import { Round } from '../round/round.js';
+
+/** A player who never submitted has no breakdown. Shown as nothing earned. */
+const EMPTY_BREAKDOWN = {
+  truePositives: 0,
+  falsePositives: 0,
+  hintsUsed: 0,
+  hintPenalty: 0,
+  scoreStolen: 0,
+  timeBonus: 0,
+};
+
+/** This player's line in the final standings, if they have one. */
+function mine(outcome: Outcome, nickname: string | null) {
+  return outcome.leaderboard.find((entry) => entry.player === nickname);
+}
 
 export interface RoomProps {
   readonly roomCode: string;
@@ -95,7 +110,11 @@ export function Room({ roomCode, nickname }: RoomProps) {
   // The same round solo renders — what differs is the transport. "You have
   // submitted" is the server's `answered` on the roster rather than a flag this
   // screen sets, which is the rule `hasVoted` follows and for the same reason.
-  if (room.phase === 'round' && entered && room.round !== null) {
+  if (
+    (room.phase === 'round' || room.phase === 'debrief') &&
+    entered &&
+    room.round !== null
+  ) {
     return (
       <Round
         article={room.round.article}
@@ -135,6 +154,26 @@ export function Room({ roomCode, nickname }: RoomProps) {
           items.clearRefusal();
           items.use(item.instanceId, targets, marked);
         }}
+        {...(room.outcome === null
+          ? {}
+          : {
+              debrief: {
+                // This player's own numbers, from the standings the server sent.
+                // Absent means they never submitted, and the debrief says so
+                // rather than inventing a breakdown of zeroes.
+                score: mine(room.outcome, nickname)?.score ?? 0,
+                breakdown: mine(room.outcome, nickname)?.breakdown ?? EMPTY_BREAKDOWN,
+                solution: room.outcome.solution,
+                standings: room.outcome.leaderboard.map((entry) => ({
+                  name: entry.player,
+                  colour: entry.colour,
+                  breakdown: entry.breakdown,
+                  you: entry.player === nickname,
+                })),
+                onwardLabel: 'Back to the room',
+                onOnward: room.leaveDebrief,
+              },
+            })}
       />
     );
   }

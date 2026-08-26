@@ -13,10 +13,10 @@
 import { decode, topicLabel, type gameApi } from '@wikifake/protocol';
 import { buttonVariants } from '@wikifake/ui';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import { startRound, submitRound, unlockHint } from './api.js';
-import { SoloScore } from './score.js';
 import { GenerationScreen } from '../lobby/generation.js';
 import { useHints } from '../round/hints.js';
 import { Round } from '../round/round.js';
@@ -40,6 +40,7 @@ export interface SoloGameProps {
 }
 
 export function SoloGame({ topic }: SoloGameProps) {
+  const router = useRouter();
   const valid = validTopic(topic);
 
   const [round, setRound] = useState<gameApi.StartGameResponse | null>(null);
@@ -94,8 +95,6 @@ export function SoloGame({ topic }: SoloGameProps) {
     );
   }
 
-  if (result !== null) return <SoloScore topic={valid} result={result} />;
-
   // The screen outlives the arrival of the round on purpose: it stays until its
   // bar has been seen to fill, and it is the screen that decides when that is.
   if (round === null || !entered) {
@@ -148,18 +147,46 @@ export function SoloGame({ topic }: SoloGameProps) {
     })();
   };
 
-  // The same round the room renders. Solo has no `unsubmit`: there is no route
-  // for it, because there is nobody to wait for.
+  // The same round the room renders, and it stays mounted through the debrief:
+  // the paragraphs the player marked are what the verdicts are drawn against,
+  // and a screen that replaced this one would have thrown them away.
+  //
+  // Solo has no `unsubmit`: there is no route for it, because there is nobody to
+  // wait for.
   return (
     <Round
       article={round}
       timeLimit={round.timeLimit}
-      submitted={false}
+      submitted={result !== null}
       busy={busy}
       refusal={refusal}
       hints={hints}
       onSubmit={submit}
       onUnlockHint={unlock}
+      {...(result === null
+        ? {}
+        : {
+            debrief: {
+              score: result.score,
+              breakdown: result.breakdown,
+              solution: result.solution,
+              // One player, and it is this one. The ranking still runs: the
+              // stages are what make the score arrive as arithmetic rather than
+              // as a number that was simply there.
+              standings: [
+                {
+                  name: 'You',
+                  colour: '#1f574d',
+                  breakdown: result.breakdown,
+                  you: true,
+                },
+              ],
+              onwardLabel: 'Play again',
+              onOnward: () => {
+                router.push('/play');
+              },
+            },
+          })}
     />
   );
 }

@@ -17,6 +17,7 @@ import { cn, ParagraphToken, tokenStateFor } from '@wikifake/ui';
 
 import { Attribution } from './attribution.js';
 import type { Distortion } from './effects.js';
+import type { Verdict } from './verdicts.js';
 
 /**
  * What each distortion does to the card.
@@ -56,6 +57,13 @@ export interface ArticleCardProps {
   readonly scanned: ReadonlySet<number>;
   /** What items are doing to the card right now. */
   readonly distortions: ReadonlySet<Distortion>;
+  /**
+   * C1.2 — what each paragraph turned out to be, once the round is over.
+   *
+   * Empty during the round, and that is the guarantee: there is nothing to put
+   * in it, because the solution has not left the server yet.
+   */
+  readonly verdicts: ReadonlyMap<number, Verdict>;
   /** True once the round is out of the player's hands. */
   readonly locked: boolean;
   onToggle(paragraph: number): void;
@@ -75,6 +83,7 @@ export function ArticleCard({
   hinted,
   scanned,
   distortions,
+  verdicts,
   locked,
   onToggle,
 }: ArticleCardProps) {
@@ -106,6 +115,9 @@ export function ArticleCard({
                 marked: marked.includes(paragraph),
                 hinted: hinted.has(paragraph),
                 scanned: scanned.has(paragraph),
+                // A verdict replaces everything: once the round is over, "you
+                // marked this" is no longer the interesting fact.
+                verdict: verdicts.get(paragraph) ?? null,
               })}
               disabled={locked}
               onClick={() => {

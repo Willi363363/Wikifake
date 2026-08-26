@@ -18,6 +18,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SoloGame } from './solo.js';
 import { SETTLE_MS } from '../lobby/generation.js';
 
+/** The solo debrief offers a way back, and that is a navigation. */
+const pushed: string[] = [];
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: (path: string) => {
+      pushed.push(path);
+    },
+  }),
+}));
+
 const ROUND = {
   sessionId: 'a-session-handle-16',
   timeLimit: 300,
@@ -90,6 +100,18 @@ afterEach(() => {
 async function settle(): Promise<void> {
   await act(async () => {
     await vi.advanceTimersByTimeAsync(0);
+  });
+}
+
+/**
+ * Past the debrief's staged ranking, which is what gates the numbers.
+ *
+ * Since step 8.7 the score is revealed when the ranking says it has finished
+ * rather than after a duration this test would have to know.
+ */
+async function settleDebrief(): Promise<void> {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(10_000);
   });
 }
 
@@ -222,6 +244,7 @@ describe('7.8 — the score', () => {
     fireEvent.click(paragraph(2));
     fireEvent.click(screen.getByRole('button', { name: /^Submit/ }));
     await settle();
+    await settleDebrief();
 
     // C3.3 — the number the player clicked is the number the server grades.
     expect(JSON.parse(String(vi.mocked(fetch).mock.calls[1]?.[1]?.body))).toEqual({
@@ -239,6 +262,7 @@ describe('7.8 — the score', () => {
     await intoTheRound();
     fireEvent.click(screen.getByRole('button', { name: /^Submit/ }));
     await settle();
+    await settleDebrief();
 
     expect(screen.getByText('Found').nextElementSibling?.textContent).toBe('1');
     expect(screen.getByText('Wrongly marked').nextElementSibling?.textContent).toBe('−1');
@@ -252,8 +276,21 @@ describe('7.8 — the score', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Submit/ }));
     await settle();
 
+    // Before the reveal: the response has arrived and none of it is on screen.
     expect(screen.queryByText(/Il en dort douze/)).toBeNull();
-    expect(screen.queryByText(/Regardez la durée/)).toBeNull();
+  });
+
+  it('shows the correction once the ranking has finished', async () => {
+    // C1.2 — the debrief is the only place the solution appears, and step 8.7 is
+    // where it starts appearing at all.
+    serve({ start: ok(ROUND), submit: ok(RESULT) });
+    render(<SoloGame topic="Chat" />);
+    await intoTheRound();
+    fireEvent.click(screen.getByRole('button', { name: /^Submit/ }));
+    await settle();
+    await settleDebrief();
+
+    expect(screen.getByText(/Il en dort douze/)).not.toBeNull();
   });
 
   it('offers a way back to the start', async () => {
@@ -262,10 +299,10 @@ describe('7.8 — the score', () => {
     await intoTheRound();
     fireEvent.click(screen.getByRole('button', { name: /^Submit/ }));
     await settle();
+    await settleDebrief();
 
-    expect(screen.getByRole('link', { name: 'Play again' }).getAttribute('href')).toBe(
-      '/play',
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Play again' }));
+    expect(pushed).toContain('/play');
   });
 
   it('submits by itself when the clock runs out', async () => {
@@ -277,6 +314,7 @@ describe('7.8 — the score', () => {
       await vi.advanceTimersByTimeAsync(ROUND.timeLimit * 1000);
     });
     await settle();
+    await settleDebrief();
 
     // Defect 4 of the debt register, on the solo path: the current game leaves
     // the limit to the client and does nothing when it expires, so a player who
@@ -342,6 +380,7 @@ describe('7.8 — the score', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /^Submit/ }));
     await settle();
+    await settleDebrief();
     expect(screen.getByText('140')).not.toBeNull();
   });
 });
@@ -407,6 +446,7 @@ describe('8.2 — hints, in solo', () => {
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
     fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
     await settle();
+    await settleDebrief();
 
     expect(screen.getByText('Hint penalty').nextElementSibling?.textContent).toBe('−50');
     expect(screen.getByText('Hints used').nextElementSibling?.textContent).toBe('1');

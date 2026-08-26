@@ -240,8 +240,10 @@ describe('7.4 — the topic vote', () => {
     });
   });
 
-  // C1.2 — the round ends and the room is a lobby again.
-  it('returns to the lobby when the round ends', () => {
+  // C1.2 — the round ends and the vote is over. Since step 8.7 what follows is
+  // the debrief rather than the lobby: the room goes back when the player says
+  // so. The transition itself is `room-round.test.tsx`.
+  it('closes the vote when the round ends', () => {
     mount();
     deliver(
       { type: 'lobby_update', players: [player('ada', true)] },
@@ -250,7 +252,6 @@ describe('7.4 — the topic vote', () => {
       ENDED,
     );
 
-    expect(screen.getByText('Players (1)')).not.toBeNull();
-    expect(screen.queryByText('Chat')).toBeNull();
+    expect(screen.queryByText('Pick a topic')).toBeNull();
   });
 });

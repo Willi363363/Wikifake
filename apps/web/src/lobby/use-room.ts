@@ -33,7 +33,7 @@ export interface RoomPlayer {
  * `phase-07-steps-room.md` — and it is why a player who reconnects mid-vote
  * sees a lobby until the next message happens to arrive.
  */
-export type RoomPhase = 'lobby' | 'voting' | 'generating' | 'round';
+export type RoomPhase = 'lobby' | 'voting' | 'generating' | 'round' | 'debrief';
 
 /** The vote, as the server reports it. Never as this client counts it. */
 export interface VoteView {
@@ -55,6 +55,14 @@ export interface RoundView {
   readonly timeLimit: number;
 }
 
+/**
+ * C1.2 — what `game_end` carried: the standings, and the solution.
+ *
+ * The only message that carries it, and therefore the only thing that puts this
+ * on the client at all.
+ */
+export type Outcome = Extract<OutgoingMessage, { type: 'game_end' }>;
+
 export interface RoomView {
   readonly phase: RoomPhase;
   readonly vote: VoteView;
@@ -73,6 +81,10 @@ export interface RoomView {
    * default while the round ran on something else.
    */
   readonly round: RoundView | null;
+  /** C1.2 — the debrief's numbers and the solution, or null outside one. */
+  readonly outcome: Outcome | null;
+  /** Leaves the debrief for the lobby. The player decides when. */
+  leaveDebrief(): void;
   /** Whether *this* player has voted, according to the server. */
   readonly hasVoted: boolean;
   readonly players: readonly RoomPlayer[];
@@ -114,6 +126,7 @@ export function useRoom(nickname: string | null): RoomView {
   const [vote, setVote] = useState<VoteView>(NO_VOTE);
   const [elected, setElected] = useState<ElectedTopic | null>(null);
   const [round, setRound] = useState<RoundView | null>(null);
+  const [outcome, setOutcome] = useState<Outcome | null>(null);
 
   useRealtimeMessages((message) => {
     if (message.type === 'lobby_update') {
@@ -137,6 +150,7 @@ export function useRoom(nickname: string | null): RoomView {
     if (message.type === 'theme_selected') {
       setPhase('generating');
       setElected({ topic: message.topic, proposer: message.proposer });
+      setOutcome(null);
       return;
     }
 
@@ -156,12 +170,15 @@ export function useRoom(nickname: string | null): RoomView {
 
     // C1.2 — the round is over and the room is a lobby again. `ready` is
     // cleared server-side, and the roster that follows says so.
+    // C1.2 — the round is over, and this is the one message that carries the
+    // solution. The round is *kept*: the debrief draws its verdicts on the
+    // article the player was reading, and C6.1 wants the attribution still
+    // visible. `leaveDebrief` is what puts the room back in the lobby, when the
+    // player says so rather than when the message arrives.
     if (message.type === 'game_end') {
-      setPhase('lobby');
+      setPhase('debrief');
+      setOutcome(message);
       setElected(null);
-      // The debrief is phase 8.7, and until it exists the article goes with the
-      // round rather than lingering under a lobby.
-      setRound(null);
       return;
     }
     // C1.7 — a refusal is the server telling this client it was wrong about
@@ -178,6 +195,7 @@ export function useRoom(nickname: string | null): RoomView {
         setPhase('lobby');
         setElected(null);
         setRound(null);
+        setOutcome(null);
       }
     }
   });
@@ -191,6 +209,12 @@ export function useRoom(nickname: string | null): RoomView {
     vote,
     elected,
     round,
+    outcome,
+    leaveDebrief: useCallback(() => {
+      setPhase('lobby');
+      setRound(null);
+      setOutcome(null);
+    }, []),
     // Not "I pressed submit". The current screen sets a local flag the moment
     // the form is sent, so a ballot the server refused — out of phase, or on a
     // socket that was already down — still reads as submitted and never counts.
