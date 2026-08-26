@@ -54,12 +54,16 @@ const RESULT = {
 
 /** What each route answers, in the order the journey calls them. */
 function serve(
-  answers: Partial<Record<'start' | 'submit', () => Promise<unknown>>>,
+  answers: Partial<Record<'start' | 'submit' | 'hint', () => Promise<unknown>>>,
 ): void {
   vi.stubGlobal(
     'fetch',
     vi.fn((path: string) => {
-      const which = path.endsWith('/start') ? 'start' : 'submit';
+      const which = path.endsWith('/start')
+        ? 'start'
+        : path.endsWith('/hint')
+          ? 'hint'
+          : 'submit';
       const answer = answers[which];
       if (answer === undefined) throw new Error(`nothing serves ${path}`);
       return answer().then((body) => ({
@@ -339,5 +343,72 @@ describe('7.8 — the score', () => {
     fireEvent.click(screen.getByRole('button', { name: /^Submit/ }));
     await settle();
     expect(screen.getByText('140')).not.toBeNull();
+  });
+});
+
+describe('8.2 — hints, in solo', () => {
+  const NUDGE = {
+    falseInfoNumber: 1,
+    hint: 'Regardez la durée annoncée.',
+    charged: 50,
+    hintPenalty: 50,
+    grant: { level: 1 },
+  };
+
+  const buyAHint = (): void => {
+    fireEvent.click(screen.getByRole('button', { name: /^Intel/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Buy a hint on target 1' }));
+  };
+
+  it('buys against a target number, over the round’s session', async () => {
+    serve({ start: ok(ROUND), hint: ok(NUDGE) });
+    render(<SoloGame topic="Chat" />);
+    await intoTheRound();
+    buyAHint();
+    await settle();
+
+    const hinted = vi
+      .mocked(fetch)
+      .mock.calls.find(([path]) => String(path).endsWith('/hint'));
+    expect(JSON.parse(String(hinted?.[1]?.body))).toEqual({
+      sessionId: ROUND.sessionId,
+      falseInfoNumber: 1,
+      level: 1,
+    });
+  });
+
+  it('shows what the server granted, and what the server says it cost', async () => {
+    serve({ start: ok(ROUND), hint: ok(NUDGE) });
+    render(<SoloGame topic="Chat" />);
+    await intoTheRound();
+    buyAHint();
+    await settle();
+
+    expect(screen.getByRole('dialog').textContent).toContain('Regardez la durée');
+    expect(screen.getByRole('dialog').textContent).toContain('spent 50');
+  });
+
+  it('the penalty it shows is the one the submission subtracts', async () => {
+    // C1.3, end to end on the solo path: the hint the server billed is the hint
+    // the breakdown accounts for, and neither number was worked out here.
+    serve({
+      start: ok(ROUND),
+      hint: ok(NUDGE),
+      submit: ok({
+        ...RESULT,
+        breakdown: { ...RESULT.breakdown, hintsUsed: 1, hintPenalty: 50 },
+      }),
+    });
+    render(<SoloGame topic="Chat" />);
+    await intoTheRound();
+    buyAHint();
+    await settle();
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    await settle();
+
+    expect(screen.getByText('Hint penalty').nextElementSibling?.textContent).toBe('−50');
+    expect(screen.getByText('Hints used').nextElementSibling?.textContent).toBe('1');
   });
 });

@@ -11,12 +11,20 @@
 // whose `message` is a sentence a player can act on — "no article found for that
 // topic" rather than 404. The entry screen of 7.2 reads that field by hand with a
 // cast; here it is decoded, which is the same fix applied one layer down.
-import { decode, gameApi, restError } from '@wikifake/protocol';
+import { decode, gameApi, restError, type ErrorCode } from '@wikifake/protocol';
 
-/** What the server said, or why it could not be believed. */
+/**
+ * What the server said, or why it could not be believed.
+ *
+ * A refusal carries its `code` as well as its sentence, because some of them are
+ * a state and not just a message: `hints_blocked` means a rival has jammed the
+ * intel and nothing was charged, which the screen has to show differently from
+ * "that did not work". The code is `null` when the refusal did not come from the
+ * game — a proxy, a network, a body that is not JSON.
+ */
 export type Answer<T> =
   | { readonly ok: true; readonly value: T }
-  | { readonly ok: false; readonly message: string };
+  | { readonly ok: false; readonly message: string; readonly code: ErrorCode | null };
 
 const UNREACHABLE = 'the server could not be reached';
 const UNREADABLE = 'the server answered something we cannot read';
@@ -32,7 +40,7 @@ async function post(path: string, body: unknown): Promise<Answer<unknown>> {
       body: JSON.stringify(body),
     });
   } catch {
-    return { ok: false, message: UNREACHABLE };
+    return { ok: false, message: UNREACHABLE, code: null };
   }
 
   // Read before the status is looked at: a refusal carries its reason in the
@@ -46,7 +54,9 @@ async function post(path: string, body: unknown): Promise<Answer<unknown>> {
 
   if (!answer.ok) {
     const said = decode(restError, payload);
-    return { ok: false, message: said.ok ? said.value.message : REFUSED };
+    return said.ok
+      ? { ok: false, message: said.value.message, code: said.value.code }
+      : { ok: false, message: REFUSED, code: null };
   }
   return { ok: true, value: payload };
 }
@@ -59,7 +69,9 @@ export async function startRound(
   if (!answered.ok) return answered;
 
   const read = decode(gameApi.startGameResponse, answered.value);
-  return read.ok ? { ok: true, value: read.value } : { ok: false, message: UNREADABLE };
+  return read.ok
+    ? { ok: true, value: read.value }
+    : { ok: false, message: UNREADABLE, code: null };
 }
 
 /** C1.2 — the marked paragraphs go up, the score and the solution come back. */
@@ -70,5 +82,25 @@ export async function submitRound(
   if (!answered.ok) return answered;
 
   const read = decode(gameApi.submitResponse, answered.value);
-  return read.ok ? { ok: true, value: read.value } : { ok: false, message: UNREADABLE };
+  return read.ok
+    ? { ok: true, value: read.value }
+    : { ok: false, message: UNREADABLE, code: null };
+}
+
+/**
+ * C1.4 — one hint, billed by the server and then sent.
+ *
+ * Monotonic on the far side: asking for level 1 after buying level 2 returns
+ * level 2, and charges nothing.
+ */
+export async function unlockHint(
+  request: gameApi.HintRequest,
+): Promise<Answer<gameApi.HintResponse>> {
+  const answered = await post('/api/game/hint', request);
+  if (!answered.ok) return answered;
+
+  const read = decode(gameApi.hintResponse, answered.value);
+  return read.ok
+    ? { ok: true, value: read.value }
+    : { ok: false, message: UNREADABLE, code: null };
 }

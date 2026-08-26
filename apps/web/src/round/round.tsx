@@ -16,6 +16,8 @@ import { useEffect, useState } from 'react';
 import { ArticleCard, type ArticleFacts } from './article.js';
 import { Brief } from './brief.js';
 import { RoundFooter } from './footer.js';
+import type { HintsState } from './hints.js';
+import { Intel } from './intel.js';
 import { RoundTopBar } from './top-bar.js';
 import { useTimers } from '../timers.js';
 
@@ -28,9 +30,12 @@ export interface RoundProps {
   readonly busy: boolean;
   /** What the server refused, or null. */
   readonly refusal: string | null;
+  /** C1.4 — what has been bought, held by whoever owns the transport. */
+  readonly hints: HintsState;
   onSubmit(marked: readonly number[]): void;
   /** Absent where a submission cannot be taken back — solo, over REST. */
   readonly onUnsubmit?: (() => void) | undefined;
+  onUnlockHint(falseInfoNumber: number, level: 1 | 2): void;
 }
 
 export function Round({
@@ -39,13 +44,16 @@ export function Round({
   submitted,
   busy,
   refusal,
+  hints,
   onSubmit,
   onUnsubmit,
+  onUnlockHint,
 }: RoundProps) {
   const timers = useTimers();
   const [marked, setMarked] = useState<readonly number[]>([]);
   const [left, setLeft] = useState(timeLimit);
   const [briefing, setBriefing] = useState(false);
+  const [intel, setIntel] = useState(false);
   const over = left <= 0;
 
   useEffect(() => {
@@ -86,6 +94,8 @@ export function Round({
         total={article.totalFakes}
         submitted={submitted}
         busy={busy}
+        hintsUsed={hints.hintsUsed}
+        hintsJammed={hints.blocked}
         onSubmit={() => {
           onSubmit(marked);
         }}
@@ -93,12 +103,16 @@ export function Round({
         onOpenBrief={() => {
           setBriefing(true);
         }}
+        onOpenIntel={() => {
+          setIntel(true);
+        }}
       />
 
       <main className="mx-auto max-w-4xl px-4 py-6">
         <ArticleCard
           article={article}
           marked={marked}
+          hinted={hints.hintedParagraphs}
           locked={submitted || busy}
           onToggle={toggle}
         />
@@ -123,6 +137,15 @@ export function Round({
         total={article.totalFakes}
         timeLimit={timeLimit}
         onOpenChange={setBriefing}
+      />
+
+      <Intel
+        open={intel}
+        total={article.totalFakes}
+        hints={hints}
+        locked={submitted || busy}
+        onOpenChange={setIntel}
+        onUnlock={onUnlockHint}
       />
     </div>
   );

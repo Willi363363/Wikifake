@@ -15,9 +15,10 @@ import { buttonVariants } from '@wikifake/ui';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
-import { startRound, submitRound } from './api.js';
+import { startRound, submitRound, unlockHint } from './api.js';
 import { SoloScore } from './score.js';
 import { GenerationScreen } from '../lobby/generation.js';
+import { useHints } from '../round/hints.js';
 import { Round } from '../round/round.js';
 
 /**
@@ -50,6 +51,9 @@ export function SoloGame({ topic }: SoloGameProps) {
   // development double-mount generates the article twice — two model calls, two
   // rows, and a bill for a round nobody played.
   const asked = useRef(false);
+  // Keyed on the session, so a second solo game does not inherit the first's
+  // hints. `''` before there is a round, which never has any.
+  const hints = useHints(round?.sessionId ?? '');
 
   useEffect(() => {
     if (valid === null || asked.current) return;
@@ -125,6 +129,25 @@ export function SoloGame({ topic }: SoloGameProps) {
     })();
   };
 
+  const unlock = (falseInfoNumber: number, level: 1 | 2): void => {
+    void (async () => {
+      const answered = await unlockHint({
+        sessionId: round.sessionId,
+        falseInfoNumber,
+        level,
+      });
+      if (answered.ok) {
+        hints.apply(answered.value);
+        return;
+      }
+      // C1.5 — nothing can jam a solo player's intel, since there is no rival to
+      // cast `HINT_LOCK`. Handled all the same: the branch belongs to the code,
+      // not to the mode, and a route that grows the guard would find it here.
+      if (answered.code === 'hints_blocked') hints.block();
+      else setRefusal(answered.message);
+    })();
+  };
+
   // The same round the room renders. Solo has no `unsubmit`: there is no route
   // for it, because there is nobody to wait for.
   return (
@@ -134,7 +157,9 @@ export function SoloGame({ topic }: SoloGameProps) {
       submitted={false}
       busy={busy}
       refusal={refusal}
+      hints={hints}
       onSubmit={submit}
+      onUnlockHint={unlock}
     />
   );
 }

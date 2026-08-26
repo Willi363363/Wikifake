@@ -15,51 +15,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asClock, pressureAt, URGENT_SECONDS, WARNING_SECONDS } from './clock.js';
 import { Round } from './round.js';
+import { ARTICLE, KEPT_BACK, noHints, paintRound as paint, tokens } from './testing.js';
 import type { ArticleFacts } from './article.js';
-
-/**
- * The article as the server sends it — three paragraphs, one of them false, and
- * no field that says which.
- */
-const ARTICLE: ArticleFacts = {
-  topic: 'Chat',
-  paragraphs: [
-    'Le chat dort seize heures par jour.',
-    'Sa vision nocturne est bonne.',
-    'Il ronronne en expirant.',
-  ],
-  totalFakes: 1,
-  wikipediaUrl: 'https://fr.wikipedia.org/wiki/Chat',
-};
-
-/**
- * What the server keeps. None of these strings may reach the page before
- * `game_end`, and the falsified paragraph's *original* wording is among them.
- */
-const KEPT_BACK = {
-  original: 'Le chat dort douze heures par jour.',
-  explanation: 'Un chat dort environ douze heures, pas seize.',
-  hint: 'Regardez la durée annoncée.',
-  position: 'paragraphIndex',
-};
-
-const paint = (over: Partial<React.ComponentProps<typeof Round>> = {}) =>
-  render(
-    <Round
-      article={ARTICLE}
-      timeLimit={300}
-      submitted={false}
-      busy={false}
-      refusal={null}
-      onSubmit={vi.fn()}
-      {...over}
-    />,
-  );
-
-const tokens = () =>
-  screen.getAllByRole('button', {
-    name: new RegExp(`^(${ARTICLE.paragraphs.join('|')})`),
-  });
 
 afterEach(() => {
   cleanup();
@@ -301,29 +258,23 @@ describe('8.1 — the timer', () => {
 
   it('submits once, not once per render, after expiry', () => {
     const sent = vi.fn();
-    const { rerender } = render(
+    const round = (
       <Round
         article={ARTICLE}
         timeLimit={2}
         submitted={false}
         busy={false}
         refusal={null}
+        hints={noHints()}
         onSubmit={sent}
-      />,
+        onUnlockHint={vi.fn()}
+      />
     );
+    const { rerender } = render(round);
     act(() => {
       vi.advanceTimersByTime(10_000);
     });
-    rerender(
-      <Round
-        article={ARTICLE}
-        timeLimit={2}
-        submitted={false}
-        busy={false}
-        refusal={null}
-        onSubmit={sent}
-      />,
-    );
+    rerender(round);
     act(() => {
       vi.advanceTimersByTime(10_000);
     });
