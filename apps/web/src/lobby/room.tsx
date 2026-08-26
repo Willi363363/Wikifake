@@ -22,6 +22,7 @@ import { PlayerList } from './player-list.js';
 import { ThemeVote } from './theme-vote.js';
 import { useRoom } from './use-room.js';
 import { useRealtime } from '../realtime/provider.js';
+import { Round } from '../round/round.js';
 
 export interface RoomProps {
   readonly roomCode: string;
@@ -60,6 +61,32 @@ export function Room({ roomCode, nickname }: RoomProps) {
       ...(room.isHost ? { timeLimit, withItems, ...options } : {}),
     });
   };
+
+  // The round is a screen, not a card in the lobby's column: it takes the page.
+  // The same round solo renders — what differs is the transport. "You have
+  // submitted" is the server's `answered` on the roster rather than a flag this
+  // screen sets, which is the rule `hasVoted` follows and for the same reason.
+  if (room.phase === 'round' && entered && room.round !== null) {
+    return (
+      <Round
+        article={room.round.article}
+        timeLimit={room.round.timeLimit}
+        submitted={room.me?.answered ?? false}
+        // Nothing is in flight over a socket: the answer is sent, and the roster
+        // that comes back is the acknowledgement.
+        busy={false}
+        refusal={room.refusal?.message ?? null}
+        onSubmit={(marked) => {
+          room.clearRefusal();
+          send({ type: 'submit_answer', marked: [...marked] });
+        }}
+        onUnsubmit={() => {
+          room.clearRefusal();
+          send({ type: 'unsubmit_answer' });
+        }}
+      />
+    );
+  }
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-5 px-4 py-10">
@@ -106,12 +133,6 @@ export function Room({ roomCode, nickname }: RoomProps) {
             setEntered(true);
           }}
         />
-      ) : null}
-
-      {room.phase === 'round' && entered ? (
-        <div className="rounded-xl border border-line bg-surface p-6 text-center shadow-md">
-          <p className="text-sm text-muted">The round is phase 8.</p>
-        </div>
       ) : null}
 
       {room.phase !== 'lobby' ? null : (

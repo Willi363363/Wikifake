@@ -16,9 +16,9 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 
 import { startRound, submitRound } from './api.js';
-import { SoloRound } from './round.js';
 import { SoloScore } from './score.js';
 import { GenerationScreen } from '../lobby/generation.js';
+import { Round } from '../round/round.js';
 
 /**
  * The topic, if it is one the server could be asked about.
@@ -125,7 +125,18 @@ export function SoloGame({ topic }: SoloGameProps) {
     })();
   };
 
-  return <SoloRound round={round} busy={busy} refusal={refusal} onSubmit={submit} />;
+  // The same round the room renders. Solo has no `unsubmit`: there is no route
+  // for it, because there is nobody to wait for.
+  return (
+    <Round
+      article={round}
+      timeLimit={round.timeLimit}
+      submitted={false}
+      busy={busy}
+      refusal={refusal}
+      onSubmit={submit}
+    />
+  );
 }
 
 function Back() {

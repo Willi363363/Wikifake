@@ -1,9 +1,18 @@
 {
   "extends": "@wikifake/config/tsconfig.base.json",
+  // `src/**/*.tsx` is here for the tests. The components under `src/` were
+  // always checked, because `app/` imports them and the compiler follows
+  // imports; the tests are imported by nothing, so `typecheck` had never looked
+  // at a single one of them. It was recorded as debt for phase 9 while it was
+  // theoretical. It stopped being theoretical: two message fixtures in three
+  // steps were shaped in a way the protocol refuses, so `decode` dropped them in
+  // silence and the tests passed without the message ever arriving. Both were
+  // found by hand. This line is what finds the third.
   "include": [
     "app/**/*.ts",
     "app/**/*.tsx",
     "src/**/*.ts",
+    "src/**/*.tsx",
     "*.config.ts",
     "next-env.d.ts"
   ],

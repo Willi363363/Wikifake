@@ -14,8 +14,9 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { OutgoingMessage } from '@wikifake/protocol';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { SETTLE_MS } from './generation.js';
 import { Room } from './room.js';
 import { RealtimeProvider } from '../realtime/provider.js';
 import { installFakeSocket, opened } from '../realtime/testing.js';
@@ -254,5 +255,142 @@ describe('7.3 — the waiting room', () => {
       </RealtimeProvider>,
     );
     expect(screen.getByText('connecting')).not.toBeNull();
+  });
+});
+
+// Step 8.1 — the round the room renders is the round solo renders. What the room
+// owns is the transport: the answer leaves over the socket, and "you have
+// submitted" is the server's `answered` rather than a flag this screen sets.
+describe('8.1 — the round, in a room', () => {
+  const ROUND: OutgoingMessage = {
+    type: 'game_start',
+    topic: 'Chat',
+    paragraphs: [
+      'Le chat dort seize heures par jour.',
+      'Sa vision nocturne est bonne.',
+      'Il ronronne en expirant.',
+    ],
+    totalFakes: 1,
+    wikipediaUrl: 'https://fr.wikipedia.org/wiki/Chat',
+    players: [{ name: 'ada', colour: '#e63946' }],
+    withItems: false,
+    // Deliberately not the default: the round must count down from what the
+    // server said, not from what this browser's host settings happen to hold.
+    timeLimit: 120,
+  };
+
+  /** Into the round: the generation screen has to be seen to fill first. */
+  function intoTheRound(): void {
+    deliver({
+      type: 'theme_selected',
+      topic: 'Chat',
+      proposer: 'ada',
+      ballots: { ada: 'Chat' },
+    });
+    deliver(ROUND);
+    act(() => {
+      vi.advanceTimersByTime(SETTLE_MS);
+    });
+  }
+
+  const PARAGRAPHS = [
+    'Le chat dort seize heures par jour.',
+    'Sa vision nocturne est bonne.',
+    'Il ronronne en expirant.',
+  ];
+
+  const tokens = () =>
+    screen.getAllByRole('button', { name: new RegExp(`^(${PARAGRAPHS.join('|')})`) });
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('shows the article the server started, not the lobby', () => {
+    mount();
+    deliver(roster(player('ada', { isHost: true })));
+    intoTheRound();
+
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Chat');
+    expect(tokens()).toHaveLength(3);
+    expect(screen.queryByText(/^Players/)).toBeNull();
+  });
+
+  it('counts down from the limit the server sent, not the host settings', () => {
+    mount();
+    deliver(roster(player('ada', { isHost: true })));
+    intoTheRound();
+
+    // 120 seconds, where the host-settings default in this browser is 300.
+    expect(screen.getByRole('timer').textContent).toContain('02:00');
+  });
+
+  it('sends the marked paragraphs as 1-based numbers', () => {
+    mount();
+    deliver(roster(player('ada', { isHost: true })));
+    intoTheRound();
+
+    fireEvent.click(tokens()[0] as HTMLElement);
+    fireEvent.click(tokens()[2] as HTMLElement);
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+
+    expect(sent().at(-1)).toEqual({ type: 'submit_answer', marked: [1, 3] });
+  });
+
+  // The rule this screen follows everywhere: what the server says, not what the
+  // player just did. A submission the server refused — out of phase, on a socket
+  // that was already down — must not read as submitted.
+  it('reads "submitted" off the roster, not off the click', () => {
+    mount();
+    deliver(roster(player('ada', { isHost: true })));
+    intoTheRound();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    // Nothing has come back yet, so nothing has changed.
+    expect(screen.getByRole('button', { name: 'Submit' })).not.toBeNull();
+
+    deliver(roster(player('ada', { isHost: true, answered: true })));
+    expect(screen.getByRole('button', { name: 'Take it back' })).not.toBeNull();
+  });
+
+  it('takes a submission back over the socket', () => {
+    mount();
+    deliver(roster(player('ada', { isHost: true, answered: true })));
+    intoTheRound();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Take it back' }));
+    expect(sent().at(-1)).toEqual({ type: 'unsubmit_answer' });
+  });
+
+  it('returns to the lobby when the round ends', () => {
+    mount();
+    deliver(roster(player('ada', { isHost: true })));
+    intoTheRound();
+    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Chat');
+
+    // A real solution: `solution` is `.min(1)`, so an empty one does not decode
+    // and the message would be dropped in silence — a green test that never
+    // ended a round.
+    deliver({
+      type: 'game_end',
+      leaderboard: [{ player: 'ada', colour: '#e63946', score: 150, breakdown: null }],
+      solution: [
+        {
+          paragraphIndex: 1,
+          falseInfoNumber: 1,
+          falseStatement: 'Le chat dort seize heures par jour.',
+          explanation: 'Il en dort douze.',
+          hint: 'Regardez la durée.',
+        },
+      ],
+    });
+
+    expect(screen.getByText('Players (1)')).not.toBeNull();
+    // The debrief is step 8.7. Until it exists the article goes with the round
+    // rather than lingering under a lobby.
+    expect(screen.queryByRole('heading', { level: 1, name: 'Chat' })).toBeNull();
   });
 });
