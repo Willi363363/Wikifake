@@ -26,6 +26,7 @@ import { useRoomItems } from './room-items.js';
 import { useRoomCursors } from './room-cursors.js';
 import { useRoomLeaderboard } from './room-leaderboard.js';
 import { useRealtime } from '../realtime/provider.js';
+import { useCaptures } from '../flags/flags.js';
 import { ranked } from '../round/leaderboard.js';
 import { Round } from '../round/round.js';
 
@@ -80,6 +81,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
     room.phase === 'round',
   );
   const board = useRoomLeaderboard(roundKey);
+  const flags = useCaptures(roundKey);
 
   const everyoneReady =
     room.players.length > 0 && room.players.every((player) => player.ready);
@@ -128,6 +130,8 @@ export function Room({ roomCode, nickname }: RoomProps) {
         items={items}
         effects={items.effects}
         standings={ranked(room.players, board.scores, nickname)}
+        flags={flags}
+        roomCode={roomCode}
         onLiveScore={board.publish}
         cursors={room.players.flatMap((player) => {
           const at = cursors.cursors[player.name];

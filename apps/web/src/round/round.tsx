@@ -12,10 +12,14 @@
 // back — a REST response in one, `game_end` in the other — and neither is this
 // component's business.
 import type { FalsifiedPosition, ItemInstance, ScoreBreakdown } from '@wikifake/protocol';
+import { Button } from '@wikifake/ui';
 import { useEffect, useState } from 'react';
 
 import { ArticleCard, type ArticleFacts } from './article.js';
 import { Brief } from './brief.js';
+import { FlagCapture } from '../flags/capture.js';
+import { FlagPanel } from '../flags/panel.js';
+import type { CapturesState } from '../flags/flags.js';
 import { Debrief } from './debrief/panel.js';
 import type { FinalStanding } from './debrief/ranking.js';
 import type { Stage } from './debrief/stages.js';
@@ -92,6 +96,15 @@ export interface RoundProps {
   onLiveScore?: ((score: number) => void) | undefined;
   /** C1.2 — present only once the round is over. */
   readonly debrief?: DebriefFacts | undefined;
+  /**
+   * What the player has flagged as a *genuine* error in the source.
+   *
+   * Nothing to do with the game's own falsifications. Absent where there is
+   * nowhere to send one.
+   */
+  readonly flags?: CapturesState | undefined;
+  /** The room a report happened in, or '' in solo. */
+  readonly roomCode?: string | undefined;
   onSubmit(marked: readonly number[]): void;
   /** Absent where a submission cannot be taken back — solo, over REST. */
   readonly onUnsubmit?: (() => void) | undefined;
@@ -124,6 +137,8 @@ export function Round({
   onUseItem,
   onLiveScore,
   debrief,
+  flags,
+  roomCode = '',
 }: RoundProps) {
   const timers = useTimers();
   const [marked, setMarked] = useState<readonly number[]>([]);
@@ -132,6 +147,7 @@ export function Round({
   const [intel, setIntel] = useState(false);
   /** The item waiting for a target, or null. The chain's missing middle. */
   const [aiming, setAiming] = useState<ItemInstance | null>(null);
+  const [flagging, setFlagging] = useState(false);
   const over = left <= 0;
   const ended = debrief !== undefined;
   const verdicts = ended ? verdictsFor(debrief.solution, marked) : NO_VERDICTS;
@@ -206,6 +222,16 @@ export function Round({
         {/* Above the article, not over it. The current debrief is a fixed
             full-screen modal, which covers the CC BY-SA attribution that C6.1
             requires to stay visible *after* the round as well as during it. */}
+        {debrief === undefined || flags === undefined ? null : (
+          <FlagPanel
+            captures={flags.captures}
+            articleTitle={article.topic}
+            articleUrl={article.wikipediaUrl}
+            roomCode={roomCode}
+            onDrop={flags.drop}
+          />
+        )}
+
         {debrief === undefined ? null : (
           <Debrief
             breakdown={debrief.breakdown}
@@ -253,6 +279,33 @@ export function Round({
 
         <RoundFooter />
       </main>
+
+      {/* During the round only: reporting a real error is not something to do
+          to an article that is already being explained. */}
+      {flags === undefined || ended ? null : (
+        <>
+          <Button
+            variant="ghost"
+            className="fixed right-3 bottom-20 z-30 shadow-md"
+            onClick={() => {
+              setFlagging(true);
+            }}
+          >
+            Report an error
+            {flags.captures.length === 0 ? null : (
+              <span className="font-mono text-[10px] tabular-nums text-danger">
+                {String(flags.captures.length)}
+              </span>
+            )}
+          </Button>
+          <FlagCapture
+            open={flagging}
+            paragraphs={article.paragraphs}
+            onOpenChange={setFlagging}
+            onCapture={flags.capture}
+          />
+        </>
+      )}
 
       <Brief
         open={briefing}
