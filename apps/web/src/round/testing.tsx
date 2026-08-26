@@ -11,6 +11,7 @@ import { vi } from 'vitest';
 import { Round } from './round.js';
 import type { ArticleFacts } from './article.js';
 import type { HintsState } from './hints.js';
+import type { EffectsState } from './effects.js';
 import type { ItemsState } from './items.js';
 
 /**
@@ -75,6 +76,17 @@ export function noItems(over: Partial<ItemsState> = {}): ItemsState {
   };
 }
 
+/** Nothing running on the screen. */
+export function noEffects(over: Partial<EffectsState> = {}): EffectsState {
+  return {
+    overlays: new Set(),
+    distortions: new Set(),
+    cast: vi.fn(),
+    dismiss: vi.fn(),
+    ...over,
+  };
+}
+
 /** The paragraph tokens, in order. */
 export const tokens = () =>
   screen.getAllByRole('button', {
@@ -91,6 +103,7 @@ export const paintRound = (over: Partial<ComponentProps<typeof Round>> = {}) =>
       busy={false}
       refusal={null}
       hints={noHints()}
+      effects={noEffects()}
       onSubmit={vi.fn()}
       onUnlockHint={vi.fn()}
       {...over}

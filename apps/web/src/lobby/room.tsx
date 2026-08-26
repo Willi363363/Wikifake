@@ -93,6 +93,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
         refusal={room.refusal?.message ?? null}
         hints={hints}
         items={items}
+        effects={items.effects}
         // Everyone but this player, and the server refuses the caster anyway
         // (D6). Both, because a client that offers an illegal move is a client
         // that spends the player's item on a refusal.

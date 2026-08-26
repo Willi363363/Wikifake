@@ -245,3 +245,68 @@ describe('8.3 — what lands on you', () => {
     expect(bar()).toBeNull();
   });
 });
+
+// Step 8.4 — the same message that raises a notice raises the effect. Both, from
+// one message, so a notice without its effect is not a state this can reach.
+describe('8.4 — the effect an item lands with', () => {
+  it('covers the screen, and lifts when it is over', () => {
+    mountRoom();
+    intoTheRound();
+    deliver({ type: 'item_effect', itemId: 'BLUR', from: 'bob' });
+
+    expect(screen.getByRole('status', { name: /fogged your screen/ })).not.toBeNull();
+    // The article too: a fog over the page, and the card blurred under it.
+    expect(screen.getByRole('article').className).toContain('blur-');
+
+    act(() => {
+      vi.advanceTimersByTime(5100);
+    });
+    expect(screen.queryByRole('status', { name: /fogged your screen/ })).toBeNull();
+    expect(screen.getByRole('article').className).not.toContain('blur-');
+  });
+
+  it('distorts the article for an item that has no sheet', () => {
+    mountRoom();
+    intoTheRound();
+    deliver({ type: 'item_effect', itemId: 'MIRROR', from: 'bob' });
+
+    expect(screen.getByRole('article').className).toContain('-scale-x-100');
+    expect(screen.queryByRole('status', { name: /fogged/ })).toBeNull();
+  });
+
+  it('leaves the pop-up up until it is closed', () => {
+    mountRoom();
+    intoTheRound();
+    deliver({ type: 'item_effect', itemId: 'RICKROLL', from: 'bob' });
+
+    act(() => {
+      vi.advanceTimersByTime(120_000);
+    });
+    expect(screen.getByRole('status', { name: /pop-up/ })).not.toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close it' }));
+    expect(screen.queryByRole('status', { name: /pop-up/ })).toBeNull();
+  });
+
+  it('shows nothing for the detector, whose visual is the token', () => {
+    mountRoom();
+    intoTheRound();
+    deliver({ type: 'item_effect', itemId: 'SCANNER', from: 'bob' });
+
+    expect(screen.getByRole('article').className).not.toContain('animate-');
+  });
+
+  it('takes every effect off when the round ends', () => {
+    mountRoom();
+    intoTheRound();
+    deliver({ type: 'item_effect', itemId: 'MIRROR', from: 'bob' });
+    expect(screen.getByRole('article').className).toContain('-scale-x-100');
+
+    // An effect outliving its round is an article shaking under a lobby.
+    deliver({ ...ROUND_BEGINS, topic: 'Chien' });
+    act(() => {
+      vi.advanceTimersByTime(SETTLE_MS);
+    });
+    expect(screen.getByRole('article').className).not.toContain('-scale-x-100');
+  });
+});
