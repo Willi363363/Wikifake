@@ -24,7 +24,9 @@ import { useRoom } from './use-room.js';
 import { useRoomHints } from './room-hints.js';
 import { useRoomItems } from './room-items.js';
 import { useRoomCursors } from './room-cursors.js';
+import { useRoomLeaderboard } from './room-leaderboard.js';
 import { useRealtime } from '../realtime/provider.js';
+import { ranked } from '../round/leaderboard.js';
 import { Round } from '../round/round.js';
 
 export interface RoomProps {
@@ -62,6 +64,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
       .map((player) => player.name),
     room.phase === 'round',
   );
+  const board = useRoomLeaderboard(roundKey);
 
   const everyoneReady =
     room.players.length > 0 && room.players.every((player) => player.ready);
@@ -105,6 +108,8 @@ export function Room({ roomCode, nickname }: RoomProps) {
         hints={hints}
         items={items}
         effects={items.effects}
+        standings={ranked(room.players, board.scores, nickname)}
+        onLiveScore={board.publish}
         cursors={room.players.flatMap((player) => {
           const at = cursors.cursors[player.name];
           return at === undefined

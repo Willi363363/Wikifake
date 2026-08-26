@@ -16,6 +16,8 @@ import { useEffect, useState } from 'react';
 
 import { ArticleCard, type ArticleFacts } from './article.js';
 import { Brief } from './brief.js';
+import { optimisticScore, type Standing } from './leaderboard.js';
+import { LiveRanking } from './live-ranking.js';
 import { PlayerCursors, type CursorView } from './player-cursors.js';
 import { Overlays } from './effects/overlays.js';
 import type { EffectsState } from './effects.js';
@@ -56,6 +58,16 @@ export interface RoundProps {
   readonly effects?: EffectsState | undefined;
   /** C5.5 — where the others are pointing. Empty in solo, where nobody is. */
   readonly cursors?: readonly CursorView[] | undefined;
+  /** C2.4 — the live ranking. Empty in solo, where there is nothing to rank. */
+  readonly standings?: readonly Standing[] | undefined;
+  /**
+   * This player's optimistic score changed.
+   *
+   * Reported rather than computed by the caller, because the two numbers it is
+   * made of — how many paragraphs are marked, and what the hints cost — live
+   * here and in `hints`.
+   */
+  onLiveScore?: ((score: number) => void) | undefined;
   onSubmit(marked: readonly number[]): void;
   /** Absent where a submission cannot be taken back — solo, over REST. */
   readonly onUnsubmit?: (() => void) | undefined;
@@ -81,10 +93,12 @@ export function Round({
   rivals = [],
   effects,
   cursors = [],
+  standings = [],
   onSubmit,
   onUnsubmit,
   onUnlockHint,
   onUseItem,
+  onLiveScore,
 }: RoundProps) {
   const timers = useTimers();
   const [marked, setMarked] = useState<readonly number[]>([]);
@@ -119,6 +133,15 @@ export function Round({
     // the moment the clock expired, and a change after that is a change to a
     // round that is already over.
   }, [busy, over, submitted]);
+
+  // D6 — the tally the room is told, and the two things it is made of.
+  const mine = optimisticScore(marked.length, hints.penalty);
+  useEffect(() => {
+    onLiveScore?.(mine);
+    // `onLiveScore` is read and not depended on: an inline closure would send a
+    // score on every render, and the pacing is the transport's business rather
+    // than a reason to make this one stable.
+  }, [mine]);
 
   const toggle = (paragraph: number): void => {
     if (submitted) return;
@@ -204,6 +227,7 @@ export function Round({
       />
 
       <PlayerCursors cursors={cursors} />
+      <LiveRanking standings={standings} />
 
       {effects === undefined ? null : (
         <Overlays active={effects.overlays} onDismiss={effects.dismiss} />

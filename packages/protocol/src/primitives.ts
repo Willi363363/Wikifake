@@ -26,6 +26,21 @@ export const MAX_TIME_LIMIT_SECONDS = 600;
 export const DEFAULT_TIME_LIMIT_SECONDS = 300;
 
 /**
+ * C5.5 — how often a socket may send the two messages that change nothing.
+ *
+ * Here rather than in the service, because both ends need the same number: the
+ * server refuses anything faster, and a client pacing itself faster than that
+ * is a client whose extra messages are dropped. Two copies of a floor is one
+ * copy of a floor and one copy of a bug.
+ *
+ * `cursor`: twenty-five a second, the value the current server ships.
+ * `live_score`: five a second — the message is the sender's own tally, and a
+ * human does not tick five paragraphs in a second.
+ */
+export const CURSOR_MIN_INTERVAL_MS = 40;
+export const LIVE_SCORE_MIN_INTERVAL_MS = 200;
+
+/**
  * C5.1 — a nickname: trimmed, non-empty, at most 24 characters, and drawn from
  * letters, digits, hyphen, dot, underscore and space.
  *

@@ -114,3 +114,24 @@ the phase 6 server throttle.
 
 **Done when**: four players see the same order, and `live_score` sending is
 throttled client-side and server-side alike.
+
+Notes written when the step was done:
+
+- **The throttle is one number, not two.** `CURSOR_MIN_INTERVAL_MS` and
+  `LIVE_SCORE_MIN_INTERVAL_MS` moved into `packages/protocol`; the service
+  re-exports them and the client imports them. A client pacing itself faster
+  than the server's floor is a client whose extra messages are dropped, and a
+  floor written down twice is a floor written down once and a bug written
+  down once. (The step says "the phase 6 server throttle": it is phase 5's,
+  step 5.6.)
+- **"The same order" is about ties.** Everyone starts on nothing and the
+  scale moves in steps of 150, so ties are the common case rather than the
+  edge one — and score alone is not a total order. The name breaks it,
+  because every client has it and every client agrees on it.
+- **The pacing keeps the last value.** A leading-edge throttle drops the
+  change that arrives inside the window, and a score that stops one tick
+  short of the truth is simply wrong for the rest of the round.
+- **It opens on a click.** The current one expands on `onMouseEnter` and
+  collapses on `onMouseLeave`, which no keyboard can do and no touch screen
+  has. The sidebar variant (`Leaderboard.jsx`) is not ported: nothing renders
+  it.
