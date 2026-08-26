@@ -234,6 +234,24 @@ describe('8.2 — hints, in a room', () => {
     expect(screen.getByRole('dialog').textContent).toContain('jammed your intel');
   });
 
+  // Same rule as for the items: the intel panel owns `hints_blocked`, so the
+  // room does not also show it as a refusal under the article.
+  it('says a jam once, not twice', () => {
+    mountRoom();
+    deliver(roster(player('ada', { isHost: true })));
+    intoTheRound();
+
+    deliver({
+      type: 'error',
+      code: 'hints_blocked',
+      message: 'un joueur a brouillé vos indices',
+    });
+    expect(screen.queryByRole('alert')).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Intel — jammed' }));
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+  });
+
   it('leaves the hints of the last round behind when a new one starts', () => {
     mountRoom();
     deliver(roster(player('ada', { isHost: true })));

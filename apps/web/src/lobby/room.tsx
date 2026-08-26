@@ -22,6 +22,7 @@ import { PlayerList } from './player-list.js';
 import { ThemeVote } from './theme-vote.js';
 import { useRoom } from './use-room.js';
 import { useRoomHints } from './room-hints.js';
+import { useRoomItems } from './room-items.js';
 import { useRealtime } from '../realtime/provider.js';
 import { Round } from '../round/round.js';
 
@@ -44,11 +45,12 @@ export function Room({ roomCode, nickname }: RoomProps) {
   // `lobby_update` carries no round id, so the topic and the count are the
   // closest thing to one — recorded in the step sheet as wanting a protocol
   // field.
-  const hints = useRoomHints(
+  const roundKey =
     room.round === null
       ? ''
-      : `${room.round.article.topic}:${String(room.round.article.totalFakes)}`,
-  );
+      : `${room.round.article.topic}:${String(room.round.article.totalFakes)}`;
+  const hints = useRoomHints(roundKey);
+  const items = useRoomItems(roundKey);
 
   const everyoneReady =
     room.players.length > 0 && room.players.every((player) => player.ready);
@@ -90,6 +92,13 @@ export function Room({ roomCode, nickname }: RoomProps) {
         busy={false}
         refusal={room.refusal?.message ?? null}
         hints={hints}
+        items={items}
+        // Everyone but this player, and the server refuses the caster anyway
+        // (D6). Both, because a client that offers an illegal move is a client
+        // that spends the player's item on a refusal.
+        rivals={room.players
+          .filter((player) => player.name !== nickname)
+          .map((player) => player.name)}
         onSubmit={(marked) => {
           room.clearRefusal();
           send({ type: 'submit_answer', marked: [...marked] });
@@ -99,6 +108,10 @@ export function Room({ roomCode, nickname }: RoomProps) {
           send({ type: 'unsubmit_answer' });
         }}
         onUnlockHint={hints.unlock}
+        onUseItem={(item, targets, marked) => {
+          items.clearRefusal();
+          items.use(item.instanceId, targets, marked);
+        }}
       />
     );
   }

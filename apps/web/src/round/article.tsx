@@ -29,6 +29,8 @@ export interface ArticleCardProps {
    * price.
    */
   readonly hinted: ReadonlySet<number>;
+  /** C1.6 — paragraphs a SCANNER has pointed this player at. */
+  readonly scanned: ReadonlySet<number>;
   /** True once the round is out of the player's hands. */
   readonly locked: boolean;
   onToggle(paragraph: number): void;
@@ -46,6 +48,7 @@ export function ArticleCard({
   article,
   marked,
   hinted,
+  scanned,
   locked,
   onToggle,
 }: ArticleCardProps) {
@@ -70,6 +73,7 @@ export function ArticleCard({
               state={tokenStateFor({
                 marked: marked.includes(paragraph),
                 hinted: hinted.has(paragraph),
+                scanned: scanned.has(paragraph),
               })}
               disabled={locked}
               onClick={() => {

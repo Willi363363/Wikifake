@@ -21,6 +21,27 @@ targets validated by the server, and the render tests pass
 `withItems: true` — the current smoke test rendered with
 `withItems: false`, which is how the bug survived.
 
+Notes written when the step was done:
+
+- **Names, glyphs and blurbs are a third table**, `round/item-labels.ts`,
+  exhaustive over `ItemId` by type. The identifiers are the contract and the
+  mechanics are the rules; neither carries a name, and the current catalogue
+  returns `{}` for an identifier it does not know — so a missing entry drew a
+  blank card instead of failing. Step 8.10 and phase 11 own the language.
+- **One throw in flight at a time.** `item_used` names the kind, not the
+  instance, so attributing a refusal to the card that caused it needs the
+  bar to be sending one thing at a time. It also stops a player firing
+  three items and being unable to tell which was refused.
+- **The two item refusals are not the same refusal.** `invalid_target` is
+  refused before the item is spent, so the card stays in hand;
+  `item_not_held` means the hand on screen is stale, so it goes. The current
+  server sends neither.
+- **A refusal is displayed by whoever owns the code.** `useRoom` now skips
+  `hints_blocked`, `invalid_target` and `item_not_held`, because the intel
+  panel and the item bar show them — displayed by both, the same sentence
+  appears twice on one screen. The visual effects themselves are 8.4: an
+  item that lands is a notice, and not yet a shaking article.
+
 ### 8.4 — The eight visual effects
 
 Blackout, Blizzard, Confetti, Earthquake, Fog, Lightning, Rickroll, Static,
