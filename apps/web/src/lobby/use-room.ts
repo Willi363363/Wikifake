@@ -11,6 +11,7 @@ import type { OutgoingMessage } from '@wikifake/protocol';
 import { useCallback, useState } from 'react';
 
 import { useRealtimeMessages } from '../realtime/provider.js';
+import type { ArticleFacts } from '../round/article.js';
 
 /** One player, exactly as `lobby_update` carries them. */
 export interface RoomPlayer {
@@ -48,10 +49,30 @@ export interface ElectedTopic {
   readonly proposer: string | null;
 }
 
+/** The round the server started, as the screen needs it. */
+export interface RoundView {
+  readonly article: ArticleFacts;
+  readonly timeLimit: number;
+}
+
 export interface RoomView {
   readonly phase: RoomPhase;
   readonly vote: VoteView;
   readonly elected: ElectedTopic | null;
+  /**
+   * The round in progress, or null outside one.
+   *
+   * Exactly what `game_start` carries: the paragraphs, the topic, the source,
+   * the **number** of falsifications, and how long the round lasts. C1.1 —
+   * nothing here says which paragraphs, because the message has no field that
+   * could.
+   *
+   * The time limit comes from here rather than from the host settings, and that
+   * closes half of the gap this file's header describes: those settings live in
+   * the host's browser, so a guest reading them would count down from the
+   * default while the round ran on something else.
+   */
+  readonly round: RoundView | null;
   /** Whether *this* player has voted, according to the server. */
   readonly hasVoted: boolean;
   readonly players: readonly RoomPlayer[];
@@ -74,6 +95,7 @@ export function useRoom(nickname: string | null): RoomView {
   const [phase, setPhase] = useState<RoomPhase>('lobby');
   const [vote, setVote] = useState<VoteView>(NO_VOTE);
   const [elected, setElected] = useState<ElectedTopic | null>(null);
+  const [round, setRound] = useState<RoundView | null>(null);
 
   useRealtimeMessages((message) => {
     if (message.type === 'lobby_update') {
@@ -102,6 +124,15 @@ export function useRoom(nickname: string | null): RoomView {
 
     if (message.type === 'game_start') {
       setPhase('round');
+      setRound({
+        article: {
+          topic: message.topic,
+          paragraphs: message.paragraphs,
+          totalFakes: message.totalFakes,
+          wikipediaUrl: message.wikipediaUrl,
+        },
+        timeLimit: message.timeLimit,
+      });
       return;
     }
 
@@ -110,6 +141,9 @@ export function useRoom(nickname: string | null): RoomView {
     if (message.type === 'game_end') {
       setPhase('lobby');
       setElected(null);
+      // The debrief is phase 8.7, and until it exists the article goes with the
+      // round rather than lingering under a lobby.
+      setRound(null);
       return;
     }
     // C1.7 — a refusal is the server telling this client it was wrong about
@@ -124,6 +158,7 @@ export function useRoom(nickname: string | null): RoomView {
       if (message.code === 'generation_failed') {
         setPhase('lobby');
         setElected(null);
+        setRound(null);
       }
     }
   });
@@ -136,6 +171,7 @@ export function useRoom(nickname: string | null): RoomView {
     phase,
     vote,
     elected,
+    round,
     // Not "I pressed submit". The current screen sets a local flag the moment
     // the form is sent, so a ballot the server refused — out of phase, or on a
     // socket that was already down — still reads as submitted and never counts.

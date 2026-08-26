@@ -184,48 +184,28 @@ describe('7.8 — the round', () => {
     expect(screen.getByText('1 altered')).not.toBeNull();
   });
 
-  it('marks and unmarks a paragraph, and says so out loud', async () => {
+  it('marks a paragraph, and says so out loud', async () => {
     serve({ start: ok(ROUND) });
     render(<SoloGame topic="Chat" />);
     await intoTheRound();
 
-    const first = paragraph(0);
-    expect(first.getAttribute('aria-pressed')).toBe('false');
-
-    fireEvent.click(first);
-    expect(paragraph(0).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: /^Submit 1 of 1/ })).not.toBeNull();
-
-    fireEvent.click(paragraph(0));
     expect(paragraph(0).getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(paragraph(0));
+    expect(paragraph(0).getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('counts down, and shows the time as minutes', async () => {
+  it('runs the round on the limit the response carried', async () => {
     serve({ start: ok(ROUND) });
     render(<SoloGame topic="Chat" />);
     await intoTheRound();
 
-    expect(screen.getByRole('timer').textContent).toBe('5:00');
-    act(() => {
-      vi.advanceTimersByTime(5000);
-    });
-    expect(screen.getByRole('timer').textContent).toBe('4:55');
+    expect(screen.getByRole('timer').textContent).toContain('05:00');
   });
 
-  // C6.1 — the text is CC BY-SA and it has been altered on purpose. Phase 8 owns
-  // the tested requirement; article text on screen with no attribution at all is
-  // not a thing to defer to it.
-  it('says the text was modified, under what licence, and where it came from', async () => {
-    serve({ start: ok(ROUND) });
-    render(<SoloGame topic="Chat" />);
-    await intoTheRound();
-
-    expect(screen.getByText(/deliberately modified/i)).not.toBeNull();
-    expect(screen.getByRole('link', { name: /CC BY-SA/ })).not.toBeNull();
-    expect(
-      screen.getByRole('link', { name: /source article/ }).getAttribute('href'),
-    ).toBe(ROUND.wikipediaUrl);
-  });
+  // The rest of the round — the keyboard gesture, the attribution, the brief and
+  // the negative assertion — is `src/round/round.test.tsx`: since step 8.1 it is
+  // the same screen the room renders. What is asserted here is the journey, which
+  // is that the response reached it.
 });
 
 describe('7.8 — the score', () => {
