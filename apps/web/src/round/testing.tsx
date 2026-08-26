@@ -11,6 +11,7 @@ import { vi } from 'vitest';
 import { Round } from './round.js';
 import type { ArticleFacts } from './article.js';
 import type { HintsState } from './hints.js';
+import type { ItemsState } from './items.js';
 
 /**
  * The article as the server sends it — three paragraphs, one of them false, and
@@ -49,6 +50,27 @@ export function noHints(over: Partial<HintsState> = {}): HintsState {
     apply: vi.fn(),
     block: vi.fn(),
     clearBlocked: vi.fn(),
+    ...over,
+  };
+}
+
+/** A hand with nothing in it, and nothing thrown. */
+export function noItems(over: Partial<ItemsState> = {}): ItemsState {
+  return {
+    hand: [],
+    pending: null,
+    landed: [],
+    scanned: new Set(),
+    lastScan: null,
+    refusal: null,
+    deal: vi.fn(),
+    sending: vi.fn(),
+    spent: vi.fn(),
+    hit: vi.fn(),
+    scan: vi.fn(),
+    refuse: vi.fn(),
+    dismiss: vi.fn(),
+    clearRefusal: vi.fn(),
     ...over,
   };
 }

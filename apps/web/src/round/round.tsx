@@ -11,6 +11,7 @@
 // assertions worth writing once. What differs is who submits and what comes
 // back — a REST response in one, `game_end` in the other — and neither is this
 // component's business.
+import type { ItemInstance } from '@wikifake/protocol';
 import { useEffect, useState } from 'react';
 
 import { ArticleCard, type ArticleFacts } from './article.js';
@@ -18,8 +19,16 @@ import { Brief } from './brief.js';
 import { RoundFooter } from './footer.js';
 import type { HintsState } from './hints.js';
 import { Intel } from './intel.js';
+import { ItemBar } from './item-bar.js';
+import { isSelfCast } from './item-labels.js';
+import { ItemTarget } from './item-target.js';
+import { ItemToasts } from './item-toasts.js';
+import type { ItemsState } from './items.js';
 import { RoundTopBar } from './top-bar.js';
 import { useTimers } from '../timers.js';
+
+/** Shared, so a round with no items does not allocate a set per render. */
+const EMPTY: ReadonlySet<number> = new Set();
 
 export interface RoundProps {
   readonly article: ArticleFacts;
@@ -32,10 +41,25 @@ export interface RoundProps {
   readonly refusal: string | null;
   /** C1.4 — what has been bought, held by whoever owns the transport. */
   readonly hints: HintsState;
+  /**
+   * D6 — the hand, and what has been thrown. Absent in solo, and absent is not
+   * empty: there is nobody to throw at, so there is no bar at all.
+   */
+  readonly items?: ItemsState | undefined;
+  /** Everyone but this player. Empty where there is nobody else. */
+  readonly rivals?: readonly string[] | undefined;
   onSubmit(marked: readonly number[]): void;
   /** Absent where a submission cannot be taken back — solo, over REST. */
   readonly onUnsubmit?: (() => void) | undefined;
   onUnlockHint(falseInfoNumber: number, level: 1 | 2): void;
+  /** The marked paragraphs ride along: C1.6 needs them to skip what was found. */
+  onUseItem?:
+    | ((
+        item: ItemInstance,
+        targets: readonly string[],
+        marked: readonly number[],
+      ) => void)
+    | undefined;
 }
 
 export function Round({
@@ -45,16 +69,26 @@ export function Round({
   busy,
   refusal,
   hints,
+  items,
+  rivals = [],
   onSubmit,
   onUnsubmit,
   onUnlockHint,
+  onUseItem,
 }: RoundProps) {
   const timers = useTimers();
   const [marked, setMarked] = useState<readonly number[]>([]);
   const [left, setLeft] = useState(timeLimit);
   const [briefing, setBriefing] = useState(false);
   const [intel, setIntel] = useState(false);
+  /** The item waiting for a target, or null. The chain's missing middle. */
+  const [aiming, setAiming] = useState<ItemInstance | null>(null);
   const over = left <= 0;
+
+  const throwIt = (item: ItemInstance, targets: readonly string[]): void => {
+    setAiming(null);
+    onUseItem?.(item, targets, marked);
+  };
 
   useEffect(() => {
     if (over || submitted) return undefined;
@@ -113,6 +147,7 @@ export function Round({
           article={article}
           marked={marked}
           hinted={hints.hintedParagraphs}
+          scanned={items?.scanned ?? EMPTY}
           locked={submitted || busy}
           onToggle={toggle}
         />
@@ -120,6 +155,15 @@ export function Round({
         {refusal === null ? null : (
           <p role="alert" className="mt-4 text-center text-sm text-danger">
             {refusal}
+          </p>
+        )}
+
+        {items?.refusal === undefined || items.refusal === null ? null : (
+          // D6 — an item the server would not let land. Said rather than
+          // dropped: an item that vanishes without a word is indistinguishable
+          // from a lost frame, which is exactly what the current server does.
+          <p role="alert" className="mt-4 text-center text-sm text-danger">
+            {items.refusal}
           </p>
         )}
 
@@ -147,6 +191,36 @@ export function Round({
         onOpenChange={setIntel}
         onUnlock={onUnlockHint}
       />
+
+      {items === undefined ? null : (
+        <>
+          <ItemToasts
+            landed={items.landed}
+            lastScan={items.lastScan}
+            onDismiss={items.dismiss}
+          />
+          <ItemBar
+            hand={items.hand}
+            pending={items.pending}
+            locked={submitted || busy}
+            onPick={(item) => {
+              // A self-cast item needs nobody named, so it goes straight out —
+              // the current picker asks for a target for the SCANNER too, which
+              // the server then refuses.
+              if (isSelfCast(item.itemId)) throwIt(item, []);
+              else setAiming(item);
+            }}
+          />
+          <ItemTarget
+            item={aiming}
+            rivals={rivals}
+            onConfirm={throwIt}
+            onCancel={() => {
+              setAiming(null);
+            }}
+          />
+        </>
+      )}
     </div>
   );
 }

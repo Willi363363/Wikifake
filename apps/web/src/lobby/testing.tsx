@@ -93,6 +93,17 @@ export const ROUND_BEGINS: Extract<OutgoingMessage, { type: 'game_start' }> = {
   timeLimit: 120,
 };
 
+/** A wave of items, keyed by nickname as the message is. */
+export const wave = (
+  items: Record<string, { instanceId: string; itemId: string }>,
+  at = 1,
+): OutgoingMessage =>
+  ({
+    type: 'items_distributed',
+    wave: at,
+    items,
+  }) as OutgoingMessage;
+
 /** A round the server has ended. `solution` is `.min(1)`, so it carries one. */
 export const ROUND_ENDS: Extract<OutgoingMessage, { type: 'game_end' }> = {
   type: 'game_end',

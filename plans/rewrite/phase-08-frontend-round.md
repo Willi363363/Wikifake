@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — two steps done |
+| **State** | **in progress** — three steps done |
 | **Branch** | `feat/rewrite-phase-8` |
 | **Depends on** | phase 7 |
 | **Delivers** | the complete round, from first paragraph to debriefing |
@@ -37,7 +37,7 @@ Definitions: `phase-08-steps-article.md`.
 
 | # | Step — what happens while the round runs | State |
 |---|---|---|
-| 8.3 | Items: rebuild | to do |
+| 8.3 | Items: rebuild | ✅ done |
 | 8.4 | The eight visual effects | to do |
 | 8.5 | Live cursors | to do |
 | 8.6 | Live leaderboard | to do |

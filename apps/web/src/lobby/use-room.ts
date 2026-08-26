@@ -89,6 +89,24 @@ type Lobby = Extract<OutgoingMessage, { type: 'lobby_update' }>;
 
 const NO_VOTE: VoteView = { submitted: [], total: 0 };
 
+/**
+ * Refusals another hook owns, and therefore displays.
+ *
+ * `hints_blocked` is the intel panel's — it means nothing was charged and the
+ * lock lifts, which is a state and not a sentence. `invalid_target` and
+ * `item_not_held` are the item bar's, and the second decides whether a card
+ * stays in the hand. Shown here as well, they would appear twice on the same
+ * screen, in two places, saying the same thing.
+ *
+ * Explicit rather than clever: a code added to the contract and forgotten here
+ * shows up as a refusal in the ordinary place, which is the safe direction.
+ */
+const OWNED_ELSEWHERE: readonly string[] = [
+  'hints_blocked',
+  'invalid_target',
+  'item_not_held',
+];
+
 export function useRoom(nickname: string | null): RoomView {
   const [players, setPlayers] = useState<readonly RoomPlayer[]>([]);
   const [refusal, setRefusal] = useState<RoomView['refusal']>(null);
@@ -151,6 +169,7 @@ export function useRoom(nickname: string | null): RoomView {
     // arrives next is the truth, and it will arrive whether or not this client
     // agrees with it.
     if (message.type === 'error') {
+      if (OWNED_ELSEWHERE.includes(message.code)) return;
       setRefusal({ code: message.code, message: message.message });
       // C3.7 — every candidate failed and the server put the room back in the
       // lobby. Without this the screen waits for an article that is not coming,
