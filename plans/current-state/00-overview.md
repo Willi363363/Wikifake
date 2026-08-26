@@ -11,6 +11,7 @@ This series of documents describes **what exists**, as it runs in production:
 - `03-websocket-protocol.md` — the realtime protocol and the scoring rules.
 - `04-deployment.md` — the Docker image, Render and the deployment probe.
 - `05-known-debt.md` — the verified defects, with their references.
+- `06-structural-debt.md` — the debt that is about the shape of the repository.
 
 ## The principle that structures everything else
 

@@ -155,6 +155,12 @@ describe('7.5 — the generation screen', () => {
     expect(entered).toHaveBeenCalledTimes(1);
   });
 
+  // Step 7.6 hangs the launcher here: the wait is what it fills.
+  it('offers something to play while the wait lasts', () => {
+    paint(false);
+    expect(screen.getByRole('button', { name: 'Play while you wait' })).not.toBeNull();
+  });
+
   it('leaves no timer behind when it is unmounted', () => {
     const entered = vi.fn();
     const { unmount } = render(

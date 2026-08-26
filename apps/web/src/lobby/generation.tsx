@@ -16,6 +16,7 @@ import { Badge, Progress } from '@wikifake/ui';
 import { useEffect, useRef, useState } from 'react';
 
 import { progressAt, stageAt } from './progress.js';
+import { GameLauncher } from '../waiting/launcher.js';
 
 /** How often the bar moves. The current interval, kept. */
 const TICK_MS = 200;
@@ -99,9 +100,10 @@ export function GenerationScreen({
         </Badge>
       </p>
 
-      <p className="mt-4 text-sm text-muted">
-        The six waiting minigames arrive in step 7.6.
-      </p>
+      {/* The launcher is mounted here rather than beside the screen: it is the
+          wait it fills, and a launcher that outlives the wait is a game a player
+          is still playing when the round starts. */}
+      <GameLauncher />
     </div>
   );
 }
