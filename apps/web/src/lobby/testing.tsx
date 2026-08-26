@@ -8,7 +8,9 @@
 // It builds messages and drives a fake socket. Nothing here asserts anything.
 import { act, render } from '@testing-library/react';
 import type { OutgoingMessage } from '@wikifake/protocol';
+import { vi } from 'vitest';
 
+import { SETTLE_MS } from './generation.js';
 import { Room } from './room.js';
 import { RealtimeProvider } from '../realtime/provider.js';
 import { opened } from '../realtime/testing.js';
@@ -118,3 +120,17 @@ export const ROUND_ENDS: Extract<OutgoingMessage, { type: 'game_end' }> = {
     },
   ],
 };
+
+/**
+ * Into the round: `game_start`, then the generation screen seen to fill.
+ *
+ * Needs fake timers, because the settle is a timeout. Every suite that drives a
+ * round goes through here rather than keeping its own copy — three of them did,
+ * and two had already drifted apart on which messages they delivered first.
+ */
+export function startRound(round: OutgoingMessage = ROUND_BEGINS): void {
+  deliver(round);
+  act(() => {
+    vi.advanceTimersByTime(SETTLE_MS);
+  });
+}

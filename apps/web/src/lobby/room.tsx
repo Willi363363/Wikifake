@@ -23,6 +23,7 @@ import { ThemeVote } from './theme-vote.js';
 import { useRoom } from './use-room.js';
 import { useRoomHints } from './room-hints.js';
 import { useRoomItems } from './room-items.js';
+import { useRoomCursors } from './room-cursors.js';
 import { useRealtime } from '../realtime/provider.js';
 import { Round } from '../round/round.js';
 
@@ -51,6 +52,16 @@ export function Room({ roomCode, nickname }: RoomProps) {
       : `${room.round.article.topic}:${String(room.round.article.totalFakes)}`;
   const hints = useRoomHints(roundKey);
   const items = useRoomItems(roundKey);
+  // C5.5 — the roster is what purges a departed player's cursor, and a
+  // disconnected seat counts as departed: a pointer that has stopped moving
+  // because its owner is gone is a pointer that says they are still there.
+  const cursors = useRoomCursors(
+    roundKey,
+    room.players
+      .filter((player) => player.connected && player.name !== nickname)
+      .map((player) => player.name),
+    room.phase === 'round',
+  );
 
   const everyoneReady =
     room.players.length > 0 && room.players.every((player) => player.ready);
@@ -94,6 +105,12 @@ export function Room({ roomCode, nickname }: RoomProps) {
         hints={hints}
         items={items}
         effects={items.effects}
+        cursors={room.players.flatMap((player) => {
+          const at = cursors.cursors[player.name];
+          return at === undefined
+            ? []
+            : [{ name: player.name, colour: player.colour, x: at.x, y: at.y }];
+        })}
         // Everyone but this player, and the server refuses the caster anyway
         // (D6). Both, because a client that offers an illegal move is a client
         // that spends the player's item on a refusal.

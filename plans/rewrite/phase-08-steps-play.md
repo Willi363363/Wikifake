@@ -92,6 +92,20 @@ message.
 **Done when**: a player who leaves sees their cursor disappear for the
 others, and the component renders without touching `window`.
 
+Notes written when the step was done:
+
+- **A disconnected seat counts as departed.** D5 keeps it for thirty
+  seconds, and a pointer that has stopped moving because its owner is gone
+  is a pointer that says they are still there. The roster purges on
+  `connected`, not only on absence.
+- **The glide is 120 ms, not 1,600.** That number was tuned when the
+  component animated fake bots strolling across the page; against a stream
+  arriving every 60 ms it shows where the player was more than a second ago
+  and never arrives anywhere. Twice the send interval, and `motion-reduce`
+  drops it altogether — a pointer sliding across the page is motion.
+- **The viewport is read in the listener.** A `mousemove` handler is a place
+  where a window exists; a render is not. That is the whole of the leak.
+
 ### 8.6 — Live leaderboard
 
 `FloatingLeaderboard` (the dead sidebar variant is not ported), fed by
