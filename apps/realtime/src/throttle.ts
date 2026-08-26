@@ -18,22 +18,21 @@
 import type { IncomingMessage } from '@wikifake/protocol';
 
 /**
- * C5.5 — the cursor's floor, carried over from `CURSOR_MIN_INTERVAL`.
+ * C5.5 — the two floors, from the contract.
  *
- * Twenty-five positions a second, which is the value the current server ships
- * and therefore the behaviour the contract preserves: a limit loosened during a
- * rewrite is a limit nobody notices has gone.
+ * Re-exported rather than declared: step 8.6 paces the client at the same
+ * numbers, and a floor that exists twice is a floor that exists once and a bug
+ * that exists once. `cursor` is twenty-five a second, the value the current
+ * server ships — a limit loosened during a rewrite is a limit nobody notices
+ * has gone. `live_score` is five a second, and D6 is that the current server
+ * has no limit on it at all.
  */
-export const CURSOR_MIN_INTERVAL_MS = 40;
+export { CURSOR_MIN_INTERVAL_MS, LIVE_SCORE_MIN_INTERVAL_MS } from '@wikifake/protocol';
 
-/**
- * D6 — the one the current server does not have at all.
- *
- * Five a second. The message is the sender's own optimistic tally, so it moves
- * when they tick a paragraph; a human does not tick five in a second, and a
- * client that sends more is describing a score nobody asked for.
- */
-export const LIVE_SCORE_MIN_INTERVAL_MS = 200;
+import {
+  CURSOR_MIN_INTERVAL_MS as CURSOR_FLOOR,
+  LIVE_SCORE_MIN_INTERVAL_MS as LIVE_SCORE_FLOOR,
+} from '@wikifake/protocol';
 
 /** The two message types a socket may send faster than the room can use. */
 export type ThrottledType = 'cursor' | 'live_score';
@@ -41,8 +40,8 @@ export type ThrottledType = 'cursor' | 'live_score';
 export type Intervals = Readonly<Record<ThrottledType, number>>;
 
 export const DEFAULT_INTERVALS: Intervals = {
-  cursor: CURSOR_MIN_INTERVAL_MS,
-  live_score: LIVE_SCORE_MIN_INTERVAL_MS,
+  cursor: CURSOR_FLOOR,
+  live_score: LIVE_SCORE_FLOOR,
 };
 
 export interface Throttle {

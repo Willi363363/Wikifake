@@ -11,6 +11,8 @@
 // transport: what leaves over the socket, and what the screen makes of what
 // arrives.
 import { act, cleanup, fireEvent, screen } from '@testing-library/react';
+import { PER_TRUE_POSITIVE } from '@wikifake/domain';
+import { LIVE_SCORE_MIN_INTERVAL_MS } from '@wikifake/protocol';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SETTLE_MS } from './generation.js';
@@ -354,5 +356,99 @@ describe('8.5 — cursors, in a room', () => {
 
     deliver(roster(player('ada', { isHost: true }), player('bob', { connected: false })));
     expect(cursor('bob')).toBeNull();
+  });
+});
+
+// Step 8.6 — D6, over the socket: what this browser publishes, how often, and
+// what it makes of what comes back.
+describe('8.6 — the live ranking, in a room', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const scores = () => sent().filter((each) => each.type === 'live_score');
+  const openRanking = (): void => {
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+  };
+
+  function inARoundOfTwo(): void {
+    deliver(roster(player('ada', { isHost: true }), player('bob')));
+    startRound();
+  }
+
+  it('publishes the optimistic tally when a paragraph is marked', () => {
+    mountRoom();
+    inARoundOfTwo();
+    const before = scores().length;
+
+    fireEvent.click(
+      screen.getAllByRole('button', {
+        name: new RegExp(`^(${PARAGRAPHS.join('|')})`),
+      })[0] as HTMLElement,
+    );
+    act(() => {
+      vi.advanceTimersByTime(LIVE_SCORE_MIN_INTERVAL_MS + 50);
+    });
+
+    // Every mark counted as correct: an opponent's live score must not be
+    // readable as the answer key.
+    expect(scores().at(-1)).toEqual({ type: 'live_score', score: PER_TRUE_POSITIVE });
+    expect(scores().length).toBeGreaterThan(before);
+  });
+
+  // The second half of the done-when: throttled client-side as well as
+  // server-side, at the same number, imported from the contract.
+  it('sends one message per window however fast the ticking is', () => {
+    mountRoom();
+    inARoundOfTwo();
+    const before = scores().length;
+
+    const tokens = screen.getAllByRole('button', {
+      name: new RegExp(`^(${PARAGRAPHS.join('|')})`),
+    });
+    for (const token of tokens) fireEvent.click(token);
+
+    act(() => {
+      vi.advanceTimersByTime(LIVE_SCORE_MIN_INTERVAL_MS + 50);
+    });
+
+    // Three marks inside one window, one message — and it carries the *last*
+    // value, because a score that stops one tick short of the truth is simply
+    // wrong for the rest of the round.
+    expect(scores().length - before).toBe(1);
+    expect(scores().at(-1)).toEqual({
+      type: 'live_score',
+      score: 3 * PER_TRUE_POSITIVE,
+    });
+  });
+
+  it('shows the ranking the server reported, leader first', () => {
+    mountRoom();
+    inARoundOfTwo();
+
+    deliver({ type: 'live_score_update', player: 'bob', score: 450 });
+    expect(screen.getByText('bob')).not.toBeNull();
+
+    openRanking();
+    const rows = screen.getAllByRole('listitem').map((each) => each.textContent);
+    expect(rows[0]).toContain('bob');
+    expect(rows[1]).toContain('ada');
+  });
+
+  it('starts everyone back at nothing for a new round', () => {
+    mountRoom();
+    inARoundOfTwo();
+    deliver({ type: 'live_score_update', player: 'bob', score: 450 });
+
+    deliver({ ...ROUND_BEGINS, topic: 'Chien' });
+    act(() => {
+      vi.advanceTimersByTime(SETTLE_MS);
+    });
+    openRanking();
+
+    expect(screen.getAllByRole('listitem')[0]?.textContent).not.toContain('450');
   });
 });
