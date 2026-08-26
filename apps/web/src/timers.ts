@@ -13,6 +13,10 @@
 // The step's completion criterion is "no surviving timer after unmount", so the
 // bookkeeping lives in one place rather than in six sets of cleanup functions
 // that each have to be right.
+//
+// It sits here rather than beside the games because it is not about them: the
+// round's countdown of 7.8 wants the same guarantee, and a `solo` module
+// importing from `waiting` would read as a dependency that does not exist.
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 export interface Timers {

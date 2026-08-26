@@ -1,8 +1,8 @@
-// The solo round — step 7.8 wires it to the REST routes of phase 4.
+// The solo round, wired to `POST /api/game/start` and `POST /api/game/submit`.
 //
-// The entry screen leads here with the topic it collected. Deliberately bare:
-// "do not anticipate phase 8" is one of this phase's pitfalls, and the round
-// this becomes in 7.8 is itself replaced by phase 8.
+// The entry screen leads here with the topic it collected. What the round shows
+// is deliberately bare: "do not anticipate phase 8" is one of this phase's
+// pitfalls, and phase 8 replaces the round entirely.
 //
 // The `Suspense` is not decoration. Reading the query string is a client-side
 // concern, and Next refuses to prerender a page that does it unbounded — without
@@ -10,12 +10,12 @@
 // and only the part that needs the URL waits for the browser.
 import { Suspense } from 'react';
 
-import { SoloPlaceholder } from '../../../src/lobby/solo-placeholder.js';
+import { SoloEntry } from '../../../src/solo/entry.js';
 
 export default function SoloPage() {
   return (
     <Suspense fallback={<main className="min-h-dvh" />}>
-      <SoloPlaceholder />
+      <SoloEntry />
     </Suspense>
   );
 }

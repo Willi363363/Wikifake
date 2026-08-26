@@ -9,7 +9,7 @@ import { cn } from '@wikifake/ui';
 import { useEffect, useState } from 'react';
 
 import { PlayAgain } from './controls.js';
-import { useTimers } from './timers.js';
+import { useTimers } from '../timers.js';
 
 export type Mark = 'X' | 'O';
 export type Square = Mark | null;

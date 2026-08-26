@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { GameOver } from './controls.js';
-import { useTimers } from './timers.js';
+import { useTimers } from '../timers.js';
 
 /** The board, in cells, and a cell, in pixels. */
 export const GRID = 24;

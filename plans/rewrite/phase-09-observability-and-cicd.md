@@ -78,6 +78,12 @@ negative assertions — no sabotaged paragraph nor explanation in the DOM
 during the round, CC BY-SA attribution visible during and after. No real
 LLM call: article served from a fixture, fake key as today.
 
+**This step owns the harness**, and it is the only one that does. 7.8 asked
+for a Playwright run of the solo journey and was cut back to jsdom for that
+reason: the browser, its CI job and the fixture-served article are set up
+once, here, on top of the `ci.yml` 9.4 rewrites. The solo journey is one of
+the runs it should carry.
+
 **Done when**: the e2e job passes in CI, and fails if a field of the
 solution is deliberately leaked into the start payload.
 
