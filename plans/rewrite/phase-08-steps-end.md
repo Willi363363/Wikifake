@@ -45,6 +45,25 @@ Notes written when the step was done:
 **Done when**: a submitted flag appears in the database (`flag_report`) and
 the toast reflects the verdict.
 
+Notes written when the step was done:
+
+- **The database half is step 4.9's.** `app/api/flag-report/route.test.ts`
+  asserts every field of the report and of the verdict against a real
+  database. This step's half is the verdict on screen, and the two closed
+  unions being read exhaustively rather than printed: `verdict` and
+  `recommendation` come out of a language model, and the current form shows
+  whatever string arrived.
+- **Two phases, kept.** Capturing takes one gesture during the round;
+  writing the report up happens in the debrief. Asking for a correction and a
+  source mid-round is asking for no reports at all, which is the current
+  design's insight and worth keeping.
+- **One report at a time.** The current form walks the captures with an index
+  and a shared `currentForm`, so a field typed for one report is still in the
+  box for the next.
+- **`post` moved to `src/api.ts`.** The flag report is its second caller, and
+  how a refusal is read — its sentence, its code, a body that is not JSON —
+  is a decision rather than a detail.
+
 ### 8.9 — Multiplayer end to end
 
 The reference Playwright test: four browsers in one room, theme voting,

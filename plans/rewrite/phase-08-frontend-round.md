@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — seven steps done |
+| **State** | **in progress** — eight steps done |
 | **Branch** | `feat/rewrite-phase-8` |
 | **Depends on** | phase 7 |
 | **Delivers** | the complete round, from first paragraph to debriefing |
@@ -47,7 +47,7 @@ Definitions: `phase-08-steps-play.md`.
 | # | Step — how a round ends, and in what language | State |
 |---|---|---|
 | 8.7 | Debriefing | ✅ done |
-| 8.8 | Factual error flagging | to do |
+| 8.8 | Factual error flagging | ✅ done |
 | 8.9 | Multiplayer end to end | to do |
 | 8.10 | English user interface | to do |
 

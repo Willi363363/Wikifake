@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { startRound, submitRound, unlockHint } from './api.js';
 import { GenerationScreen } from '../lobby/generation.js';
+import { useCaptures } from '../flags/flags.js';
 import { useHints } from '../round/hints.js';
 import { Round } from '../round/round.js';
 
@@ -55,6 +56,7 @@ export function SoloGame({ topic }: SoloGameProps) {
   // Keyed on the session, so a second solo game does not inherit the first's
   // hints. `''` before there is a round, which never has any.
   const hints = useHints(round?.sessionId ?? '');
+  const flags = useCaptures(round?.sessionId ?? '');
 
   useEffect(() => {
     if (valid === null || asked.current) return;
@@ -161,6 +163,7 @@ export function SoloGame({ topic }: SoloGameProps) {
       busy={busy}
       refusal={refusal}
       hints={hints}
+      flags={flags}
       onSubmit={submit}
       onUnlockHint={unlock}
       {...(result === null
