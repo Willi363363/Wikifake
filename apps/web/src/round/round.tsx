@@ -16,6 +16,8 @@ import { useEffect, useState } from 'react';
 
 import { ArticleCard, type ArticleFacts } from './article.js';
 import { Brief } from './brief.js';
+import { Overlays } from './effects/overlays.js';
+import type { EffectsState } from './effects.js';
 import { RoundFooter } from './footer.js';
 import type { HintsState } from './hints.js';
 import { Intel } from './intel.js';
@@ -29,6 +31,7 @@ import { useTimers } from '../timers.js';
 
 /** Shared, so a round with no items does not allocate a set per render. */
 const EMPTY: ReadonlySet<number> = new Set();
+const NOTHING: ReadonlySet<never> = new Set();
 
 export interface RoundProps {
   readonly article: ArticleFacts;
@@ -48,6 +51,8 @@ export interface RoundProps {
   readonly items?: ItemsState | undefined;
   /** Everyone but this player. Empty where there is nobody else. */
   readonly rivals?: readonly string[] | undefined;
+  /** What items are doing to the screen. Absent in solo, where nothing is. */
+  readonly effects?: EffectsState | undefined;
   onSubmit(marked: readonly number[]): void;
   /** Absent where a submission cannot be taken back — solo, over REST. */
   readonly onUnsubmit?: (() => void) | undefined;
@@ -71,6 +76,7 @@ export function Round({
   hints,
   items,
   rivals = [],
+  effects,
   onSubmit,
   onUnsubmit,
   onUnlockHint,
@@ -148,6 +154,7 @@ export function Round({
           marked={marked}
           hinted={hints.hintedParagraphs}
           scanned={items?.scanned ?? EMPTY}
+          distortions={effects?.distortions ?? NOTHING}
           locked={submitted || busy}
           onToggle={toggle}
         />
@@ -191,6 +198,10 @@ export function Round({
         onOpenChange={setIntel}
         onUnlock={onUnlockHint}
       />
+
+      {effects === undefined ? null : (
+        <Overlays active={effects.overlays} onDismiss={effects.dismiss} />
+      )}
 
       {items === undefined ? null : (
         <>

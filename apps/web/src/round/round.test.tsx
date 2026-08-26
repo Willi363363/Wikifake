@@ -15,7 +15,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asClock, pressureAt, URGENT_SECONDS, WARNING_SECONDS } from './clock.js';
 import { Round } from './round.js';
-import { ARTICLE, KEPT_BACK, noHints, paintRound as paint, tokens } from './testing.js';
+import {
+  ARTICLE,
+  KEPT_BACK,
+  noEffects,
+  noHints,
+  paintRound as paint,
+  tokens,
+} from './testing.js';
 import type { ArticleFacts } from './article.js';
 
 afterEach(() => {
@@ -323,5 +330,50 @@ describe('8.1 — submitting, and taking it back', () => {
   it('says the answer is with the server once it is', () => {
     paint({ submitted: true });
     expect(screen.getByText(/answer is with the server/)).not.toBeNull();
+  });
+});
+
+// Step 8.4 — what an item does to the article, as opposed to over it.
+describe('8.4 — the article, distorted', () => {
+  const card = () => screen.getByRole('article');
+
+  it('is undistorted by default', () => {
+    paint();
+    expect(card().className).not.toContain('blur');
+    expect(card().className).not.toContain('animate-');
+  });
+
+  it.each([
+    ['blur', 'blur-'],
+    ['invert', 'invert'],
+    ['mirror', '-scale-x-100'],
+    ['tiny', 'text-[9px]'],
+    ['spin', 'animate-article-spin'],
+    ['shake', 'animate-shake'],
+  ] as const)('wears %s', (distortion, expected) => {
+    paint({ effects: noEffects({ distortions: new Set([distortion]) }) });
+    expect(card().className).toContain(expected);
+  });
+
+  it('wears two at once', () => {
+    paint({ effects: noEffects({ distortions: new Set(['blur', 'spin']) }) });
+    expect(card().className).toContain('blur-');
+    expect(card().className).toContain('animate-article-spin');
+  });
+
+  // The two the stylesheet switches off under `prefers-reduced-motion`, which is
+  // what makes them safe to express as classes at all: at 7 Hz and 1.2s infinite
+  // they displace the page, and `motion.css` sets both variables to `none`.
+  it('expresses the two displacing effects as theme animations', () => {
+    paint({ effects: noEffects({ distortions: new Set(['shake']) }) });
+    expect(card().className).toContain('animate-shake');
+  });
+
+  it('stays markable while it is distorted', () => {
+    // An item that makes the article hard to read is not an item that stops the
+    // player playing. The current blur sets `pointerEvents: 'none'` on the card.
+    paint({ effects: noEffects({ distortions: new Set(['blur']) }) });
+    fireEvent.click(tokens()[0] as HTMLElement);
+    expect(tokens()[0]?.getAttribute('aria-pressed')).toBe('true');
   });
 });

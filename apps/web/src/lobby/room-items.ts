@@ -15,15 +15,19 @@
 import { useCallback } from 'react';
 
 import { useRealtime, useRealtimeMessages } from '../realtime/provider.js';
+import { useEffects, type EffectsState } from '../round/effects.js';
 import { useItems, type ItemsState } from '../round/items.js';
 
 export interface RoomItems extends ItemsState {
   use(instanceId: string, targets: readonly string[], marked: readonly number[]): void;
+  /** What the items that landed are doing to the screen. */
+  readonly effects: EffectsState;
 }
 
 export function useRoomItems(roundKey: string): RoomItems {
   const { me, send } = useRealtime();
   const items = useItems(roundKey);
+  const effects = useEffects(roundKey);
 
   useRealtimeMessages((message) => {
     if (message.type === 'items_distributed') {
@@ -43,6 +47,10 @@ export function useRoomItems(roundKey: string): RoomItems {
 
     if (message.type === 'item_effect') {
       items.hit(message.itemId, message.from);
+      // The notice says what happened; the effect *is* what happened. Both, and
+      // from the same message, so a notice without its effect is not a state
+      // this can reach.
+      effects.cast(message.itemId);
       return;
     }
 
@@ -72,5 +80,5 @@ export function useRoomItems(roundKey: string): RoomItems {
     [items.sending, send],
   );
 
-  return { ...items, use };
+  return { ...items, use, effects };
 }

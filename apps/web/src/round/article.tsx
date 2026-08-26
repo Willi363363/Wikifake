@@ -13,9 +13,32 @@
 // the game is reachable at all: a `<button>` with `aria-pressed`, focusable,
 // answering Enter and Space. The current `<span onClick>` answers none of them.
 import type { gameApi } from '@wikifake/protocol';
-import { ParagraphToken, tokenStateFor } from '@wikifake/ui';
+import { cn, ParagraphToken, tokenStateFor } from '@wikifake/ui';
 
 import { Attribution } from './attribution.js';
+import type { Distortion } from './effects.js';
+
+/**
+ * What each distortion does to the card.
+ *
+ * Exhaustive by type, so a distortion added to the table without a look here
+ * fails to compile. The article, and not the page: a blur over the whole
+ * viewport blurs the clock and the submit button too, which is not what any of
+ * these items claims to do.
+ *
+ * Nothing here takes the card out of play. The current blur sets
+ * `pointerEvents: 'none'` on it, which turns a five-second nuisance into five
+ * seconds of not being able to mark anything.
+ */
+const DISTORTED: Readonly<Record<Distortion, string>> = {
+  blur: 'blur-[3px]',
+  invert: 'invert hue-rotate-180',
+  mirror: '-scale-x-100',
+  tiny: 'text-[9px] leading-tight',
+  spin: 'animate-article-spin',
+  shake: 'animate-shake',
+  redacted: '[&_p]:bg-ink [&_p]:text-ink',
+};
 
 export interface ArticleCardProps {
   readonly article: gameApi.StartGameResponse | ArticleFacts;
@@ -31,6 +54,8 @@ export interface ArticleCardProps {
   readonly hinted: ReadonlySet<number>;
   /** C1.6 — paragraphs a SCANNER has pointed this player at. */
   readonly scanned: ReadonlySet<number>;
+  /** What items are doing to the card right now. */
+  readonly distortions: ReadonlySet<Distortion>;
   /** True once the round is out of the player's hands. */
   readonly locked: boolean;
   onToggle(paragraph: number): void;
@@ -49,11 +74,18 @@ export function ArticleCard({
   marked,
   hinted,
   scanned,
+  distortions,
   locked,
   onToggle,
 }: ArticleCardProps) {
   return (
-    <article className="rounded-xl border border-line bg-surface px-5 py-6 shadow-md sm:px-10 sm:py-8">
+    <article
+      className={cn(
+        'rounded-xl border border-line bg-surface px-5 py-6 shadow-md sm:px-10 sm:py-8',
+        'transition-[filter,transform] duration-300',
+        [...distortions].map((distortion) => DISTORTED[distortion]),
+      )}
+    >
       <header className="flex flex-wrap items-center gap-3 border-b border-line pb-3 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
         <span>Source · Wikipedia</span>
         <span aria-hidden="true" className="h-3 w-px bg-line" />

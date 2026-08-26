@@ -56,6 +56,31 @@ and flashes.
 **Done when**: every effect triggers and fades on its server message, no
 hydration warning, `reduced-motion` verified by test.
 
+Notes written when the step was done:
+
+- **Eight overlays and seven distortions, from one table.** The step names
+  the eight components; what it does not say is that five items — `MIRROR`,
+  `TINY`, `SPIN`, `INVERT` and half of `BLUR` — have no overlay at all and
+  are done to the article card instead. `EFFECTS` in `round/effects.ts` is
+  exhaustive over `ItemId`, so both halves are decided in one place and an
+  item added to the contract without a look fails to compile.
+- **Counted, not flagged.** Two of the same item land often in a room of
+  four, and a flag means the first cast's expiry switches off the second
+  that is still running.
+- **`prefers-reduced-motion` is read with `useSyncExternalStore`.** Read in
+  an effect instead, the first render says "full motion", the canvas loop
+  starts, and it is cancelled on the second render — so a viewer who asked
+  for less motion gets one frame of exactly what they asked not to see. The
+  separate server snapshot is what keeps the synchronous read from being a
+  hydration mismatch.
+- **Nothing covers the article's controls.** Every sheet but the pop-up is
+  `pointer-events-none`, and the distortions do not disable the card. The
+  current blur sets `pointerEvents: 'none'` on the article, which turns a
+  five-second nuisance into five seconds of not playing.
+- **The pop-up is not a `Dialog`.** It is done *to* the player, so trapping
+  their focus in it would be an item that takes the keyboard away until it
+  is closed.
+
 ### 8.5 — Live cursors
 
 `useLiveCursors`, `PlayerCursor`. Two leaks closed: `window.innerWidth`
