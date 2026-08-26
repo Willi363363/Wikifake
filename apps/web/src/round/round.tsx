@@ -16,6 +16,7 @@ import { useEffect, useState } from 'react';
 
 import { ArticleCard, type ArticleFacts } from './article.js';
 import { Brief } from './brief.js';
+import { PlayerCursors, type CursorView } from './player-cursors.js';
 import { Overlays } from './effects/overlays.js';
 import type { EffectsState } from './effects.js';
 import { RoundFooter } from './footer.js';
@@ -53,6 +54,8 @@ export interface RoundProps {
   readonly rivals?: readonly string[] | undefined;
   /** What items are doing to the screen. Absent in solo, where nothing is. */
   readonly effects?: EffectsState | undefined;
+  /** C5.5 — where the others are pointing. Empty in solo, where nobody is. */
+  readonly cursors?: readonly CursorView[] | undefined;
   onSubmit(marked: readonly number[]): void;
   /** Absent where a submission cannot be taken back — solo, over REST. */
   readonly onUnsubmit?: (() => void) | undefined;
@@ -77,6 +80,7 @@ export function Round({
   items,
   rivals = [],
   effects,
+  cursors = [],
   onSubmit,
   onUnsubmit,
   onUnlockHint,
@@ -198,6 +202,8 @@ export function Round({
         onOpenChange={setIntel}
         onUnlock={onUnlockHint}
       />
+
+      <PlayerCursors cursors={cursors} />
 
       {effects === undefined ? null : (
         <Overlays active={effects.overlays} onDismiss={effects.dismiss} />

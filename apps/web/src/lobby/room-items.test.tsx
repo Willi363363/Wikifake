@@ -20,6 +20,7 @@ import {
   PARAGRAPHS,
   player,
   roster,
+  startRound,
   ROUND_BEGINS,
   sent,
   wave,
@@ -39,13 +40,10 @@ afterEach(() => {
   uninstall();
 });
 
-/** A round in progress, with two rivals and items on. */
-function intoTheRound(): void {
+/** A round in progress, with two rivals — so there is somebody to throw at. */
+function inARoundOfThree(): void {
   deliver(roster(player('ada', { isHost: true }), player('bob'), player('cleo')));
-  deliver(ROUND_BEGINS);
-  act(() => {
-    vi.advanceTimersByTime(SETTLE_MS);
-  });
+  startRound();
 }
 
 const bar = () => screen.queryByRole('toolbar', { name: 'Your items' });
@@ -53,13 +51,13 @@ const bar = () => screen.queryByRole('toolbar', { name: 'Your items' });
 describe('8.3 — the hand a room deals', () => {
   it('shows nothing before a wave arrives', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     expect(bar()).toBeNull();
   });
 
   it('takes this player’s item out of the wave, and nobody else’s', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver(
       wave({
         ada: { instanceId: 'a1', itemId: 'SPIN' },
@@ -75,7 +73,7 @@ describe('8.3 — the hand a room deals', () => {
 
   it('shows nothing when the wave has nothing for this player', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver(wave({ bob: { instanceId: 'b1', itemId: 'SPIN' } }));
     expect(bar()).toBeNull();
   });
@@ -84,7 +82,7 @@ describe('8.3 — the hand a room deals', () => {
 describe('8.3 — throwing one', () => {
   function withASpin(): void {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver(wave({ ada: { instanceId: 'a1', itemId: 'SPIN' } }));
   }
 
@@ -197,7 +195,7 @@ describe('8.3 — throwing one', () => {
 describe('8.3 — what lands on you', () => {
   it('says who threw it', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver({ type: 'item_effect', itemId: 'BLUR', from: 'bob' });
 
     expect(screen.getByText(/hit you with/).textContent).toContain('bob');
@@ -206,7 +204,7 @@ describe('8.3 — what lands on you', () => {
   // C1.6 — resolved by the server, because the client does not know the solution.
   it('points at the paragraph the detector found', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver(wave({ ada: { instanceId: 'a1', itemId: 'SCANNER' } }));
 
     fireEvent.click(screen.getByRole('button', { name: /^Detector —/ }));
@@ -226,7 +224,7 @@ describe('8.3 — what lands on you', () => {
 
   it('says when the detector has nothing left', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver({ type: 'scanner_result', paragraphIndex: null });
 
     expect(screen.getByText(/nothing left to point at/)).not.toBeNull();
@@ -234,7 +232,7 @@ describe('8.3 — what lands on you', () => {
 
   it('leaves the hand of the last round behind when a new one starts', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver(wave({ ada: { instanceId: 'a1', itemId: 'SPIN' } }));
     expect(bar()).not.toBeNull();
 
@@ -251,7 +249,7 @@ describe('8.3 — what lands on you', () => {
 describe('8.4 — the effect an item lands with', () => {
   it('covers the screen, and lifts when it is over', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver({ type: 'item_effect', itemId: 'BLUR', from: 'bob' });
 
     expect(screen.getByRole('status', { name: /fogged your screen/ })).not.toBeNull();
@@ -267,7 +265,7 @@ describe('8.4 — the effect an item lands with', () => {
 
   it('distorts the article for an item that has no sheet', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver({ type: 'item_effect', itemId: 'MIRROR', from: 'bob' });
 
     expect(screen.getByRole('article').className).toContain('-scale-x-100');
@@ -276,7 +274,7 @@ describe('8.4 — the effect an item lands with', () => {
 
   it('leaves the pop-up up until it is closed', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver({ type: 'item_effect', itemId: 'RICKROLL', from: 'bob' });
 
     act(() => {
@@ -290,7 +288,7 @@ describe('8.4 — the effect an item lands with', () => {
 
   it('shows nothing for the detector, whose visual is the token', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver({ type: 'item_effect', itemId: 'SCANNER', from: 'bob' });
 
     expect(screen.getByRole('article').className).not.toContain('animate-');
@@ -298,7 +296,7 @@ describe('8.4 — the effect an item lands with', () => {
 
   it('takes every effect off when the round ends', () => {
     mountRoom();
-    intoTheRound();
+    inARoundOfThree();
     deliver({ type: 'item_effect', itemId: 'MIRROR', from: 'bob' });
     expect(screen.getByRole('article').className).toContain('-scale-x-100');
 
