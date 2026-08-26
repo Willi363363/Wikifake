@@ -101,11 +101,22 @@ export function ArticleCard({
         <span>Modified text</span>
       </header>
 
-      <h1 className="mt-6 text-3xl text-ink">{article.topic}</h1>
+      {/* The topic is a Wikipedia title, so it is French for the same reason. */}
+      <h1 lang="fr" className="mt-6 text-3xl text-ink">
+        {article.topic}
+      </h1>
 
-      {/* The body. `space-y` rather than a gap on a flex column, so a paragraph
-          that wraps keeps the rhythm of prose. */}
-      <div className="mt-5 space-y-2 text-[15px] leading-relaxed">
+      {/*
+        The body. `space-y` rather than a gap on a flex column, so a paragraph
+        that wraps keeps the rhythm of prose.
+
+        `lang="fr"` because it is: the text comes from `fr.wikipedia.org`, and
+        the interface around it is English from step 8.10. A screen reader
+        reading French prose in an English voice is exactly what this attribute
+        exists to prevent, and marking the content is the half of that which does
+        not touch the contract — the document's own `lang` is step 11.5's.
+      */}
+      <div lang="fr" className="mt-5 space-y-2 text-[15px] leading-relaxed">
         {article.paragraphs.map((text, at) => {
           const paragraph = at + 1;
           return (

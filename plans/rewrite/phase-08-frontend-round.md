@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — eight steps done |
+| **State** | **in progress** — nine steps done, 8.9 blocked |
 | **Branch** | `feat/rewrite-phase-8` |
 | **Depends on** | phase 7 |
 | **Delivers** | the complete round, from first paragraph to debriefing |
@@ -48,10 +48,16 @@ Definitions: `phase-08-steps-play.md`.
 |---|---|---|
 | 8.7 | Debriefing | ✅ done |
 | 8.8 | Factual error flagging | ✅ done |
-| 8.9 | Multiplayer end to end | to do |
-| 8.10 | English user interface | to do |
+| 8.9 | Multiplayer end to end | ⛔ blocked — needs 9.5 |
+| 8.10 | English user interface | ✅ done |
 
 Definitions: `phase-08-steps-end.md`.
+
+**8.9 cannot be done here.** It asks for four Playwright browsers, and step 9.5
+owns the harness — the browser, its CI job and the fixture-served article are set
+up once, there, on top of the `ci.yml` 9.4 rewrites. Recorded when 7.8 was cut
+back for the same reason. Either 8.9 moves after phase 9, or 9.5 is brought
+forward; the phase cannot close until one of the two happens.
 
 ## Exit gate
 
