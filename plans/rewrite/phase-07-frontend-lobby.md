@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — six steps done |
+| **State** | in progress — seven steps done |
 | **Branch** | `feat/rewrite-phase-7` |
 | **Depends on** | phases 4, 5 and 6 |
 | **Delivers** | the whole pre-round in Next.js, and a playable solo game |
@@ -46,7 +46,7 @@ Definitions: `phase-07-steps-room.md`.
 | # | Step — what fills the wait, and the journey | State |
 |---|---|---|
 | 7.6 | The six waiting minigames | ✅ done |
-| 7.7 | A single chat | to do |
+| 7.7 | A single chat | ✅ done |
 | 7.8 | Solo journey end to end | to do |
 
 Definitions: `phase-07-steps-waiting.md`.

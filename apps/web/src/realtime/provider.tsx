@@ -42,6 +42,15 @@ export interface Realtime {
   readonly status: ConnectionStatus;
   /** Why the connection ended, when the server said. */
   readonly refusal: string | null;
+  /**
+   * Who this browser is in the room, or null before it has a name.
+   *
+   * Exposed because the chat of 7.7 has to know which lines are its own, and
+   * the alternative is a second reader of `sessionStorage` deciding the same
+   * thing a few components away — two answers to one question, which is the
+   * kind of pair that agrees until it does not.
+   */
+  readonly me: string | null;
   /** Sends a message. Silently dropped while the socket is not open. */
   send(message: IncomingMessage): void;
   /** Subscribes for as long as the caller is mounted. */
@@ -178,8 +187,8 @@ export function RealtimeProvider({
   }, []);
 
   const value = useMemo<Realtime>(
-    () => ({ status, refusal, send, subscribe }),
-    [status, refusal, send, subscribe],
+    () => ({ status, refusal, me: playerName, send, subscribe }),
+    [status, refusal, playerName, send, subscribe],
   );
 
   return <RealtimeContext value={value}>{children}</RealtimeContext>;
