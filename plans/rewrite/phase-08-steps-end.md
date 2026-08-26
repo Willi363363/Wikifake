@@ -87,3 +87,21 @@ comes back later through proper internationalisation — see
 **Done when**: no French player-facing string remains on the round screens,
 the updated `indexing.test.js` and the SEO metadata assertions pass, and
 the English CC BY-SA attribution stays visible during and after the round.
+
+Notes written when the step was done, and two are corrections:
+
+- **There was almost nothing to translate.** Everything written since the
+  rewrite began has been English, as `CLAUDE.md` requires — a scan of the
+  whole application found exactly one French string, the SEO description.
+  The step's value is therefore the scan itself, `src/language.test.ts`: a
+  criterion checked once holds only until the next screen.
+- **`indexing.test.js` is not touched.** It locks `lang="fr"` for the
+  *legacy* frontend, whose interface is still French and correctly so. It is
+  right as it stands, and it leaves with the Python at phase 10.
+- **The document's own `lang` is step 11.5's**, not this one's. C6.3 is a
+  clause of `02-contract-transport-and-compliance.md`, and 11.5 amends the
+  clause and its test together when `lang` becomes per-locale. What this step
+  does is the half that touches no contract: the article's title and body
+  carry a `lang="fr"` of their own, because they come from
+  `fr.wikipedia.org` and a screen reader should not read French prose in an
+  English voice. Phase 11's pitfall list asks for exactly that.
