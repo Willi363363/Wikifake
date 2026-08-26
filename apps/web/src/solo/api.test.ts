@@ -7,7 +7,7 @@
 // may be a thrown exception in the middle of a render.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { startRound, submitRound } from './api.js';
+import { startRound, submitRound, unlockHint } from './api.js';
 
 const ROUND = {
   sessionId: 'a-session-handle-16',
@@ -85,7 +85,13 @@ describe('7.8 — starting a round', () => {
     answering(404, { code: 'topic_not_found', message: 'no article for that topic' });
     const answered = await startRound({ topic: 'Zzzz' });
 
-    expect(answered).toEqual({ ok: false, message: 'no article for that topic' });
+    // The code travels with the sentence: some refusals are a state and not just
+    // a message, which is what `hints_blocked` is for below.
+    expect(answered).toEqual({
+      ok: false,
+      code: 'topic_not_found',
+      message: 'no article for that topic',
+    });
   });
 
   it('refuses a payload it cannot read', async () => {
@@ -112,7 +118,11 @@ describe('7.8 — starting a round', () => {
     );
     const answered = await startRound({ topic: 'Chat' });
 
-    expect(answered).toEqual({ ok: false, message: 'the server could not be reached' });
+    expect(answered).toEqual({
+      ok: false,
+      code: null,
+      message: 'the server could not be reached',
+    });
   });
 
   it('falls back to a sentence of its own when the code is not one of ours', async () => {
@@ -123,7 +133,12 @@ describe('7.8 — starting a round', () => {
     answering(502, { code: 'upstream_exploded', message: 'Bad Gateway' });
     const answered = await startRound({ topic: 'Chat' });
 
-    expect(answered).toEqual({ ok: false, message: 'the server refused the request' });
+    // No code either: a refusal this client cannot branch on is not one of ours.
+    expect(answered).toEqual({
+      ok: false,
+      code: null,
+      message: 'the server refused the request',
+    });
   });
 
   it('survives a refusal whose body is not JSON', async () => {
@@ -168,7 +183,11 @@ describe('7.8 — submitting', () => {
     answering(404, { code: 'session_not_found', message: 'that round is over' });
     const answered = await submitRound({ sessionId: ROUND.sessionId, marked: [] });
 
-    expect(answered).toEqual({ ok: false, message: 'that round is over' });
+    expect(answered).toEqual({
+      ok: false,
+      code: 'session_not_found',
+      message: 'that round is over',
+    });
   });
 
   it('refuses a breakdown with a field missing', async () => {
@@ -178,5 +197,84 @@ describe('7.8 — submitting', () => {
     expect((await submitRound({ sessionId: ROUND.sessionId, marked: [] })).ok).toBe(
       false,
     );
+  });
+});
+
+describe('8.2 — unlocking a hint', () => {
+  const NUDGE = {
+    falseInfoNumber: 1,
+    hint: 'Regardez la durée.',
+    charged: 50,
+    hintPenalty: 50,
+    grant: { level: 1 },
+  };
+
+  it('posts the handle, the number and the level', async () => {
+    answering(200, NUDGE);
+    await unlockHint({ sessionId: ROUND.sessionId, falseInfoNumber: 1, level: 2 });
+
+    const called = vi.mocked(fetch).mock.calls[0];
+    expect(called?.[0]).toBe('/api/game/hint');
+    expect(JSON.parse(String(called?.[1]?.body))).toEqual({
+      sessionId: ROUND.sessionId,
+      falseInfoNumber: 1,
+      level: 2,
+    });
+  });
+
+  it('hands back what was granted, and what it cost', async () => {
+    answering(200, NUDGE);
+    const answered = await unlockHint({
+      sessionId: ROUND.sessionId,
+      falseInfoNumber: 1,
+      level: 1,
+    });
+
+    expect(answered).toEqual({ ok: true, value: NUDGE });
+  });
+
+  it('reads a reveal, with its truth and its position', async () => {
+    const reveal = {
+      ...NUDGE,
+      charged: 150,
+      hintPenalty: 200,
+      grant: { level: 2, truth: 'Il en dort douze.', paragraphIndex: 1 },
+    };
+    answering(200, reveal);
+
+    expect(
+      await unlockHint({ sessionId: ROUND.sessionId, falseInfoNumber: 1, level: 2 }),
+    ).toEqual({ ok: true, value: reveal });
+  });
+
+  // C1.4 — the level-2 truth rides inside `grant`, so a level-1 payload has
+  // nowhere to put it.
+  it('does not carry a truth on a level-1 grant', async () => {
+    answering(200, { ...NUDGE, grant: { level: 1, truth: 'Il en dort douze.' } });
+
+    const answered = await unlockHint({
+      sessionId: ROUND.sessionId,
+      falseInfoNumber: 1,
+      level: 1,
+    });
+    // Decoded rather than believed: the extra key is stripped, so the truth is
+    // not in the value handed on.
+    expect(answered.ok && 'truth' in answered.value.grant).toBe(false);
+  });
+
+  // C1.5 — the one refusal the screen treats as a state rather than a sentence.
+  it('names a jam as a jam', async () => {
+    answering(409, { code: 'hints_blocked', message: 'your intel is jammed' });
+    const answered = await unlockHint({
+      sessionId: ROUND.sessionId,
+      falseInfoNumber: 1,
+      level: 1,
+    });
+
+    expect(answered).toEqual({
+      ok: false,
+      code: 'hints_blocked',
+      message: 'your intel is jammed',
+    });
   });
 });

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — one step done |
+| **State** | **in progress** — two steps done |
 | **Branch** | `feat/rewrite-phase-8` |
 | **Depends on** | phase 7 |
 | **Delivers** | the complete round, from first paragraph to debriefing |
@@ -31,7 +31,7 @@ completion criterion, and carry no state.
 | # | Step — the article, and what it costs to be told | State |
 |---|---|---|
 | 8.1 | Article and paragraph selection | ✅ done |
-| 8.2 | Hints | to do |
+| 8.2 | Hints | ✅ done |
 
 Definitions: `phase-08-steps-article.md`.
 

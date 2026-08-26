@@ -11,16 +11,14 @@
 // lives — `broadcast.test.ts` in `apps/realtime`, over a real Redis channel.
 // What this can prove is the half that failed in the current game: that what the
 // server says is what the screen shows.
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { OutgoingMessage } from '@wikifake/protocol';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { SETTLE_MS } from './generation.js';
 import { Room } from './room.js';
+import { deliver, mountRoom, player, roster, sent } from './testing.js';
 import { RealtimeProvider } from '../realtime/provider.js';
-import { installFakeSocket, opened } from '../realtime/testing.js';
-import type { FakeSocket } from '../realtime/testing.js';
+import { installFakeSocket } from '../realtime/testing.js';
 
 let uninstall: () => void;
 
@@ -33,71 +31,19 @@ afterEach(() => {
   uninstall();
 });
 
-const player = (
-  name: string,
-  extra: Partial<{
-    colour: string;
-    connected: boolean;
-    ready: boolean;
-    answered: boolean;
-    isHost: boolean;
-  }> = {},
-) => ({
-  name,
-  colour: '#e63946',
-  connected: true,
-  ready: false,
-  answered: false,
-  isHost: false,
-  ...extra,
-});
-
-const roster = (...players: ReturnType<typeof player>[]): OutgoingMessage => ({
-  type: 'lobby_update',
-  players,
-});
-
-function mount(nickname = 'ada') {
-  const view = render(
-    <RealtimeProvider roomCode="A1B2C3" playerName={nickname}>
-      <Room roomCode="A1B2C3" nickname={nickname} />
-    </RealtimeProvider>,
-  );
-  act(() => {
-    live().accept();
-  });
-  return view;
-}
-
-/**
- * The socket the mounted provider is using — the last one opened, not the first.
- *
- * A test that mounts twice leaves the first behind in `opened`, and driving that
- * one delivers to a component nobody is rendering.
- */
-const live = (): FakeSocket => opened.at(-1) as FakeSocket;
-
-const deliver = (message: OutgoingMessage) => {
-  act(() => {
-    live().deliver(message);
-  });
-};
-
-const sent = () => live().sent;
-
 describe('7.3 — the waiting room', () => {
   it('shows the room code', () => {
-    mount();
+    mountRoom();
     expect(screen.getByText('A1B2C3')).not.toBeNull();
   });
 
   it('shows nobody until the server says who is here', () => {
-    mount();
+    mountRoom();
     expect(screen.getByText('Players (0)')).not.toBeNull();
   });
 
   it('shows everyone the server names', () => {
-    mount();
+    mountRoom();
     deliver(roster(player('ada', { isHost: true }), player('bob')));
 
     expect(screen.getByText('Players (2)')).not.toBeNull();
@@ -108,7 +54,7 @@ describe('7.3 — the waiting room', () => {
   // The current list uses `i === 0`. It agrees with the server today, and stops
   // agreeing the first time somebody sorts the roster for display.
   it('marks the host the server names, not the first in the list', () => {
-    mount();
+    mountRoom();
     deliver(roster(player('ada'), player('bob', { isHost: true })));
 
     const hosts = screen.getAllByText('host');
@@ -120,7 +66,7 @@ describe('7.3 — the waiting room', () => {
   // D5 — the seat is kept for thirty seconds. A list that cannot say so makes a
   // disconnection look like silence.
   it('shows a dropped player as away rather than losing them', () => {
-    mount();
+    mountRoom();
     deliver(roster(player('ada', { isHost: true }), player('bob', { connected: false })));
 
     expect(screen.getByText('Players (2)')).not.toBeNull();
@@ -128,7 +74,7 @@ describe('7.3 — the waiting room', () => {
   });
 
   it('shows who is ready', () => {
-    mount();
+    mountRoom();
     deliver(roster(player('ada', { ready: true }), player('bob')));
 
     expect(screen.getByText('ready')).not.toBeNull();
@@ -138,7 +84,7 @@ describe('7.3 — the waiting room', () => {
   describe('the ready toggle', () => {
     it('asks the server, and reports what the server answers', async () => {
       const user = userEvent.setup();
-      mount();
+      mountRoom();
       deliver(roster(player('ada')));
 
       await user.click(screen.getByRole('button', { name: "I'm ready" }));
@@ -153,7 +99,7 @@ describe('7.3 — the waiting room', () => {
 
   describe('C1.7 — the host decides', () => {
     it('shows the settings to the host', () => {
-      mount();
+      mountRoom();
       deliver(roster(player('ada', { isHost: true })));
 
       expect(screen.getByRole('slider')).not.toBeNull();
@@ -161,7 +107,7 @@ describe('7.3 — the waiting room', () => {
     });
 
     it('hides them from a guest', () => {
-      mount('bob');
+      mountRoom('bob');
       deliver(roster(player('ada', { isHost: true }), player('bob')));
 
       expect(screen.queryByRole('slider')).toBeNull();
@@ -173,7 +119,7 @@ describe('7.3 — the waiting room', () => {
     // nothing on Enter or Space, and nothing announcing whether items are on.
     it('gives the items switch a role and a keyboard', async () => {
       const user = userEvent.setup();
-      mount();
+      mountRoom();
       deliver(roster(player('ada', { isHost: true })));
 
       const items = screen.getByRole('switch', { name: /items/i });
@@ -186,7 +132,7 @@ describe('7.3 — the waiting room', () => {
     });
 
     it('sends the time limit the host chose', () => {
-      mount();
+      mountRoom();
       deliver(roster(player('ada', { isHost: true })));
 
       fireEvent.change(screen.getByRole('slider'), { target: { value: '120' } });
@@ -195,12 +141,12 @@ describe('7.3 — the waiting room', () => {
     });
 
     it('lets the host start, and not a guest', () => {
-      mount('bob');
+      mountRoom('bob');
       deliver(roster(player('ada', { isHost: true }), player('bob')));
       expect(screen.queryByRole('button', { name: /Start/ })).toBeNull();
 
       cleanup();
-      mount('ada');
+      mountRoom('ada');
       deliver(roster(player('ada', { isHost: true })));
       expect(screen.getByRole('button', { name: /Start/ })).not.toBeNull();
     });
@@ -209,7 +155,7 @@ describe('7.3 — the waiting room', () => {
     // promotes by arithmetic — the host is whoever is first — and the screen
     // finds out the same way everybody does.
     it('follows the host when the server promotes somebody', () => {
-      mount('bob');
+      mountRoom('bob');
       deliver(roster(player('ada', { isHost: true }), player('bob')));
       expect(screen.queryByRole('slider')).toBeNull();
 
@@ -222,7 +168,7 @@ describe('7.3 — the waiting room', () => {
     // A refusal must not take the screen down. It is shown, and the roster that
     // arrives next is the truth.
     it('displays a not_host refusal cleanly', () => {
-      mount('bob');
+      mountRoom('bob');
       deliver(roster(player('ada', { isHost: true }), player('bob')));
 
       deliver({
@@ -238,7 +184,7 @@ describe('7.3 — the waiting room', () => {
 
     it('drops the refusal when the player tries again', async () => {
       const user = userEvent.setup();
-      mount();
+      mountRoom();
       deliver(roster(player('ada')));
       deliver({ type: 'error', code: 'not_host', message: 'only the host' });
       expect(screen.getByRole('alert')).not.toBeNull();
@@ -255,142 +201,5 @@ describe('7.3 — the waiting room', () => {
       </RealtimeProvider>,
     );
     expect(screen.getByText('connecting')).not.toBeNull();
-  });
-});
-
-// Step 8.1 — the round the room renders is the round solo renders. What the room
-// owns is the transport: the answer leaves over the socket, and "you have
-// submitted" is the server's `answered` rather than a flag this screen sets.
-describe('8.1 — the round, in a room', () => {
-  const ROUND: OutgoingMessage = {
-    type: 'game_start',
-    topic: 'Chat',
-    paragraphs: [
-      'Le chat dort seize heures par jour.',
-      'Sa vision nocturne est bonne.',
-      'Il ronronne en expirant.',
-    ],
-    totalFakes: 1,
-    wikipediaUrl: 'https://fr.wikipedia.org/wiki/Chat',
-    players: [{ name: 'ada', colour: '#e63946' }],
-    withItems: false,
-    // Deliberately not the default: the round must count down from what the
-    // server said, not from what this browser's host settings happen to hold.
-    timeLimit: 120,
-  };
-
-  /** Into the round: the generation screen has to be seen to fill first. */
-  function intoTheRound(): void {
-    deliver({
-      type: 'theme_selected',
-      topic: 'Chat',
-      proposer: 'ada',
-      ballots: { ada: 'Chat' },
-    });
-    deliver(ROUND);
-    act(() => {
-      vi.advanceTimersByTime(SETTLE_MS);
-    });
-  }
-
-  const PARAGRAPHS = [
-    'Le chat dort seize heures par jour.',
-    'Sa vision nocturne est bonne.',
-    'Il ronronne en expirant.',
-  ];
-
-  const tokens = () =>
-    screen.getAllByRole('button', { name: new RegExp(`^(${PARAGRAPHS.join('|')})`) });
-
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('shows the article the server started, not the lobby', () => {
-    mount();
-    deliver(roster(player('ada', { isHost: true })));
-    intoTheRound();
-
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Chat');
-    expect(tokens()).toHaveLength(3);
-    expect(screen.queryByText(/^Players/)).toBeNull();
-  });
-
-  it('counts down from the limit the server sent, not the host settings', () => {
-    mount();
-    deliver(roster(player('ada', { isHost: true })));
-    intoTheRound();
-
-    // 120 seconds, where the host-settings default in this browser is 300.
-    expect(screen.getByRole('timer').textContent).toContain('02:00');
-  });
-
-  it('sends the marked paragraphs as 1-based numbers', () => {
-    mount();
-    deliver(roster(player('ada', { isHost: true })));
-    intoTheRound();
-
-    fireEvent.click(tokens()[0] as HTMLElement);
-    fireEvent.click(tokens()[2] as HTMLElement);
-    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
-
-    expect(sent().at(-1)).toEqual({ type: 'submit_answer', marked: [1, 3] });
-  });
-
-  // The rule this screen follows everywhere: what the server says, not what the
-  // player just did. A submission the server refused — out of phase, on a socket
-  // that was already down — must not read as submitted.
-  it('reads "submitted" off the roster, not off the click', () => {
-    mount();
-    deliver(roster(player('ada', { isHost: true })));
-    intoTheRound();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
-    // Nothing has come back yet, so nothing has changed.
-    expect(screen.getByRole('button', { name: 'Submit' })).not.toBeNull();
-
-    deliver(roster(player('ada', { isHost: true, answered: true })));
-    expect(screen.getByRole('button', { name: 'Take it back' })).not.toBeNull();
-  });
-
-  it('takes a submission back over the socket', () => {
-    mount();
-    deliver(roster(player('ada', { isHost: true, answered: true })));
-    intoTheRound();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Take it back' }));
-    expect(sent().at(-1)).toEqual({ type: 'unsubmit_answer' });
-  });
-
-  it('returns to the lobby when the round ends', () => {
-    mount();
-    deliver(roster(player('ada', { isHost: true })));
-    intoTheRound();
-    expect(screen.getByRole('heading', { level: 1 }).textContent).toBe('Chat');
-
-    // A real solution: `solution` is `.min(1)`, so an empty one does not decode
-    // and the message would be dropped in silence — a green test that never
-    // ended a round.
-    deliver({
-      type: 'game_end',
-      leaderboard: [{ player: 'ada', colour: '#e63946', score: 150, breakdown: null }],
-      solution: [
-        {
-          paragraphIndex: 1,
-          falseInfoNumber: 1,
-          falseStatement: 'Le chat dort seize heures par jour.',
-          explanation: 'Il en dort douze.',
-          hint: 'Regardez la durée.',
-        },
-      ],
-    });
-
-    expect(screen.getByText('Players (1)')).not.toBeNull();
-    // The debrief is step 8.7. Until it exists the article goes with the round
-    // rather than lingering under a lobby.
-    expect(screen.queryByRole('heading', { level: 1, name: 'Chat' })).toBeNull();
   });
 });

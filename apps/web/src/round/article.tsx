@@ -21,6 +21,14 @@ export interface ArticleCardProps {
   readonly article: gameApi.StartGameResponse | ArticleFacts;
   /** The paragraph numbers the player has marked, 1-based. */
   readonly marked: readonly number[];
+  /**
+   * C1.4 — paragraphs a **level-2** reveal has pointed at.
+   *
+   * Level 1 is a sentence, not a location. The current game highlights the
+   * paragraph at level 1 as well, which hands over the answer at the nudge's
+   * price.
+   */
+  readonly hinted: ReadonlySet<number>;
   /** True once the round is out of the player's hands. */
   readonly locked: boolean;
   onToggle(paragraph: number): void;
@@ -34,7 +42,13 @@ export interface ArticleFacts {
   readonly wikipediaUrl: string;
 }
 
-export function ArticleCard({ article, marked, locked, onToggle }: ArticleCardProps) {
+export function ArticleCard({
+  article,
+  marked,
+  hinted,
+  locked,
+  onToggle,
+}: ArticleCardProps) {
   return (
     <article className="rounded-xl border border-line bg-surface px-5 py-6 shadow-md sm:px-10 sm:py-8">
       <header className="flex flex-wrap items-center gap-3 border-b border-line pb-3 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
@@ -53,7 +67,10 @@ export function ArticleCard({ article, marked, locked, onToggle }: ArticleCardPr
           return (
             <ParagraphToken
               key={paragraph}
-              state={tokenStateFor({ marked: marked.includes(paragraph) })}
+              state={tokenStateFor({
+                marked: marked.includes(paragraph),
+                hinted: hinted.has(paragraph),
+              })}
               disabled={locked}
               onClick={() => {
                 onToggle(paragraph);

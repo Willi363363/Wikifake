@@ -30,10 +30,15 @@ export interface RoundTopBarProps {
   readonly submitted: boolean;
   /** True while a request is in flight. */
   readonly busy: boolean;
+  /** How many falsifications a hint has been bought on. */
+  readonly hintsUsed: number;
+  /** C1.5 — a rival's `HINT_LOCK` refused the last request. */
+  readonly hintsJammed: boolean;
   onSubmit(): void;
   /** Absent where taking a submission back is not possible — solo, over REST. */
   readonly onUnsubmit?: (() => void) | undefined;
   onOpenBrief(): void;
+  onOpenIntel(): void;
 }
 
 export function RoundTopBar({
@@ -43,9 +48,12 @@ export function RoundTopBar({
   total,
   submitted,
   busy,
+  hintsUsed,
+  hintsJammed,
   onSubmit,
   onUnsubmit,
   onOpenBrief,
+  onOpenIntel,
 }: RoundTopBarProps) {
   const pressure = pressureAt(secondsLeft);
 
@@ -60,6 +68,28 @@ export function RoundTopBar({
 
         <Button variant="ghost" onClick={onOpenBrief}>
           Brief
+        </Button>
+
+        {/* C1.5 — a jam is said on the button, not by opening the panel over the
+            article. A modal a rival can make appear on your screen while you are
+            reading is a modal that steals your focus on their command; the
+            current game does exactly that. The panel says what happened when the
+            player chooses to look, which in the ordinary sequence — open, buy,
+            refused — it already is. */}
+        <Button
+          variant={hintsJammed ? 'danger' : 'ghost'}
+          onClick={onOpenIntel}
+          aria-label={hintsJammed ? 'Intel — jammed' : undefined}
+        >
+          Intel
+          {hintsUsed === 0 ? null : (
+            // The count is in the label rather than in a floating badge: a badge
+            // positioned over the corner of a button is a number a screen reader
+            // reads out of order, or not at all.
+            <span className="font-mono text-[10px] tabular-nums text-bronze">
+              {String(hintsUsed)}
+            </span>
+          )}
         </Button>
 
         <p className="flex items-baseline gap-1.5">

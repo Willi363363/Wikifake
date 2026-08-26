@@ -48,3 +48,16 @@ rounds: the key becomes the round identifier.
 
 **Done when**: buying level 2 then requesting level 1 again displays level
 2 without rebilling, and `hints_blocked` displays without a crash.
+
+Two notes, written when the step was done:
+
+- **`HintLockedNotice` is not a second modal.** It was a full-screen modal
+  opened over the intel room, which is a focus trap fighting a focus trap —
+  and one a rival could make appear on your screen, over the article, on
+  their command. A jam is a state of the intel panel and a mark on the
+  button that opens it. Nothing opens by itself.
+- **The round key is the topic and the count.** `lobby_update` and
+  `game_start` carry no round identifier, so there is nothing better to key
+  the ledger on. It is enough for the case that was broken — two consecutive
+  rounds with the same number of falsifications — and it wants a protocol
+  field, which is not this step's to add.

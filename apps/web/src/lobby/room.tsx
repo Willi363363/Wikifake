@@ -21,6 +21,7 @@ import { HostSettings } from './host-settings.js';
 import { PlayerList } from './player-list.js';
 import { ThemeVote } from './theme-vote.js';
 import { useRoom } from './use-room.js';
+import { useRoomHints } from './room-hints.js';
 import { useRealtime } from '../realtime/provider.js';
 import { Round } from '../round/round.js';
 
@@ -36,6 +37,18 @@ export function Room({ roomCode, nickname }: RoomProps) {
 
   const [timeLimit, setTimeLimit] = useState(DEFAULT_TIME_LIMIT_SECONDS);
   const [withItems, setWithItems] = useState(true);
+
+  // Keyed on the round rather than on how many falsifications it has: two
+  // consecutive rounds with the same count would otherwise share a ledger, which
+  // is what the current hook does and only survives because the round unmounts.
+  // `lobby_update` carries no round id, so the topic and the count are the
+  // closest thing to one — recorded in the step sheet as wanting a protocol
+  // field.
+  const hints = useRoomHints(
+    room.round === null
+      ? ''
+      : `${room.round.article.topic}:${String(room.round.article.totalFakes)}`,
+  );
 
   const everyoneReady =
     room.players.length > 0 && room.players.every((player) => player.ready);
@@ -76,6 +89,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
         // that comes back is the acknowledgement.
         busy={false}
         refusal={room.refusal?.message ?? null}
+        hints={hints}
         onSubmit={(marked) => {
           room.clearRefusal();
           send({ type: 'submit_answer', marked: [...marked] });
@@ -84,6 +98,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
           room.clearRefusal();
           send({ type: 'unsubmit_answer' });
         }}
+        onUnlockHint={hints.unlock}
       />
     );
   }
