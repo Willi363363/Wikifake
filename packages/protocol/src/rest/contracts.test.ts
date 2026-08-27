@@ -5,6 +5,7 @@ import { flagReportRequest, flagReportResponse } from './flags.js';
 import { healthResponse, pingResponse, usageResponse } from './health.js';
 import { hintRequest, scanRequest, startGameRequest, submitRequest } from './game.js';
 import { createRoomResponse } from './rooms.js';
+import { ROUTES, ROUTE_KEYS } from './routes.js';
 
 describe('GET /ping (C7.1)', () => {
   it('answers exactly {"status":"alive"}', () => {
@@ -259,5 +260,24 @@ describe('POST /api/flag-report', () => {
         },
       }).success,
     ).toBe(false);
+  });
+});
+
+// Moved here by step 10.9, out of `route-parity.test.ts`. That file's other half
+// compared the catalogue to `backend/src/api/` decorators and died with them;
+// this half never read the Python at all, and the guarantee it holds is the
+// catalogue's own shape. The parity itself now lives in
+// `apps/web/src/route-parity.test.ts`, against the routes that exist.
+describe('the catalogue is well formed', () => {
+  it('gives every POST a request schema and every GET none', () => {
+    for (const route of ROUTES) {
+      expect(route.request === undefined, `${route.method} ${route.path}`).toBe(
+        route.method === 'GET',
+      );
+    }
+  });
+
+  it('has no duplicate path', () => {
+    expect(new Set(ROUTE_KEYS).size).toBe(ROUTE_KEYS.length);
   });
 });
