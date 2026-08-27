@@ -2,8 +2,6 @@
 // deployment probe dies silently if /api/health changes by one field", so every
 // field is asserted by name and by type, not by a snapshot that would happily
 // absorb a rename.
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { healthApi } from '@wikifake/protocol';
@@ -132,21 +130,5 @@ describe('C7.1 — the ping contract', () => {
       status: 'alive',
     });
     expect(() => healthApi.pingResponse.parse({ status: 'ok' })).toThrow();
-  });
-});
-
-describe('the version, while two applications still serve it', () => {
-  // `backend/src/version.py` and this app both answer `/api/health`, and the two
-  // must not disagree about which release is deployed. This test dies with the
-  // Python in phase 10, deliberately.
-  it('agrees with backend/src/version.py', () => {
-    const python = readFileSync(
-      fileURLToPath(new URL('../../../backend/src/version.py', import.meta.url)),
-      'utf8',
-    );
-    const declared = /VERSION\s*=\s*"([^"]+)"/.exec(python)?.[1];
-
-    expect(declared).toBeDefined();
-    expect(VERSION).toBe(declared);
   });
 });

@@ -1,21 +1,21 @@
-// The theme is a transcription, and this is what makes that a fact.
+// The theme, and what has to stay true of it.
 //
-// Three claims, each of which a careful reading could get wrong and a test
-// cannot:
+// Two claims, each of which a careful reading could get wrong and a test cannot:
 //
-//  1. every token of `tokens.css` reaches the theme, under a name Tailwind
-//     understands, **with the same value**;
-//  2. the dark palette answers for exactly the same colours — no more, so a
-//     token nobody translated cannot fall back to its light value on a dark
-//     background, and no fewer, so a dark-only colour cannot appear from
-//     nowhere;
-//  3. the gallery's list is the theme's list, so "every token is shown" holds
+//  1. the dark palette answers for exactly the same colours as the light one —
+//     no more, so a token nobody translated cannot fall back to its light value
+//     on a dark background, and no fewer, so a dark-only colour cannot appear
+//     from nowhere;
+//  2. the gallery's list is the theme's list, so "every token is shown" holds
 //     without anybody checking.
 //
-// It reads `frontend/src/styles/tokens.css`, which is the legacy frontend and is
-// deleted at the cutover of phase 10 — the same arrangement as
-// `scale-parity.test.ts`, and for the same reason: while the two exist, they
-// must agree.
+// There was a third, and step 10.9 retired it: every token of
+// `frontend/src/styles/tokens.css` reaching the theme with the same value. That
+// was the assertion that made "the theme is a transcription, not a redesign" a
+// fact rather than a claim, and it held for as long as both existed. The legacy
+// stylesheet is gone, so the transcription is now history and the theme is the
+// palette — which is why the gallery list below is the one that has to be
+// exact.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
@@ -25,7 +25,6 @@ import { COLOUR_TOKENS, RADIUS_TOKENS, SHADOW_TOKENS } from './tokens.js';
 const read = (relative: string): string =>
   readFileSync(fileURLToPath(new URL(relative, import.meta.url)), 'utf8');
 
-const LEGACY = read('../../../frontend/src/styles/tokens.css');
 const THEME = read('./theme.css');
 
 /** Every `--name: value` declaration inside one brace-delimited block. */
@@ -56,28 +55,12 @@ function declarationsIn(css: string, opener: string): Map<string, string> {
   return found;
 }
 
-const legacy = declarationsIn(LEGACY, ':root');
 // The opening brace is part of what is searched for: `.dark` on its own also
 // matches the `@custom-variant` line that declares what dark *means*, and the
 // block found from there is the theme's — which would make every dark assertion
 // below compare the light palette with itself and pass.
 const theme = declarationsIn(THEME, '@theme static {');
 const dark = declarationsIn(THEME, '.dark {');
-
-/**
- * Where a legacy token lands in the theme.
- *
- * Three namespaces, because Tailwind builds its utilities from them: a colour
- * under `--color-` becomes `bg-…`, `text-…` and `border-…`; `--radius-` becomes
- * `rounded-…`; `--shadow-` becomes `shadow-…`. A token filed under the wrong one
- * is a token with no utility, which is the failure this naming exists to
- * prevent.
- */
-function themeNameFor(legacyName: string): string {
-  if (legacyName.startsWith('--shadow-')) return legacyName;
-  if (legacyName.startsWith('--r-')) return `--radius-${legacyName.slice('--r-'.length)}`;
-  return `--color-${legacyName.slice('--'.length)}`;
-}
 
 /** `rgba(24, 24, 27, 0.10)` and `rgba(24,24,27,.1)` are the same colour. */
 const comparable = (value: string): string =>
@@ -87,7 +70,7 @@ const comparable = (value: string): string =>
     .replaceAll(/(\.\d*?)0+\b/g, '$1')
     .toLowerCase();
 
-describe('6.1 — the tokens, transcribed', () => {
+describe('6.1 — the tokens', () => {
   // If this one fails with "no @theme static { block", `static` has been
   // dropped: Tailwind then emits only the variables it can see a utility using,
   // and every colour read through `var(--color-…)` disappears from the build.
@@ -96,35 +79,9 @@ describe('6.1 — the tokens, transcribed', () => {
     expect(THEME).toContain('@theme static {');
   });
 
-  it('reads a token block out of each stylesheet', () => {
-    expect(legacy.size).toBeGreaterThan(0);
+  it('reads a token block out of the stylesheet', () => {
     expect(theme.size).toBeGreaterThan(0);
     expect(dark.size).toBeGreaterThan(0);
-  });
-
-  // The criterion: every token of `tokens.css` has its named equivalent.
-  it.each([...legacy.keys()])('carries %s over', (name) => {
-    const expected = legacy.get(name) as string;
-    const under = themeNameFor(name);
-
-    expect(theme.has(under)).toBe(true);
-    expect(comparable(theme.get(under) as string)).toBe(comparable(expected));
-  });
-
-  // And nothing appeared along the way. A colour the theme invented is a colour
-  // no screen of the current game uses, which is the redesign this phase is
-  // written not to do.
-  //
-  // Colours only, and deliberately: step 6.5 adds breakpoints and a viewport
-  // floor, which are not in `tokens.css` because the current game has one media
-  // query in the whole project. The elevations and the corners are held to the
-  // legacy exactly by the gallery-list tests below.
-  it('invents no colour of its own', () => {
-    const carried = new Set([...legacy.keys()].map(themeNameFor));
-    const extra = [...theme.keys()]
-      .filter((name) => name.startsWith('--color-'))
-      .filter((name) => !carried.has(name));
-    expect(extra).toEqual([]);
   });
 
   describe('the dark palette', () => {

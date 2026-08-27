@@ -1,10 +1,15 @@
 // The keyframes, and the preference.
 //
-// Two claims. The first is bookkeeping: every keyframe the legacy stylesheet
-// defines and something actually uses is named in the theme, and the theme
-// invents none. The second is the one that matters — every animation that
-// flashes or displaces the page is switched off under
-// `prefers-reduced-motion: reduce`, and it is switched off by name.
+// Two claims. The first is bookkeeping: every keyframe the stylesheet defines is
+// named in the theme's list, and the list invents none. The second is the one
+// that matters — every animation that flashes or displaces the page is switched
+// off under `prefers-reduced-motion: reduce`, and it is switched off by name.
+//
+// There was a third, and step 10.9 retired it with the legacy frontend it read:
+// the ported keyframes equalled the ones `animations.css` and `effects.css`
+// declared, minus two nothing used. That is what made the port provably
+// complete, and it held for as long as both existed. `motion.css` is now the
+// stylesheet, so the list below is the one that has to be exact.
 //
 // A blanket `animation: none !important` would satisfy a reading of the
 // criterion and satisfy nothing else: it also kills the fades, and it still
@@ -19,9 +24,6 @@ import { MOTIONS, REDUCIBLE } from './motion.js';
 const read = (relative: string): string =>
   readFileSync(fileURLToPath(new URL(relative, import.meta.url)), 'utf8');
 
-const LEGACY = `${read('../../../frontend/src/styles/animations.css')}\n${read(
-  '../../../frontend/src/styles/effects.css',
-)}`;
 const MOTION = read('./motion.css');
 
 const keyframesIn = (css: string): string[] =>
@@ -57,34 +59,25 @@ function animationsIn(css: string, opener: string): string[] {
  * place to carry dead CSS across, and naming them here is what stops the next
  * reader wondering whether they were forgotten.
  */
-const DEAD = ['ring-progress', 'drift'];
-
 describe('6.3 — the keyframes, and the preference', () => {
-  const declared = keyframesIn(LEGACY);
   const ported = keyframesIn(MOTION);
   const named = animationsIn(MOTION, '@theme static {');
 
-  it('finds the legacy keyframes to compare against', () => {
-    expect(declared.length).toBeGreaterThan(10);
+  it('finds the keyframes to check', () => {
+    expect(ported.length).toBeGreaterThan(10);
   });
 
-  // The criterion: every ported keyframe is named in the theme.
+  // The criterion: every keyframe of the list is defined and named.
   it.each(MOTIONS.map((motion) => motion.name))('names %s in the theme', (name) => {
     expect(named).toContain(name);
     expect(ported).toContain(name);
   });
 
-  it('ports every keyframe that something uses, and only those', () => {
-    expect([...ported].sort()).toEqual(
-      declared.filter((name) => !DEAD.includes(name)).sort(),
-    );
-  });
-
-  it('leaves the dead ones behind', () => {
-    for (const name of DEAD) {
-      expect(declared).toContain(name);
-      expect(ported).not.toContain(name);
-    }
+  // The other direction: a keyframe defined and named nowhere is dead weight in
+  // every bundle, and a name in the list with no keyframe behind it is an
+  // animation that silently does nothing.
+  it('defines exactly the keyframes the list names', () => {
+    expect([...ported].sort()).toEqual(MOTIONS.map((motion) => motion.name).sort());
   });
 
   it('gives every animation a name and a role in the list', () => {
