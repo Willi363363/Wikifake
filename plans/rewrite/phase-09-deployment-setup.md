@@ -26,10 +26,28 @@ time and nothing in the web build needs it.
 
 | Setting | Value |
 |---|---|
-| Root directory | repository root (not `apps/web`) |
+| Root directory | **`apps/web`** |
 | Framework preset | Next.js |
-| Node version | 22, from `.nvmrc` |
+| Node version | 22.x, matching `.nvmrc` |
 | Production branch | `main` |
+
+**Root directory is `apps/web`, and this table used to say the repository
+root.** That was written before any deployment existed, and it does not work:
+Vercel looks for `next` in the `package.json` of the root directory, finds a
+monorepo root that does not depend on Next, and refuses with "No Next.js
+version detected" before the build starts. `framework: "nextjs"` in
+`vercel.json` does not substitute for the detection.
+
+`vercel.json` is still read from the repository root, and its `buildCommand`
+and `installCommand` still run there — `pnpm turbo run build` needs the whole
+workspace. Only `outputDirectory` is resolved **against the root directory**,
+which is why it is `.next` and not `apps/web/.next`; the latter had Vercel
+looking in `apps/web/apps/web/.next`.
+
+The Node version is set explicitly rather than left to the platform default,
+which was 24.x. Nothing is known to break on 24, but CI and `.nvmrc` say 22,
+and a build validated on one runtime and shipped on another is a difference
+nobody would think to look at.
 
 `github.silent` is on: Vercel does not comment on every PR. The preview URL
 is on the deployment status instead, which is where the probe reads it.

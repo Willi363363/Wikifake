@@ -17,3 +17,10 @@ next-env.d.ts
 # Playwright, step 9.5: traces and reports of a failed run.
 test-results/
 playwright-report/
+# Vercel CLI: the local project link and the env it pulls down.
+.vercel
+
+# Every local env file, but never the committed example.
+.env.local
+.env.*.local
+!.env.example
