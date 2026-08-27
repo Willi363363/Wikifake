@@ -3,19 +3,13 @@
   "ui": "stream",
   "tasks": {
     "dev": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "env": [
-        "NEXT_PUBLIC_*"
-      ],
+      "dependsOn": ["^build"],
+      "env": ["NEXT_PUBLIC_*"],
       "passThroughEnv": [
         "VERCEL_*",
         "BETTER_AUTH_URL",
@@ -33,33 +27,19 @@
         "WIKIPEDIA_API_URL",
         "MODEL_BASE_URL"
       ],
-      "outputs": [
-        "dist/**",
-        ".next/**",
-        "!.next/cache/**"
-      ]
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "typecheck": {
-      "dependsOn": [
-        "^build"
-      ],
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "lint": {
       "outputs": []
     },
     "test": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "coverage/**"
-      ],
-      "env": [
-        "DATABASE_URL",
-        "REDIS_URL",
-        "CI"
-      ]
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "env": ["DATABASE_URL", "REDIS_URL", "CI"]
     }
   }
 }
