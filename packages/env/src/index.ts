@@ -85,6 +85,15 @@ const schema = z.object({
   GOOGLE_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
   GITHUB_OAUTH_CLIENT_ID: z.string().min(1).optional(),
   GITHUB_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
+
+  /**
+   * Sentry DSN — error tracking for both services.
+   *
+   * Optional: absent locally and in CI, which is intentional. Sentry is not a
+   * development tool; its absence means "this process does not report to Sentry"
+   * rather than a misconfigured one. Present only on Vercel and Fly.io.
+   */
+  SENTRY_DSN: z.url().optional(),
 });
 
 export type Env = z.infer<typeof schema>;

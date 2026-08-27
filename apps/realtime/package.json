@@ -13,6 +13,7 @@
   "dependencies": {
     "@ai-sdk/google": "^4.0.51",
     "@hono/node-server": "2.1.1",
+    "@sentry/node": "^10.71.0",
     "@wikifake/article": "workspace:*",
     "@wikifake/db": "workspace:*",
     "@wikifake/domain": "workspace:*",
@@ -22,6 +23,7 @@
     "bullmq": "6.1.2",
     "hono": "4.13.3",
     "ioredis": "^5.11.1",
+    "pino": "^10.3.1",
     "redis": "^6.2.1",
     "ws": "8.21.3"
   },

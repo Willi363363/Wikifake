@@ -5,6 +5,8 @@
 // also the only one that reads `process.env`, and it does it through `loadEnv`,
 // which refuses a missing variable by name at startup rather than three layers
 // later.
+import { initSentry } from './sentry.js';
+import { logger } from './logger.js';
 import { createArticleCache } from '@wikifake/article';
 import { connectFromEnv, deleteRoom, selectRoom } from '@wikifake/db';
 import { ROOM_IDLE_LIMIT_SECONDS } from '@wikifake/domain';
@@ -23,6 +25,7 @@ import { createService } from './server.js';
 
 const PORT = 8080;
 
+initSentry();
 const env = loadEnv();
 const { db } = connectFromEnv();
 
@@ -72,4 +75,5 @@ const service = createService({
 });
 
 const port = Number(process.env['PORT'] ?? PORT);
-await service.listen(port);
+const bound = await service.listen(port);
+logger.info({ port: bound }, 'realtime service listening');

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — 9.1 done, 9.2 done, 9.5 done (brought forward) |
+| **State** | **in progress** — 9.1 done, 9.2 done, 9.3 done, 9.5 done (brought forward) |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
@@ -62,6 +62,13 @@ service restart no longer resets the counters — that was the table's whole
 reason for existing.
 
 ### 9.3 — Structured logging and Sentry
+
+✅ **Done (code)** — `pino` logger in both apps; `initSentry` wired into
+`apps/web/instrumentation.ts` (Next.js server startup hook) and
+`apps/realtime/src/main.ts`. `SENTRY_DSN` optional in the env schema, release
+tagged with the deployed commit. Six Vitest tests: JSON structure and level
+filter for the logger, DSN gate and release for Sentry. The live verification
+(errors in Sentry with the right commit on a preview) waits on steps 9.7/9.8.
 
 JSON logs (level, timestamp, request or room identifier) on `web` and
 `realtime`; `scripts/checks.sh` already forbids `console.log`. Sentry on
