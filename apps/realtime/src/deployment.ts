@@ -28,10 +28,7 @@ export const VERSION: string = pkg.version;
  */
 export function deployedCommit(source: Environment = process.env): string {
   return (
-    source['FLY_GIT_COMMIT'] ??
-    source['GIT_COMMIT'] ??
-    source['SOURCE_COMMIT'] ??
-    ''
+    source['FLY_GIT_COMMIT'] ?? source['GIT_COMMIT'] ?? source['SOURCE_COMMIT'] ?? ''
   );
 }
 

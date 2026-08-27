@@ -64,7 +64,9 @@ describe('C7.2 — the deployment identity', () => {
   // response types this one, so a field added on one side and not the other
   // fails here rather than in production.
   it('satisfies the schema the web app answers with', () => {
-    expect(() => healthApi.healthResponse.parse(deploymentIdentity(CONFIGURED))).not.toThrow();
+    expect(() =>
+      healthApi.healthResponse.parse(deploymentIdentity(CONFIGURED)),
+    ).not.toThrow();
   });
 });
 

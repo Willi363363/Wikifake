@@ -11,13 +11,18 @@ import * as Sentry from '@sentry/node';
  * The release is the git commit the platform injected at deploy time, so every
  * error is pinned to the exact revision that caused it.
  */
-export function initSentry(source: Record<string, string | undefined> = process.env): void {
+export function initSentry(
+  source: Record<string, string | undefined> = process.env,
+): void {
   const dsn = source['SENTRY_DSN'];
   if (!dsn) return;
 
   const commit =
     source['FLY_APP_NAME'] !== undefined
-      ? (source['FLY_GIT_COMMIT'] ?? source['GIT_COMMIT'] ?? source['SOURCE_COMMIT'] ?? '')
+      ? (source['FLY_GIT_COMMIT'] ??
+        source['GIT_COMMIT'] ??
+        source['SOURCE_COMMIT'] ??
+        '')
       : '';
 
   Sentry.init({

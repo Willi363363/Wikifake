@@ -18,7 +18,9 @@ import { deployedCommit } from './deployment.js';
  * same DSN. Returns without doing anything when the DSN is not set, so the
  * rest of the application does not need to branch on Sentry availability.
  */
-export function initSentry(source: Record<string, string | undefined> = process.env): void {
+export function initSentry(
+  source: Record<string, string | undefined> = process.env,
+): void {
   const dsn = source['SENTRY_DSN'];
   if (!dsn) return;
 

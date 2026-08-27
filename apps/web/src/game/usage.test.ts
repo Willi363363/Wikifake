@@ -11,12 +11,13 @@
 // `readUsageTotals` and `readUsageByKind`, which are DB queries, and has no
 // in-process state of its own. No restart-specific fixture is needed — the
 // absence of a process variable here is the proof.
+import type * as Db from '@wikifake/db';
 import { describe, expect, it, vi } from 'vitest';
 
 import { handleUsage } from './usage.js';
 
 vi.mock('@wikifake/db', async (importOriginal) => {
-  const original = await importOriginal<typeof import('@wikifake/db')>();
+  const original = await importOriginal<typeof Db>();
   return {
     ...original,
     readUsageTotals: vi.fn().mockResolvedValue({
