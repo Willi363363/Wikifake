@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm turbo run build --filter=@wikifake/web",
+  "installCommand": "pnpm install --frozen-lockfile --ignore-scripts",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs",
+  "github": {
+    "silent": true
+  }
+}
