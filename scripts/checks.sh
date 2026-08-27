@@ -104,6 +104,12 @@ check_logging() {
 # --- documentation ---------------------------------------------------------
 # All documentation lives in plans/, in files of at most 200 lines. Longer
 # documentation does not get reread, so it becomes wrong.
+#
+# `.agents/` and `.claude/skills/` are excluded, and they are not an exception
+# to the rule: they hold vendored agent skills that arrive with a tool — the
+# Neon and Upstash marketplace integrations install several hundred lines each.
+# The rule is about documentation this repository authors, the way
+# `node_modules` is excluded rather than exempted. They are gitignored too.
 check_docs() {
   local f n
   while IFS= read -r f; do
@@ -120,30 +126,26 @@ check_docs() {
         ;;
     esac
   done < <(find . -name '*.md' -not -path './.git/*' -not -path '*/node_modules/*' \
-                  -not -path './venv/*' -not -path '*/.smoke/*' -print 2>/dev/null \
+                  -not -path './.agents/*' -not -path './.claude/skills/*' \
+                  -not -path '*/.smoke/*' -print 2>/dev/null \
              | sed 's|^\./||' | sort)
 }
 
 # --- available linters -----------------------------------------------------
 # Nothing is force-installed: each linter runs if present, and its absence is
 # reported rather than silently skipped.
+# The Python branch left with the Python in step 10.9: there is no `.py` in the
+# repository any more, and a linter that can no longer be reached is a linter
+# nobody will notice has stopped running.
 check_lint() {
-  local py=() js=()
+  local js=()
   for f in "$@"; do
     [ -f "$f" ] || continue
-    case "$f" in *.py) py+=("$f");; *.js|*.jsx|*.ts|*.tsx) js+=("$f");; esac
+    case "$f" in *.js|*.jsx|*.ts|*.tsx) js+=("$f");; esac
   done
-  if [ ${#py[@]} -gt 0 ]; then
-    if command -v ruff >/dev/null 2>&1; then
-      ruff check -q "${py[@]}" || fail=1
-    elif command -v python3 >/dev/null 2>&1; then
-      for f in "${py[@]}"; do PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$f" 2>&1 || err "$f: syntax error"; done
-      info "ruff not installed — syntax check only"
-    fi
-  fi
   if [ ${#js[@]} -gt 0 ]; then
     local eslint='' config=''
-    for c in node_modules/.bin/eslint frontend/node_modules/.bin/eslint; do
+    for c in node_modules/.bin/eslint; do
       [ -x "$c" ] && eslint="$c" && break
     done
     # An `ls` over several patterns fails as soon as one is missing: test each

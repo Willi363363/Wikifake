@@ -1,0 +1,48 @@
+{
+  "name": "@wikifake/web",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@ai-sdk/google": "^4.0.51",
+    "@wikifake/article": "workspace:*",
+    "@wikifake/db": "workspace:*",
+    "@wikifake/domain": "workspace:*",
+    "@wikifake/env": "workspace:*",
+    "@wikifake/protocol": "workspace:*",
+    "@wikifake/ui": "workspace:*",
+    "better-auth": "^1.7.1",
+    "next": "^16.3.2",
+    "@sentry/node": "^10.71.0",
+    "pino": "^10.3.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "redis": "^6.2.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.4",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.6",
+    "@types/node": "^22.20.1",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@wikifake/config": "workspace:*",
+    "ai": "^7.0.77",
+    "eslint": "^9.39.0",
+    "jsdom": "^30.0.1",
+    "postgres": "^3.4.9",
+    "tailwindcss": "^4.2.4",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

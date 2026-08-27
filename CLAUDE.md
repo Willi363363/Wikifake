@@ -58,12 +58,13 @@ document the step first.
 ## Commands
 
 ```bash
-nvm use        # Node 22, pinned by .nvmrc
-pnpm install   # monorepo dependencies
-make hooks     # install the git hooks — once per clone
-make check     # what the pre-commit hook will run
-pnpm test      # monorepo tests
-make test      # legacy backend tests (Python, until phase 10)
+nvm use          # Node 22, pinned by .nvmrc
+pnpm install     # monorepo dependencies
+pnpm hooks       # install the git hooks — once per clone
+pnpm check       # what the pre-commit hook will run
+pnpm test        # every package's tests
+pnpm typecheck   # and this, before asking anybody to read a diff
+pnpm e2e         # the browser journeys — needs Postgres and Redis
 ```
 
 Before asking for a merge: `bash scripts/checks.sh diff origin/staging`.

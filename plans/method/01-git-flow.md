@@ -41,7 +41,7 @@ git switch -c feat/<subject> origin/staging   # start from an up-to-date base
 git fetch origin
 git rebase origin/staging                     # replay on top of staging
 # conflicts → resolve here, rerun the tests
-make check && make test
+pnpm check && pnpm test
 git push --force-with-lease
 gh pr create --base staging
 ```

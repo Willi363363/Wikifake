@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | six steps delivered — the exit gate awaits a decision |
 | **Branch** | `feat/rewrite-phase-6` |
 | **Depends on** | phase 1 |
 | **Delivers** | `packages/ui`: theme, primitives, animations, token component |
@@ -25,76 +25,55 @@ media query in the whole project). This is also where the non-negotiables
 are added: `prefers-reduced-motion` — the game chains shakes and
 stroboscopic flashes, the photosensitivity stake is real —, dark mode,
 responsiveness and accessibility.
-
 ## Steps
 
-### 6.1 — Tailwind v4 theme
+Six steps, so the definitions live in two sheets. **The tables below are the
+only place that says where a step stands** — the sheets define the work and its
+completion criterion, and carry no state.
 
-The tokens of `tokens.css` transcribed into the theme: palette, five
-accents, shadows, radii. A dark variant of the tokens — dark mode is one of
-the non-negotiable additions.
+| # | Step — the stylesheet | State |
+|---|---|---|
+| 6.1 | Tailwind v4 theme | ✅ done |
+| 6.3 | Theme animations and reduced motion | ✅ done |
 
-**Done when**: every token of `tokens.css` has its named equivalent in the
-theme, and a gallery page renders the palette in both modes.
+Definitions: `phase-06-steps-stylesheet.md`.
 
-### 6.2 — shadcn/ui primitives
+| # | Step — the components | State |
+|---|---|---|
+| 6.2 | shadcn/ui primitives | ✅ done |
+| 6.4 | Paragraph token component | ✅ done |
 
-The shadcn/ui primitives installed and dressed by the theme. They bring the
-accessibility groundwork — roles, focus, keyboard — that the legacy
-`<span onClick>` elements lack.
+Definitions: `phase-06-steps-components.md`.
 
-**Done when**: the selected primitives are rendered in the gallery, in both
-modes, focusable and operable with the keyboard.
+| # | Step — how it is shown, and checked | State |
+|---|---|---|
+| 6.5 | Responsive | ✅ done |
+| 6.6 | Gallery and contrast audit | ⚠️ delivered — see below |
 
-### 6.3 — Theme animations and reduced motion
-
-The ~15 shared keyframes of `animations.css`, today referenced by string
-from inline styles, become theme animations, typed.
-`prefers-reduced-motion` neutralises shakes and stroboscopic flashes: this
-is a photosensitivity stake, not a comfort.
-
-**Done when**: every ported keyframe is named in the theme, and the gallery
-rendered with `prefers-reduced-motion` active plays neither shake nor flash
-(verified by emulating the preference in the browser).
-
-### 6.4 — Paragraph token component
-
-The component carrying the most CSS rules in the project. Its seven visual
-states (`selected`, `edited`, `scanned`, `hinted`, `found`, `missed`,
-`false-positive`) and their pseudo-element badges become a component with
-variants (`cva`), not a cascade of global classes. And it becomes a real
-interactive element: the token **is** the central gesture of the game, and
-today it is a non-focusable `<span onClick>`. Role, visible focus, keyboard
-activation.
-
-**Done when**: the seven states are rendered in the gallery, every variant
-has its render test, and the token is reachable by tab and activated by
-keyboard with a visible focus.
-
-### 6.5 — Responsive
-
-The package's components are built fluid, breakpoints defined in the theme.
-There is a single media query in the whole project today.
-
-**Done when**: the gallery displays without horizontal overflow or overlap
-at 360 px as at 1280 px.
-
-### 6.6 — Gallery and contrast audit
-
-The component gallery is the phase deliverable: every component exported by
-the package appears in it, in both modes. Contrast audit on that rendering.
-
-**Done when**: the gallery renders all exported components and the contrast
-audit passes in both modes.
+Definitions: `phase-06-steps-delivery.md`.
 
 ## Exit gate
 
-- The component gallery is rendered, all exported components included.
-- Contrasts are audited in both modes.
-- `prefers-reduced-motion` neutralises shakes and stroboscopic flashes.
-- The paragraph token is playable by keyboard, its seven states rendered
-  and tested.
-- No `style={{}}` object in `packages/ui`.
+**Not passed.** One line of it cannot be, and the reason is a contradiction in
+this sheet rather than an omission in the work.
+
+- ✅ The component gallery is rendered, all exported components included —
+  derived from the package's exports, so the list cannot fall behind.
+- ⚠️ Contrasts are audited in both modes — **audited, and the light palette
+  fails seven pairs**, three of them below 3:1. They are the current game's
+  colours; fixing them is the redesign this phase's own pitfalls forbid. The
+  numbers are in `phase-06-steps-components.md` and the decision is the user's.
+- ✅ `prefers-reduced-motion` neutralises shakes and stroboscopic flashes —
+  seven animations to `none`, verified in a real build's CSS. Emulating the
+  preference in a browser was not possible: there is none in CI.
+- ✅ The paragraph token is playable by keyboard, its seven states rendered and
+  tested.
+- ✅ No `style={{}}` object in `packages/ui`.
+
+Two of the six criteria ask to *see* something — the preference emulated, the
+gallery displayed at 360 px. Both rest on an inference from the emitted CSS
+instead. **Whether CI grows a headless browser is a decision this phase has now
+raised twice**, and it belongs to phase 9.
 
 ## Contract touched
 

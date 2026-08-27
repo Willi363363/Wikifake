@@ -1,0 +1,22 @@
+<!-- Constructed, not fetched: MediaWiki serves the mobile and desktop
+     variants of some sections, so the same paragraph reaches the collector
+     twice — once at the top level and once nested. This reproduces that
+     shape around real paragraphs taken from chat.html (CC BY-SA 4.0), so
+     the deduplication is exercised on real text rather than on "aaa".
+
+     Expected: three paragraphs collected. The duplicate is dropped, the
+     caption falls under the 50-character floor, and the last one is kept. -->
+<div id="bodyContent">
+<p>Le <b>Chat</b>, plus spécifiquement désigné sous le nom de <b>Chat domestique</b> (<span class="lang-la" lang="la"><i><b>Felis catus</b></i></span>)<sup id="cite&#95;ref-2" class="reference"><a href="#cite_note-2"><span class="cite-bracket">&#91;</span>A 1<span class="cite-bracket">&#93;</span></a></sup>, est une <a href="/wiki/Esp%C3%A8ce" title="Espèce">espèce</a> de <a href="/wiki/Mammif%C3%A8re" title="Mammifère">mammifères</a> de l’<a href="/wiki/Ordre_(biologie)" title="Ordre (biologie)">Ordre</a> des <a href="/wiki/Carnivora" title="Carnivora">Carnivores</a>, de la <a href="/wiki/Famille_(biologie)" title="Famille (biologie)">famille</a> des <a href="/wiki/F%C3%A9lins" class="mw-redirect" title="Félins">félins</a> (<a href="/wiki/F%C3%A9lid%C3%A9s" class="mw-redirect" title="Félidés">Félidés</a>).
+</p>
+<div class="mw-parser-output-mobile">
+<p>Le <b>Chat</b>, plus spécifiquement désigné sous le nom de <b>Chat domestique</b> (<span class="lang-la" lang="la"><i><b>Felis catus</b></i></span>)<sup id="cite&#95;ref-2" class="reference"><a href="#cite_note-2"><span class="cite-bracket">&#91;</span>A 1<span class="cite-bracket">&#93;</span></a></sup>, est une <a href="/wiki/Esp%C3%A8ce" title="Espèce">espèce</a> de <a href="/wiki/Mammif%C3%A8re" title="Mammifère">mammifères</a> de l’<a href="/wiki/Ordre_(biologie)" title="Ordre (biologie)">Ordre</a> des <a href="/wiki/Carnivora" title="Carnivora">Carnivores</a>, de la <a href="/wiki/Famille_(biologie)" title="Famille (biologie)">famille</a> des <a href="/wiki/F%C3%A9lins" class="mw-redirect" title="Félins">félins</a> (<a href="/wiki/F%C3%A9lid%C3%A9s" class="mw-redirect" title="Félidés">Félidés</a>).
+</p>
+</div>
+<p>C’est un <a href="/wiki/Animal" title="Animal">animal</a> de petite taille, notamment caractérisé par ses <a href="/wiki/Oreille" title="Oreille">oreilles</a> triangulaires et pointues, ses <a href="/wiki/Yeux" class="mw-redirect" title="Yeux">yeux</a> ronds et brillants, son <a href="/wiki/Museau" title="Museau">museau</a> court et arrondi, ainsi que son <a href="/wiki/Poil" title="Poil">poil</a> doux et soyeux. Il possède un corps plus ou moins allongé, souple et flexible, mais robuste et musclé. Agile, c’est un bon grimpeur. Il possède de très bons <a href="/wiki/R%C3%A9flexes" title="Réflexes">réflexes</a>&#160;: le <a href="/wiki/Dicton_populaire" class="mw-redirect" title="Dicton populaire">dicton populaire</a> dit qu’ «&#160;un chat retombe toujours sur ses pattes&#160;». Il est généralement doté d’une longue <a href="/wiki/Queue_(anatomie)" title="Queue (anatomie)">queue</a> fine qui lui sert à maintenir son équilibre lorsqu’il est en hauteur. Ses <a href="/wiki/Sens_(physiologie)" title="Sens (physiologie)">sens</a> sont très développés&#160;; en plus de son bon <a href="/wiki/Odorat" class="mw-redirect" title="Odorat">odorat</a> il est réputé pour son excellente <a href="/wiki/Vision_nocturne" class="mw-redirect" title="Vision nocturne">vision nocturne</a>, permise par sa capacité à adapter la forme de sa <a href="/wiki/Pupille" title="Pupille">pupille</a> selon l’intensité de la lumière. Il peut également entendre les sons les plus aigus et inaudibles pour l’être humain, ce qui lui permet d’être toujours alerte et d’anticiper le danger. Ses <a href="/wiki/Vibrisse" title="Vibrisse">vibrisses</a>, de longs poils situés sur son museau et communément appelés «&#160;<a href="/wiki/Moustache" title="Moustache">moustaches</a>&#160;», sont des organes sensoriels tactiles.
+</p>
+<div class="thumbcaption">
+<p>Un chat.</p>
+</div>
+<p>Un paragraphe distinct, assez long pour franchir le plancher des cinquante caractères imposé par le contrat.</p>
+</div>

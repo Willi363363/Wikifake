@@ -1,0 +1,7 @@
+{
+  "extends": "@wikifake/config/tsconfig.base.json",
+  "include": ["src/**/*.ts", "*.config.ts"],
+  "compilerOptions": {
+    "noEmit": true
+  }
+}

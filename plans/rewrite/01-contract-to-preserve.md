@@ -134,6 +134,33 @@ of the migration.
   because `GameSession` is unmounted between rounds.
 - **D10** — The nickname is not encoded in the WebSocket URL even though the
   server regex allows spaces.
+- **D11** — A duplicate mark is scored twice: `check_answer` counts every
+  element of the submitted list, so marking the same paragraph three times
+  counts three true positives — 450 points for one paragraph. Nothing on the
+  wire forbids the repeat. Closed by the grading of phase 1 step 1.6, which
+  counts a paragraph once.
+- **D12** — The flag verification is never counted: `flag_verifier.py` calls
+  the model on every report and does not call `record_call`, so `/api/usage`
+  under-reports the spend and the cost of the feature is invisible. Closed by
+  the `llm_call` table of phase 2 step 2.5.
+- **D13** — The flag verification asks the wrong Wikipedia: the language and
+  user agent are module globals set only by `scraper.py`, so before the first
+  generation of a fresh process the checker queries the **English** Wikipedia
+  with the library's default agent. It also resolves pages with
+  auto-suggestion on, so a lookup can land on a different article. Closed by
+  the MediaWiki client of phase 3 step 3.2, where both are per-call
+  parameters.
+
+- **D14** — The cache does not do what C4 says, in four ways: rotation is
+  `random.choice` and not a rotation (C4.4); `_copy` copies three keys one
+  level deep and shares everything below them (C4.2); a category whose
+  entries have all expired stays in the LRU list forever, so the "200
+  categories" bound starts evicting live categories to make room for phantoms
+  (C4.3); and `stats()` counts expired entries that `get` and `put` filter, so
+  the number `/api/usage` publishes outlives what the cache will serve.
+  Closed by the Redis cache of phase 3 step 3.6, where rotation is an `INCR`,
+  the copy is a JSON round trip, and the index and the store are deleted
+  together.
 
 The rest of the contract — C4 to C8 — is in
 `02-contract-transport-and-compliance.md`.

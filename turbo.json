@@ -2,8 +2,31 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
   "tasks": {
+    "dev": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
     "build": {
       "dependsOn": ["^build"],
+      "env": ["NEXT_PUBLIC_*"],
+      "passThroughEnv": [
+        "VERCEL_*",
+        "BETTER_AUTH_URL",
+        "BETTER_AUTH_SECRET",
+        "DATABASE_URL",
+        "REDIS_URL",
+        "GOOGLE_GENERATIVE_AI_API_KEY",
+        "MODEL_NAME",
+        "SENTRY_DSN",
+        "REALTIME_ALLOWED_ORIGINS",
+        "GOOGLE_OAUTH_CLIENT_ID",
+        "GOOGLE_OAUTH_CLIENT_SECRET",
+        "GITHUB_OAUTH_CLIENT_ID",
+        "GITHUB_OAUTH_CLIENT_SECRET",
+        "WIKIPEDIA_API_URL",
+        "MODEL_BASE_URL"
+      ],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "typecheck": {
@@ -15,7 +38,8 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "env": ["DATABASE_URL", "REDIS_URL", "CI"]
     }
   }
 }

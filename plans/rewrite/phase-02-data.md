@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | in progress — all six steps done, exit gate passed |
 | **Branch** | `feat/rewrite-phase-2` |
 | **Depends on** | phase 1 |
 | **Delivers** | `packages/db`: migrated Drizzle schema, typed client, seed |
@@ -24,15 +24,21 @@ database, the cost per game becomes a query.
 
 ## Steps
 
-### 2.1 — Drizzle tooling and client
+### ✅ 2.1 — Drizzle tooling and client
 
 `drizzle-kit`, configuration, Neon client exported exactly once.
 `DATABASE_URL` goes through the typed environment of phase 0.
 
+Delivered with 2.2, because the first half of its criterion needs a table to
+migrate: `drizzle-kit migrate` on an empty schema does nothing and proves
+nothing. One driver for every environment — `postgres.js` speaks what Neon
+serves over TCP and what a container serves in a test, so the code that runs in
+production is the code the tests exercise.
+
 **Done when**: `drizzle-kit migrate` runs on a fresh database, and starting
 without `DATABASE_URL` fails while naming the variable.
 
-### 2.2 — Authentication and profile tables
+### ✅ 2.2 — Authentication and profile tables
 
 `user`, `session`, `account`, `verification` in the format expected by
 Better Auth (wired in phase 5), plus `profile`: display name, preferred
@@ -41,7 +47,7 @@ accent, preferences.
 **Done when**: the migration passes, and an integration test inserts then
 reads back a `user` and its `profile` in a typed way.
 
-### 2.3 — Game tables
+### ✅ 2.3 — Game tables
 
 `room` (code, host, settings, state, timestamps), `game` (solo/multi mode,
 topic, source URL, article snapshot, count of fakes), `game_position`
@@ -54,7 +60,7 @@ stolen, time bonus), `answer` (marked paragraphs).
 and the exported "game in progress" read queries never join
 `game_position`.
 
-### 2.4 — Audit tables
+### ✅ 2.4 — Audit tables
 
 `hint_purchase` (timestamped purchase, level, cost — billing becomes
 auditable), `item_use` (who sabotaged whom, with what, when), `flag_report`
@@ -64,7 +70,7 @@ auditable), `item_use` (who sabotaged whom, with what, when), `flag_report`
 a participant's sequence of hint purchases can be reconstructed sorted by
 timestamp.
 
-### 2.5 — `llm_call` and cost queries
+### ✅ 2.5 — `llm_call` and cost queries
 
 Model, call type, input/output tokens, failure. The queries that replace
 `usage.py`: cost per actually generated game (`per_generated_game`, not
@@ -74,7 +80,7 @@ as a failure, never counted as a generated game (§3.4).
 **Done when**: on a test dataset, the cost-per-game query returns the
 expected aggregate, and a failed call does not enter `per_generated_game`.
 
-### 2.6 — Development seed
+### ✅ 2.6 — Development seed
 
 A seed script: a few accounts, a room, a finished game with positions,
 answers, hint purchases and LLM calls — enough to develop the next phases

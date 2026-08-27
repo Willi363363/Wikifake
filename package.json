@@ -7,12 +7,18 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "e2e": "pnpm --filter @wikifake/e2e e2e",
+    "migrate": "pnpm --filter @wikifake/db migrate",
+    "seed": "pnpm --filter @wikifake/db seed",
+    "check": "bash scripts/checks.sh staged",
+    "hooks": "git config core.hooksPath .githooks && echo \"hooks installed \u2014 rules in plans/method/02-repository-rules.md\""
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
