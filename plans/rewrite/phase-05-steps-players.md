@@ -1,0 +1,136 @@
+# Phase 5 — steps: what a player may do
+
+> Steps 5.5 to 5.7. The phase sheet, its exit gate and where each step stands:
+> `phase-05-realtime.md`. How a round begins and ends:
+> `phase-05-steps-rounds.md`. The transport underneath:
+> `phase-05-steps-transport.md`.
+
+### 5.5 — Reconnection
+
+Session token carried by the client, `connected: false` actually written on
+disconnect, grace window before eviction. During the window, the nickname
+cannot be taken over by a third party.
+
+Three decisions taken while writing it:
+
+- **The client owns the token, and the server never mints one.** It generates a
+  secret, keeps it for as long as its tab lives, and sends it as a query
+  parameter on every connection including the first. No secret travels
+  downwards, and the protocol grows no message for any of this.
+- **A connection that brings no token plays, and can never come back.** Its slot
+  is bound to a value no client can present. That fails closed: the alternative
+  is a slot anybody can walk into by typing a nickname, which is worse than
+  today, where a dropped player is deleted and has nothing left to steal.
+- **`leave` and `evict` are two events.** A dropped socket marks the player away
+  and takes nothing; the eviction at the end of the grace window is the only
+  thing that removes them, and therefore the only thing that can end a round
+  early or close a room. That is why the round-end tests of 5.4 now say
+  "evicted" — the same rule, moved to the event that means it.
+
+`GRACE_SECONDS` is thirty: long enough for a lift, a tunnel or a laptop lid,
+short enough that a room is not held by somebody who closed the tab, and well
+inside the shortest round the contract allows.
+
+**Done when**: a test cuts the socket mid-round then reconnects — score,
+items and paid hints are recovered — and a homonym is refused during the
+grace window.
+
+**Found during 6.6, fixed on its own branch**: the recovery tests raced their
+own grace window. One constant served two opposite needs — the expiry test wants
+a window short enough to wait out, and the four recovery tests want one that
+never closes — so it was set to 300 ms and the recovery tests asserted, across
+an `until` poll, two store reads and a socket handshake, that the dropped player
+was *still there*. Under a full parallel `pnpm test` that sequence can outlast
+300 ms: the eviction fires and the assertion fails, about one full-suite run in
+five and never in isolation.
+
+Two constants now. The recovery tests get five seconds, and the expiry test
+shortens the window itself, because it is the only one that wants it to close.
+Measured before and after: two failures in eight full-suite runs, then sixteen
+clean ones.
+
+### 5.6 — Hardening client messages
+
+Server throttle on `cursor` **and** `live_score` — missing on the latter
+today, which is rebroadcast to the whole room without validation, an
+amplification vector. `targets` of a `use_item` validated: no
+self-targeting, closed target count. `set_ready` refuses a `time_limit`
+from the host mid-round. `FREEZE_TIME` gets its server-side effect: the
+−10 s actually eat into the time bonus instead of being purely visual.
+
+Three of those four are rules, and phase 1 already wrote them:
+`validateTargets`, `setReady`'s refusal outside the lobby and
+`applyItemToTarget`'s time penalty each have their unit test in
+`@wikifake/domain`. What this step adds for them is not a second
+implementation but the proof that they are **reachable from a socket** — a
+rule nothing routes to is a rule that is not enforced, and that is exactly
+what D6 and D7 are.
+
+Only the throttle is new, and it is the only one of the four that never
+reaches the rules at all: a frame over the limit is dropped in the transport.
+
+Four decisions taken while writing it:
+
+- **A frame over the limit is dropped in silence, not refused.** An error per
+  dropped frame turns a flood of small messages into a flood of replies, which
+  is the amplification the throttle exists to prevent. The sender loses nothing
+  they can notice: the next position and the next tally supersede the ones that
+  did not make it.
+- **Dropped where it stands, rather than held back and sent late.** Coalescing
+  would need a timer per socket per type and would deliver a position the player
+  has already left. What arrives is the first frame of a burst, not the last.
+- **The cursor's interval is carried over exactly**: 40 ms, the value of
+  `CURSOR_MIN_INTERVAL`, so a limit is not quietly loosened during a rewrite.
+  `live_score` gets 200 ms — a human does not tick five paragraphs a second.
+- **The allowance is per socket and per type.** Per socket, so a flood costs its
+  sender their own frames and nobody else's; per type, so a cursor flood cannot
+  silence a score.
+
+**Done when**: each point has its protocol test — a `live_score` flood is
+not rebroadcast beyond the throttle, self-targeting is refused,
+`time_limit` is frozen mid-round, `FREEZE_TIME` eats into the time bonus.
+
+### 5.7 — Host authority and room end
+
+`force_start`, `force_pick`, `start_game` return `not_host` to a guest
+without changing the room state; a guest changes their `ready` but neither
+`time_limit` nor `with_items`; the next player is promoted when the host
+leaves; the room disappears when the last player leaves. A single
+round-start path: the reducer's.
+
+C1.7 and C1.8 are rules, and phase 1 wrote them. What this step adds is that
+they are enforced **from a socket**, and — for the refusals — that a refused
+message leaves the room exactly as it was. "Refused" is easy to satisfy by
+answering an error after doing the thing anyway, which is what the current
+server does with `force_start`: it applies the options, then checks the host.
+
+What is genuinely new is the end of a room. Redis forgets the state on its own,
+under the same revision guard as a write; the **row** that says the code exists
+is nobody's, and 4.8 deferred it here by name.
+
+Four decisions taken while writing it:
+
+- **The row is deleted, and the games played in it keep everything but its
+  code.** `game.room_code` is declared `onDelete: 'set null'`, which is what
+  makes this safe and is what it was written for. The alternative — keeping the
+  row for ever behind a `closed` flag — makes every reader of `room` responsible
+  for remembering the flag, and a reader that forgets it hands a stranger a
+  socket on a room nobody is in.
+- **`closeRoom` is a required option of the service, not an optional
+  callback.** A service that silently never reaps is exactly the defect; an
+  optional one is a deployment away from it.
+- **A room ends in two ways, and only the first has an event.** Its last player
+  is evicted, which the reducer decides; or its idle alarm rings an hour after
+  anybody touched it, which nothing decides — there is nobody left to evict.
+  The second is D4's other half, and it rides the `room_idle` alarm 5.4 already
+  arms on every event.
+- **The row goes last**, after the state. Forgetting it first would leave a
+  window in which the room is joinable and unfindable.
+
+`until` in the test client now **awaits** its condition. A promise is truthy, so
+an asynchronous condition satisfied every wait immediately and the test raced
+whatever it was waiting for — which is how the first draft of the D3 test
+settled an article into a room that was still in the lobby.
+
+**Done when**: the server-authority invariants pass as protocol tests on
+multiplayer, including the zero breakdown for client-declared penalties.

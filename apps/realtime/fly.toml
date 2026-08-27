@@ -1,0 +1,57 @@
+# The realtime service on Fly.io.
+#
+# A long-lived Node process holding WebSocket connections, which is what rules
+# out a serverless host for it: a function that is frozen between invocations
+# cannot hold a socket open, and every room in flight would die with it.
+#
+# Deployed from CI, never by hand:
+#
+#   flyctl deploy --config apps/realtime/fly.toml \
+#     --build-arg FLY_GIT_COMMIT=$GITHUB_SHA
+#
+# Secrets are set once with `fly secrets set` and never live here:
+# DATABASE_URL, REDIS_URL, GOOGLE_GENERATIVE_AI_API_KEY, BETTER_AUTH_SECRET,
+# and SENTRY_DSN when there is a project to report to.
+
+app = 'wikifake-realtime'
+primary_region = 'cdg'
+
+[build]
+  # The repository root: the service depends on five workspace packages, and a
+  # context that starts at this file cannot see them.
+  dockerfile = 'Dockerfile'
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '8080'
+  # The web app's origin. Also the fallback allowed WebSocket origin when
+  # REALTIME_ALLOWED_ORIGINS is unset, so a deployment that has configured no
+  # list accepts its own app rather than everything.
+  BETTER_AUTH_URL = 'https://wikifake.vercel.app'
+  # Comma-separated. A Vercel preview gets a new hostname per deployment, so a
+  # preview that must reach this instance needs its origin added here — or its
+  # own Fly app.
+  REALTIME_ALLOWED_ORIGINS = 'https://wikifake.vercel.app'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Never zero. A stopped machine drops every socket it was holding, and the
+  # players on them do not come back because a health check woke it up.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    # `/ping` and not `/api/health`: the platform asks whether the process
+    # answers, and a probe that reads the database would report the service
+    # down when only the database is.
+    path = '/ping'
+    interval = '15s'
+    timeout = '5s'
+    grace_period = '20s'
+    method = 'GET'
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '512mb'

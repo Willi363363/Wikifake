@@ -5,6 +5,7 @@ const VALID = {
   DATABASE_URL: 'postgres://user:pass@localhost:5432/wikifake',
   REDIS_URL: 'redis://localhost:6379',
   GOOGLE_GENERATIVE_AI_API_KEY: 'test-key',
+  BETTER_AUTH_SECRET: 'a'.repeat(32),
 };
 
 describe('loadEnv', () => {
@@ -53,6 +54,29 @@ describe('loadEnv', () => {
     } catch (error) {
       expect((error as Error).message).not.toContain(secret);
     }
+  });
+
+  it('refuses a session secret short enough to guess', () => {
+    // Not pedantry: this string signs every session cookie, so a short one is a
+    // forgeable session rather than a weak setting.
+    expect(() => loadEnv({ ...VALID, BETTER_AUTH_SECRET: 'short' })).toThrow(
+      /BETTER_AUTH_SECRET/,
+    );
+  });
+
+  it('defaults the auth URL to localhost, and takes an override', () => {
+    expect(loadEnv(VALID).BETTER_AUTH_URL).toBe('http://localhost:3000');
+    expect(
+      loadEnv({ ...VALID, BETTER_AUTH_URL: 'https://wikifake.example' }).BETTER_AUTH_URL,
+    ).toBe('https://wikifake.example');
+  });
+
+  it('leaves every OAuth credential optional', () => {
+    // The game must stay playable, and developable, with no provider
+    // configured at all.
+    const env = loadEnv(VALID);
+    expect(env.GOOGLE_OAUTH_CLIENT_ID).toBeUndefined();
+    expect(env.GITHUB_OAUTH_CLIENT_SECRET).toBeUndefined();
   });
 
   it('rejects an unknown log level', () => {

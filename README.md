@@ -9,37 +9,63 @@ authority, and the solution never leaves it before the end of the round.**
 
 ## Getting started
 
-The project is migrating to a TypeScript monorepo. Both stacks coexist until
-phase 10; see [`plans/README.md`](plans/README.md).
-
-### Monorepo (the target)
+A TypeScript monorepo — pnpm workspaces and Turborepo. No Python: the old
+stack was deleted at the cutover of phase 10.
 
 ```bash
 nvm use                 # Node 22, pinned by .nvmrc
 corepack enable pnpm    # if needed: npm i -g corepack@latest first
 pnpm install
+pnpm hooks              # install the git hooks — once per clone
 ```
-
-Then `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm build`, `pnpm format`.
 
 > The Corepack shipped with Node 20 has stale signature keys and fails with
 > `Cannot find matching keyid`: update it before enabling it.
 
-### Current stack (Python + Vite)
+Copy `.env.example` to `.env` and fill it in. You need a Google AI Studio key,
+a Postgres URL and a Redis URL; the two services run locally however you like
+them to — Docker is the short answer:
 
 ```bash
-make hooks     # install the git hooks — once per clone
-make build     # backend dependencies, frontend build, then launch
-make run       # frontend build + server            → http://localhost:8000
-make front-dev # Vite with HMR on :5173, proxies /api and /ws to :8000
-make test      # backend tests
-make check     # repository compliance checks
+docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=wikifake -e POSTGRES_DB=wikifake postgres:17-alpine
+docker run -d -p 6379:6379 redis:8-alpine
+pnpm migrate            # apply the Drizzle migrations
 ```
 
-In development, two terminals: `make back` on one side, `make front-dev` on
-the other, then `http://localhost:5173`.
+Then:
 
-You need a Google AI Studio key in `.env` — see `backend/.env.example`.
+```bash
+pnpm dev                # the web app on :3000, the socket service on :8080
+pnpm test               # unit and integration, across every package
+pnpm typecheck          # what CI runs, and what it runs first
+pnpm lint
+pnpm build
+pnpm e2e                # the browser journeys — builds the app, starts both
+pnpm check              # repository compliance checks, as the hook runs them
+```
+
+`pnpm test` and `pnpm e2e` want Postgres and Redis up; without them the
+integration suites skip rather than fail, which is how a green run can still
+be an incomplete one.
+
+## What is where
+
+```
+apps/web         Next.js — the screens, the REST API, the auth, the SEO surface
+apps/realtime    the WebSocket service — Hono, ws, Redis
+apps/e2e         the Playwright journeys
+packages/protocol  ★ every contract, as Zod schemas
+packages/domain    ★ the rules: scoring, grading, items, the room reducer
+packages/article   Wikipedia, the model, the cache
+packages/db        Drizzle: schema, migrations, queries
+packages/ui        the design system
+packages/env       the validated environment
+packages/config    shared tsconfig, eslint and vitest presets
+```
+
+The two marked ★ are why the rewrite happened: they hold each truth once, so
+the scoring scale, the item identifiers and the message shapes cannot drift
+between a client and a server that disagree.
 
 ## Documentation
 
@@ -47,7 +73,7 @@ Everything is in **[`plans/`](plans/README.md)**. Three entry points:
 
 - **`plans/method/`** — how we work: phases and steps, git flow, repository
   rules. Read before contributing.
-- **`plans/current-state/`** — how the current code works.
+- **`plans/current-state/`** — how the code works today.
 - **`plans/rewrite/`** — where the project is going, phase by phase.
 
 Agents read `CLAUDE.md` at the root, which points to these documents and
@@ -55,6 +81,6 @@ restates the non-negotiable rules.
 
 ## Project status
 
-The project is entering a complete rewrite of its stack: Python and FastAPI
-give way to a TypeScript monorepo. Progress is tracked in
-[`plans/README.md`](plans/README.md).
+The rewrite is at phase 10 — the cutover. Python and FastAPI are gone;
+progress is tracked in [`plans/README.md`](plans/README.md), which is the only
+file that says where the project stands.

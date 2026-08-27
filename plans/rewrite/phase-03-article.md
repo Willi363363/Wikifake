@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | in progress — all seven steps done, exit gate passed |
 | **Branch** | `feat/rewrite-phase-3` |
 | **Depends on** | phase 2 |
 | **Delivers** | `packages/article`: scraping, LLM falsification, Redis cache |
@@ -27,99 +27,52 @@ needs.
 
 ## Steps
 
-### 3.1 — Fixtures of real frozen Wikipedia pages
+Seven steps in one package, so the definitions live in two sheets: the chain
+that turns a Wikipedia page into a round, and the two that make it cheap and
+accountable. **The tables below are the only place that says where a step
+stands** — the sheets define the work and its completion criterion, and carry
+no state.
 
-Freeze into the package the HTML of real Wikipedia pages, as today: at least
-one case with duplicated paragraphs (mobile/desktop variants), one case with
-inline tags (`un<b>deux</b>trois`), one case with short paragraphs. They
-serve all the following steps.
+| # | Step — retrieval and falsification | State |
+|---|---|---|
+| 3.1 | Fixtures of real frozen Wikipedia pages | ✅ done |
+| 3.2 | MediaWiki client, explicit language and user-agent | ✅ done |
+| 3.3 | Paragraph collection with cheerio | ✅ done |
+| 3.4 | Falsification via structured output | ✅ done |
+| 3.5 | Injection and end-to-end parity | ✅ done |
 
-**Done when**: the fixtures are committed and loaded by a first test.
+Definitions: `phase-03-steps-generation.md`.
 
-### 3.2 — MediaWiki client, explicit language and user-agent
+| # | Step — cache and accounting | State |
+|---|---|---|
+| 3.6 | Redis cache | ✅ done |
+| 3.7 | Counters in the database | ✅ done |
 
-Search, page resolution without auto-suggestion, rendered HTML. The language
-and the user-agent are **explicit parameters on every call**: today the
-Python library carries global state, and the flag-report checker silently
-queries Wikipedia in another language depending on call order. Wikipedia
-page not found → clean failure, no exception.
+Definitions: `phase-03-steps-cache.md`.
 
-**Done when**: a test shows two successive calls in two different languages
-with no leakage from one to the other, and a page not found produces a typed
-failure value, not an exception.
-
-### 3.3 — Paragraph collection with cheerio
-
-Strict index parity: `paragraphs[i]` corresponds to the i-th collected `<p>`
-node, and collection, text extraction and injection share the same node
-references. Deduplication of variants, document order preserved, paragraphs
-under 50 characters discarded. Spaces inserted between inline tags
-("un deux trois") but punctuation not detached ("1889.", not "1889 .").
-
-**Done when**: on every fixture, the index parity, deduplication and
-whitespace normalisation tests pass.
-
-### 3.4 — Falsification via `generateObject`
-
-`generateObject` from the AI SDK with a Zod schema. This removes in one
-stroke the ~130 lines of parsing heuristics that are business logic today:
-stripping Markdown fences, falling back from the first `[` to the last `]`,
-unwrapping an envelope object, all-or-nothing policy on indices, positional
-fallback, partial retry. The prompt actually in use is carried over
-verbatim; the dead prompt of `core/prompts.py` is not ported. The
-1,000-character truncation of the originals sent to the model is **fixed**:
-today it silently shortens the long paragraphs being served.
-
-**Done when**: a malformed model output is rejected by the schema (mocked
-model in test), and a test checks that a paragraph longer than
-1,000 characters goes to the model whole and comes back whole in the
-article.
-
-### 3.5 — Injection and end-to-end parity
-
-`positions` designates exactly the paragraphs the LLM modified.
-`false_info_number` sequential from 1 to n, `positions` sorted by ascending
-index, 1-based indices in the client contract. The generator is stateless:
-two concurrent games do not mutate each other.
-
-**Done when**: on fixtures, an end-to-end test (mocked model) checks that
-each position designates a paragraph that differs from the original, and
-only those; two concurrent generations exchange no state.
-
-### 3.6 — Redis cache
-
-Same rules as today: normalised keys ("Paris", "paris", "  PARIS  ",
-"PÁRIS" are a single entry, empty category ignored), entries copied on the
-way in and on the way out, 6 h TTL, 3 variants per category, 200 categories
-in LRU, variants served in rotation. A failed generation is neither cached
-nor counted. The cache becomes shared between instances and survives
-redeployments.
-
-**Done when**: the cache rules of §3.4 of the contract pass in integration
-tests against a local Redis, including mutating the result of a `get`.
-
-### 3.7 — Counters in the database
-
-Every LLM call writes an `llm_call` row (model, call type, input/output
-tokens, failure). `cache_hit_rate` and `per_generated_game` — cost per
-actually generated game, not diluted by the cache — become queries.
-
-**Done when**: after one successful and one failed generation in an
-integration test, `llm_call` carries both rows, and `per_generated_game`
-counts only the successful one.
+The order is the order the work had to happen in: the parity of 3.3 is what
+the whole chain rests on, and nothing above it was worth caching until it was
+right.
 
 ## Exit gate
 
-- Index parity and non-duplication verified on real HTML fixtures.
-- Cache rules of §3.4 verified against Redis.
-- Stateless generator; clean Wikipedia failure, neither cached nor counted.
-- No API or UI code: the package is used only from its tests.
+- Index parity and non-duplication verified on real HTML fixtures. ✅
+- Cache rules of C4 verified against Redis. ✅
+- Stateless generator; clean Wikipedia failure. ✅ — and **half** of "neither
+  cached nor counted": a failed generation is not counted as a generated game,
+  which is tested. Not *cached* is a property of the caller, which does not
+  exist until phase 4: nothing here calls `put`, so nothing here can cache a
+  failure. What phase 3 delivers is a failure that is distinguishable and that
+  carries its own call record; wiring the two so that a failure cannot reach
+  the cache is phase 4's first job, and it should not be assumed done.
+- No API or UI code: the package is used only from its tests. ✅
 
 ## Contract touched
 
 See `01-contract-to-preserve.md`: **article generation** (§3.3 — index
 parity, exact `positions`, deduplication, whitespace normalisation,
-stateless generator, clean failure) and **cache and accounting** (§3.4 —
+stateless generator, clean failure) and, in
+`02-contract-transport-and-compliance.md`, **cache and accounting** (C4 —
 key normalisation, copies, TTL, rotation, `cache_hit_rate`,
 `per_generated_game`).
 
@@ -136,4 +89,5 @@ key normalisation, copies, TTL, rotation, `cache_hit_rate`,
 - Do not port `core/prompts.py`: it is dead code, the real prompt is inline
   in `misinformation.py`.
 - The falsifiability threshold exists twice today (settings and hardcoded in
-  `misinformation.py`): a single constant in the target.
+  `misinformation.py`): a single constant in the target. **Done in 3.4** —
+  `MIN_FALSIFIABLE_CHARS` in `packages/article`.

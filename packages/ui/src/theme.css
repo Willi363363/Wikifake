@@ -1,0 +1,181 @@
+/*
+ * The theme: `frontend/src/styles/tokens.css`, transcribed.
+ *
+ * Transcribed, not rethought. Every light value below is the one the current
+ * game ships, character for character, and `theme.test.ts` proves it by reading
+ * both files — a rewrite that quietly warms a beige or rounds a corner harder is
+ * a redesign nobody asked for, and it is the kind of change that is invisible
+ * in a diff and obvious on screen.
+ *
+ * What is new is the dark palette. The current game has none, and dark mode is
+ * one of this phase's non-negotiable additions. It is a translation of the same
+ * roles rather than a second identity: warm paper becomes warm dark, the ink
+ * inverts, and the five accents are lightened just enough to stay legible on it.
+ *
+ * Every token reaches Tailwind under a namespace it understands — `--color-*`
+ * for the palette, `--radius-*` for the corners, `--shadow-*` for the elevations
+ * — so `bg-surface`, `rounded-lg` and `shadow-md` are utilities rather than
+ * strings a component has to remember.
+ *
+ * The keyframes and the reduced-motion rules are a file of their own,
+ * `motion.css`, imported below: they are long, they are about time rather than
+ * colour, and the preference that switches half of them off deserves to be read
+ * on its own.
+ *
+ * Tailwind itself is not imported here. This file is a theme, and an application
+ * assembles it: `@import 'tailwindcss'` first, this second. Importing the
+ * framework from inside the theme would mean every application that wanted the
+ * palette got a copy of Tailwind's own layers with it, in an order it did not
+ * choose.
+ */
+
+@import './motion.css';
+
+/*
+ * Dark mode follows a class, not only the system preference.
+ *
+ * The gallery has to show both palettes at once, and a viewer has to be able to
+ * choose. `prefers-color-scheme` alone can do neither: it is one global answer
+ * per machine, and half of what this phase delivers is the comparison.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * `static`, and it matters.
+ *
+ * Tailwind emits only the theme variables it can see a utility using, which for
+ * an application is exactly right and for a design system is a trap: the eleven
+ * accents are read through `var(--color-…)` — by a swatch built from a name, by
+ * a component that picks its colour at runtime — and Tailwind cannot see that.
+ * Without `static` they are dropped from the build, and the failure is a
+ * transparent swatch rather than an error. Verified: the first build of this
+ * theme shipped eight colours out of twenty-two.
+ */
+@theme static {
+  /* Surfaces — "warm paper", and what sits on it. */
+  --color-bg: #f6f4ef;
+  --color-bg-grain: #f1ede5;
+  --color-surface: #ffffff;
+  --color-glass: rgba(255, 255, 255, 0.74);
+  --color-glass-strong: rgba(255, 255, 255, 0.86);
+  --color-line: rgba(24, 24, 27, 0.07);
+  --color-line-strong: rgba(24, 24, 27, 0.14);
+
+  /* Text, from the darkest to the most withdrawn. */
+  --color-ink: #18181b;
+  --color-ink-2: #3f3f46;
+  --color-muted: #71717a;
+  --color-muted-2: #a1a1aa;
+
+  /* The five accents. Each has a solid and a wash. */
+  --color-accent: #1f574d;
+  --color-accent-soft: #e8f0ed;
+  --color-accent-line: rgba(31, 87, 77, 0.18);
+  --color-bronze: #8c6d36;
+  --color-bronze-soft: #f3ecdc;
+  --color-green: #4a7a52;
+  --color-green-soft: #e7efe6;
+  --color-warn: #b58f3a;
+  --color-warn-soft: #f6ecd1;
+  --color-danger: #a64b48;
+  --color-danger-soft: #f5e2dd;
+
+  --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.04), 0 1px 1px rgba(24, 24, 27, 0.03);
+  --shadow-md: 0 6px 20px -8px rgba(24, 24, 27, 0.1), 0 2px 4px rgba(24, 24, 27, 0.04);
+  --shadow-lg:
+    0 24px 60px -20px rgba(24, 24, 27, 0.18), 0 6px 16px rgba(24, 24, 27, 0.06);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  /*
+   * The breakpoints, named here rather than inherited silently.
+   *
+   * They are Tailwind's own values and that is the point: this is not a place to
+   * invent a scale. What declaring them buys is that they are *ours* — a
+   * reviewer can see what the four sizes are without reading a framework's
+   * defaults, and moving one is a decision with a diff.
+   *
+   * The floor is `--width-floor` below, and it is the number that matters: the
+   * current game has a single media query in the whole project, so every screen
+   * of it is laid out for a desktop and cropped on a phone.
+   */
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+
+  /*
+   * The narrowest viewport anything here is allowed to break at.
+   *
+   * 360 CSS pixels: a phone held upright, and the width the phase's own
+   * criterion names. Nothing in `packages/ui` may declare a length larger than
+   * this without a breakpoint in front of it, and `responsive.test.ts` is what
+   * enforces it — a fixed 380px panel does not look cramped at 360, it produces
+   * a page that scrolls sideways.
+   */
+  --width-floor: 360px;
+}
+
+/*
+ * The dark palette.
+ *
+ * Redefined as custom properties rather than declared in a second `@theme`:
+ * `@theme` writes its variables on `:root` once, and what a theme switch needs
+ * is the same variable answering differently further down the tree. Every
+ * utility already reads `var(--color-…)`, so nothing else has to know.
+ *
+ * Exactly the same names as above — no more and no fewer — which is the other
+ * half of what `theme.test.ts` checks: a token nobody translated would fall back
+ * to its light value on a dark background, and the failure would be one
+ * unreadable label on one screen.
+ */
+@layer base {
+  .dark {
+    --color-bg: #171614;
+    --color-bg-grain: #1e1c19;
+    --color-surface: #221f1b;
+    --color-glass: rgba(34, 31, 27, 0.74);
+    --color-glass-strong: rgba(34, 31, 27, 0.86);
+    --color-line: rgba(244, 241, 234, 0.09);
+    --color-line-strong: rgba(244, 241, 234, 0.16);
+
+    --color-ink: #f4f1ea;
+    --color-ink-2: #d6d1c7;
+    --color-muted: #a8a29a;
+    --color-muted-2: #7b756c;
+
+    --color-accent: #6fb3a4;
+    --color-accent-soft: #17302c;
+    --color-accent-line: rgba(111, 179, 164, 0.28);
+    --color-bronze: #d0aa6a;
+    --color-bronze-soft: #2e2617;
+    --color-green: #8ec095;
+    --color-green-soft: #1c2a1d;
+    --color-warn: #e0bd6f;
+    --color-warn-soft: #2f2716;
+    --color-danger: #e0908c;
+    --color-danger-soft: #33201e;
+
+    /* Elevation reads as depth rather than as haze once the ground is dark. */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 6px 20px -8px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.75), 0 6px 16px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@layer base {
+  /* `tokens.css` opens with this, and every screen is built assuming it. */
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+  }
+}

@@ -1,22 +1,33 @@
 .env
-__pycache__/
-*.pyc
 .DS_Store
-venv
-.venv
-
-# Frontend build
-frontend/node_modules/
-frontend/dist/
-
-# Runtime data (player-submitted flag reports)
-data/
-frontend/.smoke/
-.pytest_cache/
 
 # Monorepo TypeScript
 node_modules/
 .turbo/
 dist/
 coverage/
-.env
+
+# Next.js — build output and the types it generates on the fly
+.next/
+next-env.d.ts
+
+# TypeScript incremental build state
+*.tsbuildinfo
+
+# Playwright, step 9.5: traces and reports of a failed run.
+test-results/
+playwright-report/
+# Vercel CLI: the local project link and the env it pulls down.
+.vercel
+
+# Every local env file — including whatever `vercel env pull` writes, which
+# carries real credentials. The negation comes last, because in gitignore the
+# later pattern wins.
+.env*
+!.env.example
+
+# Vendored agent skills, installed by tooling — the marketplace integrations
+# drop several hundred lines of provider documentation each.
+.agents/
+.claude/skills/
+skills-lock.json

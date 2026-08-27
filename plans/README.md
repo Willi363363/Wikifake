@@ -14,6 +14,7 @@ All project documentation lives here. Nothing at the repository root except
 | understand the current code | `current-state/` |
 | know where the project is going | `rewrite/00-overview.md` |
 | **know what must never break** | `rewrite/01-contract-to-preserve.md` |
+| read the protocol, message by message | `protocol/README.md` |
 | work right now | the file for the current phase, below |
 
 ## Where the project stands
@@ -25,16 +26,16 @@ previous one unless its file says otherwise.
 | # | Phase | State | Fiche |
 |---|---|---|---|
 | 0 | Foundations — monorepo and tooling | **in progress** | `rewrite/phase-00-foundations.md` |
-| 1 | Core — `protocol` and `domain` | to do | `rewrite/phase-01-core.md` |
-| 2 | Data — Drizzle and Postgres | to do | `rewrite/phase-02-data.md` |
-| 3 | Article — Wikipedia and model | to do | `rewrite/phase-03-article.md` |
-| 4 | API and authentication | to do | `rewrite/phase-04-api-and-auth.md` |
-| 5 | Realtime — WebSocket and Redis | to do | `rewrite/phase-05-realtime.md` |
-| 6 | Design system | to do | `rewrite/phase-06-design-system.md` |
-| 7 | Frontend — lobby and waiting room | to do | `rewrite/phase-07-frontend-lobby.md` |
-| 8 | Frontend — the round | to do | `rewrite/phase-08-frontend-round.md` |
-| 9 | Observability and CI/CD | to do | `rewrite/phase-09-observability-and-cicd.md` |
-| 10 | Cutover — removing the Python | to do | `rewrite/phase-10-cutover.md` |
+| 1 | Core — `protocol` and `domain` | **in progress** | `rewrite/phase-01-core.md` |
+| 2 | Data — Drizzle and Postgres | **in progress** | `rewrite/phase-02-data.md` |
+| 3 | Article — Wikipedia and model | **in progress** — seven steps done | `rewrite/phase-03-article.md` |
+| 4 | API and authentication | **done** | `rewrite/phase-04-api-and-auth.md` |
+| 5 | Realtime — WebSocket and Redis | ✅ **done** | `rewrite/phase-05-realtime.md` |
+| 6 | Design system | ⚠️ **six steps delivered** — exit gate awaits a decision | `rewrite/phase-06-design-system.md` |
+| 7 | Frontend — lobby and waiting room | ✅ **done** | `rewrite/phase-07-frontend-lobby.md` |
+| 8 | Frontend — the round | ✅ **done** | `rewrite/phase-08-frontend-round.md` |
+| 9 | Observability and CI/CD | **in progress** — the web app is deployed and probed; 9.8 (Fly) and 9.10 (ruleset) need a human | `rewrite/phase-09-observability-and-cicd.md` |
+| 10 | Cutover — removing the Python | **in progress** — only 10.11 is left, and it needs a human | `rewrite/phase-10-cutover.md` |
 | 11 | Internationalisation | to do | `rewrite/phase-11-i18n.md` |
 
 **This table is the only place that says where we stand.** It is updated when
@@ -50,8 +51,12 @@ test in the new stack. As long as one is missing, the Python stays.
 ```
 plans/
 ├── method/          how we work — read once, respect always
+├── protocol/        generated from the Zod schemas — never edited by hand
 ├── current-state/   what exists today, and the known debt
-└── rewrite/         where we are going: overview, contract, one file per phase
+└── rewrite/         where we are going: overview, contract, one file per phase.
+                     A big phase splits: the phase file keeps the frame and the
+                     step tables, satellite sheets carry the definitions and
+                     the decisions. See phase 1.
 ```
 
 ## Rules of this documentation
@@ -61,5 +66,8 @@ plans/
   afterwards.
 - No parallel tracking file. No `TODO.md`, no `NOTES.md`: they diverge in a
   week and lie in two.
+- `protocol/` is **generated**. Edit the schemas in `packages/protocol`, then
+  `pnpm --filter @wikifake/protocol docs`. A test fails on divergence, so a hand
+  edit is caught rather than believed.
 - A problem found out of scope is recorded in
   `current-state/05-known-debt.md` and is not fixed on the spot.

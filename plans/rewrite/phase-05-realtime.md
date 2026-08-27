@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | done — exit gate passed |
 | **Branch** | `feat/rewrite-phase-5` |
 | **Depends on** | phase 4 |
 | **Delivers** | `apps/realtime`: the complete multiplayer, multi-instance |
@@ -27,89 +27,74 @@ throttled.
 
 ## Steps
 
-### 5.1 — Transport and handshake
+Eight steps, so the definitions live in three sheets. **The tables below are
+the only place that says where a step stands** — the sheets define the work
+and its completion criterion, and carry no state.
 
-Hono + `ws`, input validation through `packages/protocol`. The nickname is
-validated **and URL-encoded** — it is not today, even though the server
-regex allows spaces. Explicit WebSocket origins from the start.
+| # | Step — the transport and what crosses it | State |
+|---|---|---|
+| 5.1 | Transport and handshake | ✅ done |
+| 5.2 | Room state in Redis | ✅ done |
+| 5.3 | Pub/sub broadcasting and backpressure | ✅ done |
 
-**Done when**: the transport tests pass against the service — invalid JSON
-→ `bad_json` and the connection survives, unknown type ignored, connected
-homonym refused, frame beyond 64,000 characters → close 1009, nickname with
-a space accepted through the encoded URL.
+Definitions: `phase-05-steps-transport.md`.
 
-### 5.2 — Room state in Redis
+| # | Step — how a round begins and ends | State |
+|---|---|---|
+| 5.4 | BullMQ timers | ✅ done |
+| 5.8 | The article pipeline | ✅ done |
 
-The pure reducer from `packages/domain` decides, a Lua script applies the
-transition atomically. No instance holds the truth: no room structure lives
-in process memory.
+Definitions: `phase-05-steps-rounds.md`.
 
-**Done when**: on a local Redis, two concurrent transitions on the same
-room are not lost, and the state re-read after every event is exactly the
-one the reducer produced.
+| # | Step — what a player may do | State |
+|---|---|---|
+| 5.5 | Reconnection | ✅ done |
+| 5.6 | Hardening client messages | ✅ done |
+| 5.7 | Host authority and room end | ✅ done |
 
-### 5.3 — Pub/sub broadcasting and backpressure
+Definitions: `phase-05-steps-players.md`.
 
-One Redis channel per room: any instance serves any socket. Parallel
-broadcasting with a per-socket budget, dead socket evicted at the moment of
-failure — today broadcasting is sequential and one slow socket slows the
-whole room down.
+5.8 was not in the original plan and was not a change of scope: `generate_article`
+is an effect the reducer emits and nothing in this service answered, so a round
+could not start at all. Written down when 5.4 found it, rather than absorbed into
+whichever step noticed it last.
 
-**Done when**: a protocol test has two instances talking over the same
-room, and a deliberately blocked socket does not delay delivery to the
-other players.
-
-### 5.4 — BullMQ timers
-
-Delayed jobs for round end by timeout, idle-room TTL and item waves. This
-is what closes "the server never enforces the end of a round": today
-`time_limit` is only enforced by the client.
-
-**Done when**: a round whose last non-submitted player disconnects ends by
-server-side timeout, and an idle room disappears when its TTL expires —
-both verified by protocol tests.
-
-### 5.5 — Reconnection
-
-Session token carried by the client, `connected: false` actually written on
-disconnect, grace window before eviction. During the window, the nickname
-cannot be taken over by a third party.
-
-**Done when**: a test cuts the socket mid-round then reconnects — score,
-items and paid hints are recovered — and a homonym is refused during the
-grace window.
-
-### 5.6 — Hardening client messages
-
-Server throttle on `cursor` **and** `live_score` — missing on the latter
-today, which is rebroadcast to the whole room without validation, an
-amplification vector. `targets` of a `use_item` validated: no
-self-targeting, closed target count. `set_ready` refuses a `time_limit`
-from the host mid-round. `FREEZE_TIME` gets its server-side effect: the
-−10 s actually eat into the time bonus instead of being purely visual.
-
-**Done when**: each point has its protocol test — a `live_score` flood is
-not rebroadcast beyond the throttle, self-targeting is refused,
-`time_limit` is frozen mid-round, `FREEZE_TIME` eats into the time bonus.
-
-### 5.7 — Host authority and room end
-
-`force_start`, `force_pick`, `start_game` return `not_host` to a guest
-without changing the room state; a guest changes their `ready` but neither
-`time_limit` nor `with_items`; the next player is promoted when the host
-leaves; the room disappears when the last player leaves. A single
-round-start path: the reducer's.
-
-**Done when**: the server-authority invariants pass as protocol tests on
-multiplayer, including the zero breakdown for client-declared penalties.
+5.1 creates `apps/realtime` itself — phase 0 left the `apps/` tree "empty but
+declared" — so it comes first whatever else is urgent. 5.2 and 5.3 come
+before the rest because everything after them has to be true across
+instances, and state creeping back into process memory only shows up with
+several.
 
 ## Exit gate
 
-- The server-authority and transport-robustness guarantees pass as protocol
-  tests against the service, on the multiplayer side.
-- A round survives one player's network cut.
-- Two instances serve the same room in the test suite.
-- Round end by timeout and idle-room TTL are effective.
+Passed. Where each one is proved, in `apps/realtime/src`:
+
+- **The server-authority and transport-robustness guarantees pass as protocol
+  tests against the service, on the multiplayer side** — `server.test.ts`
+  (handshake, frames, refusals), `hardening.test.ts` (throttles, targets, frozen
+  options, `FREEZE_TIME`), `authority.test.ts` (host-only actions that change
+  nothing when refused, promotion, client-declared penalties worth zero).
+- **A round survives one player's network cut** — `reconnect.test.ts`: score,
+  items and paid hints come back, and a homonym cannot take the seat during the
+  grace window.
+- **Two instances serve the same room in the test suite** — `broadcast.test.ts`,
+  over a real Redis channel.
+- **Round end by timeout and idle-room TTL are effective** — `timers.test.ts`
+  over BullMQ, and `authority.test.ts` for the row an idle room leaves behind.
+
+And the one the gate did not name, because nobody had noticed it was missing: a
+multiplayer round can start at all (`article.test.ts`, `generation.test.ts`).
+
+## What phase 5 leaves for later
+
+Recorded rather than absorbed:
+
+- **A multiplayer round's *results* are not persisted.** The `game`, its
+  positions and its participants are written when the round starts (C4.6 needs
+  it); the scores stay in Redis and reach the players through `game_end`. Solo
+  writes them through `recordSubmission`; multiplayer has no equivalent yet.
+- **A room's `phase` and `host_name` columns are never written.** The live room
+  is Redis's; those columns date from phase 2 and no reader depends on them.
 
 ## Contract touched
 
