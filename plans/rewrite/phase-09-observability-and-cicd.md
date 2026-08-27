@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — 9.1–9.9 done, 9.10 remaining |
+| **State** | **in progress** — 9.1–9.9 done; 9.10 needs an administrator |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
@@ -39,10 +39,10 @@ JSON".
 
 ### 9.2 — Usage dashboard on `llm_call`
 
-✅ **Done** — `handleUsage` reads `readUsageTotals` and `readUsageByKind` from the
-`llm_call` table; five Vitest equivalents of `test_usage.py` committed, including
-the route shape test (`usage` and `cache` keys, `ttlSeconds` present when the
-cache is reachable, `null` when it is not) and the division-by-zero guard.
+✅ **Done** — `handleUsage` reads `readUsageTotals` and `readUsageByKind` from
+the `llm_call` table; five Vitest equivalents of `test_usage.py`, including the
+route shape (`usage` and `cache` keys, `ttlSeconds` present when the cache is
+reachable, `null` when not) and the division-by-zero guard.
 
 **Done when**: the tests of `test_usage.py` have their equivalent, and a
 service restart no longer resets the counters — that was the table's whole
@@ -50,22 +50,20 @@ reason for existing.
 
 ### 9.3 — Structured logging and Sentry
 
-✅ **Done (code)** — `pino` logger in both apps; `initSentry` wired into
-`apps/web/instrumentation.ts` (Next.js server startup hook) and
+✅ **Done (code)** — `pino` in both apps; `initSentry` wired into
+`apps/web/instrumentation.ts` (the Next.js startup hook) and
 `apps/realtime/src/main.ts`. `SENTRY_DSN` optional in the env schema, release
 tagged with the deployed commit. Six Vitest tests: JSON structure and level
-filter for the logger, DSN gate and release for Sentry. The live verification
-(errors in Sentry with the right commit on a preview) waits on steps 9.7/9.8.
+filter, DSN gate and release. The live verification waits on 9.7/9.8.
 
 **Done when**: an error triggered on purpose on a preview appears in Sentry
 with the right commit, for each of the two services.
 
 ### 9.4 — Rewrite `ci.yml` for the monorepo
 
-✅ **Done** — four parallel jobs (`lint`, `typecheck`, `test`, `build`) with pnpm
-store + Turborepo cache; `guard` job kept and renamed to English; python and
-frontend legacy jobs kept. All use `--ignore-scripts` to avoid `@sentry/cli`
-post-install issues.
+✅ **Done** — four parallel jobs (`lint`, `typecheck`, `test`, `build`) with a
+pnpm store and a Turborepo cache each; `guard` kept and renamed; the two legacy
+jobs kept. All use `--ignore-scripts`, `@sentry/cli` being the reason.
 
 The `guard` job stays: its push/PR deduplication is what guarantees that a
 phase PR towards the umbrella keeps its checks. So does the pytest job, as
@@ -156,14 +154,15 @@ the right SHA and fails on a different one.
 
 ### 9.10 — Update the ruleset's required checks
 
-The rulesets of `main` and `staging` require a green CI by job name. The
-names change: without a ruleset update, every PR blocks on a "pending"
-check that will never arrive. Note that the current GitHub check contexts
-are still named in French (`Conformité de la PR`, `Revue humaine`,
-`Analyse de secrets`, `Ce run est-il utile ?`, `Aucun push direct sur main
-ni staging`): renaming them to English requires updating the ruleset's
-required checks in the same move — otherwise every pull request blocks
-forever on a check that never reports.
+⚠️ **Half done — the other half is an administrator's.** The four remaining
+French job names are renamed in `rules.yml`. Updating the ruleset is a gesture
+in the GitHub UI, and no workflow here has a token that can do it.
+
+The ordering is not obvious: a PR carrying the rename reports the new names
+while the ruleset still waits for the old ones, so it cannot merge through its
+own gate. The three steps, the two contexts dropped rather than renamed, and
+why the alternatives are worse are in `phase-09-ruleset-rename.md`. **Read it
+before merging the phase-9 umbrella.**
 
 **Done when**: a test PR towards `staging` goes green without a ghost
 check, and the new names appear in the required checks list.
@@ -189,7 +188,8 @@ exposure of `cache_hit_rate` and `per_generated_game`.
   phase PRs towards the umbrella without any check — a `fix(ci)` patch has
   already been paid to learn that.
 - **The ruleset is updated at the same time as the job names**, not after:
-  in between, every PR in the repository is blocked.
+  in between, every PR in the repository is blocked. See
+  `phase-09-ruleset-rename.md` before merging the umbrella.
 - The old stack's jobs leave with the code they test, not before: removing
   the pytest job here would let phase 10 run without a net.
 - Vercel preview protection can answer 401 to the probe and the e2e: plan a

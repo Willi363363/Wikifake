@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   conformite:
-    name: Conformité de la PR
+    name: Does this PR follow the rules?
     # Only the human-review gate depends on labels. Re-running the content
     # checks on a label change would burn CI minutes and, through the
     # concurrency group, cancel an in-flight run for nothing.
@@ -78,7 +78,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   revue-humaine:
-    name: Revue humaine
+    name: Human review
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -110,7 +110,7 @@ jobs:
           esac
 
   fuite-de-secrets:
-    name: Analyse de secrets
+    name: Secret scan
     if: github.event_name == 'pull_request' &&
       contains(fromJson('["opened", "synchronize", "reopened"]'), github.event.action)
     runs-on: ubuntu-latest
@@ -129,7 +129,7 @@ jobs:
           GITLEAKS_ENABLE_SUMMARY: true
 
   push-direct:
-    name: Aucun push direct sur main ni staging
+    name: No direct push to main or staging
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
