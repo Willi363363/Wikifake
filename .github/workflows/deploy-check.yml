@@ -6,11 +6,15 @@ name: Deploy check
 # open a dashboard: the repository published no commit status, no deployment,
 # no environment.
 #
-# Three targets now, one job each, because the rewrite splits one service into
-# two and the Python has not left yet:
+# Three targets, one job each, because the rewrite splits one service into two
+# and Render still serves the public domain:
 #
-#   DEPLOY_URL           the Python on Render — production, until phase 10
-#   STAGING_DEPLOY_URL   the Python on Render — pre-production
+#   DEPLOY_URL           the old stack on Render — production, until step 10.11
+#   STAGING_DEPLOY_URL   the old stack on Render — pre-production
+#
+# The Python left the repository at step 10.9; the image Render already built is
+# what answers those two until 10.11 repoints the domain and suspends it. Both
+# jobs then have nothing left to probe and go with the service.
 #   WEB_DEPLOY_URL       the Next.js app on Vercel
 #   REALTIME_DEPLOY_URL  the Hono service on Fly.io
 #

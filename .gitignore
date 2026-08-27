@@ -1,25 +1,11 @@
 .env
-__pycache__/
-*.pyc
 .DS_Store
-venv
-.venv
-
-# Frontend build
-frontend/node_modules/
-frontend/dist/
-
-# Runtime data (player-submitted flag reports)
-data/
-frontend/.smoke/
-.pytest_cache/
 
 # Monorepo TypeScript
 node_modules/
 .turbo/
 dist/
 coverage/
-.env
 
 # Next.js — build output and the types it generates on the fly
 .next/

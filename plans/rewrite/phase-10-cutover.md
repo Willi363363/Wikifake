@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — the grid is complete; the dismantling has not started |
+| **State** | **in progress** — the grid is complete, the Python is gone |
 | **Branch** | `feat/rewrite-phase-10-contract` |
 | **Depends on** | all the others (0 to 9) |
 | **Delivers** | a repository without Python, production on the new stack |
@@ -58,12 +58,26 @@ when Postgres and Redis are present, which is how CI runs them.
 
 | # | Step — dismantling and cutting over | State |
 |---|---|---|
-| 10.9 | Delete the Python | to do |
+| 10.9 | Delete the Python | ✅ done |
 | 10.10 | Rig the rollback net | to do |
 | 10.11 | Merge and cut production over | to do |
 | 10.12 | Rewrite the current state | to do |
 
 Definitions: `phase-10-steps-cutover.md`.
+
+**10.9 was not only a deletion.** Six tests in the new stack read the old one
+to prove they agreed with it, and five of them were redundant the moment their
+subject went — the scale, the item identifiers and the token transcription are
+each asserted against the contract directly. The sixth was C8.1, and it was
+rebuilt rather than dropped: `apps/web/src/route-parity.test.ts` and
+`apps/realtime/src/catalogue-parity.test.ts` hold the same line against the
+routes and the messages of `apps/`. The inbound half stopped needing a test at
+all, which is the rewrite's own argument in miniature — the schema *is* the
+dispatch table, so the drift a test looked for cannot happen.
+
+What 10.9 did **not** do: 10.11 still owns the cutover. Render keeps serving
+the public domain from the image it already built, and `DEPLOY_URL` keeps
+probing it.
 
 ## Exit gate
 

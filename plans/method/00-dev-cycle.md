@@ -58,7 +58,7 @@ three commits, it was hiding two steps: split it again in the phase file
    read its definition — in the phase file, or in the sheet it points to.
 3. Create the branch (see `01-git-flow.md`).
 4. Do the step, and nothing else.
-5. `make check`, then the relevant tests.
+5. `pnpm check`, then the relevant tests.
 6. Commit by logical unit, conventional message.
 7. Update the branch from its target, open the pull request.
 8. After the merge: tick the step in the phase file, **in the same PR as the
@@ -70,7 +70,7 @@ A step is done when, cumulatively:
 
 - its completion criterion is verified;
 - the tests that cover it exist and pass;
-- `make check` is green;
+- `pnpm check` is green;
 - the documentation it touches is up to date — not "to update later";
 - nothing was added out of scope.
 
