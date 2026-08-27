@@ -38,11 +38,7 @@ jobs:
     # phase PR (base = the umbrella branch of a rework) produces none, so
     # skipping its `push` run would leave it WITHOUT ANY checks. A branch
     # with no PR is still checked on every push, as `push: '**'` intended.
-    #
-    # NOTE: this job's check context is deliberately still named in French —
-    # it is referenced by the branch-protection ruleset's required checks.
-    # It gets renamed in phase 9, together with the ruleset's required checks.
-    name: Ce run est-il utile ?
+    name: "Is this run useful?"
     runs-on: ubuntu-latest
     outputs:
       run: ${{ steps.decide.outputs.run }}
@@ -86,8 +82,81 @@ jobs:
             echo "no PR to main or staging for $BRANCH — running"
           fi
 
-  monorepo:
-    name: monorepo
+  # ── Shared setup for the monorepo jobs ─────────────────────────────────────
+  # Each job below repeats the checkout + pnpm install dance. That is the
+  # unavoidable cost of parallelism in GitHub Actions: there is no shared file
+  # system between jobs. The pnpm store cache keeps it to a network round-trip.
+  #
+  # The Turborepo cache accelerates the task itself: a package whose inputs
+  # have not changed since the last green run hits the cache instead of
+  # re-running. Combined, the two caches mean most pushes are fast even with
+  # four separate jobs.
+
+  lint:
+    name: Lint & format
+    needs: guard
+    if: needs.guard.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable pnpm
+        run: corepack enable pnpm
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-
+
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-lint-${{ github.sha }}
+          restore-keys: turbo-lint-
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - run: pnpm lint
+      - run: pnpm format:check
+
+  typecheck:
+    name: Typecheck
+    needs: guard
+    if: needs.guard.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable pnpm
+        run: corepack enable pnpm
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-
+
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-typecheck-${{ github.sha }}
+          restore-keys: turbo-typecheck-
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - run: pnpm typecheck
+
+  test:
+    name: Test
     needs: guard
     if: needs.guard.outputs.run == 'true'
     runs-on: ubuntu-latest
@@ -132,8 +201,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # The version comes from `.nvmrc`: a single source of truth, and
-      # `engines` in the root package.json rejects any older runtime.
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -147,26 +214,54 @@ jobs:
           key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-
 
-      - run: pnpm install --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-test-${{ github.sha }}
+          restore-keys: turbo-test-
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
 
       # The CLI, on a database that has never been migrated: the exit gate of
       # phase 2 asks for exactly that, and a programmatic migrator passing is
       # not the same proof.
       - run: pnpm --filter @wikifake/db migrate
 
-      - run: pnpm typecheck
-      - run: pnpm lint
       - run: pnpm test
-      - run: pnpm build
-      - run: pnpm format:check
 
-  # Step 9.5 — the browser journeys. Its own job, and not part of `monorepo`:
-  # it needs a browser and three processes, and a suite that takes a minute has
-  # no business slowing down the one that takes four seconds.
-  #
-  # Step 9.4 rewrites this file. This job is written to be moved, not to be
-  # clever: everything it needs is in `apps/e2e/playwright.config.ts`, and what
-  # is here is the machine.
+  build:
+    name: Build
+    needs: guard
+    if: needs.guard.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Enable pnpm
+        run: corepack enable pnpm
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.local/share/pnpm/store
+          key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-
+
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-build-${{ github.sha }}
+          restore-keys: turbo-build-
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - run: pnpm build
+
+  # Step 9.5 — the browser journeys. Its own job, not part of the monorepo
+  # parallel group: it needs a browser and three processes.
   e2e:
     name: Browser journeys
     needs: guard
@@ -217,8 +312,6 @@ jobs:
           key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-
 
-      - run: pnpm install --frozen-lockfile
-
       # Keyed on the Playwright version: a browser build is 130 MB, and
       # downloading it on every run is a minute nobody gets back.
       - uses: actions/cache@v4
@@ -226,6 +319,8 @@ jobs:
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - run: pnpm install --frozen-lockfile --ignore-scripts
 
       - name: Install Chromium
         run: pnpm --filter @wikifake/e2e exec playwright install --with-deps chromium
@@ -244,7 +339,10 @@ jobs:
           path: apps/e2e/test-results
           retention-days: 7
 
+  # ── Old stack — leaves with the code it tests (phase 10), not before ───────
+
   frontend:
+    name: Frontend (legacy)
     needs: guard
     if: needs.guard.outputs.run == 'true'
     runs-on: ubuntu-latest
@@ -274,6 +372,7 @@ jobs:
         run: npm run smoke
 
   backend:
+    name: Backend (Python)
     needs: guard
     if: needs.guard.outputs.run == 'true'
     runs-on: ubuntu-latest
