@@ -30,13 +30,19 @@ export const VERSION: string = pkg.version;
 /**
  * The commit the platform says it deployed.
  *
- * The same three variables `backend/src/api/health.py` reads, in the same order,
- * because the CI probe compares this value to the pushed SHA and a fourth name
- * invented here would make it wait for a match that cannot come.
+ * On Vercel (the web app's host from phase 9 onward), the system variable is
+ * `VERCEL_GIT_COMMIT_SHA`. The three Render-style variables follow for backward
+ * compatibility while the Python still runs on Render: the CI probe compares
+ * `commit` to the pushed SHA, and whichever host serves the response must
+ * expose a value that matches.
  */
 export function deployedCommit(source: Environment = process.env): string {
   return (
-    source['RENDER_GIT_COMMIT'] ?? source['GIT_COMMIT'] ?? source['SOURCE_COMMIT'] ?? ''
+    source['VERCEL_GIT_COMMIT_SHA'] ??
+    source['RENDER_GIT_COMMIT'] ??
+    source['GIT_COMMIT'] ??
+    source['SOURCE_COMMIT'] ??
+    ''
   );
 }
 
