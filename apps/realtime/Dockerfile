@@ -9,6 +9,13 @@
 # The service runs TypeScript through `tsx` rather than a compiled bundle —
 # `package.json` has no build script, and adding one to save a runtime
 # dependency would be a second way to run the same code.
+#
+# It is invoked **directly**, not through `pnpm --filter … start`. Two things
+# went wrong when it was: `pnpm` runs a workspace dependency check before the
+# script, which writes a temporary file into `/app` and fails with `EACCES`
+# under `USER node`; and Corepack re-downloads pnpm from npmjs.org on every
+# start, so booting the container depended on reaching a registry. Neither is
+# a thing a socket server should do at startup.
 
 FROM node:22-alpine
 
@@ -46,9 +53,12 @@ COPY apps/realtime/tsconfig.json apps/realtime/
 COPY packages packages
 
 # Not root. A process holding sockets from the open internet has no business
-# owning the filesystem it runs on.
+# owning the filesystem it runs on — and nothing here writes to `/app`, now
+# that the runtime does not run a package manager.
 USER node
+
+WORKDIR /app/apps/realtime
 
 EXPOSE 8080
 
-CMD ["pnpm", "--filter", "@wikifake/realtime", "start"]
+CMD ["node_modules/.bin/tsx", "src/main.ts"]
