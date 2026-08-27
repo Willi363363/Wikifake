@@ -48,6 +48,7 @@ Set for **Production**, **Preview** and **Development** unless noted.
 | `NEXT_PUBLIC_REALTIME_URL` | The Fly service, `wss://…`. |
 | `SENTRY_DSN` | Optional. Absent → no reporting, which is correct locally. |
 | `MODEL_NAME` | Optional, defaults to `gemini-3.1-flash-lite`. |
+| `NEXT_PUBLIC_SITE_URL` | **Production only.** The public origin, for the canonical link and the sitemap of step 10.0. Left unset on a preview, `siteOrigin()` falls back to Vercel's own URL, which is what a preview should say about itself. Set on production, or the canonical points at whatever host answered. |
 
 `VERCEL_GIT_COMMIT_SHA` is injected by the platform and read by
 `deployedCommit()`: nothing to set.
