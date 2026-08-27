@@ -39,11 +39,20 @@ procedure is written.
 
 ### 10.11 — Merge and cut production over
 
-Turn off Render's `autoDeploy` before the merge (otherwise it triggers a
-build on a vanished `Dockerfile`). PR `feat/refonte` → `staging` then
-`staging` → `main`, per `01-git-flow.md`. Then the cutover: domain to
-Vercel, client to the Fly WebSocket URL, probe URL variables updated,
-Render suspended (see 10.10).
+Seven gestures, all human, and the order matters more than any one of them:
+**`phase-10-cutover-runbook.md`** is the checklist. In outline — turn off
+Render's `autoDeploy` first (the merge deletes the `Dockerfile` it builds
+from), empty the ruleset's required checks, merge the stack bottom-first,
+refill the list with nine names and not eleven, move the domain to Vercel and
+point the client at the Fly socket, repoint the probe, and **suspend** Render
+rather than delete it.
+
+The ruleset is the half this step used not to mention at all, while
+`phase-09-ruleset-rename.md` deferred it here — a hand-off that landed nowhere.
+It matters because the merge renames four check contexts and deletes two at
+once: a required context that never reports does not fail, it stays pending,
+and every pull request in the repository blocks until an administrator fixes
+the list.
 
 **Done when**: `deploy-check` is green on `main` against the new
 production — the commit served by both services equals the merged SHA — and
