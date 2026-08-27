@@ -93,3 +93,22 @@ argument by the deploy workflow and baked into the image, which is what lets
 The public domain stays on Render until phase 10. `DEPLOY_URL` keeps
 pointing there; `WEB_DEPLOY_URL` and `REALTIME_DEPLOY_URL` are the two new
 variables the ported probe reads, and both skip cleanly when unset.
+
+## The probe
+
+`deploy-check.yml` runs `scripts/probe-deploy.sh` once per target. The
+variables it reads, all optional:
+
+| Variable | Target |
+|---|---|
+| `DEPLOY_URL` / `STAGING_DEPLOY_URL` | Render, until phase 10 |
+| `WEB_DEPLOY_URL` / `WEB_STAGING_DEPLOY_URL` | Vercel |
+| `REALTIME_DEPLOY_URL` / `REALTIME_STAGING_DEPLOY_URL` | Fly.io |
+
+Plus one secret, `VERCEL_AUTOMATION_BYPASS_SECRET`, sent as
+`x-vercel-protection-bypass`.
+
+To verify by hand, from the Actions tab: run the workflow with `url` set to
+a preview and `expected_sha` to the commit it should serve. The same run
+with a different SHA fails, which is the half that proves the loop is
+comparing anything at all.
