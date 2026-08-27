@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — 9.1 done, 9.2 done, 9.3 done, 9.4 done, 9.5 done (brought forward), 9.6 done |
+| **State** | **in progress** — 9.1–9.8 done, 9.9 and 9.10 remaining |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
@@ -147,6 +147,11 @@ makes `pnpm test` fail.
 
 ### 9.7 — Deploy the web on Vercel
 
+✅ **Done (repository side)** — `vercel.json` at the root builds through
+Turborepo, because six workspace packages are what a bare `next build` cannot
+resolve. Project settings, environment variables and the preview-protection
+bypass are in `phase-09-deployment-setup.md`. The dashboard half is manual.
+
 Vercel project wired to the repository, per-PR previews, environment
 variables set. The public production stays served by Render until phase 10:
 Vercel does not receive the domain yet.
@@ -155,6 +160,13 @@ Vercel does not receive the domain yet.
 PR's commit.
 
 ### 9.8 — Deploy the realtime on Fly.io
+
+✅ **Done (repository side)** — `fly.toml` and a `Dockerfile` in
+`apps/realtime`, a `deploy-realtime.yml` workflow that skips cleanly without
+`FLY_API_TOKEN`, and `/api/health` on the Hono app answering the same six-field
+shape the web app answers. `FLY_GIT_COMMIT` is a build argument: Fly injects no
+commit variable of its own, so an image that did not bake one would answer an
+empty string and the probe would wait for a match that cannot come.
 
 `fly.toml` in `apps/realtime`, deployed from CI, health check exposing the
 served commit, Redis URL and allowed WebSocket origins through environment

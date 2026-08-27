@@ -16,6 +16,7 @@ import type { IncomingMessage } from 'node:http';
 
 import type { Bus } from './bus.js';
 import { createRegistry, type Connection, type Registry } from './connections.js';
+import { deploymentIdentity } from './deployment.js';
 import { publish } from './effects.js';
 import { readFrame, CLOSE_MESSAGE_TOO_BIG, CLOSE_POLICY_VIOLATION } from './frames.js';
 import { readHandshake } from './handshake.js';
@@ -285,6 +286,13 @@ export function createService(options: ServiceOptions): Service {
   // service the platform decides is down.
   app.get('/ping', (context) =>
     context.json(healthApi.pingResponse.parse({ status: 'alive' })),
+  );
+
+  // C7.2 — the deployment identity `deploy-check.yml` reads. The web app
+  // answers the same shape at the same path: the probe polls two URLs and
+  // compares the same `commit` key, so one contract rather than two.
+  app.get('/api/health', (context) =>
+    context.json(healthApi.healthResponse.parse(deploymentIdentity())),
   );
 
   const sockets = new WebSocketServer({ noServer: true });

@@ -3,6 +3,7 @@
 // Every one of them is a wire fact: a close code, a message arriving *before* a
 // close, a connection that survives a bad frame, a nickname that only arrives
 // intact because it was encoded. A mocked handshake would prove the mock.
+import { healthApi } from '@wikifake/protocol';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { createLocalBus } from './bus.js';
@@ -381,6 +382,27 @@ describe('5.1 — the transport', () => {
 
       expect(response.status).toBe(200);
       expect(await response.json()).toEqual({ status: 'alive' });
+    });
+  });
+
+  describe('C7.2 — the deployment identity the CI probe reads', () => {
+    it('answers the same shape the web app answers, at the same path', async () => {
+      const response = await fetch(`http://127.0.0.1:${String(port)}/api/health`);
+
+      expect(response.status).toBe(200);
+      const body: unknown = await response.json();
+      expect(healthApi.healthResponse.parse(body)).toStrictEqual(body);
+    });
+
+    // The probe compares this key against the pushed SHA. A response that
+    // omitted it, or answered `undefined`, would make the loop wait for a match
+    // that cannot come rather than fail.
+    it('always carries a commit, even with no platform to provide one', async () => {
+      const response = await fetch(`http://127.0.0.1:${String(port)}/api/health`);
+      const body = (await response.json()) as Record<string, unknown>;
+
+      expect('commit' in body).toBe(true);
+      expect(typeof body['commit']).toBe('string');
     });
   });
 });
