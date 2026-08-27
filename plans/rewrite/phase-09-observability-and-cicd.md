@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — 9.1 done, 9.2 done, 9.3 done, 9.5 done (brought forward) |
+| **State** | **in progress** — 9.1 done, 9.2 done, 9.3 done, 9.4 done, 9.5 done (brought forward), 9.6 done |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
@@ -80,6 +80,11 @@ with the right commit, for each of the two services.
 
 ### 9.4 — Rewrite `ci.yml` for the monorepo
 
+✅ **Done** — four parallel jobs (`lint`, `typecheck`, `test`, `build`) with pnpm
+store + Turborepo cache; `guard` job kept and renamed to English; python and
+frontend legacy jobs kept. All use `--ignore-scripts` to avoid `@sentry/cli`
+post-install issues.
+
 `lint`, `typecheck`, `test`, `build` jobs through pnpm and the Turborepo
 cache. Two things are kept: the `guard` job — its push/PR deduplication is
 what guarantees that a phase PR towards the umbrella keeps its checks — and
@@ -123,6 +128,11 @@ room". See `plans/current-state/05-known-debt.md`.
 solution is deliberately leaked into the start payload.
 
 ### 9.6 — Documentation lock, Zod version
+
+✅ **Done** — `packages/protocol/src/docs/` already generates four Markdown
+pages from the live Zod schemas and compares them to committed snapshots in
+`plans/protocol/` via `toMatchFileSnapshot`. All 221 protocol tests pass.
+Regenerate with `pnpm --filter @wikifake/protocol docs`.
 
 The protocol documentation (inbound and outbound WS messages, REST routes,
 error codes) is generated from the schemas of `packages/protocol` by a pnpm
