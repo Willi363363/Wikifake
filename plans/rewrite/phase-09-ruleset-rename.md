@@ -59,11 +59,12 @@ Three steps, in this order, by an administrator:
    - `Test`
    - `Build`
    - `Browser journeys`
-   - `Frontend (legacy)` — until phase 10
-   - `Backend (Python)` — until phase 10
    - `Does this PR follow the rules?`
    - `Human review`
    - `Secret scan`
+
+   **Nine, and not eleven.** `Frontend (legacy)` and `Backend (Python)` are
+   *not* on this list, and the paragraph below is why.
 
 Then open a throwaway pull request towards `staging` and confirm it goes green
 with no check stuck pending. That is the step's "Done when", and it is the
@@ -79,9 +80,31 @@ would never report at all.
 Emptying the list is reversible in one gesture, visible in the ruleset's own
 audit log, and lasts one merge.
 
-## Phase 10
+## Phase 10 — and why there is only one dance
 
-`Frontend (legacy)` and `Backend (Python)` leave with the code they test.
-Removing them from the required checks is part of that step, not this one —
-and it is the same three-step dance in reverse: drop them from the list first,
-then delete the jobs.
+This section used to say that `Frontend (legacy)` and `Backend (Python)` leave
+with the code they test, in phase 10, by the same dance in reverse: drop them
+from the list first, then delete the jobs.
+
+**That order is no longer available, and the plan should not pretend it is.**
+The rewrite is one linear stack of pull requests, each targeting the one before
+it: `feat/rewrite-phase-1` descends from the umbrella and nothing between it and
+step 10.12 has merged. So the rename of step 9.10 and the deletion of those two
+jobs in step 10.9 arrive in **the same merge**, and there is no moment between
+them at which the two contexts both exist and are required.
+
+Two consequences, and both matter more than the wording:
+
+- **Never refill the list with those two names.** Doing it "until phase 10", as
+  this file used to advise, would require two contexts that the very merge
+  passing through the gate deletes. Every pull request in the repository would
+  then block on a check that can never report — the failure this whole file
+  exists to avoid, arrived by following the file.
+- **The window in step 1 covers the whole stack.** The list is emptied once,
+  the umbrella merges once, and the list is refilled once with the nine names
+  above. Not once per phase.
+
+If the stack is ever split — phases 1 to 9 promoted, phase 10 held back — then
+and only then do the two names belong on the list in between, and the reverse
+dance comes back. `plans/rewrite/phase-10-cutover-runbook.md` is written for the
+stack as it actually stands.
