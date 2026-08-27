@@ -38,7 +38,7 @@ jobs:
     # phase PR (base = the umbrella branch of a rework) produces none, so
     # skipping its `push` run would leave it WITHOUT ANY checks. A branch
     # with no PR is still checked on every push, as `push: '**'` intended.
-    name: "Is this run useful?"
+    name: 'Is this run useful?'
     runs-on: ubuntu-latest
     outputs:
       run: ${{ steps.decide.outputs.run }}

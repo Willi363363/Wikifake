@@ -5,10 +5,6 @@
 import { describe, expect, it } from 'vitest';
 import pino from 'pino';
 
-function makeLogger(level: string) {
-  return pino({ level });
-}
-
 describe('structured logging', () => {
   it('emits a JSON object with level and msg fields', () => {
     const lines: object[] = [];
