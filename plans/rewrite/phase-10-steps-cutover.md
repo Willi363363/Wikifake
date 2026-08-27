@@ -28,6 +28,11 @@ up, repoint the domain, restore `DEPLOY_URL`; the Python code comes back by
 white: accounts and history created after the cutover stay in Neon but
 become inaccessible for the duration of the rollback.
 
+The procedure is written: **`phase-10-rollback.md`**. It also states, in black
+and white, what a rollback costs — accounts and history created after the
+cutover stay in Neon and become *inaccessible*, not lost; rooms in flight die
+in both directions; the article cache starts cold.
+
 **Done when**: a dry run (suspend then wake, outside playing hours) has
 succeeded — Render's `/api/health` answers with the old commit — and the
 procedure is written.

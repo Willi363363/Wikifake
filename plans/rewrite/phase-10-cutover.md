@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — the grid is complete, the Python is gone |
+| **State** | **in progress** — only 10.11 is left, and it needs a human |
 | **Branch** | `feat/rewrite-phase-10-contract` |
 | **Depends on** | all the others (0 to 9) |
 | **Delivers** | a repository without Python, production on the new stack |
@@ -59,9 +59,9 @@ when Postgres and Redis are present, which is how CI runs them.
 | # | Step — dismantling and cutting over | State |
 |---|---|---|
 | 10.9 | Delete the Python | ✅ done |
-| 10.10 | Rig the rollback net | to do |
+| 10.10 | Rig the rollback net | ⚠️ written — the dry run needs a human |
 | 10.11 | Merge and cut production over | to do |
-| 10.12 | Rewrite the current state | to do |
+| 10.12 | Rewrite the current state | ✅ done |
 
 Definitions: `phase-10-steps-cutover.md`.
 
@@ -78,6 +78,22 @@ dispatch table, so the drift a test looked for cannot happen.
 What 10.9 did **not** do: 10.11 still owns the cutover. Render keeps serving
 the public domain from the image it already built, and `DEPLOY_URL` keeps
 probing it.
+
+**10.10 is written and not run.** The procedure is
+`phase-10-rollback.md` — one page, read before 10.11 rather than during. Its
+one uncertain claim is whether a suspended Render service comes back with the
+same image, and confirming that means suspending live production: a human's
+gesture on a dashboard, outside playing hours. Everything else in the
+procedure is DNS and one environment variable. The step stays open until the
+dry run has happened and the sheet says so.
+
+**10.12 is done, and it changed the shape of `plans/current-state/`.** Three
+files went — the FastAPI modules, the Vite directories, the hand-written
+WebSocket protocol — and three took their place: `01-packages.md`, `02-web.md`,
+`03-realtime.md`. The protocol is no longer described there at all, because
+`plans/protocol/` is generated from the schemas and a second description is the
+one that drifts. The debt register lost fourteen entries it no longer had any
+business holding and gained three the new stack actually has.
 
 ## Exit gate
 

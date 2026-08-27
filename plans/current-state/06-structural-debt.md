@@ -25,7 +25,8 @@ preference.
 already configured for it (`build` declares `outputs: ["dist/**"]`, and `test`
 and `typecheck` depend on `^build`); no package has a `build` script, so phase 0
 left it half-done. Not a five-minute change: every suite would start exercising
-built output instead of source. Its own step, or phase 9.
+built output instead of source. Phase 9 came and went without it, so it wants
+its own step after the cutover, on a tree nothing else is moving.
 
 ## Two notations for the same contract
 
@@ -45,14 +46,19 @@ indices, sorted positions, sequential numbers)` is `C3.3`). Each needs reading.
 It also touches sheets that open pull requests have in flight, so it wants its
 own step on a quiet tree.
 
-## The remaining `print()` calls in `backend/src/core/`
+## The `Makefile` targets that outlived the Makefile
 
-The repository rule is "no `print` in application code" (`src/log.py`). Five
-survive in `backend/src/core/`:
+Step 10.9 rewrote `make check` and `make hooks` as `pnpm check` and
+`pnpm hooks`, and deleted the rest with the stack they drove. Two of the
+replacements are shell one-liners in `package.json`:
 
-- `backend/src/core/settings.py:26` — warning when two `.env` files coexist.
-- `backend/src/core/misinformation.py:119` — LLM hints inconsistent with the
-  request, matched by position.
-- `backend/src/core/misinformation.py:193` — missing paragraphs, retrying.
-- `backend/src/core/flag_verifier.py:40` — Wikipedia search failure.
-- `backend/src/core/flag_verifier.py:108` — LLM verification error.
+```json
+"check": "bash scripts/checks.sh staged",
+"hooks": "git config core.hooksPath .githooks && echo \"…\""
+```
+
+They work, and `scripts/checks.sh` is still the single file both the hook and
+CI run — there is no local version and no CI version drifting apart. But a
+shell string in a `scripts` block is not portable in the way the rest of the
+toolchain is, and `hooks` in particular does two things in one line. Small, and
+worth folding into `scripts/` proper the next time somebody is in there.
