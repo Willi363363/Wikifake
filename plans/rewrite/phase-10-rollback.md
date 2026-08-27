@@ -1,0 +1,97 @@
+# Phase 10 — the rollback net
+
+> Step 10.10. One page, because a procedure that needs two is a procedure
+> nobody reads at the moment they need it. Read it **before** 10.11, not
+> during.
+
+## What the net is
+
+At cutover, the Render service is **suspended, not deleted**. Its last image —
+the Python stack as it ran before step 10.9 removed the source — stays intact
+and can be woken. Deleting the service would remove the rollback at the exact
+moment it might be needed, which is this step's whole pitfall.
+
+The image is the net. The code is not: `backend/` and `frontend/` are gone from
+the tree, and getting them back is a `git revert` of the merge — a separate,
+slower move, needed only if the old stack has to be *changed* rather than
+merely served.
+
+## Before the cutover
+
+Three things, all of them cheap, all of them worthless if done afterwards:
+
+1. **Turn off Render's `autoDeploy`.** The merge deletes the `Dockerfile` it
+   builds from, so an automatic deploy would fail on the still-live production
+   and take it down. This is 10.11's first line, and it is first for this
+   reason.
+2. **Note the commit Render is serving.** `curl https://<render>/api/health`
+   and keep the `commit` value. It is what tells you, later, that the woken
+   service is the one you meant to wake, and it is what the dry run below
+   asserts.
+3. **Keep `DEPLOY_URL` set.** It probes Render. Repointing it is part of the
+   cutover, not part of the preparation, so a rollback finds it where it was.
+
+## The rollback, in order
+
+Under ten minutes, and no step depends on anything the merge removed.
+
+1. **Wake Render.** Dashboard → the service → Resume. Wait for
+   `GET /api/health` to answer, and check `commit` equals the value noted
+   above.
+2. **Repoint the domain.** DNS back to Render, or in Render's own custom-domain
+   panel if the record never moved. Remove the domain from Vercel first, or
+   both providers claim it and one of them answers a certificate error.
+3. **Restore the probe.** `DEPLOY_URL` back to the Render URL, so
+   `deploy-check` stops failing against a service that no longer holds the
+   domain and starts telling the truth again.
+4. **Leave Fly running.** It costs little and holds no state that matters — the
+   rooms are in Redis, and a room in flight is lost by the cutover either way.
+   Stopping it is one more thing to undo when you roll forward again.
+
+That is the whole procedure. Nothing in it needs a build, a deploy or a code
+change.
+
+## What a rollback costs, stated in advance
+
+This is the part that must be written down rather than discovered:
+
+- **Accounts and history created after the cutover stay in Neon and become
+  inaccessible.** The Python stack has no database — it never had one — so a
+  player who signed up on the new stack cannot sign in on the old one, and
+  their games are not in the history the old stack shows. The data is not lost;
+  it is unreachable until the roll-forward. Nobody should be told it is gone.
+- **Rooms in flight die.** Both directions. A cutover and a rollback each
+  replace the process holding the sockets.
+- **The article cache is not shared.** Render's cache is in the RAM of a
+  process that has been asleep, so the first rounds after a wake pay the
+  generation cost again — ten seconds each, which is the wait the cache exists
+  to remove.
+- **Flag reports written on the new stack are in Postgres**, and the old stack
+  reads `complaints.jsonl` in its own ephemeral disk. Same shape of problem as
+  the accounts: unreachable, not lost.
+
+## The dry run
+
+The step is not done until this has been performed, **outside playing hours**:
+
+1. Note the commit Render serves.
+2. Suspend the service. Confirm the URL stops answering.
+3. Resume it. Confirm `GET /api/health` answers, and that `commit` is the value
+   from step 1.
+
+That is the only part of this procedure with any doubt in it — whether a
+suspended free-tier Render service comes back with the same image. Everything
+else is DNS and an environment variable, and both are reversible in a minute.
+
+> **Status: not run.** Suspending and resuming touches live production, so it
+> is a human's gesture on the dashboard rather than something CI or an agent
+> should do. Step 10.10 stays open until it has been done and this line says
+> so.
+
+## When to stop rolling back and fix forward instead
+
+A rollback is for "the new stack is serving something broken and we do not yet
+know why". It is the wrong tool for a defect you have already understood: the
+new stack redeploys from a merge in minutes, and every guarantee it holds is
+covered by the grid in `phase-10-contract-map.md`. Waking a stack whose source
+is no longer in the tree costs more the second day than the first.

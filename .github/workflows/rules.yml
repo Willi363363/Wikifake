@@ -1,0 +1,163 @@
+name: rules
+
+# Server-side enforcement of plans/method/02-repository-rules.md.
+#
+# The local hooks (.githooks/) give immediate feedback but can be bypassed with
+# --no-verify. This workflow is the check that counts: it replays the same
+# verifications (scripts/checks.sh) over the pull request's commit range, and
+# detects direct pushes that the GitHub ruleset would not have blocked.
+#
+# The job names below are live GitHub check contexts, referenced by the branch
+# protection ruleset. They are still in French: renaming one requires updating
+# the ruleset's required checks in the same move, or every pull request blocks
+# forever on a check that never reports. Phase 9 handles that rename.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  push:
+    branches: [main, staging]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: rules-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conformite:
+    name: Does this PR follow the rules?
+    # Only the human-review gate depends on labels. Re-running the content
+    # checks on a label change would burn CI minutes and, through the
+    # concurrency group, cancel an in-flight run for nothing.
+    if: github.event_name == 'pull_request' &&
+      contains(fromJson('["opened", "synchronize", "reopened"]'), github.event.action)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Branch name
+        run: bash scripts/checks.sh branch "${{ github.event.pull_request.head.ref }}"
+
+      - name: Contents of changed files
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: bash scripts/checks.sh diff "$BASE" "$HEAD"
+
+      - name: Commit messages
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          status=0
+          for sha in $(git rev-list "$BASE..$HEAD"); do
+            git log -1 --format=%B "$sha" > /tmp/msg
+            printf '\n%s %s\n' "$sha" "$(head -1 /tmp/msg)"
+            bash scripts/checks.sh commit-msg /tmp/msg || status=1
+          done
+          exit $status
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo '## Conformance'
+            echo
+            if [ '${{ job.status }}' = 'success' ]; then
+              echo 'Branch, contents and commit messages conform to the repository rules.'
+            else
+              echo 'A repository rule is not satisfied — see the steps above.'
+              echo
+              echo 'To reproduce locally: `bash scripts/checks.sh diff origin/${{ github.event.pull_request.base.ref }}`'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  revue-humaine:
+    name: Human review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      # With a single GitHub account, no server-side control tells a human from
+      # an agent: both carry the same token. So the gate sits where the agents
+      # run — .claude/settings.json denies them gh pr merge, gh pr review and
+      # gh pr edit — and this check makes the human gesture explicit and
+      # timestamped in the repository log.
+      - name: Require the "revu" label
+        env:
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          case ",$LABELS," in
+            *,revu,*)
+              echo "Label \"revu\" present — this PR was read by a human."
+              ;;
+            *)
+              {
+                echo '## Human review missing'
+                echo
+                echo 'This PR is waiting for the `revu` label, applied by hand after reading.'
+                echo
+                echo 'An agent cannot grant it to itself: `.claude/settings.json` denies'
+                echo 'it `gh pr edit`, `gh pr review` and `gh pr merge`.'
+              } >> "$GITHUB_STEP_SUMMARY"
+              echo "::error::Label 'revu' missing — see plans/method/03-infrastructure.md"
+              exit 1
+              ;;
+          esac
+
+  fuite-de-secrets:
+    name: Secret scan
+    if: github.event_name == 'pull_request' &&
+      contains(fromJson('["opened", "synchronize", "reopened"]'), github.event.action)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # scripts/checks.sh does regex-based detection: useful and immediate.
+      # gitleaks is the dedicated tool: it knows the token formats, and scans
+      # the range's history rather than only the final contents.
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
+          GITLEAKS_ENABLE_SUMMARY: true
+
+  push-direct:
+    name: No direct push to main or staging
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Detective, not preventive: prevention is the GitHub ruleset. If a
+      # commit lands on an integration branch without a pull request, say so
+      # loudly.
+      - name: Check the commit comes from a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.sha }}
+        run: |
+          if [ "${{ github.event.created }}" = 'true' ]; then
+            echo 'Branch creation — nothing to check.'; exit 0
+          fi
+          count=$(gh api "/repos/${{ github.repository }}/commits/$SHA/pulls" \
+            --jq 'length' 2>/dev/null || echo 0)
+          if [ "$count" -eq 0 ]; then
+            {
+              echo '## Direct push to `${{ github.ref_name }}` detected'
+              echo
+              echo "Commit \`$SHA\` is not associated with any pull request."
+              echo
+              echo 'No direct push to an integration branch, human or agent.'
+              echo 'Enable branch protection if it is not already on.'
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Direct push to ${{ github.ref_name }} — see plans/method/02-repository-rules.md"
+            exit 1
+          fi
+          echo "Commit attached to $count pull request(s)."

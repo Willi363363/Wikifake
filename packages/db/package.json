@@ -1,0 +1,36 @@
+{
+  "name": "@wikifake/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/database.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "generate": "drizzle-kit generate && tsx scripts/normalise-migrations.ts",
+    "migrate": "drizzle-kit migrate",
+    "seed": "tsx scripts/seed.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@wikifake/article": "workspace:*",
+    "@wikifake/config": "workspace:*",
+    "ai": "^7.0.77",
+    "drizzle-kit": "^0.31.10",
+    "eslint": "^9.39.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@wikifake/env": "workspace:*",
+    "@wikifake/protocol": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9"
+  }
+}

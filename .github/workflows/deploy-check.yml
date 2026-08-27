@@ -1,113 +1,140 @@
 name: Deploy check
 
-# Après un push sur `main`, vérifie que la production sert bien ce commit.
+# After a push, checks that the environment actually serves this commit.
 #
-# Sans ça, la seule façon de savoir si un merge a été redéployé était d'ouvrir
-# le tableau de bord Render : ni statut de commit, ni déploiement GitHub, ni
-# environnement n'étaient publiés sur le dépôt.
+# Without this, the only way to know whether a merge had been redeployed was to
+# open a dashboard: the repository published no commit status, no deployment,
+# no environment.
 #
-# Le job s'ignore proprement si la variable de dépôt `DEPLOY_URL` n'est pas
-# définie — il ne fera donc jamais échouer la CI d'un fork ou d'un clone.
+# Three targets, one job each, because the rewrite splits one service into two
+# and Render still serves the public domain:
+#
+#   DEPLOY_URL           the old stack on Render — production, until step 10.11
+#   STAGING_DEPLOY_URL   the old stack on Render — pre-production
+#
+# The Python left the repository at step 10.9; the image Render already built is
+# what answers those two until 10.11 repoints the domain and suspends it. Both
+# jobs then have nothing left to probe and go with the service.
+#   WEB_DEPLOY_URL       the Next.js app on Vercel
+#   REALTIME_DEPLOY_URL  the Hono service on Fly.io
+#
+# Each job skips itself cleanly when its variable is unset, so a fork never sees
+# its CI fail on a URL it has no reason to hold, and the two new targets stay
+# quiet until somebody sets them.
 #
 #   Settings → Secrets and variables → Actions → Variables → New
-#   DEPLOY_URL = https://<votre-service>.onrender.com
+#
+# `workflow_dispatch` takes a URL and an expected SHA, which is how the step is
+# verified by hand against a preview: right SHA passes, a different one fails.
 
 on:
   push:
-    branches: [main]
+    branches: [main, staging]
   workflow_dispatch:
     inputs:
       timeout_seconds:
-        description: "Durée max d'attente du redéploiement"
+        description: 'Maximum time to wait for the redeploy'
         required: false
-        default: "600"
+        default: '600'
+      url:
+        description: 'Probe this URL instead of the configured ones'
+        required: false
+        default: ''
+      expected_sha:
+        description: 'Expect this commit instead of the pushed one'
+        required: false
+        default: ''
 
 permissions:
   contents: read
 
 jobs:
-  deployed-commit:
-    name: La production sert-elle ce commit ?
+  # Kept as one job with the three targets in a matrix rather than three
+  # hand-written jobs: the difference between them is a variable name and a
+  # label, and three copies of the same twenty lines is three places for the
+  # skip logic to drift.
+  probe:
+    name: 'Does ${{ matrix.label }} serve this commit?'
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Render
+            url: ${{ vars.DEPLOY_URL }}
+            staging_url: ${{ vars.STAGING_DEPLOY_URL }}
+            variable: DEPLOY_URL
+          - label: the web app
+            url: ${{ vars.WEB_DEPLOY_URL }}
+            staging_url: ${{ vars.WEB_STAGING_DEPLOY_URL }}
+            variable: WEB_DEPLOY_URL
+          - label: the realtime service
+            url: ${{ vars.REALTIME_DEPLOY_URL }}
+            staging_url: ${{ vars.REALTIME_STAGING_DEPLOY_URL }}
+            variable: REALTIME_DEPLOY_URL
+
     steps:
-      - name: Vérifier que DEPLOY_URL est configurée
+      - uses: actions/checkout@v4
+
+      - name: Which URL, and is there one?
         id: config
         env:
-          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
+          URL_MAIN: ${{ matrix.url }}
+          URL_STAGING: ${{ matrix.staging_url }}
+          URL_OVERRIDE: ${{ github.event.inputs.url }}
+          VARIABLE: ${{ matrix.variable }}
+          LABEL: ${{ matrix.label }}
+          BRANCH: ${{ github.ref_name }}
         run: |
-          if [ -z "$DEPLOY_URL" ]; then
+          set -u
+
+          # A hand-launched run probing one URL: the other two targets have
+          # nothing to say about it, so only the first of them runs.
+          if [ -n "$URL_OVERRIDE" ]; then
+            if [ "$VARIABLE" = "DEPLOY_URL" ]; then
+              echo "url=$URL_OVERRIDE" >> "$GITHUB_OUTPUT"
+              echo "environment=$URL_OVERRIDE" >> "$GITHUB_OUTPUT"
+              echo "configured=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "configured=false" >> "$GITHUB_OUTPUT"
+              echo "url override in effect — nothing for $LABEL to do"
+            fi
+            exit 0
+          fi
+
+          if [ "$BRANCH" = "staging" ]; then
+            url="$URL_STAGING"; variable="${VARIABLE%_DEPLOY_URL}_STAGING_DEPLOY_URL"
+            environment="$LABEL (pre-production)"
+          else
+            url="$URL_MAIN"; variable="$VARIABLE"
+            environment="$LABEL (production)"
+          fi
+
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "environment=$environment" >> "$GITHUB_OUTPUT"
+
+          if [ -z "$url" ]; then
             echo "configured=false" >> "$GITHUB_OUTPUT"
             {
-              echo "### Sonde de déploiement ignorée"
+              echo "### Deploy probe skipped — $environment"
               echo
-              echo "La variable de dépôt \`DEPLOY_URL\` n'est pas définie."
-              echo "Renseignez-la dans **Settings → Secrets and variables → Actions → Variables**"
-              echo "pour que la CI dise elle-même si la production est à jour."
+              echo "The repository variable \`$variable\` is not set."
+              echo "Set it in **Settings → Secrets and variables → Actions → Variables**"
+              echo "so that CI itself reports whether the environment is up to date."
             } >> "$GITHUB_STEP_SUMMARY"
           else
             echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Attendre que le commit déployé corresponde
+      - name: Wait for the deployed commit to match
         if: steps.config.outputs.configured == 'true'
         env:
-          DEPLOY_URL: ${{ vars.DEPLOY_URL }}
-          EXPECTED: ${{ github.sha }}
-          TIMEOUT: ${{ github.event.inputs.timeout_seconds || '600' }}
+          # Vercel's deployment protection answers 401 to an unauthenticated
+          # probe, which is indistinguishable from a service that is not up.
+          VERCEL_BYPASS_TOKEN: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: |
-          set -u
-          url="${DEPLOY_URL%/}/api/health"
-          deadline=$(( $(date +%s) + TIMEOUT ))
-          attempt=0
-          served=""
-
-          echo "Commit attendu : ${EXPECTED:0:7}"
-          echo "Sonde          : $url"
-
-          while [ "$(date +%s)" -lt "$deadline" ]; do
-            attempt=$((attempt + 1))
-            body=$(curl -fsS --max-time 20 "$url" 2>/dev/null || true)
-
-            if [ -n "$body" ]; then
-              served=$(printf '%s' "$body" | python3 -c \
-                'import json,sys; print(json.load(sys.stdin).get("commit",""))' 2>/dev/null || true)
-              version=$(printf '%s' "$body" | python3 -c \
-                'import json,sys; print(json.load(sys.stdin).get("version",""))' 2>/dev/null || true)
-              echo "tentative $attempt — version=$version commit=${served:0:7}"
-
-              if [ "$served" = "$EXPECTED" ]; then
-                {
-                  echo "### ✅ Production à jour"
-                  echo
-                  echo "| | |"
-                  echo "|---|---|"
-                  echo "| Version servie | \`$version\` |"
-                  echo "| Commit servi | \`${served:0:7}\` |"
-                  echo "| URL | $DEPLOY_URL |"
-                } >> "$GITHUB_STEP_SUMMARY"
-                exit 0
-              fi
-            else
-              echo "tentative $attempt — pas de réponse (déploiement en cours ?)"
-            fi
-            sleep 15
-          done
-
-          {
-            echo "### ⚠️ La production ne sert pas encore ce commit"
-            echo
-            echo "| | |"
-            echo "|---|---|"
-            echo "| Commit attendu | \`${EXPECTED:0:7}\` |"
-            echo "| Commit servi | \`${served:0:7}\` |"
-            echo "| Délai | ${TIMEOUT}s |"
-            echo
-            if [ -z "$served" ]; then
-              echo "Aucune réponse de la sonde : service endormi (plan gratuit),"
-              echo "déploiement encore en cours, ou \`DEPLOY_URL\` incorrecte."
-            else
-              echo "Le service répond mais sur une version antérieure :"
-              echo "le déploiement automatique est peut-être désactivé."
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
-          exit 1
+          scripts/probe-deploy.sh \
+            "${{ steps.config.outputs.url }}" \
+            "${{ github.event.inputs.expected_sha || github.sha }}" \
+            "${{ github.event.inputs.timeout_seconds || '600' }}" \
+            "${{ steps.config.outputs.environment }}"

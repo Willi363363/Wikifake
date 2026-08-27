@@ -1,0 +1,32 @@
+{
+  "name": "@wikifake/article",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/round.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@wikifake/protocol": "workspace:*",
+    "ai": "^7.0.77",
+    "cheerio": "^1.2.0",
+    "domhandler": "^6.0.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@wikifake/config": "workspace:*",
+    "@wikifake/domain": "workspace:*",
+    "eslint": "^9.39.0",
+    "redis": "^6.2.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

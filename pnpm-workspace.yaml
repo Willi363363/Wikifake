@@ -1,0 +1,32 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm refuses to run install scripts by default: every exception is explicit.
+# esbuild compiles its native binary, and vitest depends on it.
+allowBuilds:
+  # `@sentry/cli` downloads its binary at install time. Allowed here so the
+  # sourcemap-upload step in CI can use it; it is absent from local installs
+  # (no binary needed for error reporting alone).
+  '@sentry/cli': true
+  esbuild: true
+  # A native accelerator for `msgpackr`, which BullMQ uses to encode job data.
+  # Optional by design: msgpackr falls back to its JavaScript path, and a queue
+  # holding a handful of room timers has nothing to accelerate. Refused rather
+  # than allowed, because a build script is a build script.
+  msgpackr-extract: false
+
+# Exempted from the release-age gate, deliberately and reluctantly.
+#
+# `ai@7` pairs with `@ai-sdk/google@4`, and the 4.x line was published the same
+# day as this change: there is no aged version of it to pin to. The alternative
+# was routing through the AI Gateway instead, which needs no new package but does
+# need a gateway credential — and the game has to stay developable with nothing
+# but a Google AI Studio key.
+#
+# Reviewable in one line: drop these three entries and the install refuses the
+# provider again.
+minimumReleaseAgeExclude:
+  - '@ai-sdk/google@4.0.51'
+  - '@ai-sdk/provider-utils@5.0.30'
+  - '@ai-sdk/provider@4.0.8'
