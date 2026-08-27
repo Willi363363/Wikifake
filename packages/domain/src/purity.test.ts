@@ -9,8 +9,8 @@
 // `Math.random()` makes a topic pick untestable. None of those breaks a test
 // when it is introduced — which is exactly why this test exists.
 //
-// Tests are exempt: they read `backend/` and `frontend/` on purpose, to check
-// the copies of the scale and the item list still agree.
+// Tests are exempt, and they need to be: a test reads fixtures from disk and
+// drives a reducer with a clock it supplies itself, which is the whole point.
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
