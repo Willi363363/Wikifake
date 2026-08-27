@@ -131,3 +131,28 @@ To verify by hand, from the Actions tab: run the workflow with `url` set to
 a preview and `expected_sha` to the commit it should serve. The same run
 with a different SHA fails, which is the half that proves the loop is
 comparing anything at all.
+
+## What is actually provisioned
+
+Recorded because this sheet was written before anything existed, and half of
+it was wrong until a deployment proved so.
+
+| | |
+|---|---|
+| Vercel project | `wikifake`, scope `willi363`, Hobby |
+| Production | `https://wikifake.vercel.app` |
+| Postgres | Neon `neon-aqua-castle`, via the marketplace — 14 tables migrated |
+| Redis | Upstash `upstash-kv-carmine-leaf`, via the marketplace |
+| Git link | `Willi363363/Wikifake`, so every push gets a preview |
+| Realtime | **not deployed.** Fly.io is step 9.8, and multiplayer does not work until it is |
+
+The two marketplace integrations set `DATABASE_URL` and `REDIS_URL` on all
+three environments themselves; neither was pasted by hand. `BETTER_AUTH_URL`
+and `NEXT_PUBLIC_SITE_URL` are production-only and both name the production
+domain — a preview leaves them unset, so `siteOrigin()` falls back to Vercel's
+own URL, which is what a preview should say about itself.
+
+Verified against the running deployment rather than in a test: `commit` in
+`/api/health` equals the pushed SHA, `GET /` answers titled HTML 200, and a
+real solo round starts, scores and reveals its solution — with no explanation,
+hint or position in the start payload.

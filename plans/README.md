@@ -34,7 +34,7 @@ previous one unless its file says otherwise.
 | 6 | Design system | ⚠️ **six steps delivered** — exit gate awaits a decision | `rewrite/phase-06-design-system.md` |
 | 7 | Frontend — lobby and waiting room | ✅ **done** | `rewrite/phase-07-frontend-lobby.md` |
 | 8 | Frontend — the round | ✅ **done** | `rewrite/phase-08-frontend-round.md` |
-| 9 | Observability and CI/CD | **in progress** — 9.1–9.9 done; 9.10 needs an administrator | `rewrite/phase-09-observability-and-cicd.md` |
+| 9 | Observability and CI/CD | **in progress** — the web app is deployed and probed; 9.8 (Fly) and 9.10 (ruleset) need a human | `rewrite/phase-09-observability-and-cicd.md` |
 | 10 | Cutover — removing the Python | **in progress** — only 10.11 is left, and it needs a human | `rewrite/phase-10-cutover.md` |
 | 11 | Internationalisation | to do | `rewrite/phase-11-i18n.md` |
 

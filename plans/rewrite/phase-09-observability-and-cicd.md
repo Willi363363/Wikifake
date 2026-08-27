@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — 9.1–9.9 done; 9.10 needs an administrator |
+| **State** | **in progress** — 9.7 deployed and verified live; 9.8 and 9.10 need a human |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
