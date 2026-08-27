@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — 9.1 done, 9.5 done (brought forward) |
+| **State** | **in progress** — 9.1 done, 9.2 done, 9.5 done (brought forward) |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
@@ -46,6 +46,11 @@ Vitest equivalent, including "the key never appears in the serialised
 JSON".
 
 ### 9.2 — Usage dashboard on `llm_call`
+
+✅ **Done** — `handleUsage` reads `readUsageTotals` and `readUsageByKind` from the
+`llm_call` table; five Vitest equivalents of `test_usage.py` committed, including
+the route shape test (`usage` and `cache` keys, `ttlSeconds` present when the
+cache is reachable, `null` when it is not) and the division-by-zero guard.
 
 `/api/usage` reads the `llm_call` table instead of in-memory counters:
 input/output tokens per call type, failures counted separately,
