@@ -40,8 +40,15 @@ jobs:
         with:
           fetch-depth: 0
 
+      # The base branch is passed too: it is what tells the documented
+      # `staging` → `main` promotion from a protected branch that received a
+      # direct commit. Both refs go through the environment rather than through
+      # interpolation, so a branch name can never become shell.
       - name: Branch name
-        run: bash scripts/checks.sh branch "${{ github.event.pull_request.head.ref }}"
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: bash scripts/checks.sh branch "$HEAD_REF" "$BASE_REF"
 
       - name: Contents of changed files
         env:
