@@ -1,9 +1,12 @@
-// C7.2, field by field. The pitfall the phase sheet names: "the deployment probe
-// dies silently if /api/health changes by one field", so every field is asserted
-// by name and by type, not by a snapshot that would happily absorb a rename.
+// C7.1 and C7.2, field by field. The pitfall the phase sheet names: "the
+// deployment probe dies silently if /api/health changes by one field", so every
+// field is asserted by name and by type, not by a snapshot that would happily
+// absorb a rename.
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+
+import { healthApi } from '@wikifake/protocol';
 
 import { deployedCommit, deploymentIdentity, VERSION } from './deployment.js';
 
@@ -67,14 +70,23 @@ describe('C7.2 — the deployment identity', () => {
 });
 
 describe('the commit, from whichever platform provided it', () => {
-  // The same three names as `backend/src/api/health.py`, in the same order. A
-  // fourth invented here, or a different precedence, is a probe that waits.
-  it('prefers RENDER_GIT_COMMIT, then GIT_COMMIT, then SOURCE_COMMIT', () => {
+  // VERCEL_GIT_COMMIT_SHA is the Vercel system variable; the three Render-style
+  // names follow for backward compatibility while the Python still runs there.
+  // A different precedence or a missing name is a probe that waits forever.
+  it('prefers VERCEL_GIT_COMMIT_SHA, then RENDER_GIT_COMMIT, GIT_COMMIT, SOURCE_COMMIT', () => {
     expect(
-      deployedCommit({ RENDER_GIT_COMMIT: 'a', GIT_COMMIT: 'b', SOURCE_COMMIT: 'c' }),
-    ).toBe('a');
-    expect(deployedCommit({ GIT_COMMIT: 'b', SOURCE_COMMIT: 'c' })).toBe('b');
-    expect(deployedCommit({ SOURCE_COMMIT: 'c' })).toBe('c');
+      deployedCommit({
+        VERCEL_GIT_COMMIT_SHA: 'v',
+        RENDER_GIT_COMMIT: 'r',
+        GIT_COMMIT: 'g',
+        SOURCE_COMMIT: 's',
+      }),
+    ).toBe('v');
+    expect(
+      deployedCommit({ RENDER_GIT_COMMIT: 'r', GIT_COMMIT: 'g', SOURCE_COMMIT: 's' }),
+    ).toBe('r');
+    expect(deployedCommit({ GIT_COMMIT: 'g', SOURCE_COMMIT: 's' })).toBe('g');
+    expect(deployedCommit({ SOURCE_COMMIT: 's' })).toBe('s');
     expect(deployedCommit({})).toBe('');
   });
 });
@@ -108,6 +120,18 @@ describe('the API key never appears', () => {
     );
 
     expect(serialised).not.toContain(SECRET);
+  });
+});
+
+describe('C7.1 — the ping contract', () => {
+  // Equivalent of test_ping_stays_minimal: load balancers expect exactly
+  // {"status": "alive"} — the literal schema refuses anything else, including
+  // the "ok" that /api/health uses.
+  it('is exactly {"status": "alive"} — the literal refuses anything else', () => {
+    expect(healthApi.pingResponse.parse({ status: 'alive' })).toStrictEqual({
+      status: 'alive',
+    });
+    expect(() => healthApi.pingResponse.parse({ status: 'ok' })).toThrow();
   });
 });
 

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — 9.5 done, brought forward |
+| **State** | **in progress** — 9.1 done, 9.5 done (brought forward) |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
@@ -28,6 +28,11 @@ verification loop (`deploy-check.yml`) and the documentation lock
 ## Steps
 
 ### 9.1 — `/api/health` contract preserved field by field
+
+✅ **Done** — `VERCEL_GIT_COMMIT_SHA` added as the primary commit source on the
+web side (Render-style variables remain for backward compatibility); Vitest
+equivalents of all five Python tests committed, including the ping literal and
+the key-never-appears assertion by value.
 
 `GET /ping` answers exactly `{"status": "alive"}`. `GET /api/health`
 exposes `status`, `version`, `commit` (string present even when empty
