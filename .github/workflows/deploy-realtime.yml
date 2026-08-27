@@ -1,0 +1,70 @@
+name: Deploy realtime
+
+# The realtime service to Fly.io, on a push to `main` that touched it.
+#
+# The commit is passed as a build argument rather than read from the platform:
+# Fly injects no commit variable of its own, so `/api/health` would answer an
+# empty string and the `deploy-check` probe would wait for a match that cannot
+# come. Baking it into the image is the whole mechanism.
+#
+# The job skips itself cleanly when `FLY_API_TOKEN` is not set, so a fork never
+# sees its CI fail on a secret it has no reason to hold:
+#
+#   Settings → Secrets and variables → Actions → Secrets → New
+#   FLY_API_TOKEN = <flyctl auth token>
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/realtime/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/deploy-realtime.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-realtime
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Fly.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Is a token configured?
+        id: config
+        env:
+          TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          set -u
+          if [ -z "$TOKEN" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "### Deploy skipped"
+              echo
+              echo "The \`FLY_API_TOKEN\` secret is not set."
+              echo "Set it in **Settings → Secrets and variables → Actions → Secrets**."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+        if: steps.config.outputs.configured == 'true'
+
+      - name: Deploy
+        if: steps.config.outputs.configured == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          flyctl deploy \
+            --config apps/realtime/fly.toml \
+            --dockerfile apps/realtime/Dockerfile \
+            --build-arg FLY_GIT_COMMIT="$GITHUB_SHA" \
+            --remote-only

@@ -12,6 +12,15 @@ frontend/node_modules
 frontend/dist
 frontend/.smoke
 
+# The monorepo installs inside the image. Copying a local `node_modules` in
+# would overlay the install with binaries built for another platform, and a
+# pnpm store is a forest of symlinks that does not survive the copy anyway.
+node_modules
+apps/*/node_modules
+packages/*/node_modules
+apps/web/.next
+.turbo
+
 # Secrets and runtime data
 .env
 data/
