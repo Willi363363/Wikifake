@@ -25,6 +25,18 @@ refuses locally, but the ruleset is what decides.
 4. Open the PR to `staging`. Green CI, then merge.
 5. When `staging` is stable, a `staging` → `main` PR promotes the batch.
 
+### The promotion is the one exception to the branch rule
+
+Every other pull request has a `<type>/<subject>` head, and a protected branch
+as a head means somebody committed where they should not have. The promotion is
+the exception the rules know about: `scripts/checks.sh branch <head> <base>`
+accepts `staging` — and only `staging` — when the base is `main`. Any other
+protected head is still refused, and so is a push to one.
+
+Without that pair, the conformance check refused the promotion for bearing the
+name of the branch it is supposed to promote, and no batch could reach
+production without the check being skipped rather than passed.
+
 ### Why update before, not during
 
 A conflict gets resolved properly on a working branch: you have the context,
