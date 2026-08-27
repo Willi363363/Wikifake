@@ -28,7 +28,10 @@ export type {
 
 export { cn } from './cn.js';
 
-export { Button, buttonVariants } from './primitives/button.js';
+export { Button } from './primitives/button.js';
+// Not from `button.js`: the classes sit outside its `'use client'` boundary so a
+// Server Component can call them. See `primitives/button-variants.ts`.
+export { buttonVariants } from './primitives/button-variants.js';
 export type { ButtonProps } from './primitives/button.js';
 export { Badge, badgeVariants } from './primitives/badge.js';
 export type { BadgeProps } from './primitives/badge.js';
