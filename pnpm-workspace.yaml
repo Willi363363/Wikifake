@@ -5,6 +5,10 @@ packages:
 # pnpm refuses to run install scripts by default: every exception is explicit.
 # esbuild compiles its native binary, and vitest depends on it.
 allowBuilds:
+  # `@sentry/cli` downloads its binary at install time. Allowed here so the
+  # sourcemap-upload step in CI can use it; it is absent from local installs
+  # (no binary needed for error reporting alone).
+  '@sentry/cli': true
   esbuild: true
   # A native accelerator for `msgpackr`, which BullMQ uses to encode job data.
   # Optional by design: msgpackr falls back to its JavaScript path, and a queue

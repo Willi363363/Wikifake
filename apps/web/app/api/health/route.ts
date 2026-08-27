@@ -7,6 +7,7 @@
 import { healthApi } from '@wikifake/protocol';
 
 import { deploymentIdentity } from '../../../src/deployment.js';
+import { logger } from '../../../src/logger.js';
 import { json } from '../../../src/respond.js';
 
 /**
@@ -20,5 +21,7 @@ import { json } from '../../../src/respond.js';
 export const dynamic = 'force-dynamic';
 
 export function GET(): Response {
-  return json(healthApi.healthResponse, deploymentIdentity());
+  const identity = deploymentIdentity();
+  logger.debug({ commit: identity.commit, version: identity.version }, 'GET /api/health');
+  return json(healthApi.healthResponse, identity);
 }
