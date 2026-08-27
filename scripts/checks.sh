@@ -104,6 +104,12 @@ check_logging() {
 # --- documentation ---------------------------------------------------------
 # All documentation lives in plans/, in files of at most 200 lines. Longer
 # documentation does not get reread, so it becomes wrong.
+#
+# `.agents/` and `.claude/skills/` are excluded, and they are not an exception
+# to the rule: they hold vendored agent skills that arrive with a tool — the
+# Neon and Upstash marketplace integrations install several hundred lines each.
+# The rule is about documentation this repository authors, the way
+# `node_modules` is excluded rather than exempted. They are gitignored too.
 check_docs() {
   local f n
   while IFS= read -r f; do
@@ -120,7 +126,8 @@ check_docs() {
         ;;
     esac
   done < <(find . -name '*.md' -not -path './.git/*' -not -path '*/node_modules/*' \
-                  -not -path './venv/*' -not -path '*/.smoke/*' -print 2>/dev/null \
+                  -not -path './.agents/*' -not -path './.claude/skills/*' \
+                  -not -path '*/.smoke/*' -print 2>/dev/null \
              | sed 's|^\./||' | sort)
 }
 

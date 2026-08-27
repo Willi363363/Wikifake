@@ -20,7 +20,14 @@ playwright-report/
 # Vercel CLI: the local project link and the env it pulls down.
 .vercel
 
-# Every local env file, but never the committed example.
-.env.local
-.env.*.local
+# Every local env file — including whatever `vercel env pull` writes, which
+# carries real credentials. The negation comes last, because in gitignore the
+# later pattern wins.
+.env*
 !.env.example
+
+# Vendored agent skills, installed by tooling — the marketplace integrations
+# drop several hundred lines of provider documentation each.
+.agents/
+.claude/skills/
+skills-lock.json
