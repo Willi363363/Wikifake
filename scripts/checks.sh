@@ -127,23 +127,18 @@ check_docs() {
 # --- available linters -----------------------------------------------------
 # Nothing is force-installed: each linter runs if present, and its absence is
 # reported rather than silently skipped.
+# The Python branch left with the Python in step 10.9: there is no `.py` in the
+# repository any more, and a linter that can no longer be reached is a linter
+# nobody will notice has stopped running.
 check_lint() {
-  local py=() js=()
+  local js=()
   for f in "$@"; do
     [ -f "$f" ] || continue
-    case "$f" in *.py) py+=("$f");; *.js|*.jsx|*.ts|*.tsx) js+=("$f");; esac
+    case "$f" in *.js|*.jsx|*.ts|*.tsx) js+=("$f");; esac
   done
-  if [ ${#py[@]} -gt 0 ]; then
-    if command -v ruff >/dev/null 2>&1; then
-      ruff check -q "${py[@]}" || fail=1
-    elif command -v python3 >/dev/null 2>&1; then
-      for f in "${py[@]}"; do PYTHONDONTWRITEBYTECODE=1 python3 -m py_compile "$f" 2>&1 || err "$f: syntax error"; done
-      info "ruff not installed — syntax check only"
-    fi
-  fi
   if [ ${#js[@]} -gt 0 ]; then
     local eslint='' config=''
-    for c in node_modules/.bin/eslint frontend/node_modules/.bin/eslint; do
+    for c in node_modules/.bin/eslint; do
       [ -x "$c" ] && eslint="$c" && break
     done
     # An `ls` over several patterns fails as soon as one is missing: test each

@@ -28,8 +28,7 @@ Two known leftovers, both already scheduled:
   request blocks forever on a check that never reports. Phase 9 handles it.
 
 Do not translate what would break on translation: branch names, environment
-variable names, existing check contexts, and anything quoted from the current
-Python code.
+variable names and existing check contexts.
 
 ## Commits
 
@@ -147,7 +146,7 @@ Both sides run the **same** file, `scripts/checks.sh`: there is no local
 version and no CI version drifting apart.
 
 ```bash
-git config core.hooksPath .githooks        # once per clone, or make hooks
+git config core.hooksPath .githooks        # once per clone, or pnpm hooks
 bash scripts/checks.sh staged              # what the hook will run
 bash scripts/checks.sh diff origin/staging # what CI will run
 ```

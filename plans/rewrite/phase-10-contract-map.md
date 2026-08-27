@@ -25,7 +25,7 @@ hold a line, the first named is the one that would fail first.
 
 | Id | Test |
 |---|---|
-| C2.1 | `packages/domain/src/scoring.test.ts` — “C2.1 — the scale” and “C2.1, C2.3 — the time bonus”. No second copy of the scale: `packages/domain/src/scale-parity.test.ts` — “the Python scale agrees with C2.1”, “the frontend copy agrees with C2.1” |
+| C2.1 | `packages/domain/src/scoring.test.ts` — “C2.1 — the scale”: *keeps the constants the contract names*, and “C2.1, C2.3 — the time bonus”. There is no second copy of the scale left to hold to it — `scale-parity.test.ts` went with the two it compared against, at step 10.9 |
 | C2.2 | `packages/domain/src/hints.test.ts` — “C2.2 — the penalty is not cumulative”: *charges 200 for a reveal, not 250*. Also `packages/domain/src/scoring.test.ts` — “C2.2 — a hint level costs its total, not the sum”, and over HTTP `apps/web/app/api/game/hint/route.test.ts` — *charges the difference when the reveal follows the nudge* |
 | C2.3 | `packages/domain/src/scoring.test.ts` — “C2.3 — a score can be negative” and “C2.1, C2.3 — the time bonus”. Through the route: `apps/web/app/api/game/submit/route.test.ts` — *lets a score go negative*, *gives no time bonus to a round that ran over* |
 | C2.4 | `packages/domain/src/scoring.test.ts` — “C2.4 — the leaderboard”. In the reducer: `packages/domain/src/room/round.test.ts` — *C2.4 — orders the leaderboard by descending score*. On screen: `apps/web/src/round/leaderboard.test.tsx` |
@@ -86,7 +86,7 @@ hold a line, the first named is the one that would fail first.
 
 | Id | Test |
 |---|---|
-| C8.1 | `packages/protocol/src/ws/dispatch-parity.test.ts` — “the inbound catalogue equals the dispatch table”, “the outbound catalogue equals what the server emits”; `packages/protocol/src/rest/route-parity.test.ts` — “the REST catalogue equals the route decorators” |
+| C8.1 | `apps/web/src/route-parity.test.ts` — “C8.1 — the REST catalogue equals the routes that exist”, and `apps/realtime/src/catalogue-parity.test.ts` — “C8.1 — the outbound catalogue equals what the server emits”. The inbound half needs no test: `frames.ts` decodes with `incomingMessage`, so the schema **is** the dispatch table, and the reducer switches over the union with no `default`, so an unhandled type is a compile error. Both replaced the Python-reading pair at step 10.9 |
 | C8.2 | `packages/protocol/src/docs/docs.test.ts` — *matches what is committed at %s*, over the four generated pages, plus the 200-line and trailing-newline checks a generated page has to pass too |
 
 ## What the grid found
@@ -103,6 +103,14 @@ the front door answered 307 and no document. A missing test had been hiding a
 broken clause, which is the argument for this grid in one line.
 
 With 10.0 delivered, every line of the contract points at a named test, and
-those tests run: 1,929 unit and integration cases across the ten packages,
+those tests run: 1,884 unit and integration cases across the ten packages,
 plus eleven browser journeys. Nothing is skipped when Postgres and Redis are
 present, which is how CI runs them.
+
+Step 10.9 then deleted the old stack, and with it the six tests that compared
+the new one to it. Five were redundant the moment their subject went — the
+scale, the item identifiers and the token transcription are each asserted
+against the contract directly. **C8.1 was not**, and it was rebuilt rather
+than dropped: the two cells above name its replacements, which hold the same
+line against the routes and the messages of `apps/`. That is what C8.2 means
+by "otherwise the guarantee disappears without a sound".
