@@ -17,6 +17,8 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 
+import { absolute, SITE_DESCRIPTION, SITE_TITLE, siteOrigin } from '../src/indexing.js';
+
 import './globals.css';
 
 /**
@@ -24,11 +26,40 @@ import './globals.css';
  *
  * English from step 8.10, like every other word the game says. It becomes
  * per-locale in step 11.5, alongside the `hreflang` alternates.
+ *
+ * Step 10.0 adds the three halves that were missing and that C6.3 names: the
+ * canonical link, Open Graph and the Twitter card. Without them a shared link
+ * shows neither title nor image, which is what the old stack's `indexing.test.js`
+ * was written to prevent, and a preview URL competes with production for the
+ * same content in an index.
+ *
+ * `metadataBase` is what lets every relative URL below resolve — Next resolves
+ * `alternates` and `openGraph.url` against it, so the origin is decided once, in
+ * `src/indexing.ts`, and not spelled out per tag.
+ *
+ * No `og:locale`: the old stack declared `fr_FR`, and the honest value now is
+ * neither that nor `en`, since the document is still `lang="fr"` under an
+ * English interface. Step 11.5 owns that pair and will set both together.
  */
 export const metadata: Metadata = {
-  title: 'WikiFake',
-  description:
-    'A misinformation game: a Wikipedia article, some errors slipped into it, and you.',
+  metadataBase: new URL(siteOrigin()),
+  title: SITE_TITLE,
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: 'WikiFake',
+    url: absolute('/'),
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ['/image.png'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    images: ['/image.png'],
+  },
 };
 
 /**
