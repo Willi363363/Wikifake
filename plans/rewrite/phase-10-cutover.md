@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — only 10.11 is left, and it needs a human |
+| **State** | **in progress** — production runs the new stack; 10.10's dry run and the Fly deployment are left |
 | **Branch** | `feat/rewrite-phase-10-contract` |
 | **Depends on** | all the others (0 to 9) |
 | **Delivers** | a repository without Python, production on the new stack |
@@ -60,7 +60,7 @@ when Postgres and Redis are present, which is how CI runs them.
 |---|---|---|
 | 10.9 | Delete the Python | ✅ done |
 | 10.10 | Rig the rollback net | ⚠️ written — the dry run needs a human |
-| 10.11 | Merge and cut production over | to do |
+| 10.11 | Merge and cut production over | ✅ done |
 | 10.12 | Rewrite the current state | ✅ done |
 
 Definitions: `phase-10-steps-cutover.md`.
@@ -75,9 +75,20 @@ routes and the messages of `apps/`. The inbound half stopped needing a test at
 all, which is the rewrite's own argument in miniature — the schema *is* the
 dispatch table, so the drift a test looked for cannot happen.
 
-What 10.9 did **not** do: 10.11 still owns the cutover. Render keeps serving
-the public domain from the image it already built, and `DEPLOY_URL` keeps
-probing it.
+**10.11 is done, and production is the proof.** `staging` reached `main` as
+`35e0a33`, and `/api/health` on the deployed web app answers that exact SHA —
+the mechanism C7.2 and `deploy-check` both rest on. A real round was generated
+against the live deployment: 100 paragraphs, 4 falsifications, and no
+explanation, hint or position anywhere in the payload. Eleven contract
+guarantees were re-verified against production rather than against a test
+runner, C3.1 among them.
+
+What 10.11 did **not** finish, and what 10.9 had already flagged: **Render
+still holds the public domain**, suspended, so the public address does not
+answer — `wikifake.vercel.app` does. `phase-10-cutover-runbook.md` owns that
+move. And **`apps/realtime` has never been deployed**, so production serves the
+solo game alone; the socket service belongs to step 9.8, and the exit gate
+below waits on it.
 
 **10.10 is written and not run.** The procedure is
 `phase-10-rollback.md` — one page, read before 10.11 rather than during. Its
@@ -97,12 +108,18 @@ business holding and gained three the new stack actually has.
 
 ## Exit gate
 
-- The grid of `01-contract-to-preserve.md` is checked off in full: every
+**Not passed.** Two lines of it are outstanding, and both need a human.
+
+- ✅ The grid of `01-contract-to-preserve.md` is checked off in full: every
   line points to a named test that passes in CI.
-- Not one Python file left in the repository; pnpm has replaced `make`.
-- Public production is served by Vercel and Fly, `deploy-check` green.
-- The rollback is written and has been dry-run.
-- The current state describes the real stack.
+- ✅ Not one Python file left in the repository; pnpm has replaced `make`.
+- ⚠️ Public production is served by Vercel and Fly, `deploy-check` green —
+  **half of it**. Vercel serves the web app and the probe is green against it.
+  Fly has never been deployed, so there is no socket service and no
+  multiplayer.
+- ⚠️ The rollback is written and has been dry-run — **written, never run.**
+  Step 10.10.
+- ✅ The current state describes the real stack.
 
 ## Contract touched
 

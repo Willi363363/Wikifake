@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — all six steps done, exit gate passed |
+| **State** | ✅ **done** — all six steps done, exit gate passed |
 | **Branch** | `feat/rewrite-phase-2` |
 | **Depends on** | phase 1 |
 | **Delivers** | `packages/db`: migrated Drizzle schema, typed client, seed |

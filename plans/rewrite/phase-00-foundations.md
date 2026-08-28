@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — PR open |
+| **State** | ✅ **done** — exit gate passed |
 | **Branch** | `feat/refonte-phase-0` (created before the English-only rule; later phases use `feat/rewrite-phase-N`) |
 | **Depends on** | nothing |
 | **Delivers** | a monorepo that builds and tests with no code in it |
