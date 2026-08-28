@@ -121,6 +121,23 @@ Two ways out, neither free: drop the action filter and pay the CI minutes, or
 give the job a no-op `else` branch that reports success only when it has
 genuinely re-read the rules. Not decided, so recorded.
 
+## The two services disagree about the version
+
+`/api/health` exposes `version` on both, and they do not match: `apps/web`
+answers `1.1.0`, `apps/realtime` answers `0.1.0`. Each reads its own
+`package.json`, and nothing asserts they agree — the parity test that existed
+compared `apps/web` to `backend/src/version.py` and left with the Python at step
+10.9.
+
+C7.2 is satisfied either way: it asks for the field, and the CI probe compares
+`commit`, not `version`. But two services deployed from one commit answering
+different versions is a wart, and somebody comparing the two probes will lose
+time over it.
+
+The fix needs a decision this note will not make: one version for the
+repository, or a version per deployable with a test that says so on purpose.
+Found while pre-flighting the Fly image, out of that step's scope, recorded.
+
 ## The structural debt is its own file
 
 The entries above are defects and gaps with a location. The notes that are
