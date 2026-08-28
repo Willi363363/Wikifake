@@ -34,8 +34,8 @@ previous one unless its file says otherwise.
 | 6 | Design system | ⚠️ **six steps delivered** — exit gate awaits a decision | `rewrite/phase-06-design-system.md` |
 | 7 | Frontend — lobby and waiting room | ✅ **done** | `rewrite/phase-07-frontend-lobby.md` |
 | 8 | Frontend — the round | ✅ **done** | `rewrite/phase-08-frontend-round.md` |
-| 9 | Observability and CI/CD | **in progress** — the web app is deployed and probed; 9.8 (Fly) and 9.10 (ruleset) need a human | `rewrite/phase-09-observability-and-cicd.md` |
-| 10 | Cutover — removing the Python | ⚠️ **production runs the new stack** — 10.10's dry run is left, and the exit gate waits on the Fly deployment | `rewrite/phase-10-cutover.md` |
+| 9 | Observability and CI/CD | **in progress** — the web app is deployed and probed; 9.8 (Render) and 9.10 (ruleset) need a human | `rewrite/phase-09-observability-and-cicd.md` |
+| 10 | Cutover — removing the Python | ⚠️ **production runs the new stack** — 10.10's dry run is left, and the exit gate waits on the socket deployment | `rewrite/phase-10-cutover.md` |
 | 11 | Internationalisation | to do | `rewrite/phase-11-i18n.md` |
 
 **This table is the only place that says where we stand.** It is updated when

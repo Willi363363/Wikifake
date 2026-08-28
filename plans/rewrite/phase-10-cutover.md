@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — production runs the new stack; 10.10's dry run and the Fly deployment are left |
+| **State** | **in progress** — production runs the new stack; 10.10's dry run and the socket deployment are left |
 | **Branch** | `feat/rewrite-phase-10-contract` |
 | **Depends on** | all the others (0 to 9) |
 | **Delivers** | a repository without Python, production on the new stack |
@@ -87,8 +87,8 @@ What 10.11 did **not** finish, and what 10.9 had already flagged: **Render
 still holds the public domain**, suspended, so the public address does not
 answer — `wikifake.vercel.app` does. `phase-10-cutover-runbook.md` owns that
 move. And **`apps/realtime` has never been deployed**, so production serves the
-solo game alone; the socket service belongs to step 9.8, and the exit gate
-below waits on it.
+solo game alone; the socket service belongs to step 9.8 — retargeted to Render
+since, Fly having wanted a card — and the exit gate below waits on it.
 
 **10.10 is written and not run.** The procedure is
 `phase-10-rollback.md` — one page, read before 10.11 rather than during. Its
@@ -113,10 +113,11 @@ business holding and gained three the new stack actually has.
 - ✅ The grid of `01-contract-to-preserve.md` is checked off in full: every
   line points to a named test that passes in CI.
 - ✅ Not one Python file left in the repository; pnpm has replaced `make`.
-- ⚠️ Public production is served by Vercel and Fly, `deploy-check` green —
-  **half of it**. Vercel serves the web app and the probe is green against it.
-  Fly has never been deployed, so there is no socket service and no
-  multiplayer.
+- ⚠️ Public production is served by Vercel and the socket host, `deploy-check`
+  green — **half of it**. Vercel serves the web app and the probe is green
+  against it. The socket service has never been deployed: step 9.8 retargeted it
+  from Fly, which asks for a card, to Render's free tier, and the blueprint is
+  committed and awaiting a sync.
 - ⚠️ The rollback is written and has been dry-run — **written, never run.**
   Step 10.10.
 - ✅ The current state describes the real stack.
