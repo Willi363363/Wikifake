@@ -7,19 +7,21 @@
 // in `PatternMatch`. The step asks that all six "launch and replay", so replay is
 // one control with one label rather than six inventions — and a player who has
 // finished a game does not have to work out which of them offers a way back.
+//
+// The label itself is the catalogue's (`controls.playAgain`): one key shared by
+// all six games, so a player still learns it once, in any locale.
 import { Button } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 
 export interface PlayAgainProps {
   onClick(): void;
 }
 
-/** The same label in all six, so a player learns it once. */
-export const PLAY_AGAIN = 'Play again';
-
 export function PlayAgain({ onClick }: PlayAgainProps) {
+  const t = useTranslations('waiting');
   return (
     <Button variant="ghost" onClick={onClick}>
-      {PLAY_AGAIN}
+      {t('controls.playAgain')}
     </Button>
   );
 }
@@ -30,6 +32,7 @@ export interface GameOverProps {
 
 /** The overlay the two arcade games end on. */
 export function GameOver({ onRestart }: GameOverProps) {
+  const t = useTranslations('waiting');
   return (
     <div
       // Above the board, and announced: a game that has ended looks exactly
@@ -37,7 +40,7 @@ export function GameOver({ onRestart }: GameOverProps) {
       className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-glass-strong backdrop-blur-sm"
       role="status"
     >
-      <p className="text-2xl text-ink">Game over</p>
+      <p className="text-2xl text-ink">{t('controls.gameOver')}</p>
       <PlayAgain onClick={onRestart} />
     </div>
   );

@@ -14,10 +14,11 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { GenerationScreen, SETTLE_MS } from './generation.js';
+import { render } from '../i18n/testing.js';
 import { APPROACH_MS, CEILING, progressAt, stageAt } from './progress.js';
 
 beforeEach(() => {

@@ -7,6 +7,7 @@
 // cancelled only when the jump finishes. Leave the screen mid-air and it goes
 // on ticking. Here the jump is part of the same tick, with the same numbers, so
 // there is one clock and the physics is a pure function of the last frame.
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { GameOver } from './controls.js';
@@ -103,6 +104,7 @@ export function jump(world: Dash): Dash {
 }
 
 export function DinoRun() {
+  const t = useTranslations('waiting');
   const timers = useTimers();
   const [world, setWorld] = useState<Dash>(START);
 
@@ -139,7 +141,7 @@ export function DinoRun() {
         <button
           type="button"
           onClick={leap}
-          aria-label="Jump"
+          aria-label={t('dino.jump')}
           className="relative h-28 w-full overflow-hidden rounded-md border border-line bg-bg-grain outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <span className="absolute inset-x-0 bottom-[22px] block h-px bg-line-strong" />
@@ -161,9 +163,11 @@ export function DinoRun() {
         ) : null}
       </div>
       <p className="font-mono text-xs tabular-nums text-muted" aria-live="polite">
-        Score {world.score}
+        {t('dino.score', { score: world.score })}
       </p>
-      <p className="text-xs text-muted">Tap, space or up to jump</p>
+      {/* "space" and "up" are the physical keys the handler binds (`Space`,
+          `ArrowUp`): a translation renames them, never rebinds them. */}
+      <p className="text-xs text-muted">{t('dino.howToPlay')}</p>
     </div>
   );
 }

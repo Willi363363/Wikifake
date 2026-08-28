@@ -1,0 +1,65 @@
+{
+  "launcher": {
+    "open": "Play while you wait",
+    "close": "Close",
+    "backToGames": "Games"
+  },
+  "games": {
+    "ttt": { "name": "Tic-Tac-Toe" },
+    "reaction": { "name": "Reaction Speed" },
+    "memory": { "name": "Memory Cards" },
+    "pattern": { "name": "Pattern Match" },
+    "snake": { "name": "Snake" },
+    "dino": { "name": "Agent Dash" }
+  },
+  "controls": {
+    "playAgain": "Play again",
+    "gameOver": "Game over"
+  },
+  "ttt": {
+    "boardLabel": "Tic-tac-toe board",
+    "squareEmpty": "Square {number}",
+    "squareMarked": "Square {number}, {mark}",
+    "youWin": "You win",
+    "opponentWins": "The opponent wins",
+    "draw": "Draw",
+    "yourTurn": "Your turn",
+    "thinking": "Thinking…",
+    "tally": "W {wins} · D {draws} · L {losses}"
+  },
+  "reaction": {
+    "fieldLabel": "The playing field",
+    "hitTarget": "Hit the target",
+    "wait": "Wait for the target…",
+    "tooEarly": "Too early",
+    "time": "{ms} ms",
+    "best": "best {ms} ms"
+  },
+  "memory": {
+    "gridLabel": "Memory cards",
+    "cardShowing": "Card {number}, {icon}",
+    "cardFaceDown": "Card {number}, face down",
+    "allMatched": "All matched",
+    "pairsProgress": "{found} of {total, plural, one {# pair} other {# pairs}}",
+    "moves": "{moves, plural, one {# move} other {# moves}}"
+  },
+  "pattern": {
+    "gridLabel": "Pattern grid",
+    "square": "Square {number}",
+    "memorise": "Memorise the pattern…",
+    "pick": "Pick {count, plural, one {# square} other {# squares}}",
+    "perfect": "Perfect",
+    "notQuite": "Not quite",
+    "progress": "level {level} · round {round}"
+  },
+  "snake": {
+    "boardLabel": "Snake, {length} long",
+    "score": "Score {score}",
+    "howToPlay": "Arrows or WASD to steer"
+  },
+  "dino": {
+    "jump": "Jump",
+    "score": "Score {score}",
+    "howToPlay": "Tap, space or up to jump"
+  }
+}
