@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress |
+| **State** | ✅ **done** — all ten steps done, exit gate passed |
 | **Branch** | `feat/rewrite-phase-1` |
 | **Depends on** | phase 0 |
 | **Delivers** | `packages/protocol` and `packages/domain`, pure and tested |
