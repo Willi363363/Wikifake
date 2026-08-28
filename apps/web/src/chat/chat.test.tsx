@@ -11,12 +11,13 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import { MAX_CHAT_LENGTH, type OutgoingMessage } from '@wikifake/protocol';
 import { useState, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { ChatDock } from './chat.js';
+import { render } from '../i18n/testing.js';
 import { RealtimeProvider, useRealtimeMessages } from '../realtime/provider.js';
 import { installFakeSocket, opened } from '../realtime/testing.js';
 import type { FakeSocket } from '../realtime/testing.js';

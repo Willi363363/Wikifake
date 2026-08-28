@@ -91,3 +91,20 @@ the bill arrives at a later promotion, in a pull request that did nothing wrong.
 event payload. Measuring `github.event.pull_request.title` on `opened`,
 `edited` and `reopened` would refuse it before a commit exists, which is the only
 moment it is still cheap.
+
+## Protocol and socket sentences reach players untranslated
+
+`chat.tsx` falls back to `decode` issue sentences from `@wikifake/protocol`, and
+the realtime provider shows close reasons authored in `apps/realtime`
+(`name_taken`, `room_not_found`, `invalid_name`). They are English under any
+interface locale.
+
+Structural rather than a defect with a location, and that is why it sits here
+rather than in the register next door: the fix is not to catalogue a string in
+`apps/web`, it is to decide that a package which authors a player-visible
+sentence must emit a **code** the client translates. That decision belongs to
+`@wikifake/protocol` and `apps/realtime`, not to step 11.2's zones, and it would
+change what those packages are allowed to put on the wire.
+
+Recorded during phase 11 because the zone work ran into it and could not fix it
+from where it stood.

@@ -15,6 +15,7 @@
 // would have to remember to mount it again.
 import { chatContent, decode, MAX_CHAT_LENGTH } from '@wikifake/protocol';
 import { cn } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 
 import { appended, type ChatLine } from './log.js';
@@ -24,6 +25,7 @@ import { useRealtime, useRealtimeMessages } from '../realtime/provider.js';
 const COUNTER_FROM = MAX_CHAT_LENGTH - 60;
 
 export function ChatDock() {
+  const t = useTranslations('small.chat');
   const { status, me, send } = useRealtime();
   const [log, setLog] = useState<readonly ChatLine[]>([]);
   const [open, setOpen] = useState(false);
@@ -60,7 +62,9 @@ export function ChatDock() {
     // bound this form applies cannot disagree — C5.4, in one place.
     const read = decode(chatContent, draft);
     if (!read.ok) {
-      setWrong(read.issues[0] ?? 'that message cannot be sent');
+      // The schema's own sentence when it has one — that is server-authored
+      // data; the catalogue only owns the fallback.
+      setWrong(read.issues[0] ?? t('errors.cannotSend'));
       return;
     }
     setWrong(null);
@@ -90,15 +94,11 @@ export function ChatDock() {
         onClick={() => {
           setOpen(true);
         }}
-        aria-label={
-          unread === 0
-            ? 'Open the room chat'
-            : `Open the room chat, ${String(unread)} unread`
-        }
+        aria-label={unread === 0 ? t('open') : t('openUnread', { count: unread })}
         className="fixed top-1/2 right-0 z-40 flex h-28 -translate-y-1/2 items-center gap-2 rounded-l-xl border border-r-0 border-line bg-glass-strong px-2 shadow-md backdrop-blur-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         <span className="font-mono text-[11px] tracking-[0.1em] text-ink uppercase [writing-mode:vertical-rl] [transform:rotate(180deg)]">
-          Chat
+          {t('tab')}
         </span>
         {unread === 0 ? null : (
           <span
@@ -112,17 +112,17 @@ export function ChatDock() {
 
   return (
     <aside
-      aria-label="Room chat"
+      aria-label={t('title')}
       className="fixed inset-y-0 right-0 z-40 flex w-full max-w-sm flex-col border-l border-line bg-surface shadow-lg"
     >
       <header className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
-        <h2 className="text-base text-ink">Room chat</h2>
+        <h2 className="text-base text-ink">{t('title')}</h2>
         <button
           type="button"
           onClick={() => {
             setOpen(false);
           }}
-          aria-label="Close the room chat"
+          aria-label={t('close')}
           className="rounded-md px-2 py-1 text-sm text-muted outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
         >
           ✕
@@ -138,7 +138,7 @@ export function ChatDock() {
         className="flex-1 space-y-3 overflow-y-auto px-4 py-4"
       >
         {log.length === 0 ? (
-          <p className="text-center text-sm text-muted italic">Nothing said yet.</p>
+          <p className="text-center text-sm text-muted italic">{t('empty')}</p>
         ) : (
           log.map((line, at) => {
             const mine = me !== null && line.sender === me;
@@ -148,7 +148,8 @@ export function ChatDock() {
                 className={cn('flex flex-col gap-1', mine ? 'items-end' : 'items-start')}
               >
                 <span className="px-1 font-mono text-[10px] text-muted">
-                  {mine ? 'you' : line.sender}
+                  {/* The nickname is the player's own data; only "you" is ours. */}
+                  {mine ? t('selfSender') : line.sender}
                 </span>
                 <p
                   className={cn(
@@ -176,14 +177,12 @@ export function ChatDock() {
           // guards what a cap cannot — a message that is only spaces.
           maxLength={MAX_CHAT_LENGTH}
           rows={2}
-          aria-label="Your message"
-          placeholder="Say something"
+          aria-label={t('inputAria')}
+          placeholder={t('inputPlaceholder')}
           className="w-full resize-none rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent"
         />
         <div className="mt-1 flex items-baseline justify-between gap-2">
-          <span className="text-[11px] text-muted">
-            Enter sends, shift+enter breaks a line
-          </span>
+          <span className="text-[11px] text-muted">{t('sendHint')}</span>
           {draft.length < COUNTER_FROM ? null : (
             <span className="font-mono text-[11px] tabular-nums text-muted">
               {String(draft.length)}/{String(MAX_CHAT_LENGTH)}

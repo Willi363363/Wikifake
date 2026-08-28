@@ -9,6 +9,7 @@
 // because it is a different mount.
 import type { flagsApi } from '@wikifake/protocol';
 import { Badge, Button, Input, Label, Separator } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useId, useState, type FormEvent } from 'react';
 
 import { fateOf, readingOf, reportFlag, type Capture } from './flags.js';
@@ -39,6 +40,7 @@ export function FlagReport({
   onDone,
   onCancel,
 }: FlagReportProps) {
+  const t = useTranslations('small.flags');
   const ids = useId();
   const [correction, setCorrection] = useState('');
   const [explanation, setExplanation] = useState('');
@@ -80,14 +82,16 @@ export function FlagReport({
       <div
         role="status"
         className="rounded-lg border border-line bg-bg-grain p-4"
-        aria-label="What the check found"
+        aria-label={t('report.resultAria')}
       >
         <p className="flex flex-wrap items-center gap-2">
-          <Badge tone={reading.tone}>{reading.headline}</Badge>
+          <Badge tone={reading.tone}>{t(`verdict.${reading.id}`)}</Badge>
           <span className="font-mono text-xs tabular-nums text-muted">
-            {String(answer.verification.confidence)}% sure
+            {t('report.confidence', { confidence: answer.verification.confidence })}
           </span>
         </p>
+        {/* The reasoning is the model's own output, shown as received: its
+            language is whatever the model produced, not the interface's. */}
         <p className="mt-2 text-sm text-ink-2">{answer.verification.reasoning}</p>
 
         {answer.verification.sourcesFound.length === 0 ? null : (
@@ -98,7 +102,7 @@ export function FlagReport({
           </ul>
         )}
 
-        <p className="mt-3 text-xs text-muted">{fateOf(answer.status)}</p>
+        <p className="mt-3 text-xs text-muted">{t(`fate.${fateOf(answer.status)}`)}</p>
 
         <Button
           variant="ghost"
@@ -107,7 +111,7 @@ export function FlagReport({
             onDone(capture.id);
           }}
         >
-          Done
+          {t('report.done')}
         </Button>
       </div>
     );
@@ -116,18 +120,28 @@ export function FlagReport({
   return (
     <form onSubmit={submit} className="rounded-lg border border-line bg-bg-grain p-4">
       <p className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-        paragraph {String(capture.paragraphIndex)}
+        {t('paragraphTag', { number: capture.paragraphIndex })}
       </p>
-      <p className="mt-1 text-sm text-ink italic">“{capture.paragraphText}”</p>
+      <p className="mt-1 text-sm text-ink italic">
+        {/* The quotation marks are the interface's — French quotes «» differ
+            from English “” — while the quoted paragraph is fr.wikipedia.org
+            text and keeps its own `lang` whatever the interface locale. */}
+        {t.rich('report.quoted', {
+          text: capture.paragraphText,
+          fr: (quoted) => <span lang="fr">{quoted}</span>,
+        })}
+      </p>
       {capture.quickNote === '' ? null : (
-        <p className="mt-1 text-xs text-muted">Your note: {capture.quickNote}</p>
+        <p className="mt-1 text-xs text-muted">
+          {t('report.yourNote', { note: capture.quickNote })}
+        </p>
       )}
 
       <Separator className="my-4" />
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor={`${ids}-correction`}>What it should say</Label>
+          <Label htmlFor={`${ids}-correction`}>{t('report.correctionLabel')}</Label>
           <Input
             id={`${ids}-correction`}
             value={correction}
@@ -139,7 +153,7 @@ export function FlagReport({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor={`${ids}-why`}>Why, if you can say</Label>
+          <Label htmlFor={`${ids}-why`}>{t('report.explanationLabel')}</Label>
           <Input
             id={`${ids}-why`}
             value={explanation}
@@ -151,7 +165,7 @@ export function FlagReport({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor={`${ids}-sources`}>Sources, one link per line</Label>
+          <Label htmlFor={`${ids}-sources`}>{t('report.sourcesLabel')}</Label>
           <textarea
             id={`${ids}-sources`}
             value={sources}
@@ -166,7 +180,7 @@ export function FlagReport({
 
       <div className="mt-4 flex gap-2">
         <Button variant="ghost" className="flex-1" onClick={onCancel}>
-          Not now
+          {t('report.notNow')}
         </Button>
         <Button
           type="submit"
@@ -174,7 +188,7 @@ export function FlagReport({
           className="flex-[2]"
           disabled={busy || correction.trim() === ''}
         >
-          {busy ? 'Checking…' : 'Send the report'}
+          {busy ? t('report.checking') : t('report.send')}
         </Button>
       </div>
 

@@ -1,0 +1,70 @@
+{
+  "chat": {
+    "open": "Open the room chat",
+    "openUnread": "Open the room chat, {count} unread",
+    "tab": "Chat",
+    "title": "Room chat",
+    "close": "Close the room chat",
+    "empty": "Nothing said yet.",
+    "selfSender": "you",
+    "inputAria": "Your message",
+    "inputPlaceholder": "Say something",
+    "sendHint": "Enter sends, shift+enter breaks a line",
+    "errors": {
+      "cannotSend": "that message cannot be sent"
+    }
+  },
+  "flags": {
+    "paragraphTag": "paragraph {number}",
+    "capture": {
+      "title": "Report a real error",
+      "description": "Not one of ours — something Wikipedia itself gets wrong. Pick the paragraph; the report is written up at the end of the round.",
+      "paragraphGroup": "Which paragraph",
+      "paragraphOption": "Paragraph {number}",
+      "noteLabel": "A quick note, if you have one",
+      "notePlaceholder": "The date looks wrong",
+      "cancel": "Cancel",
+      "confirm": "Flag it"
+    },
+    "verdict": {
+      "likelyValid": "Looks right",
+      "uncertain": "Not sure",
+      "unsupported": "Not supported"
+    },
+    "fate": {
+      "pendingHumanReview": "A person will look at it.",
+      "aiReviewed": "Recorded, with the check above.",
+      "rejectedByAi": "Recorded, but it will not go further as it stands."
+    },
+    "panel": {
+      "title": "What you flagged",
+      "description": "Real errors in the source article, not the ones we put there. Write one up and it is checked, then kept.",
+      "writeUp": "Write it up",
+      "writeUpAria": "Write up the report for paragraph {number}",
+      "discardAria": "Discard the flag on paragraph {number}"
+    },
+    "report": {
+      "resultAria": "What the check found",
+      "confidence": "{confidence}% sure",
+      "done": "Done",
+      "quoted": "“<fr>{text}</fr>”",
+      "yourNote": "Your note: {note}",
+      "correctionLabel": "What it should say",
+      "explanationLabel": "Why, if you can say",
+      "sourcesLabel": "Sources, one link per line",
+      "notNow": "Not now",
+      "checking": "Checking…",
+      "send": "Send the report"
+    }
+  },
+  "solo": {
+    "title": "Solo",
+    "errors": {
+      "noTopic": "No topic was given.",
+      "badTopic": "That topic is not one we can look up."
+    },
+    "you": "You",
+    "playAgain": "Play again",
+    "back": "Back"
+  }
+}

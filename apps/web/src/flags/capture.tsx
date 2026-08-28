@@ -16,6 +16,7 @@ import {
   DialogTitle,
   Input,
 } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 /** How long a note may be. `quickNote` in the contract caps it at 500. */
@@ -34,6 +35,7 @@ export function FlagCapture({
   onOpenChange,
   onCapture,
 }: FlagCaptureProps) {
+  const t = useTranslations('small.flags.capture');
   const [chosen, setChosen] = useState<number | null>(null);
   const [note, setNote] = useState('');
 
@@ -52,16 +54,13 @@ export function FlagCapture({
       }}
     >
       <DialogContent className="max-w-lg">
-        <DialogTitle>Report a real error</DialogTitle>
-        <DialogDescription>
-          Not one of ours — something Wikipedia itself gets wrong. Pick the paragraph; the
-          report is written up at the end of the round.
-        </DialogDescription>
+        <DialogTitle>{t('title')}</DialogTitle>
+        <DialogDescription>{t('description')}</DialogDescription>
 
         <ul
           className="mt-4 max-h-[40vh] space-y-2 overflow-y-auto"
           role="radiogroup"
-          aria-label="Which paragraph"
+          aria-label={t('paragraphGroup')}
         >
           {paragraphs.map((text, at) => {
             const number = at + 1;
@@ -71,7 +70,7 @@ export function FlagCapture({
                   type="button"
                   role="radio"
                   aria-checked={chosen === number}
-                  aria-label={`Paragraph ${String(number)}`}
+                  aria-label={t('paragraphOption', { number })}
                   onClick={() => {
                     setChosen(number);
                   }}
@@ -86,7 +85,10 @@ export function FlagCapture({
                   <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
                     {String(number).padStart(2, '0')}
                   </span>{' '}
-                  {text}
+                  {/* A paragraph of the fr.wikipedia.org article: data, not
+                      interface copy — it keeps its own language whatever the
+                      interface locale. */}
+                  <span lang="fr">{text}</span>
                 </button>
               </li>
             );
@@ -95,13 +97,13 @@ export function FlagCapture({
 
         <div className="mt-4 space-y-1.5">
           <label htmlFor="flag-note" className="text-sm text-ink">
-            A quick note, if you have one
+            {t('noteLabel')}
           </label>
           <Input
             id="flag-note"
             value={note}
             maxLength={NOTE_LIMIT}
-            placeholder="The date looks wrong"
+            placeholder={t('notePlaceholder')}
             onChange={(event) => {
               setNote(event.target.value);
             }}
@@ -110,7 +112,7 @@ export function FlagCapture({
 
         <div className="mt-5 flex gap-2">
           <Button variant="ghost" className="flex-1" onClick={close}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             variant="primary"
@@ -122,7 +124,7 @@ export function FlagCapture({
               close();
             }}
           >
-            Flag it
+            {t('confirm')}
           </Button>
         </div>
       </DialogContent>
