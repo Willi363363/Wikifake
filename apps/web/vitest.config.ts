@@ -12,6 +12,13 @@ export default {
   esbuild: { jsx: 'automatic' as const },
   test: {
     ...baseConfig.test,
+    // `next-intl`'s ESM build imports `next/server` and `next/navigation`
+    // without an extension, which only a bundler resolves — `next` ships no
+    // `exports` map, so Node's ESM loader refuses the bare subpath. Inlined,
+    // the package goes through Vite's resolver like our own sources do. Next
+    // itself does the same job in production, so this changes where the
+    // imports resolve, not what they resolve to.
+    server: { deps: { inline: ['next-intl', 'use-intl'] } },
     // `.tsx` too, since phase 7: the client components are tested by rendering
     // them. Those files carry a `@vitest-environment jsdom` docblock — the route
     // handlers are the majority here and have no business paying for a DOM.

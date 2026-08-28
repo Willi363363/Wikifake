@@ -18,23 +18,21 @@ import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactNode } from 'react';
 
+import { LocaleSwitch } from '../../src/i18n/locale-switch.js';
 import {
   absolute,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_TITLE,
   siteOrigin,
-} from '../src/indexing.js';
+} from '../../src/indexing.js';
 
-import './globals.css';
+import '../globals.css';
 
 /**
  * C6.3 — the metadata, in the language of the interface.
  *
- * English from step 8.10, like every other word the game says. Since step
- * 11.2 the words themselves live in the message catalogue — `SITE_TITLE`,
- * `SITE_DESCRIPTION` and `SITE_NAME` read the `routes` zone's English file in
- * `src/indexing.ts`, where the search-result bounds are tested. It becomes
+ * English from step 8.10, like every other word the game says. It becomes
  * per-locale in step 11.5, alongside the `hreflang` alternates.
  *
  * Step 10.0 adds the three halves that were missing and that C6.3 names: the
@@ -93,7 +91,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             No props on purpose — rendered in a server component, the provider
             inherits the locale and the messages from `src/i18n/request.ts`,
             so the request configuration stays the single source of both. */}
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          {children}
+          {/* Step 11.3 — the explicit switch, in the one surface every screen
+              shares. Not navigation between screens (the restraint above
+              stands): it re-serves the page the player is on, in the other
+              language, and records the choice. */}
+          <footer className="flex justify-center pb-6">
+            <LocaleSwitch />
+          </footer>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

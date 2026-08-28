@@ -46,6 +46,15 @@ describe('C6.2 — robots.txt', () => {
     expect(everybody?.disallow).toContain('/solo');
   });
 
+  it('keeps them out of the same screens under a locale prefix', () => {
+    // Step 11.4 gave French its own routes: `/fr/room/...` renders the same
+    // falsified article as `/room/...`, and a disallow that names only the
+    // unprefixed path invites a crawler in through the prefixed one.
+    expect(everybody?.disallow).toContain('/fr/room/');
+    expect(everybody?.disallow).toContain('/fr/solo');
+    expect(everybody?.disallow).toContain('/fr/gallery');
+  });
+
   it('still lets the pages that are ours be read', () => {
     expect(everybody?.allow).toContain('/');
   });

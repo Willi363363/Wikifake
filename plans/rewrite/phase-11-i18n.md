@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales |
+| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales; 11.3 + 11.4 done: detection, the persistent switch, localised routing under `/fr`, no legacy URL 404s |
 | **Branch** | `feat/rewrite-phase-11` |
 | **Depends on** | phase 8 |
 | **Delivers** | an interface in English and French: catalogues, switch, localised routing, per-locale SEO |

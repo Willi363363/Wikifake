@@ -15,8 +15,8 @@
 // has to remember to mount it.
 import type { ReactNode } from 'react';
 
-import { ChatDock } from '../../src/chat/chat.js';
-import { RoomGate } from '../../src/realtime/room-gate.js';
+import { ChatDock } from '../../../src/chat/chat.js';
+import { RoomGate } from '../../../src/realtime/room-gate.js';
 
 export default function GameLayout({ children }: { children: ReactNode }) {
   return (

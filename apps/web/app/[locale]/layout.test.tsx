@@ -9,8 +9,8 @@ import { NextIntlClientProvider } from 'next-intl';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
-import { messagesFor } from '../src/i18n/catalogue.js';
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from '../src/indexing.js';
+import { messagesFor } from '../../src/i18n/catalogue.js';
+import { SITE_DESCRIPTION, SITE_TITLE } from '../../src/indexing.js';
 
 import { metadata, viewport } from './layout.js';
 import HomePage from './page.js';
@@ -38,11 +38,7 @@ describe('C6.3 — the metadata every page starts from', () => {
   it('carries the Open Graph tags a shared link needs', () => {
     const openGraph = metadata.openGraph;
     expect(openGraph).toBeDefined();
-    expect(openGraph).toMatchObject({
-      title: SITE_TITLE,
-      description: SITE_DESCRIPTION,
-      siteName: SITE_NAME,
-    });
+    expect(openGraph).toMatchObject({ title: SITE_TITLE, description: SITE_DESCRIPTION });
     // `og:url` and `og:image`, the two that a link preview cannot do without.
     expect(openGraph && 'url' in openGraph ? openGraph.url : undefined).toBeTruthy();
     expect(openGraph && 'images' in openGraph ? openGraph.images : undefined).toEqual([

@@ -10,9 +10,9 @@ import { NextIntlClientProvider } from 'next-intl';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
-import { messagesFor } from '../src/i18n/catalogue.js';
-import type { Locale } from '../src/i18n/locales.js';
-import { SITE_DESCRIPTION } from '../src/indexing.js';
+import { messagesFor } from '../../src/i18n/catalogue.js';
+import type { Locale } from '../../src/i18n/locales.js';
+import { SITE_DESCRIPTION } from '../../src/indexing.js';
 
 import HomePage from './page.js';
 

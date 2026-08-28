@@ -119,7 +119,7 @@ describe('8.10 — the article keeps its own language', () => {
     // C6.3 is a clause of the contract, and phase 11 amends the clause and this
     // test together when `lang` becomes per-locale. Changing it in a step that
     // does not own it is how a preserved guarantee goes quietly.
-    const layout = code(readFileSync(join(WEB, 'app', 'layout.tsx'), 'utf8'));
+    const layout = code(readFileSync(join(WEB, 'app', '[locale]', 'layout.tsx'), 'utf8'));
     expect(layout).toContain('<html lang="fr">');
   });
 });
