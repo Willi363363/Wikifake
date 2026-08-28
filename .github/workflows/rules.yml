@@ -36,12 +36,19 @@ jobs:
       contains(fromJson('["opened", "synchronize", "reopened"]'), github.event.action)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
+      # The base branch is passed too: it is what tells the documented
+      # `staging` → `main` promotion from a protected branch that received a
+      # direct commit. Both refs go through the environment rather than through
+      # interpolation, so a branch name can never become shell.
       - name: Branch name
-        run: bash scripts/checks.sh branch "${{ github.event.pull_request.head.ref }}"
+        env:
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+        run: bash scripts/checks.sh branch "$HEAD_REF" "$BASE_REF"
 
       - name: Contents of changed files
         env:
@@ -115,14 +122,14 @@ jobs:
       contains(fromJson('["opened", "synchronize", "reopened"]'), github.event.action)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       # scripts/checks.sh does regex-based detection: useful and immediate.
       # gitleaks is the dedicated tool: it knows the token formats, and scans
       # the range's history rather than only the final contents.
       - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: false
@@ -133,7 +140,7 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Detective, not preventive: prevention is the GitHub ruleset. If a
       # commit lands on an integration branch without a pull request, say so

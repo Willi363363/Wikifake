@@ -100,6 +100,44 @@ Nothing leaks: it renders components, not game state. Step 10.0 added it to the
 served", and the honest fix is either a `NODE_ENV` guard or a move behind auth.
 Not decided, so recorded.
 
+## A skipped run satisfies a required check
+
+Found while promoting the rewrite to `main`, and it is why that promotion
+merged on a check that never ran.
+
+`rules.yml`'s conformance job carries
+`if: ... contains(['opened','synchronize','reopened'], github.event.action)`, so
+a `labeled` event skips it — deliberately, to avoid burning CI minutes and
+cancelling an in-flight run through the concurrency group. But **GitHub treats a
+skipped required check as satisfied**, and the skipped run is the one the branch
+protection reads. So applying the `revu` label produced a green gate over a
+check that had failed on the previous run.
+
+The immediate cause is fixed: the promotion now passes the branch rule
+legitimately rather than failing it. The general shape is not — any required
+check whose job is conditional can be turned green by an event that skips it.
+
+Two ways out, neither free: drop the action filter and pay the CI minutes, or
+give the job a no-op `else` branch that reports success only when it has
+genuinely re-read the rules. Not decided, so recorded.
+
+## The two services disagree about the version
+
+`/api/health` exposes `version` on both, and they do not match: `apps/web`
+answers `1.1.0`, `apps/realtime` answers `0.1.0`. Each reads its own
+`package.json`, and nothing asserts they agree — the parity test that existed
+compared `apps/web` to `backend/src/version.py` and left with the Python at step
+10.9.
+
+C7.2 is satisfied either way: it asks for the field, and the CI probe compares
+`commit`, not `version`. But two services deployed from one commit answering
+different versions is a wart, and somebody comparing the two probes will lose
+time over it.
+
+The fix needs a decision this note will not make: one version for the
+repository, or a version per deployable with a test that says so on purpose.
+Found while pre-flighting the Fly image, out of that step's scope, recorded.
+
 ## The structural debt is its own file
 
 The entries above are defects and gaps with a location. The notes that are

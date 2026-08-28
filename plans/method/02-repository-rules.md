@@ -73,6 +73,21 @@ A pull request is mergeable when:
   `../current-state/05-known-debt.md`; it does not get fixed here.
 - **Report optimistically.** A failing test, a skipped step, a check that was
   never run: say it. A flattering report costs more than an announced failure.
+- **Grant itself the `revu` label, review a pull request, or merge one.** That
+  label is the one thing in this repository that says a human looked. An agent
+  applying it makes the record assert something false.
+
+### The deny list is a reminder, not a wall
+
+`.claude/settings.json` refuses the commands above by pattern. It is worth
+having, and it is worth knowing what it is not.
+
+**A pattern blocks a spelling, not an action.** The list named
+`gh api --method PUT` and not `gh api -X PUT`, and the short form went through —
+that is how a ruleset was edited during the phase-10 cutover by an agent the
+list was written to stop. Both forms of all four verbs are named now, but the
+next gap is a flag nobody thought of. The rules above are the actual boundary;
+the file only catches the obvious way across it.
 
 ## Repository structure
 
@@ -143,7 +158,12 @@ ruleset.
 | PR required, CI green | — | — | ruleset |
 
 Both sides run the **same** file, `scripts/checks.sh`: there is no local
-version and no CI version drifting apart.
+version and no CI version drifting apart. It carries its own tests, in
+`packages/config/src/branch-rules.test.ts`: a rule engine that disarms itself
+disarms both sides at once.
+
+One rule has an exception, and only one: the `staging` → `main` promotion is a
+pull request whose head is a protected branch. `01-git-flow.md` describes it.
 
 ```bash
 git config core.hooksPath .githooks        # once per clone, or pnpm hooks
