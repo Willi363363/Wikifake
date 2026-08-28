@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales; 11.3 + 11.4 done: detection, the persistent switch, localised routing under `/fr`, no legacy URL 404s; 11.5 done: `lang` and the SEO metadata follow the locale, C6.3 amended with its tests |
+| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales; 11.3 + 11.4 done: detection, the persistent switch, localised routing under `/fr`, no legacy URL 404s; 11.5 done: `lang` and the SEO metadata follow the locale, C6.3 amended with its tests; 11.6 done: the French catalogue, real translations held to the English keys by the build itself |
 | **Branch** | `feat/rewrite-phase-11` |
 | **Depends on** | phase 8 |
 | **Delivers** | an interface in English and French: catalogues, switch, localised routing, per-locale SEO |
@@ -96,6 +96,16 @@ game's French players already know from the legacy UI.
 
 **Done when**: the French catalogue has no missing key — the build fails on
 one — and a French run of every screen shows no English.
+
+**Done**: every zone's French file is a real translation, reviewed against
+the legacy Vite frontend's vocabulary (salle, gel du temps, pillage, tournis,
+le chrono). `catalogue.check.ts` holds every French zone to the English shape
+at the type level, so a missing or extra key refuses to compile — `tsc` and
+`next build` both fail, before any test runs. `catalogue.test.ts` further
+refuses a French message that reads identically to its English counterpart
+unless it is defended by name, which is what "no English on a French screen"
+means at the catalogue's level; the per-screen French renders remain the
+locale suites' (front door, attribution).
 
 ### 11.7 — CC BY-SA attribution in every locale
 

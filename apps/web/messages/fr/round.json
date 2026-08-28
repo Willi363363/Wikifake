@@ -72,11 +72,11 @@
       "blurb": "{lockSeconds, plural, one {Bloque ses indices pendant # seconde} other {Bloque ses indices pendant # secondes}}"
     },
     "freezeTime": {
-      "name": "Voleur de temps",
-      "blurb": "{freezeSeconds, plural, one {Dévore # seconde de son horloge} other {Dévore # secondes de son horloge}}"
+      "name": "Gel du temps",
+      "blurb": "{freezeSeconds, plural, one {Dévore # seconde de son chrono} other {Dévore # secondes de son chrono}}"
     },
     "scoreSteal": {
-      "name": "Pickpocket",
+      "name": "Pillage",
       "blurb": "{stealPoints, plural, one {Lui prend # point} other {Lui prend # points}}"
     },
     "scanner": {
@@ -89,8 +89,8 @@
     "rickroll": { "name": "Pop-up", "blurb": "Lui colle une fenêtre surgissante" },
     "mirror": { "name": "Miroir", "blurb": "Retourne son article" },
     "tiny": { "name": "Loupe cassée", "blurb": "Rétrécit son texte" },
-    "spin": { "name": "Vertige", "blurb": "Fait tourner son article" },
-    "confetti": { "name": "Fête", "blurb": "L’ensevelit sous les confettis" },
+    "spin": { "name": "Tournis", "blurb": "Fait tourner son article" },
+    "confetti": { "name": "Fête surprise", "blurb": "L’ensevelit sous les confettis" },
     "invert": { "name": "Négatif", "blurb": "Inverse ses couleurs" }
   },
   "itemTarget": {
@@ -147,7 +147,7 @@
       },
       "timeBonus": {
         "label": "Attribution du bonus de temps",
-        "note": "Ce qui restait à l’horloge"
+        "note": "Ce qui restait au chrono"
       },
       "final": { "label": "Classement final", "note": "Manche terminée" }
     },
@@ -169,7 +169,7 @@
       "subline": "aucun signal"
     },
     "blizzard": {
-      "aria": "{seconds, plural, one {Quelqu’un a pris # seconde à votre horloge} other {Quelqu’un a pris # secondes à votre horloge}}",
+      "aria": "{seconds, plural, one {Quelqu’un a pris # seconde à votre chrono} other {Quelqu’un a pris # secondes à votre chrono}}",
       "amount": "−{seconds}s"
     },
     "confetti": { "aria": "Quelqu’un a lancé une fête sur votre écran" },
