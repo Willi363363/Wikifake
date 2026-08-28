@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales |
 | **Branch** | `feat/rewrite-phase-11` |
 | **Depends on** | phase 8 |
 | **Delivers** | an interface in English and French: catalogues, switch, localised routing, per-locale SEO |
@@ -39,6 +39,10 @@ routing story. The choice is a decision of this step, not a given.
 
 **Done when**: the library is installed, wired into the app, and one screen
 renders through it in both locales as proof.
+
+**Decided**: `next-intl` — the choice, its reasons, the alternatives and the
+per-zone catalogue layout are in `phase-11-library-decision.md`. The proof
+screen is the front door (`page.locale.test.tsx`, both locales).
 
 ### 11.2 — Extract every user-facing string
 

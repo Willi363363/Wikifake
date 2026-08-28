@@ -5,8 +5,11 @@
 // one object — and the regex version of this file is the reason the assertions
 // below are the same assertions: `og:image` missing is a shared link with no
 // image, which is what killed propagation before anyone noticed.
+import { NextIntlClientProvider } from 'next-intl';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
+import { messagesFor } from '../src/i18n/catalogue.js';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../src/indexing.js';
 
 import { metadata, viewport } from './layout.js';
@@ -57,14 +60,20 @@ describe('C6.3 — the metadata every page starts from', () => {
 });
 
 describe('C7.3 — the front door is a page, not a redirect', () => {
-  it('renders a document instead of navigating away', () => {
+  it('renders a document instead of navigating away', async () => {
     // Until step 10.0 this module called `redirect('/play')`, which answers 307
     // and no document at all — while C7.3 asks for HTML 200 with a non-empty
-    // `<title>`, and the sitemap declares this very URL. Calling the component
-    // is what proves it: `redirect` throws, so a reinstated redirect fails here
-    // rather than only in a browser.
-    expect(() => HomePage()).not.toThrow();
-    expect(HomePage()).toBeTruthy();
+    // `<title>`, and the sitemap declares this very URL. Rendering the component
+    // is what proves it: `redirect` throws, through the render as well, so a
+    // reinstated redirect fails here rather than only in a browser. Rendered
+    // through the provider since step 11.1, because the page reads its copy
+    // from the catalogue — the way it ships.
+    const html = renderToStaticMarkup(
+      <NextIntlClientProvider locale="en" messages={await messagesFor('en')}>
+        <HomePage />
+      </NextIntlClientProvider>,
+    );
+    expect(html).toContain('<main');
   });
 
   it('has a title to serve, and it is not empty', () => {
