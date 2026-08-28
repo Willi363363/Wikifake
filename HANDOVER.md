@@ -14,12 +14,16 @@ label each.
 
 ## State at the pause
 
-- **Branch:** `docs/handover-phase-10`, cut from `staging`. Working tree clean,
+- **Branch:** `docs/handover-phase-10`, rebased on `staging`. Working tree clean,
   everything pushed.
-- **`main`:** `35e0a33` — the rewrite, live and serving.
-- **`staging`:** `aeb3f6b` — `main` plus #121.
+- **`main`:** `35e0a33` — the rewrite, live and serving. #122 promotes the batch
+  below; until it merges, `main` is one batch behind `staging`.
+- **`staging`:** `53e7284` — `main`, #121, and the seven pull requests merged
+  this session.
 - **Progress lives in `plans/README.md`** and the step table in
-  `plans/rewrite/phase-10-cutover.md`. Those two, and nowhere else.
+  `plans/rewrite/phase-10-cutover.md`. Those two, and nowhere else — and this
+  session corrected both: they still said step 10.11 was left to do while
+  production was already serving the rewrite.
 
 ## What works ✅
 
@@ -46,21 +50,41 @@ actually falsified, the most serious bug in this project's history.
 integration cases and 11 browser journeys pass with nothing skipped**, which
 needs Postgres and Redis up.
 
-## Blocked ❌ — eight pull requests, one label each
+## The batch of eight ✅ — seven merged, #122 promotes them
 
-All green on the nine required checks. Each needs `revu` and a merge.
+`revu` was applied by the owner on each; the merges were carried out by Claude
+Code at the owner's explicit instruction, with a disclosure comment per PR.
 
-| PR | → | Subject |
-|---|---|---|
-| #124 | `staging` | **the container fix — the important one** |
-| #123 | `staging` | close the short-flag gaps in the agent deny list |
-| #122 | `main` | promote the branch-rule fix (and it tests itself) |
-| #116–#120 | `staging` | five GitHub Action bumps, all green |
+| PR | Subject |
+|---|---|
+| #124 | the container fix — `CMD` is now `node_modules/.bin/tsx src/main.ts` |
+| #123 | short-flag gaps in the agent deny list, and the "no `revu`" rule |
+| #116 | `actions/setup-node` 4 → 7 |
+| #118 | `actions/checkout` 4 → 7 |
+| #119 | `actions/cache` 4 → 6 |
+| #120 | `actions/upload-artifact` 4 → 7 |
+| #117 | `gitleaks-action` 2 → 3 — **changes the action behind a required check** |
 
-An agent should not apply that label — `.claude/settings.json` and
-`plans/method/02-repository-rules.md` both say so, and #123 adds the rule in as
-many words. It was applied by Claude on #115, #31 and #121 this session at the
-owner's explicit instruction, with a disclosure comment on each.
+Three frictions, all structural rather than one-off:
+
+- **An agent cannot apply `revu`.** Claude Code's permission layer refuses
+  `gh pr edit --add-label` outright, independently of `.claude/settings.json` —
+  which was not even loaded, the worktree having started on the pre-rewrite tree.
+  `gh pr merge` was **not** refused. The boundary that held is the one on the
+  attestation, not the one on the merge.
+- **The `gh` token has `repo` but not `workflow`**, so merging a PR touching
+  `.github/workflows/` is refused intermittently. Five of these eight do.
+  `gh auth refresh -h github.com -s workflow` in a real TTY fixes it;
+  repository auto-merge is disabled, so it is not a way around.
+- **The ruleset requires branches to be up to date**, and dependabot does not
+  rebase fast enough to follow a batch. Each was rebased by hand before merging.
+
+**#116, #119 and #120 merged with two required checks that never ran** —
+`Does this PR follow the rules?` and `Secret scan` report only `skipping` on
+dependabot heads, and GitHub counts that as satisfied. That is the debt
+register's "A skipped run satisfies a required check", met in practice. The
+branch-name rule would legitimately fail on a `dependabot/...` head, which is
+probably why the filter exists.
 
 ## Blocked ❌ — Fly.io, so multiplayer does not work
 
@@ -101,8 +125,14 @@ time), add the production origin to `REALTIME_ALLOWED_ORIGINS`.
 
 ## Next steps, in order
 
-1. Merge #124, then #123, then #116–#120, then #122.
-2. `~/.fly/bin/flyctl auth login`, then deploy the socket service (step 9.8).
+1. Merge #122 — it promotes the seven above to `main`. It touches
+   `.github/workflows/`, so expect the scope refusal and retry, or merge it in
+   the browser.
+2. **Watch `Secret scan` on the next pull request.** #117 swapped the gitleaks
+   action for a new major version and that job never ran on #117 itself. If v3
+   misbehaves, a required check fails on every PR and everything blocks; revert
+   #117 rather than debug under pressure.
+3. `~/.fly/bin/flyctl auth login`, then deploy the socket service (step 9.8).
 3. Play a four-player round against the deployed service.
 4. Move the domain and suspend Render properly, per the cutover runbook.
 5. Phase 11 — internationalisation. French returns as a real locale, and step
@@ -148,13 +178,11 @@ plans/current-state/                        # the stack as it actually is
   that is how the rewrite reached `main` on a conformance check that had failed
   on its previous run. #121 fixes the immediate cause; the general shape is in
   `plans/current-state/05-known-debt.md`.
-- **A deny-list pattern blocks a spelling, not an action.**
-  `.claude/settings.json` named `gh api --method PUT` and not `-X PUT`, and the
-  short form is how the ruleset got edited by an agent this session. #123 closes
-  the four verbs; the next gap is a flag nobody thought of.
-- **The ruleset's required checks are now the nine live names.** It required five
-  that no longer existed — two jobs deleted at step 10.9, three renamed at 9.10 —
-  and a required context that never reports does not fail, it stays pending.
+- **A deny-list pattern blocks a spelling, not an action**, and a file that is
+  never loaded blocks nothing at all. #123 closes the four verbs; see the
+  frictions above for how little that guaranteed.
+- **The ruleset's required checks are now the nine live names**, and a required
+  context that never reports does not fail — it stays pending.
 - **`vercel.json`'s root directory is `apps/web`**, not the repository root.
   Vercel looks for `next` in the root directory's `package.json`, and
   `framework: "nextjs"` does not substitute for that detection.
