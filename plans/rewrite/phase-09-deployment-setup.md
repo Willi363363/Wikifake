@@ -97,9 +97,8 @@ shape is reviewable in a diff. Everything non-secret is in it: `NODE_ENV`, `PORT
 `BETTER_AUTH_URL`, `REALTIME_ALLOWED_ORIGINS`, `REALTIME_GRACE_SECONDS`; and
 `REDIS_URL` is wired from the Key Value service by `fromService`.
 
-`REALTIME_ALLOWED_ORIGINS` is comma-separated. A Vercel preview gets a new
-hostname per deployment, so a preview that must reach this instance needs its
-origin added.
+`REALTIME_ALLOWED_ORIGINS` is comma-separated: a Vercel preview gets a new
+hostname per deployment, so one that must reach this instance needs adding.
 
 ### Secrets
 
@@ -133,8 +132,8 @@ Three prices, none of them hidden:
 - **No persistence on the free Key Value instance.** Round timers are BullMQ
   delayed jobs precisely so a redeployment would not forget a round in flight,
   and on this plan it does. Recorded in `../current-state/05-known-debt.md`.
-- **750 instance hours a month, per workspace.** Always-on for thirty days is
-  720, so it fits with no room for a second free service.
+- **750 instance hours a month, per workspace** — 720 for thirty days always-on,
+  so it fits with no room for a second free service.
 
 ### Why not the Upstash instance the web app uses
 
@@ -145,8 +144,9 @@ that expires in days. Render's Key Value bills no commands, hence its own.
 
 ### Deployment
 
-Render's own, from git: `autoDeploy: true` on `main`. `deploy-realtime.yml` and
-its `FLY_API_TOKEN` are deleted — a second way to deploy is a way to disagree.
+Render's own, from git: `autoDeployTrigger: commit` on `main`.
+`deploy-realtime.yml` and its `FLY_API_TOKEN` are deleted — a second way to
+deploy is a way to disagree.
 
 ## What is still Render, from before
 

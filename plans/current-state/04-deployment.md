@@ -36,8 +36,8 @@ domain.
 
 ## The socket service on Render
 
-A long-lived Node process, deployed by Render from `main` (`autoDeploy`) and
-never by hand. Fly.io was the original target and was abandoned for one reason:
+A long-lived Node process, deployed by Render on a commit to `main`
+(`autoDeployTrigger`) and never by hand. Fly.io was the original target and was abandoned for one reason:
 it requires a payment card. Four things in `render.yaml` are load-bearing:
 
 - **The free plan sleeps, and that is survivable rather than fine.** Fifteen

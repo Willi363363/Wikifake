@@ -22,9 +22,9 @@
 # when idle — Upstash's own BullMQ page says to move to a fixed plan for exactly
 # this. Render's Key Value bills no commands at all.
 #
-# Deployment is Render's own: `autoDeploy` on `main` replaces the workflow that
-# used to run `flyctl`, and `RENDER_GIT_COMMIT` arrives without any build
-# plumbing — which is what `deploy-check` compares against.
+# Deployment is Render's own: a commit on `main` deploys, and `RENDER_GIT_COMMIT`
+# arrives without any build plumbing — which is what `deploy-check` compares
+# against.
 
 services:
   - name: wikifake-realtime
@@ -33,7 +33,9 @@ services:
     plan: free
     region: frankfurt
     branch: main
-    autoDeploy: true
+    # `autoDeployTrigger`, not the deprecated `autoDeploy`: a commit on `main`
+    # deploys. This is what replaces the workflow that used to run `flyctl`.
+    autoDeployTrigger: commit
 
     # The build context is the repository root: the service depends on five
     # workspace packages, and a context rooted at the Dockerfile cannot see them.
