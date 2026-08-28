@@ -50,6 +50,48 @@ test.describe('10.0 — indexing and the front door', () => {
     expect((description ?? '').length).toBeGreaterThan(70);
   });
 
+  test('C6.3 — the English front door says lang="en" and names its alternates', async ({
+    page,
+  }) => {
+    // Step 11.5's amendment, asserted on the wire: the document's `lang` is
+    // the interface locale, and the `hreflang` alternates tell a crawler the
+    // other language exists. Headless Chromium announces English, so `/` is
+    // served as English rather than redirected.
+    await page.goto('/');
+
+    expect(await page.locator('html').getAttribute('lang')).toBe('en');
+
+    const french = page.locator('link[rel="alternate"][hreflang="fr"]');
+    await expect(french).toHaveCount(1);
+    expect(await french.getAttribute('href')).toMatch(/\/fr$/);
+    await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveCount(
+      1,
+    );
+  });
+
+  test('C6.3 — the French front door says lang="fr", in its own words', async ({
+    page,
+  }) => {
+    await page.goto('/fr');
+
+    expect(await page.locator('html').getAttribute('lang')).toBe('fr');
+    // Its own canonical — not the English page's — and its own og:locale:
+    // the pair `lang` must never contradict.
+    expect(await page.locator('link[rel="canonical"]').getAttribute('href')).toMatch(
+      /\/fr$/,
+    );
+    await expect(page.locator('meta[property="og:locale"]')).toHaveAttribute(
+      'content',
+      'fr_FR',
+    );
+    // And its own description: per-locale metadata that serves one language
+    // twice is the old single-value metadata back again.
+    const description = await page
+      .locator('meta[name="description"]')
+      .getAttribute('content');
+    expect(description).toContain('Wikipédia');
+  });
+
   test('C6.2 — robots.txt keeps the crawlers out where it must', async ({ request }) => {
     const response = await request.get('/robots.txt');
     expect(response.status()).toBe(200);
@@ -72,6 +114,8 @@ test.describe('10.0 — indexing and the front door', () => {
     const body = await response.text();
     expect(body).toContain('<urlset');
     expect(body).toMatch(/<loc>https?:\/\/[^<]+\/<\/loc>/);
+    // Step 11.5: the French pages are declared too, not merely reachable.
+    expect(body).toMatch(/<loc>https?:\/\/[^<]+\/fr<\/loc>/);
   });
 
   test('C6.2 — the game screens are not offered to a crawler', async ({ request }) => {

@@ -12,7 +12,6 @@ import { describe, expect, it } from 'vitest';
 
 import { messagesFor } from '../../src/i18n/catalogue.js';
 import type { Locale } from '../../src/i18n/locales.js';
-import { SITE_DESCRIPTION } from '../../src/indexing.js';
 
 import HomePage from './page.js';
 
@@ -39,14 +38,5 @@ describe('11.1 — the front door renders from the catalogue', () => {
     // Whole screen, not a sprinkling: the English copy must be gone.
     expect(html).not.toContain('Pick a subject');
     expect(html).not.toContain('>Play<');
-  });
-
-  it('keeps the English description in step with the metadata', async () => {
-    // `layout.tsx` still serves `SITE_DESCRIPTION` to crawlers until step 11.5
-    // makes the metadata per-locale. Since step 11.2 that constant reads the
-    // catalogue's `routes` zone, so the same sentence exists twice — the
-    // `home` and `routes` zone files — and this is what stops them drifting
-    // apart quietly.
-    expect(await frontDoorIn('en')).toContain(SITE_DESCRIPTION);
   });
 });

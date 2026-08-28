@@ -14,10 +14,10 @@
 //
 // Since step 11.1 the copy lives in `messages/<locale>/home.json` and is read
 // through `next-intl` — this page is the proof screen: the first one rendered
-// through the catalogue in both locales (`page.locale.test.tsx`). The metadata
-// in `layout.tsx` still reads `src/indexing.ts` until step 11.5 makes it
-// per-locale; `page.locale.test.tsx` pins the two English copies together so
-// they cannot drift apart in the meantime.
+// through the catalogue in both locales (`page.locale.test.tsx`). Since step
+// 11.5 the metadata in `layout.tsx` is per-locale and reads the catalogue's
+// `seo` zone; its test pins that zone's description to this page's, so the
+// search result and the front door keep speaking one sentence.
 import { buttonVariants, Separator } from '@wikifake/ui';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';

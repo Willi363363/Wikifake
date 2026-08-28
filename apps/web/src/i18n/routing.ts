@@ -21,9 +21,10 @@ export const routing = defineRouting({
   defaultLocale: DEFAULT_LOCALE,
   localePrefix: 'as-needed',
   localeCookie: { maxAge: 60 * 60 * 24 * 365 },
-  // The `Link` response header naming every locale's alternate URL is
-  // per-locale SEO, and step 11.5 owns that surface — together with the
-  // `hreflang` metadata it has to stay consistent with. Emitting half of it
-  // here would be the drift 11.5 exists to prevent.
+  // Step 11.5 decided this surface: the hreflang alternates are emitted once,
+  // as metadata in `app/[locale]/layout.tsx`, where they sit beside the
+  // per-locale canonical they must stay consistent with. The `Link` response
+  // header would say the same thing a second time — on every route, including
+  // the ones `robots.txt` keeps crawlers out of — so it stays off.
   alternateLinks: false,
 });

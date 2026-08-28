@@ -16,10 +16,8 @@
 // Like `deployment.ts`, this does **not** go through `loadEnv`: a crawler asking
 // for `robots.txt` should not be answered with a validation failure about the
 // database.
-import routes from '../messages/en/routes.json';
-
 import type { Environment } from './deployment.js';
-import { DEFAULT_LOCALE, LOCALES } from './i18n/locales.js';
+import { DEFAULT_LOCALE, LOCALES, type Locale } from './i18n/locales.js';
 
 /**
  * Crawlers refused outright, for a reason stronger than indexing.
@@ -60,37 +58,10 @@ export const CRAWLERS_KEPT_OUT = [
  */
 export const INDEXABLE_ROUTES = ['/', '/play'] as const;
 
-/**
- * The title, between 20 and 80 characters.
- *
- * Under 20 a search result says nothing; over 80 it is cut off.
- *
- * Step 11.2: the words live in the message catalogue (`routes` zone), not
- * here. The English file is read directly, and deliberately so — the metadata
- * is served in one language until step 11.5 makes it per-locale alongside the
- * `hreflang` alternates, exactly as `src/i18n/request.ts` pins the request
- * locale until step 11.3. The constant remains so the bounds tests keep one
- * name to hold, whatever file the copy lives in.
- */
-export const SITE_TITLE: string = routes.metadata.title;
-
-/**
- * The description, between 70 and 320 characters.
- *
- * Same reasoning: under 70 it earns no click, over 320 Google truncates it.
- * Same source as the title — one catalogue entry, reused by the document
- * `<meta>`, Open Graph and the Twitter card.
- */
-export const SITE_DESCRIPTION: string = routes.metadata.description;
-
-/**
- * The name a shared link is filed under — `og:site_name`.
- *
- * The brand, not a sentence: it reads the same in every locale, but it lives
- * in the catalogue like every other word the layout says, so nothing
- * user-facing is hardcoded there.
- */
-export const SITE_NAME: string = routes.metadata.siteName;
+// The title and the description used to live here as English constants. Step
+// 11.5 moved them into the catalogue — `messages/<locale>/seo.json` — because
+// a search result is interface copy like any other, and C6.3's bounds are now
+// asserted per locale in `app/[locale]/layout.test.tsx`.
 
 /**
  * Where this deployment answers from, as an absolute origin with no trailing
@@ -117,6 +88,18 @@ export function siteOrigin(source: Environment = process.env): string {
 
 function withoutTrailingSlash(value: string): string {
   return value.endsWith('/') ? value.slice(0, -1) : value;
+}
+
+/**
+ * Where a route lives in one locale's URL space.
+ *
+ * The default locale keeps the unprefixed URLs C7.3 and the sitemap name; the
+ * others carry their prefix (step 11.4). The root of a prefixed locale is the
+ * bare prefix, because that is the URL the proxy serves it under.
+ */
+export function localePath(locale: Locale, route: string): string {
+  if (locale === DEFAULT_LOCALE) return route;
+  return route === '/' ? `/${locale}` : `/${locale}${route}`;
 }
 
 /** An absolute URL for one of our routes, from the origin this deployment has. */
@@ -162,15 +145,24 @@ export function robotsRules(source: Environment = process.env): RobotsRules {
   };
 }
 
-/** One entry per publishable route, in the order they are declared. */
+/**
+ * One entry per publishable route and per locale, routes in the order they
+ * are declared, the default locale first within each route.
+ *
+ * Step 11.5: a French page a sitemap never names is a French page a crawler
+ * finds late or not at all. The locale versions of one route share its
+ * priority — they are the same page, not competitors.
+ */
 export function sitemapEntries(
   source: Environment = process.env,
 ): { url: string; changeFrequency: 'weekly'; priority: number }[] {
-  return INDEXABLE_ROUTES.map((route, index) => ({
-    url: absolute(route, source),
-    changeFrequency: 'weekly' as const,
-    // The front door first. A sitemap that ranks everything equally ranks
-    // nothing, and the entry screen is one navigation behind the landing page.
-    priority: index === 0 ? 1 : 0.8,
-  }));
+  return INDEXABLE_ROUTES.flatMap((route, index) =>
+    LOCALES.map((locale) => ({
+      url: absolute(localePath(locale, route), source),
+      changeFrequency: 'weekly' as const,
+      // The front door first. A sitemap that ranks everything equally ranks
+      // nothing, and the entry screen is one navigation behind the landing page.
+      priority: index === 0 ? 1 : 0.8,
+    })),
+  );
 }

@@ -55,8 +55,12 @@ addition to `cursor`; the guarantees above remain the floor, not the ceiling.
 - **C6.2** — `robots.txt`: `Disallow /api /ws`, exclusion of GPTBot,
   ClaudeBot, Google-Extended, CCBot — the corpus is fake by construction, it
   must not train models. Sitemap declared.
-- **C6.3** — `<html lang="fr">`, meta title/description within bounds, Open
-  Graph, canonical.
+- **C6.3** — `<html lang>` equals the interface locale — `en` on the
+  unprefixed URLs, `fr` under `/fr` (amended by phase 11 step 11.5; the
+  guarantee was `lang="fr"` when the interface existed only in French, and
+  the article keeps its own `lang="fr"` whatever the interface locale). Meta
+  title/description within bounds **per locale**, Open Graph with the
+  locale's `og:locale`, per-locale canonical and `hreflang` alternates.
 
 ## C7 — Deployment identity
 
