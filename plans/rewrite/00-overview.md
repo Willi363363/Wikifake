@@ -18,7 +18,7 @@ to preserve, split between `01-contract-to-preserve.md` and
 | API | Next.js Route Handlers + Hono for realtime, Zod as the single source of truth for contracts |
 | Realtime | Self-hosted WebSocket service + Redis (room state, pub/sub, scheduling) |
 | Persistence | Neon Postgres + Drizzle ORM; Upstash Redis for the ephemeral |
-| Hosting | Vercel (web) + Fly.io (realtime) + Neon + Upstash |
+| Hosting | Vercel (web) + Render free (realtime) + Neon + Upstash |
 | Scope | Iso-functional + accounts, persistence, history, statistics |
 | Design | Tailwind v4 + shadcn/ui, current visual identity transcribed into a theme |
 | LLM | Vercel AI SDK + AI Gateway, Gemini by default, `generateObject` validated by Zod; LangChain goes away |
@@ -82,7 +82,7 @@ hard-coded values).
 - **`apps/realtime`** — multi-instance WebSocket: room state in Redis mutated
   by Lua scripts, broadcast via pub/sub, BullMQ timers (round end by timeout,
   item waves, room TTL), reconnection with a session token. Deployed on
-  Fly.io — Vercel does not host long-lived WebSockets.
+  Render — Vercel does not host long-lived WebSockets.
 - **`packages/article`** — MediaWiki API + cheerio (the index-parity
   invariant lives there), falsification via Zod-validated `generateObject`,
   Redis cache shared between instances.
@@ -120,7 +120,7 @@ hard-coded values).
 | Text ↔ DOM index parity when porting to cheerio | The player graded on the wrong paragraphs — the project's historic bug | Phase 3 early, real fixtures, parity test before anything else |
 | `generateObject` changes the model's behaviour | Falsifications of different quality, more or less subtle | Prompt carried over verbatim; comparison on a fixed set of categories before touching it |
 | Redis + Lua for room state | More complexity than the in-memory dict | The reducer stays pure and tested outside Redis; Redis only applies transitions already decided |
-| Two hosting providers (Vercel + Fly) | Operational surface, CORS and WebSocket origins to keep in check | Explicit origins and tokens from phase 5, not at the end of the journey |
+| Two hosting providers (Vercel + Render) | Operational surface, CORS and WebSocket origins to keep in check | Explicit origins and tokens from phase 5, not at the end of the journey |
 | Volume of the round frontend | The round concentrates most of the frontend | Internal split by feature, each delivered with its component gallery |
 | Huge, non-bisectable final PR | Hard to review | Commits per phase, conventional commits in English, structured PR message |
 | Silent regression of a contract guarantee | A guarantee paid for by a production bug disappears without a sound | The contract is a checklist ticked test by test — the gate of phase 10 |

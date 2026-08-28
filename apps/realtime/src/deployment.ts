@@ -21,14 +21,22 @@ export const VERSION: string = pkg.version;
 /**
  * The commit the platform says it deployed.
  *
- * Fly injects no commit variable of its own — unlike Vercel's
- * `VERCEL_GIT_COMMIT_SHA` and Render's `RENDER_GIT_COMMIT`. `FLY_GIT_COMMIT` is
- * therefore passed as a build argument by the deploy workflow and baked into the
- * image, which is what lets this answer the SHA the probe compares against.
+ * `RENDER_GIT_COMMIT` comes first because Render is this service's host and
+ * supplies it itself — which is the whole reason the platform switch cost no
+ * build plumbing. `FLY_GIT_COMMIT` stays behind it: Fly injects no commit of its
+ * own, so it had to be baked in as a build argument, and an image built that way
+ * should still answer correctly if one is ever deployed again.
+ *
+ * Without the Render name in this chain the service answers an empty `commit`,
+ * and `deploy-check` waits for a match that cannot come.
  */
 export function deployedCommit(source: Environment = process.env): string {
   return (
-    source['FLY_GIT_COMMIT'] ?? source['GIT_COMMIT'] ?? source['SOURCE_COMMIT'] ?? ''
+    source['RENDER_GIT_COMMIT'] ??
+    source['FLY_GIT_COMMIT'] ??
+    source['GIT_COMMIT'] ??
+    source['SOURCE_COMMIT'] ??
+    ''
   );
 }
 

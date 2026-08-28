@@ -1,0 +1,106 @@
+# The socket service, on Render's free tier.
+#
+# Why here rather than Fly.io: Fly requires a payment card, and this project has
+# none to give. Render's free web services support WebSockets, and — the detail
+# that makes it workable — WebSocket messages from existing connections count as
+# inbound traffic, so a room being played in does not let the service sleep.
+#
+# What the free tier costs, stated rather than discovered:
+#
+#   - It spins down after fifteen minutes with no inbound traffic, and takes
+#     about a minute to come back. There is no socket heartbeat, so a room left
+#     idle in a lobby drops its sockets — hence REALTIME_GRACE_SECONDS below.
+#   - The free Key Value instance has no persistence. Round timers are BullMQ
+#     delayed jobs precisely so a redeployment would not forget a round in
+#     flight; on this plan it does. Recorded in
+#     plans/current-state/05-known-debt.md rather than pretended away.
+#   - 750 instance hours per month, per workspace. Always-on for thirty days is
+#     720, so it fits with no room for a second free service.
+#
+# Why Key Value and not the Upstash instance the web app uses: Upstash's free
+# plan meters 500,000 commands a month, and BullMQ polls Redis continuously even
+# when idle — Upstash's own BullMQ page says to move to a fixed plan for exactly
+# this. Render's Key Value bills no commands at all.
+#
+# Deployment is Render's own: `autoDeploy` on `main` replaces the workflow that
+# used to run `flyctl`, and `RENDER_GIT_COMMIT` arrives without any build
+# plumbing — which is what `deploy-check` compares against.
+
+services:
+  - name: wikifake-realtime
+    type: web
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    autoDeploy: true
+
+    # The build context is the repository root: the service depends on five
+    # workspace packages, and a context rooted at the Dockerfile cannot see them.
+    dockerfilePath: ./apps/realtime/Dockerfile
+    dockerContext: .
+
+    # `/ping`, not `/api/health`. The platform is asking whether the process
+    # answers; a probe that reads the database would report the database's health
+    # as the service's and restart a container over a connection blip.
+    healthCheckPath: /ping
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Matches the Dockerfile's EXPOSE, so routing is deterministic rather than
+      # inferred. `main.ts` reads PORT and falls back to this same number.
+      - key: PORT
+        value: 8080
+
+      # The web app's origin, and the fallback allowed WebSocket origin when
+      # REALTIME_ALLOWED_ORIGINS is unset — so a deployment that has configured
+      # no list accepts its own app rather than everything.
+      - key: BETTER_AUTH_URL
+        value: https://wikifake.vercel.app
+
+      # Comma-separated. A Vercel preview gets a new hostname per deployment, so
+      # a preview that must reach this instance needs its origin added here.
+      - key: REALTIME_ALLOWED_ORIGINS
+        value: https://wikifake.vercel.app
+
+      # Longer than the domain's 30 because this host sleeps: a cold start is
+      # about a minute, and a seat released before the player's socket can come
+      # back is a seat lost to the platform rather than to the player.
+      - key: REALTIME_GRACE_SECONDS
+        value: 90
+
+      # Room state, the effect bus and the round timers. Internal connection
+      # string, so it never crosses the public internet.
+      - key: REDIS_URL
+        fromService:
+          name: wikifake-keyvalue
+          type: keyvalue
+          property: connectionString
+
+      # `sync: false` means Render asks for the value once and keeps it out of
+      # this file. Neon's Postgres, the model key, and the auth secret the web
+      # app already holds — the two services must agree on that last one or a
+      # session minted by one is refused by the other.
+      - key: DATABASE_URL
+        sync: false
+      - key: GOOGLE_GENERATIVE_AI_API_KEY
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+
+  - name: wikifake-keyvalue
+    type: keyvalue
+    plan: free
+    region: frankfurt
+    # Empty: reachable from Render services and from nothing else. Room state and
+    # a player's seat token live in here, and neither has any business being
+    # readable from the open internet.
+    ipAllowList: []
+    # The room store and the effect bus tolerate eviction — Postgres says whether
+    # a room exists, Redis only says what is happening in it. `noeviction` would
+    # fail writes instead, which is worse for a 25 MB instance.
+    maxmemoryPolicy: allkeys-lru
