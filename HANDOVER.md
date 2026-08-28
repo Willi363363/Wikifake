@@ -86,28 +86,28 @@ register's "A skipped run satisfies a required check", met in practice. The
 branch-name rule would legitimately fail on a `dependabot/...` head, which is
 probably why the filter exists.
 
-## Blocked ❌ — Fly.io, so multiplayer does not work
+## Blocked ❌ — the socket service, so multiplayer does not work
 
-`apps/realtime` has never been deployed. `flyctl v0.4.94` is installed at
-`~/.fly/bin/flyctl` and is **not authenticated**:
+`apps/realtime` has never been deployed. **Fly.io is abandoned: it asks for a
+payment card.** #126 retargets step 9.8 to Render's free tier — WebSockets are
+supported there, and the blueprint is committed as `render.yaml`.
 
-```bash
-~/.fly/bin/flyctl auth login
-```
+**The image is proved, by running it.** Built from `apps/realtime/Dockerfile`
+against Postgres and Redis: starts as `USER node`, `/ping` answers,
+`/api/health` answers the injected `RENDER_GIT_COMMIT` verbatim — the mechanism
+`deploy-check` compares — and a WebSocket upgrade opens from the configured
+origin while a foreign one gets 403. **Not** proved: the blueprint itself, which
+Render validates only at sync time.
 
-Two things to know before spending anything: **Fly asks for a card**, and
-`fly.toml` deliberately runs a machine continuously
-(`auto_stop_machines = false`, because a stopped machine drops every socket it
-was holding). It is not free.
+The dashboard half: *New → Blueprint* on the repository; give the four
+`sync: false` secrets — `DATABASE_URL`, `GOOGLE_GENERATIVE_AI_API_KEY`,
+`SENTRY_DSN`, and `BETTER_AUTH_SECRET`, **which must equal the web app's** or a
+session minted by one is refused by the other; then `NEXT_PUBLIC_REALTIME_URL`
+on Vercel **and redeploy** (inlined at build time), and the
+`REALTIME_DEPLOY_URL` repository variable so the probe covers it.
 
-**The image is proved to work.** Built and run locally against Postgres and
-Redis before deploying anything, which found two bugs that would have failed the
-deployment — see #124. `--build-arg FLY_GIT_COMMIT` is confirmed to reach
-`/api/health`, which is the whole mechanism `deploy-check` compares.
-
-Once authenticated: deploy, `fly secrets set` the five values, set
-`NEXT_PUBLIC_REALTIME_URL` on Vercel **and redeploy** (it is inlined at build
-time), add the production origin to `REALTIME_ALLOWED_ORIGINS`.
+The free tier sleeps after fifteen minutes and its Key Value has no persistence,
+so round timers no longer survive a redeployment — both in `05-known-debt.md`.
 
 ## Also outstanding
 
@@ -132,10 +132,10 @@ time), add the production origin to `REALTIME_ALLOWED_ORIGINS`.
    action for a new major version and that job never ran on #117 itself. If v3
    misbehaves, a required check fails on every PR and everything blocks; revert
    #117 rather than debug under pressure.
-3. `~/.fly/bin/flyctl auth login`, then deploy the socket service (step 9.8).
-3. Play a four-player round against the deployed service.
-4. Move the domain and suspend Render properly, per the cutover runbook.
-5. Phase 11 — internationalisation. French returns as a real locale, and step
+3. Merge #126, then sync the Render blueprint and deploy the socket service.
+4. Play a four-player round against the deployed service.
+5. Move the domain and suspend the old Render service, per the cutover runbook.
+6. Phase 11 — internationalisation. French returns as a real locale, and step
    11.5 owns the `lang` attribute and the per-locale SEO that steps 8.10 and
    10.0 deliberately left alone.
 
@@ -191,8 +191,8 @@ plans/current-state/                        # the stack as it actually is
   has not been told about, and every `NEXT_PUBLIC_*` is inlined at build time —
   an undeclared `NEXT_PUBLIC_REALTIME_URL` reaches the browser empty, every room
   fails to connect, and no build complains.
-- **`FLY_GIT_COMMIT` is a build argument, not a platform variable.** Fly injects
-  no commit of its own.
+- **Render injects `RENDER_GIT_COMMIT` itself.** `deployedCommit` had to learn
+  the name; `initSentry` gated its release on `FLY_APP_NAME`. Silent both: #126.
 - **The realtime container runs `tsx` directly, not `pnpm start`.** Two reasons,
   both in #124's description. Do not tidy it back.
 

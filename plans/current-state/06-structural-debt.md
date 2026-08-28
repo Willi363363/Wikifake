@@ -62,3 +62,32 @@ CI run — there is no local version and no CI version drifting apart. But a
 shell string in a `scripts` block is not portable in the way the rest of the
 toolchain is, and `hooks` in particular does two things in one line. Small, and
 worth folding into `scripts/` proper the next time somebody is in there.
+
+## A pull request title becomes a commit subject, and nothing checks it
+
+Found by causing it, during the batch of 2026-08-28.
+
+GitHub builds a squash commit's subject from the pull request **title** plus
+` (#NNN)`, and `scripts/checks.sh commit-msg` refuses a subject over 72
+characters. #125's title was 82, so the commit that landed on `staging` was 89.
+The conformance job walks `git rev-list BASE..HEAD`, so the next
+`staging` → `main` promotion failed on a commit that had already been merged.
+
+**There is no clean way out once it has happened.** The commit is immutable
+without a force-push to a protected branch; a later revert does not remove it
+from the range; and weakening the check to go green is the one thing the rules
+forbid outright. It costs either an amended force-push or an administrator's
+bypass — both of which are exactly what the branch protection exists to prevent.
+
+Structural rather than a defect, because the gap is in *where* the rule is
+enforced. Every local hook and every CI job passes at the moment the mistake is
+made. The title is the one input to a commit message that nothing validates, and
+the bill arrives at a later promotion, in a pull request that did nothing wrong.
+
+**The rule to carry meanwhile:** a title must be at most 72 minus the width of
+` (#NNN)` — 65 characters in practice — whenever the merge will be a squash.
+
+**The fix, unwritten:** the conformance job already has the pull request in its
+event payload. Measuring `github.event.pull_request.title` on `opened`,
+`edited` and `reopened` would refuse it before a commit exists, which is the only
+moment it is still cheap.

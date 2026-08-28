@@ -8,9 +8,10 @@ fact is why there are two applications and two hosts.
 | Runs | Where | Config |
 |---|---|---|
 | `apps/web` | Vercel | `vercel.json` |
-| `apps/realtime` | Fly.io | `apps/realtime/fly.toml` + its `Dockerfile` |
+| `apps/realtime` | Render (free) | `render.yaml` + `apps/realtime/Dockerfile` |
 | Postgres | Neon | `DATABASE_URL` |
-| Redis | Upstash | `REDIS_URL` |
+| Redis — web | Upstash | `REDIS_URL` |
+| Redis — realtime | Render Key Value (free) | `REDIS_URL`, from `render.yaml` |
 
 ## The web app on Vercel
 
@@ -33,25 +34,35 @@ is `NEXT_PUBLIC_SITE_URL`, **production only**, because without it the canonical
 link and the sitemap name whichever host answered rather than the public
 domain.
 
-## The socket service on Fly
+## The socket service on Render
 
-A long-lived Node process, deployed from CI by `deploy-realtime.yml` and never
-by hand. Three decisions in `fly.toml` are load-bearing:
+A long-lived Node process, deployed by Render on a commit to `main`
+(`autoDeployTrigger`) and never by hand. Fly.io was the original target and was abandoned for one reason:
+it requires a payment card. Four things in `render.yaml` are load-bearing:
 
-- **`auto_stop_machines = false`.** A stopped machine drops every socket it was
-  holding, and the players on them do not come back because a health check woke
-  it up later.
+- **The free plan sleeps, and that is survivable rather than fine.** Fifteen
+  minutes without inbound traffic, about a minute to come back. WebSocket
+  messages count as inbound traffic, so a room being played in stays awake; a
+  room idle in a lobby does not, and its sockets drop.
+- **`REALTIME_GRACE_SECONDS = 90`, against the domain's 30.** The grace window
+  has to outlast the cold start or the platform, not the player, is what took the
+  seat. The client reconnects every second with the same token, indefinitely.
 - **The platform health check is `/ping`, not `/api/health`.** The platform asks
   whether the process answers; a probe that read the database would report the
   service down when only the database is. `/api/health` is for the CI probe,
   which is asking a different question.
-- **`FLY_GIT_COMMIT` is a build argument, not a platform variable.** Fly injects
-  no commit of its own, unlike Vercel's `VERCEL_GIT_COMMIT_SHA`. The deploy
-  workflow bakes it into the image; an image that baked none would answer an
-  empty string, and the probe below would wait for a match that cannot come.
+- **`RENDER_GIT_COMMIT` arrives from the platform.** No build argument, unlike
+  Fly. `deployedCommit` names it first, and `initSentry` reads the same function
+  so the release and the probe cannot disagree.
 
-Secrets — `DATABASE_URL`, `REDIS_URL`, the model key, `BETTER_AUTH_SECRET`,
-`SENTRY_DSN` — are set once with `fly secrets set` and never live in the file.
+Its Redis is a **separate, free Render Key Value instance**, not the web app's
+Upstash: Upstash's free plan meters commands and BullMQ polls continuously, so a
+queue on a metered Redis exhausts it in days. The price is no persistence —
+see `05-known-debt.md`.
+
+Secrets — `DATABASE_URL`, the model key, `BETTER_AUTH_SECRET`, `SENTRY_DSN` —
+are `sync: false` in the blueprint, so Render asks once and git never sees them.
+`BETTER_AUTH_SECRET` must match the web app's.
 
 ## Knowing which commit is serving
 

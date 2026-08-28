@@ -79,39 +79,81 @@ protection off for previews, or a bypass token in
 `VERCEL_AUTOMATION_BYPASS_SECRET`, passed as the
 `x-vercel-protection-bypass` header.
 
-## Realtime — Fly.io
+## Realtime — Render's free tier
 
-`apps/realtime/fly.toml` and `apps/realtime/Dockerfile`. The service is a
-long-lived Node process holding WebSocket connections, which is what rules
+`render.yaml` at the repository root, plus `apps/realtime/Dockerfile`. The
+service is a long-lived Node process holding WebSocket connections, which rules
 out a serverless host for it.
+
+**Fly.io was the original target and is abandoned: it requires a payment card
+this project does not have.** Render's free web services support WebSockets, and
+the detail that makes it workable is that WebSocket messages count as inbound
+traffic — a room being played in does not let the service sleep.
+
+### Blueprint, not dashboard
+
+`render.yaml` declares both the web service and a free Key Value instance, so the
+shape is reviewable in a diff. Everything non-secret is in it: `NODE_ENV`, `PORT`,
+`BETTER_AUTH_URL`, `REALTIME_ALLOWED_ORIGINS`, `REALTIME_GRACE_SECONDS`; and
+`REDIS_URL` is wired from the Key Value service by `fromService`.
+
+`REALTIME_ALLOWED_ORIGINS` is comma-separated: a Vercel preview gets a new
+hostname per deployment, so one that must reach this instance needs adding.
 
 ### Secrets
 
-Set with `fly secrets set`, never in `fly.toml`:
-
-`DATABASE_URL`, `REDIS_URL`, `GOOGLE_GENERATIVE_AI_API_KEY`,
-`BETTER_AUTH_SECRET`, `SENTRY_DSN` (optional).
-
-### Non-secret configuration
-
-In `fly.toml` under `[env]`: `NODE_ENV`, `PORT`, `BETTER_AUTH_URL`,
-`REALTIME_ALLOWED_ORIGINS`.
-
-`REALTIME_ALLOWED_ORIGINS` is a comma-separated list. A Vercel preview gets
-a new hostname per deployment, so a preview that must reach the deployed Fly
-instance needs its origin added — or a separate Fly app for previews.
+Four, marked `sync: false` so Render asks once and they never enter git:
+`DATABASE_URL`, `GOOGLE_GENERATIVE_AI_API_KEY`, `BETTER_AUTH_SECRET`,
+`SENTRY_DSN` (optional). **`BETTER_AUTH_SECRET` must be the same value the web
+app holds**, or a session minted by one service is refused by the other.
 
 ### The deployed commit
 
-`FLY_GIT_COMMIT` is not injected by the platform. It is passed as a build
-argument by the deploy workflow and baked into the image, which is what lets
-`/api/health` answer the SHA the probe compares against.
+Render injects `RENDER_GIT_COMMIT` itself, so the build argument Fly needed is
+gone — and `deployedCommit` names it first. It did not name it at all before
+this step, which would have made `/api/health` answer an empty string while
+every other field looked right, and `deploy-check` wait for a match that could
+not come.
 
-## What is still Render
+`initSentry` had the same bug from the other side: it resolved the release only
+when `FLY_APP_NAME` was present, so on Render every error would have been
+reported untagged. `apps/realtime/src/sentry.test.ts` now holds both shut.
 
-The public domain stays on Render until phase 10. `DEPLOY_URL` keeps
-pointing there; `WEB_DEPLOY_URL` and `REALTIME_DEPLOY_URL` are the two new
-variables the ported probe reads, and both skip cleanly when unset.
+### What the free tier costs
+
+Three prices, none of them hidden:
+
+- **It sleeps.** Fifteen minutes without inbound traffic, then about a minute to
+  come back. There is no socket heartbeat, so a room idle in a lobby drops its
+  sockets — and the domain allows a room to be idle for `ROOM_IDLE_LIMIT_SECONDS`
+  (one hour). `REALTIME_GRACE_SECONDS = 90` is what keeps those seats: longer
+  than the cold start, so a reconnection still finds its seat. The client already
+  retries every second, indefinitely, with the same token.
+- **No persistence on the free Key Value instance.** Round timers are BullMQ
+  delayed jobs precisely so a redeployment would not forget a round in flight,
+  and on this plan it does. Recorded in `../current-state/05-known-debt.md`.
+- **750 instance hours a month, per workspace** — 720 for thirty days always-on,
+  so it fits with no room for a second free service.
+
+### Why not the Upstash instance the web app uses
+
+Upstash's free plan meters 500,000 commands a month, and BullMQ polls Redis
+continuously even when idle — Upstash's own BullMQ page says to move to a fixed
+plan for this workload. A metered Redis behind a polling queue is a free tier
+that expires in days. Render's Key Value bills no commands, hence its own.
+
+### Deployment
+
+Render's own, from git: `autoDeployTrigger: commit` on `main`.
+`deploy-realtime.yml` and its `FLY_API_TOKEN` are deleted — a second way to
+deploy is a way to disagree.
+
+## What is still Render, from before
+
+The public domain stays on the old Render service until the cutover completes.
+`DEPLOY_URL` keeps pointing there; `WEB_DEPLOY_URL` and `REALTIME_DEPLOY_URL`
+are the variables the ported probe reads, both skipping cleanly when unset. Free
+instance hours are per **workspace**, so the old service shares the budget.
 
 ## The probe
 

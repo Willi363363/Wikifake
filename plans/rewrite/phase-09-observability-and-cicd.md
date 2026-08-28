@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — 9.7 deployed and verified live; 9.8 and 9.10 need a human |
+| **State** | **in progress** — 9.7 live; 9.8 retargeted to Render, awaiting its dashboard; 9.10 needs an administrator |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
@@ -115,10 +115,9 @@ makes `pnpm test` fail.
 
 ### 9.7 — Deploy the web on Vercel
 
-✅ **Done (repository side)** — `vercel.json` at the root builds through
-Turborepo, because six workspace packages are what a bare `next build` cannot
-resolve. Project settings, environment variables and the preview-protection
-bypass are in `phase-09-deployment-setup.md`. The dashboard half is manual.
+✅ **Done (repository side)** — `vercel.json` builds through Turborepo, because
+six workspace packages are what a bare `next build` cannot resolve. Settings and
+variables: `phase-09-deployment-setup.md`. The dashboard half is manual.
 
 The public production stays served by Render until phase 10: Vercel does not
 receive the domain yet.
@@ -126,28 +125,31 @@ receive the domain yet.
 **Done when**: every PR gets a preview URL whose `/api/health` returns the
 PR's commit.
 
-### 9.8 — Deploy the realtime on Fly.io
+### 9.8 — Deploy the realtime on Render's free tier
 
-✅ **Done (repository side)** — `fly.toml` and a `Dockerfile` in
-`apps/realtime`, a `deploy-realtime.yml` workflow that skips cleanly without
-`FLY_API_TOKEN`, and `/api/health` on the Hono app answering the same six-field
-shape the web app answers. `FLY_GIT_COMMIT` is a build argument: Fly injects no
-commit variable of its own, so an image that did not bake one would answer an
-empty string and the probe would wait for a match that cannot come.
+✅ **Done (repository side)** — `render.yaml` declares the service and a free
+Key Value instance; `apps/realtime/Dockerfile` is unchanged. **Retargeted from
+Fly.io**, which requires a payment card this project does not have; `fly.toml`
+and `deploy-realtime.yml` are deleted rather than left as a second way to
+deploy.
+
+The switch cost three code changes and each was a latent bug rather than a
+port — an unnamed `RENDER_GIT_COMMIT`, a Sentry release gated on `FLY_APP_NAME`,
+and a grace window shorter than a cold start. All three, what the free tier
+costs, and the dashboard half: `phase-09-deployment-setup.md`.
 
 **Done when**: a multiplayer game plays from a Vercel preview against the
-deployed Fly instance.
+deployed Render instance.
 
 ### 9.9 — Port the `deploy-check` probe
 
-✅ **Done** — the polling loop moved to `scripts/probe-deploy.sh`, run once
-per target through a matrix: Render, the web app, the realtime service, each
-skipping cleanly when its variable is unset. Two additions the split made
-necessary: a `x-vercel-protection-bypass` header, because Vercel's protection
-answers 401 and a 401 is indistinguishable from a service that is not up; and
-`url` / `expected_sha` dispatch inputs, which is how the step is verified by
-hand. Exercised against a stub: exit 0 on the right SHA, exit 1 on a different
-one and on no response. `DEPLOY_URL` keeps pointing at Render until cutover.
+✅ **Done** — the polling loop is `scripts/probe-deploy.sh`, run once per target
+through a matrix, each skipping cleanly when its variable is unset. Two
+additions the split made necessary: a `x-vercel-protection-bypass` header,
+because Vercel's protection answers 401 and a 401 is indistinguishable from a
+service that is down; and `url` / `expected_sha` dispatch inputs. Exercised
+against a stub: exit 0 on the right SHA, exit 1 otherwise. The realtime target
+needs no code change for the host switch — `REALTIME_DEPLOY_URL` is a variable.
 
 **Done when**: launched by hand against a preview, the workflow succeeds on
 the right SHA and fails on a different one.
@@ -160,18 +162,16 @@ in the GitHub UI, and no workflow here has a token that can do it.
 
 The ordering is not obvious: a PR carrying the rename reports the new names
 while the ruleset still waits for the old ones, so it cannot merge through its
-own gate. The three steps, the two contexts dropped rather than renamed, and
-why the alternatives are worse are in `phase-09-ruleset-rename.md`. **Read it
-before merging the phase-9 umbrella.**
+own gate. The three steps and why the alternatives are worse are in
+`phase-09-ruleset-rename.md`. **Read it first.**
 
 **Done when**: a test PR towards `staging` goes green without a ghost
 check, and the new names appear in the required checks list.
 
 ## Exit gate
 
-- Green CI: lint, typecheck, tests, build, e2e — plus the Python job, still
-  alive until phase 10.
-- Per-PR Vercel preview; Fly service deployed and reachable.
+- Green CI: lint, typecheck, tests, build, e2e.
+- Per-PR Vercel preview; the socket service deployed on Render and reachable.
 - `deploy-check` probe working against both services.
 - Documentation lock active: generated doc = committed doc, checked in CI.
 - The cost of a game is readable in the database and survives a restart.

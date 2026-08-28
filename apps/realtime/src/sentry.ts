@@ -5,6 +5,8 @@
 // CI where there is no target project to report to.
 import * as Sentry from '@sentry/node';
 
+import { deployedCommit } from './deployment.js';
+
 /**
  * Initialise Sentry for the realtime service.
  *
@@ -17,17 +19,13 @@ export function initSentry(
   const dsn = source['SENTRY_DSN'];
   if (!dsn) return;
 
-  const commit =
-    source['FLY_APP_NAME'] !== undefined
-      ? (source['FLY_GIT_COMMIT'] ??
-        source['GIT_COMMIT'] ??
-        source['SOURCE_COMMIT'] ??
-        '')
-      : '';
-
   Sentry.init({
     dsn,
-    release: commit || undefined,
+    // Through `deployedCommit`, like the web app: the release and `/api/health`
+    // must name the same revision, and two chains drift. It also removes a gate
+    // on `FLY_APP_NAME` that made every release untagged the moment the service
+    // moved host — the bug `sentry.test.ts` now holds shut.
+    release: deployedCommit(source) || undefined,
     environment: source['NODE_ENV'] ?? 'development',
   });
 }
