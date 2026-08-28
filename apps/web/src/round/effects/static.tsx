@@ -17,6 +17,7 @@
 //   3. **The frame is cancelled on unmount.** A `requestAnimationFrame` loop
 //      that outlives its component is a loop that runs until the tab is closed,
 //      and this one allocates a viewport-sized `ImageData` every frame.
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef } from 'react';
 
 import { usePrefersReducedMotion } from '../reduced-motion.js';
@@ -59,6 +60,7 @@ export function noiseInto(data: Uint8ClampedArray, random: () => number): void {
 }
 
 export function Static() {
+  const t = useTranslations('round');
   const canvas = useRef<HTMLCanvasElement | null>(null);
   const still = usePrefersReducedMotion();
 
@@ -101,7 +103,7 @@ export function Static() {
   return (
     <div
       role="status"
-      aria-label="Someone has jammed your intel"
+      aria-label={t('effects.static.aria')}
       className="pointer-events-none fixed inset-0 z-40 overflow-hidden"
     >
       <canvas ref={canvas} aria-hidden="true" className="absolute inset-0 size-full" />
@@ -109,10 +111,10 @@ export function Static() {
       <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,color-mix(in_srgb,var(--color-ink)_45%,transparent)_0px,color-mix(in_srgb,var(--color-ink)_45%,transparent)_2px,transparent_2px,transparent_4px)]" />
       <p className="absolute inset-0 flex flex-col items-center justify-center gap-3">
         <span className="animate-static-glitch font-mono text-2xl font-bold tracking-[0.35em] text-danger uppercase">
-          intel jammed
+          {t('effects.static.headline')}
         </span>
         <span className="font-mono text-xs tracking-[0.28em] text-muted uppercase">
-          no signal
+          {t('effects.static.subline')}
         </span>
       </p>
     </div>

@@ -6,7 +6,8 @@
 // that is ties: everyone starts on nothing and the scale moves in steps of 150,
 // so four clients receiving the same numbers in four different orders would
 // produce four different rankings if score were the only key.
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, screen } from '@testing-library/react';
+import { render } from '../i18n/testing.js';
 import { PER_TRUE_POSITIVE } from '@wikifake/domain';
 import { afterEach, describe, expect, it } from 'vitest';
 import userEvent from '@testing-library/user-event';

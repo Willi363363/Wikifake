@@ -7,8 +7,9 @@
 // card is focusable, says what it is, and says whether it is in flight.
 import { cn } from '@wikifake/ui';
 import type { ItemInstance } from '@wikifake/protocol';
+import { useTranslations } from 'next-intl';
 
-import { isSelfCast, labelFor } from './item-labels.js';
+import { ITEM_BLURB_VALUES, isSelfCast, labelFor } from './item-labels.js';
 
 export interface ItemBarProps {
   readonly hand: readonly ItemInstance[];
@@ -20,6 +21,8 @@ export interface ItemBarProps {
 }
 
 export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
+  const t = useTranslations('round');
+
   // Nothing to spend, nothing on screen. The bar is fixed, and an empty fixed
   // bar is a strip of furniture over the article.
   if (hand.length === 0) return null;
@@ -30,15 +33,17 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
         // A toolbar, so a screen reader announces a group and arrow keys are
         // expected to move within it.
         role="toolbar"
-        aria-label="Your items"
+        aria-label={t('items.barAria')}
         aria-orientation="horizontal"
         className="flex max-w-full items-center gap-2 overflow-x-auto rounded-2xl border border-line bg-glass-strong px-3 py-2 shadow-lg backdrop-blur-md"
       >
         <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-          items
+          {t('items.barLabel')}
         </span>
         {hand.map((item) => {
           const label = labelFor(item.itemId);
+          const name = t(`items.${label.key}.name`);
+          const blurb = t(`items.${label.key}.blurb`, ITEM_BLURB_VALUES);
           const inFlight = pending === item.instanceId;
 
           return (
@@ -53,9 +58,13 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
               }}
               // The name and what it does, both: a bar of glyphs is a bar
               // nobody can read, and `title` is not available to a keyboard.
-              aria-label={`${label.name} — ${label.blurb}${
-                isSelfCast(item.itemId) ? '' : '. Asks for a target'
-              }`}
+              // Two whole messages rather than an appended fragment: the
+              // "asks for a target" clause moves with the language.
+              aria-label={
+                isSelfCast(item.itemId)
+                  ? t('items.cardAria', { name, blurb })
+                  : t('items.cardAriaTargeted', { name, blurb })
+              }
               className={cn(
                 'flex min-w-[4.5rem] flex-col items-center gap-1 rounded-xl border px-3 py-2 transition-all',
                 'outline-none focus-visible:ring-2 focus-visible:ring-accent',
@@ -68,7 +77,7 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
                 {label.icon}
               </span>
               <span className="font-mono text-[9px] tracking-[0.1em] text-muted uppercase">
-                {label.name}
+                {name}
               </span>
             </button>
           );

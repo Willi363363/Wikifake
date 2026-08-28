@@ -14,6 +14,7 @@
 // answering Enter and Space. The current `<span onClick>` answers none of them.
 import type { gameApi } from '@wikifake/protocol';
 import { cn, ParagraphToken, tokenStateFor } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 
 import { Attribution } from './attribution.js';
 import type { Distortion } from './effects.js';
@@ -87,6 +88,8 @@ export function ArticleCard({
   locked,
   onToggle,
 }: ArticleCardProps) {
+  const t = useTranslations('round');
+
   return (
     <article
       className={cn(
@@ -96,9 +99,9 @@ export function ArticleCard({
       )}
     >
       <header className="flex flex-wrap items-center gap-3 border-b border-line pb-3 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-        <span>Source · Wikipedia</span>
+        <span>{t('article.source')}</span>
         <span aria-hidden="true" className="h-3 w-px bg-line" />
-        <span>Modified text</span>
+        <span>{t('article.modifiedTag')}</span>
       </header>
 
       {/* The topic is a Wikipedia title, so it is French for the same reason. */}

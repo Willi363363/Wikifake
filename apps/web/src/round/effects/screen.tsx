@@ -6,6 +6,8 @@
 // What differs between them is a wash and a word, so what differs here is a
 // wash and a word.
 import { cn } from '@wikifake/ui';
+import { STEAL_AMOUNT } from '@wikifake/domain';
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from 'react';
 
 export interface SheetProps {
@@ -39,11 +41,10 @@ export function Sheet({ label, className, children }: SheetProps) {
 
 /** BLUR — a wash over the page, with the card blurred underneath it. */
 export function Fog() {
+  const t = useTranslations('round');
+
   return (
-    <Sheet
-      label="Someone has fogged your screen"
-      className="bg-ink/25 backdrop-blur-[2px]"
-    >
+    <Sheet label={t('effects.fog.aria')} className="bg-ink/25 backdrop-blur-[2px]">
       <div className="absolute inset-0 animate-fog-drift bg-[radial-gradient(ellipse_at_center,transparent_10%,var(--color-ink)_140%)] opacity-40" />
     </Sheet>
   );
@@ -51,8 +52,10 @@ export function Fog() {
 
 /** EARTHQUAKE — the shake is on the article; this is the dust. */
 export function Quake() {
+  const t = useTranslations('round');
+
   return (
-    <Sheet label="Someone is shaking your screen" className="bg-bronze/10">
+    <Sheet label={t('effects.quake.aria')} className="bg-bronze/10">
       <div className="absolute inset-0 shadow-[inset_0_0_120px_color-mix(in_srgb,var(--color-bronze)_45%,transparent)]" />
     </Sheet>
   );
@@ -60,10 +63,12 @@ export function Quake() {
 
 /** BLACKOUT — the redaction. */
 export function Blackout() {
+  const t = useTranslations('round');
+
   return (
-    <Sheet label="Someone has redacted your article" className="bg-ink/80">
+    <Sheet label={t('effects.blackout.aria')} className="bg-ink/80">
       <p className="absolute inset-0 flex items-center justify-center font-mono text-sm tracking-[0.3em] text-bg uppercase">
-        redacted
+        {t('effects.blackout.stamp')}
       </p>
     </Sheet>
   );
@@ -78,11 +83,15 @@ export function Blackout() {
  * still wash, which still says what happened.
  */
 export function Lightning() {
+  const t = useTranslations('round');
+
   return (
-    <Sheet label="Someone has taken points from you" className="bg-danger/20">
+    <Sheet label={t('effects.lightning.aria')} className="bg-danger/20">
       <div className="absolute inset-0 animate-screen-flash bg-danger/30" />
       <p className="absolute inset-0 flex items-center justify-center font-mono text-6xl font-black text-danger">
-        −50
+        {/* The number is the rule's (`STEAL_AMOUNT`), not the sheet's: a copy
+            here is a copy a balance change leaves lying. */}
+        {t('effects.lightning.amount', { points: STEAL_AMOUNT })}
       </p>
     </Sheet>
   );

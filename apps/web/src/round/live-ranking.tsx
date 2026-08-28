@@ -8,6 +8,7 @@
 //
 // The sidebar variant (`Leaderboard.jsx`) is not ported: nothing renders it.
 import { Button, cn, Progress } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import type { Standing } from './leaderboard.js';
@@ -17,6 +18,7 @@ export interface LiveRankingProps {
 }
 
 export function LiveRanking({ standings }: LiveRankingProps) {
+  const t = useTranslations('round');
   const [open, setOpen] = useState(false);
 
   // Alone in a room, a ranking of one is furniture.
@@ -29,7 +31,7 @@ export function LiveRanking({ standings }: LiveRankingProps) {
 
   return (
     <aside
-      aria-label="Live ranking"
+      aria-label={t('liveRanking.aria')}
       className="fixed bottom-3 left-3 z-30 w-[min(17rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-line bg-glass-strong shadow-md backdrop-blur-md"
     >
       <Button
@@ -41,11 +43,11 @@ export function LiveRanking({ standings }: LiveRankingProps) {
         }}
       >
         <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-          ranking · {String(standings.length)}
+          {t('liveRanking.header', { count: standings.length })}
         </span>
         {open ? (
           <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-            close
+            {t('liveRanking.close')}
           </span>
         ) : (
           <span className="flex items-center gap-2">
@@ -86,13 +88,19 @@ export function LiveRanking({ standings }: LiveRankingProps) {
                   )}
                 >
                   {standing.name}
-                  {standing.you ? <span className="text-muted"> · you</span> : null}
+                  {/* The separator is layout; only the word is translated. */}
+                  {standing.you ? (
+                    <span className="text-muted">{` · ${t('liveRanking.you')}`}</span>
+                  ) : null}
                 </span>
                 <Progress
                   value={Math.max(0, standing.score)}
                   max={most}
                   className="mt-1"
-                  aria-label={`${standing.name}: ${String(standing.score)}`}
+                  aria-label={t('liveRanking.progressAria', {
+                    name: standing.name,
+                    score: standing.score,
+                  })}
                 />
               </span>
 

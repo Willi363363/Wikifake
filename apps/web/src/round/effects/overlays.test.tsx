@@ -3,7 +3,7 @@
 // The sheets themselves: that each one is drawn, that a screen reader is told
 // what happened, and the two fixes this step names — nothing random during
 // render, and a canvas that stops for a viewer who asked for less motion.
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { Overlays } from './overlays.js';
@@ -11,6 +11,7 @@ import { CONFETTI, useParticles } from './particles.js';
 import type { Overlay } from '../effects.js';
 import { Static } from './static.js';
 import { REDUCED_MOTION } from '../reduced-motion.js';
+import { render } from '../../i18n/testing.js';
 
 /** Every overlay the table can produce. */
 const OVERLAYS: readonly Overlay[] = [

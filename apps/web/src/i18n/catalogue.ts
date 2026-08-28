@@ -10,10 +10,11 @@
 // A catalogue entry is a whole message with placeholders, never a fragment to
 // concatenate: sentences built from pieces do not survive translation.
 import type home from '../../messages/en/home.json';
+import type round from '../../messages/en/round.json';
 import type { Locale } from './locales.js';
 
 /** The zones migrated so far. Step 11.2 grows this list, one entry per zone. */
-export const ZONES = ['home'] as const;
+export const ZONES = ['home', 'round'] as const;
 
 export type Zone = (typeof ZONES)[number];
 
@@ -26,6 +27,7 @@ export type Zone = (typeof ZONES)[number];
  */
 export type CatalogueMessages = {
   home: typeof home;
+  round: typeof round;
 };
 
 /** Every zone of one locale, loaded and nested under its namespace. */

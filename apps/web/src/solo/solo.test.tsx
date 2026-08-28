@@ -12,7 +12,8 @@
 // The two routes are the seam, and they are stubbed at `fetch`. What they *do*
 // is phase 4's exit gate and is tested against a real database in
 // `src/game/journey.test.ts`; repeating it here would prove the same thing worse.
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen } from '@testing-library/react';
+import { render } from '../i18n/testing.js';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { SoloGame } from './solo.js';

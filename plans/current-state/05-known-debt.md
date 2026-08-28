@@ -172,6 +172,15 @@ The honest fix is a client heartbeat — which means a new message in
 update. That is its own step, not an aside in a deployment change, so it is
 recorded here rather than smuggled in.
 
+## Server refusals reach the round in the server's language
+
+`round.tsx` renders two strings it never wrote: `refusal` and `items.refusal`
+arrive from the server as protocol error messages and go on screen verbatim.
+Step 11.2 moved every client-authored string into the catalogue, but these are
+not the client's to key — whoever owns the server messages must decide whether
+they become error *codes* the client translates, or stay sentences in one
+language. Until then a French interface will show them in English.
+
 ## The structural debt is its own file
 
 The entries above are defects and gaps with a location. The notes that are
