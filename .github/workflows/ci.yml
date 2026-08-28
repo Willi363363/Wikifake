@@ -107,13 +107,13 @@ jobs:
       - name: Enable pnpm
         run: corepack enable pnpm
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-lint-${{ github.sha }}
@@ -139,13 +139,13 @@ jobs:
       - name: Enable pnpm
         run: corepack enable pnpm
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-typecheck-${{ github.sha }}
@@ -208,13 +208,13 @@ jobs:
       - name: Enable pnpm
         run: corepack enable pnpm
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-test-${{ github.sha }}
@@ -244,13 +244,13 @@ jobs:
       - name: Enable pnpm
         run: corepack enable pnpm
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: .turbo
           key: turbo-build-${{ github.sha }}
@@ -306,7 +306,7 @@ jobs:
       - name: Enable pnpm
         run: corepack enable pnpm
 
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.local/share/pnpm/store
           key: pnpm-${{ hashFiles('pnpm-lock.yaml') }}
@@ -314,7 +314,7 @@ jobs:
 
       # Keyed on the Playwright version: a browser build is 130 MB, and
       # downloading it on every run is a minute nobody gets back.
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         id: browser
         with:
           path: ~/.cache/ms-playwright
