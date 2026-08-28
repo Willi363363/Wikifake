@@ -16,6 +16,8 @@
 // Like `deployment.ts`, this does **not** go through `loadEnv`: a crawler asking
 // for `robots.txt` should not be answered with a validation failure about the
 // database.
+import routes from '../messages/en/routes.json';
+
 import type { Environment } from './deployment.js';
 
 /**
@@ -60,20 +62,34 @@ export const INDEXABLE_ROUTES = ['/', '/play'] as const;
 /**
  * The title, between 20 and 80 characters.
  *
- * Under 20 a search result says nothing; over 80 it is cut off. English, like
- * every other word the game says since step 8.10.
+ * Under 20 a search result says nothing; over 80 it is cut off.
+ *
+ * Step 11.2: the words live in the message catalogue (`routes` zone), not
+ * here. The English file is read directly, and deliberately so — the metadata
+ * is served in one language until step 11.5 makes it per-locale alongside the
+ * `hreflang` alternates, exactly as `src/i18n/request.ts` pins the request
+ * locale until step 11.3. The constant remains so the bounds tests keep one
+ * name to hold, whatever file the copy lives in.
  */
-export const SITE_TITLE = 'WikiFake — can you spot the false facts?';
+export const SITE_TITLE: string = routes.metadata.title;
 
 /**
  * The description, between 70 and 320 characters.
  *
  * Same reasoning: under 70 it earns no click, over 320 Google truncates it.
+ * Same source as the title — one catalogue entry, reused by the document
+ * `<meta>`, Open Graph and the Twitter card.
  */
-export const SITE_DESCRIPTION =
-  'A Wikipedia article, a handful of facts rewritten by a model, and you. ' +
-  'Find them alone or against other players — a free game of critical ' +
-  'reading and fact-checking.';
+export const SITE_DESCRIPTION: string = routes.metadata.description;
+
+/**
+ * The name a shared link is filed under — `og:site_name`.
+ *
+ * The brand, not a sentence: it reads the same in every locale, but it lives
+ * in the catalogue like every other word the layout says, so nothing
+ * user-facing is hardcoded there.
+ */
+export const SITE_NAME: string = routes.metadata.siteName;
 
 /**
  * Where this deployment answers from, as an absolute origin with no trailing

@@ -18,14 +18,23 @@ import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactNode } from 'react';
 
-import { absolute, SITE_DESCRIPTION, SITE_TITLE, siteOrigin } from '../src/indexing.js';
+import {
+  absolute,
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+  siteOrigin,
+} from '../src/indexing.js';
 
 import './globals.css';
 
 /**
  * C6.3 — the metadata, in the language of the interface.
  *
- * English from step 8.10, like every other word the game says. It becomes
+ * English from step 8.10, like every other word the game says. Since step
+ * 11.2 the words themselves live in the message catalogue — `SITE_TITLE`,
+ * `SITE_DESCRIPTION` and `SITE_NAME` read the `routes` zone's English file in
+ * `src/indexing.ts`, where the search-result bounds are tested. It becomes
  * per-locale in step 11.5, alongside the `hreflang` alternates.
  *
  * Step 10.0 adds the three halves that were missing and that C6.3 names: the
@@ -49,7 +58,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
-    siteName: 'WikiFake',
+    siteName: SITE_NAME,
     url: absolute('/'),
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
