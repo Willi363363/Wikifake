@@ -1,10 +1,10 @@
 // The catalogue, for component tests.
 //
-// Since step 11.2 the round's components read their copy through `next-intl`,
-// which resolves against `NextIntlClientProvider` — in production the root
-// layout mounts it, so a test that renders a component without one is a test
-// rendering a tree production never mounts. This wraps `render` with the
-// English provider once, instead of every suite carrying its own.
+// Since step 11.2 the migrated zones' components read their copy through
+// `next-intl`, which resolves against `NextIntlClientProvider` — in production
+// the root layout mounts it, so a test that renders a component without one is
+// a test rendering a tree production never mounts. This wraps `render` with
+// the English provider once, instead of every suite carrying its own.
 //
 // English deliberately: the suites assert the English copy, and the French
 // rendering is proven where French is the point (`page.locale.test.tsx`, and
@@ -15,9 +15,10 @@ import type { ReactElement, ReactNode } from 'react';
 
 import home from '../../messages/en/home.json';
 import round from '../../messages/en/round.json';
+import waiting from '../../messages/en/waiting.json';
 
 /** Statically imported: a test harness has no business being async. */
-const MESSAGES = { home, round };
+const MESSAGES = { home, round, waiting };
 
 function EnglishCatalogue({ children }: { readonly children: ReactNode }) {
   return (
