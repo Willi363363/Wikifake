@@ -13,15 +13,11 @@
 // that decides how the round is played.
 import { Label } from '@wikifake/ui';
 import { MAX_TIME_LIMIT_SECONDS, MIN_TIME_LIMIT_SECONDS } from '@wikifake/protocol';
+import { useTranslations } from 'next-intl';
 import { useId } from 'react';
 
 /** The step the current slider uses. Thirty seconds, from 30 to 600. */
 const STEP = 30;
-
-/** `90` reads as `1.5min`, as it does today. */
-export function readableLimit(seconds: number): string {
-  return seconds < 60 ? `${String(seconds)}s` : `${(seconds / 60).toFixed(1)}min`;
-}
 
 export interface HostSettingsProps {
   readonly timeLimit: number;
@@ -38,14 +34,23 @@ export function HostSettings({
   onTimeLimitChange,
   onWithItemsChange,
 }: HostSettingsProps) {
+  const t = useTranslations('lobby.hostSettings');
   const ids = useId();
+
+  // `90` reads as `1.5min`, as it does today — but the unit and its spacing
+  // are the locale's, so each is a whole catalogue message, never a suffix
+  // concatenated onto a number.
+  const readableLimit = (seconds: number): string =>
+    seconds < 60 ? t('seconds', { seconds }) : t('minutes', { minutes: seconds / 60 });
 
   return (
     <div className="space-y-4">
       <div>
         {/* Associated with the input, which the current label is not: it is a
             sibling `<label>` with no `htmlFor`, so it names nothing. */}
-        <Label htmlFor={`${ids}-limit`}>Time limit — {readableLimit(timeLimit)}</Label>
+        <Label htmlFor={`${ids}-limit`}>
+          {t('timeLimit', { limit: readableLimit(timeLimit) })}
+        </Label>
         <input
           id={`${ids}-limit`}
           type="range"
@@ -83,7 +88,7 @@ export function HostSettings({
             : 'border-line-strong bg-surface text-ink-2',
         ].join(' ')}
       >
-        <span>Play with items</span>
+        <span>{t('playWithItems')}</span>
         <span
           aria-hidden
           className={[

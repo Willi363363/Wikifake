@@ -17,6 +17,7 @@
 // style objects, which is what makes it work in both palettes and at 360 px.
 import { decode, playerName, roomCode, topicLabel } from '@wikifake/protocol';
 import { Badge, Button, cn, Input, Label, Separator } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useId, useState, type FormEvent } from 'react';
 
@@ -24,19 +25,26 @@ import { rememberNickname } from '../realtime/room-gate.js';
 
 type Mode = 'solo' | 'host' | 'join';
 
-const TABS: readonly { readonly id: Mode; readonly label: string }[] = [
-  { id: 'solo', label: 'Solo' },
-  { id: 'host', label: 'Host' },
-  { id: 'join', label: 'Join' },
-];
+const TABS: readonly Mode[] = ['solo', 'host', 'join'];
 
-/** The first complaint a schema has, or null when it is satisfied. */
-function complaint(schema: Parameters<typeof decode>[0], value: unknown): string | null {
+/**
+ * The first complaint a schema has, or null when it is satisfied.
+ *
+ * The primary sentence is the decoder's — authored in `@wikifake/protocol`,
+ * which is the same schema the server refuses with. Only the fallback, for a
+ * decoder that refused without saying why, is this screen's own copy.
+ */
+function complaint(
+  schema: Parameters<typeof decode>[0],
+  value: unknown,
+  fallback: string,
+): string | null {
   const read = decode(schema, value);
-  return read.ok ? null : (read.issues[0] ?? 'that is not allowed');
+  return read.ok ? null : (read.issues[0] ?? fallback);
 }
 
 export function LobbyEntry() {
+  const t = useTranslations('lobby.entry');
   const router = useRouter();
   const ids = useId();
 
@@ -51,7 +59,7 @@ export function LobbyEntry() {
   const acceptNickname = (): string | null => {
     const read = decode(playerName, nickname);
     if (!read.ok) {
-      setError(read.issues[0] ?? 'that nickname is not allowed');
+      setError(read.issues[0] ?? t('errors.nickname'));
       return null;
     }
     rememberNickname(read.value);
@@ -62,7 +70,7 @@ export function LobbyEntry() {
     event.preventDefault();
     setError(null);
 
-    const wanted = complaint(topicLabel, topic);
+    const wanted = complaint(topicLabel, topic, t('errors.notAllowed'));
     if (wanted !== null) {
       setError(wanted);
       return;
@@ -88,18 +96,18 @@ export function LobbyEntry() {
         // The server's own sentence — `room_capacity_reached` says "too many
         // rooms are open", which is a thing a player can act on.
         const said = (body as { message?: string }).message;
-        setError(said ?? 'the room could not be opened');
+        setError(said ?? t('errors.roomNotOpened'));
         return;
       }
 
       const opened = decode(roomCode, (body as { roomCode?: unknown }).roomCode);
       if (!opened.ok) {
-        setError('the server opened a room we cannot read');
+        setError(t('errors.unreadableRoom'));
         return;
       }
       router.push(`/room/${opened.value}`);
     } catch {
-      setError('the server could not be reached');
+      setError(t('errors.unreachable'));
     } finally {
       setBusy(false);
     }
@@ -109,7 +117,7 @@ export function LobbyEntry() {
     event.preventDefault();
     setError(null);
 
-    const wanted = complaint(roomCode, code.toUpperCase());
+    const wanted = complaint(roomCode, code.toUpperCase(), t('errors.notAllowed'));
     if (wanted !== null) {
       setError(wanted);
       return;
@@ -122,7 +130,7 @@ export function LobbyEntry() {
 
   const nicknameField = (
     <div className="space-y-1.5">
-      <Label htmlFor={`${ids}-nickname`}>Nickname</Label>
+      <Label htmlFor={`${ids}-nickname`}>{t('nicknameLabel')}</Label>
       <Input
         id={`${ids}-nickname`}
         value={nickname}
@@ -137,28 +145,26 @@ export function LobbyEntry() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10">
-      <h1 className="text-center text-3xl font-semibold text-ink">WikiFake</h1>
-      <p className="mt-2 text-center text-sm text-muted">
-        A Wikipedia article, some errors slipped into it, and you.
-      </p>
+      <h1 className="text-center text-3xl font-semibold text-ink">{t('brand')}</h1>
+      <p className="mt-2 text-center text-sm text-muted">{t('tagline')}</p>
 
       <div className="mt-8 rounded-xl border border-line bg-surface p-6 shadow-md">
         {/* A tablist, not three buttons that happen to look like one: the roles
             are what let a keyboard move between them. */}
-        <div role="tablist" aria-label="How to play" className="flex gap-2">
+        <div role="tablist" aria-label={t('tabsLabel')} className="flex gap-2">
           {TABS.map((tab) => (
             <Button
-              key={tab.id}
+              key={tab}
               role="tab"
-              aria-selected={mode === tab.id}
-              variant={mode === tab.id ? 'primary' : 'ghost'}
+              aria-selected={mode === tab}
+              variant={mode === tab ? 'primary' : 'ghost'}
               className="flex-1"
               onClick={() => {
-                setMode(tab.id);
+                setMode(tab);
                 setError(null);
               }}
             >
-              {tab.label}
+              {t(`tabs.${tab}`)}
             </Button>
           ))}
         </div>
@@ -168,18 +174,23 @@ export function LobbyEntry() {
         {mode === 'solo' ? (
           <form onSubmit={startSolo} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor={`${ids}-topic`}>Wikipedia topic</Label>
+              <Label htmlFor={`${ids}-topic`}>{t('topicLabel')}</Label>
+              {/* The topic is a fr.wikipedia.org subject — the placeholder is
+                  an example of one ("Chat"), identical in every locale, and
+                  what the player types is French data, not interface copy.
+                  Hence `lang="fr"` on the field, whatever the interface. */}
               <Input
                 id={`${ids}-topic`}
                 value={topic}
-                placeholder="Chat"
+                lang="fr"
+                placeholder={t('topicPlaceholder')}
                 onChange={(event) => {
                   setTopic(event.target.value);
                 }}
               />
             </div>
             <Button type="submit" variant="primary" size="lg" className="w-full">
-              Play solo
+              {t('playSolo')}
             </Button>
           </form>
         ) : null}
@@ -199,7 +210,7 @@ export function LobbyEntry() {
               className="w-full"
               disabled={busy}
             >
-              {busy ? 'Opening…' : 'Open a room'}
+              {busy ? t('opening') : t('openRoom')}
             </Button>
           </form>
         ) : null}
@@ -207,7 +218,7 @@ export function LobbyEntry() {
         {mode === 'join' ? (
           <form onSubmit={join} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor={`${ids}-code`}>Room code</Label>
+              <Label htmlFor={`${ids}-code`}>{t('roomCodeLabel')}</Label>
               <Input
                 id={`${ids}-code`}
                 value={code}
@@ -223,7 +234,7 @@ export function LobbyEntry() {
             </div>
             {nicknameField}
             <Button type="submit" variant="primary" size="lg" className="w-full">
-              Join
+              {t('joinSubmit')}
             </Button>
           </form>
         ) : null}
@@ -238,7 +249,7 @@ export function LobbyEntry() {
       </div>
 
       <p className="mt-6 text-center">
-        <Badge tone="accent">server-authoritative</Badge>
+        <Badge tone="accent">{t('serverAuthoritative')}</Badge>
       </p>
     </main>
   );

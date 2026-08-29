@@ -11,10 +11,11 @@
 // lives — `broadcast.test.ts` in `apps/realtime`, over a real Redis channel.
 // What this can prove is the half that failed in the current game: that what the
 // server says is what the screen shows.
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { render } from '../i18n/testing.js';
 import { Room } from './room.js';
 import { deliver, mountRoom, player, roster, sent } from './testing.js';
 import { RealtimeProvider } from '../realtime/provider.js';

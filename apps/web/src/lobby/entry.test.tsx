@@ -8,11 +8,12 @@
 // one is the interesting test — today the client checks `!username`, so a
 // 200-character name full of emoji passes, the socket opens, the server refuses
 // it, and the player is shown a closed connection rather than a reason.
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LobbyEntry } from './entry.js';
+import { render } from '../i18n/testing.js';
 import { readNickname } from '../realtime/room-gate.js';
 
 const pushed: string[] = [];

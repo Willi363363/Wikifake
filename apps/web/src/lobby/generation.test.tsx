@@ -65,10 +65,12 @@ describe('7.5 — the progress, as arithmetic', () => {
   });
 
   it('names a stage for every point on the scale', () => {
+    // A stage is a catalogue key since 11.2 — the copy lives in the catalogue,
+    // and the screen resolves it. The English rendering is asserted below.
     for (let at = 0; at <= 100; at += 1) {
       expect(stageAt(at).length).toBeGreaterThan(0);
     }
-    expect(stageAt(100)).toBe('Ready');
+    expect(stageAt(100)).toBe('ready');
   });
 });
 
