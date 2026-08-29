@@ -109,7 +109,13 @@ const SAMPLES: Record<string, string> = { '[code]': 'A1B2C3' };
 
 /** Every page under `app/[locale]`, as the unprefixed URL it answered before. */
 function legacyPages(): string[] {
-  const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'app', '[locale]');
+  const root = join(
+    dirname(fileURLToPath(import.meta.url)),
+    '..',
+    '..',
+    'app',
+    '[locale]',
+  );
   const found: string[] = [];
 
   const walk = (directory: string, urlPath: string): void => {

@@ -16,7 +16,9 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // a direct render gets, and a bad segment must fall back to English rather
   // than fail to load messages.
   const requested = await requestLocale;
-  const locale = hasLocale(routing.locales, requested) ? requested : routing.defaultLocale;
+  const locale = hasLocale(routing.locales, requested)
+    ? requested
+    : routing.defaultLocale;
 
   return { locale, messages: await messagesFor(locale) };
 });

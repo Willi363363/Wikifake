@@ -42,10 +42,12 @@ describe('11.3 — the explicit switch', () => {
 
   it('marks the language the player is in, and only that one', async () => {
     await switchIn('fr');
-    expect(screen.getByRole('link', { name: 'Français' }).getAttribute('aria-current')).toBe(
-      'true',
-    );
-    expect(screen.getByRole('link', { name: 'English' }).getAttribute('aria-current')).toBeNull();
+    expect(
+      screen.getByRole('link', { name: 'Français' }).getAttribute('aria-current'),
+    ).toBe('true');
+    expect(
+      screen.getByRole('link', { name: 'English' }).getAttribute('aria-current'),
+    ).toBeNull();
   });
 
   it('points each language at the page the player is on', async () => {
@@ -53,8 +55,12 @@ describe('11.3 — the explicit switch', () => {
     // link re-serves the current path under the other prefix — English on the
     // unprefixed URL, since English owns those (see `routing.ts`).
     await switchIn('fr');
-    expect(screen.getByRole('link', { name: 'English' }).getAttribute('href')).toBe('/en/play');
-    expect(screen.getByRole('link', { name: 'Français' }).getAttribute('href')).toBe('/fr/play');
+    expect(screen.getByRole('link', { name: 'English' }).getAttribute('href')).toBe(
+      '/en/play',
+    );
+    expect(screen.getByRole('link', { name: 'Français' }).getAttribute('href')).toBe(
+      '/fr/play',
+    );
   });
 
   it('records the choice where the proxy reads it', async () => {
