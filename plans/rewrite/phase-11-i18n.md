@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales; 11.3 + 11.4 done: detection, the persistent switch, localised routing under `/fr`, no legacy URL 404s |
+| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales; 11.3 + 11.4 done: detection, the persistent switch, localised routing under `/fr`, no legacy URL 404s; 11.5 done: `lang` and the SEO metadata follow the locale, C6.3 amended with its tests |
 | **Branch** | `feat/rewrite-phase-11` |
 | **Depends on** | phase 8 |
 | **Delivers** | an interface in English and French: catalogues, switch, localised routing, per-locale SEO |
@@ -79,6 +79,14 @@ locale. It is amended in this step, with the contract file, never silenced.
 
 **Done when**: each locale serves its own `lang` and metadata, and the
 amended compliance test asserts both.
+
+**Done**: `lang` comes from the `[locale]` segment; the metadata is
+`generateMetadata` reading the catalogue's `seo` zone — title, description,
+per-locale canonical, `hreflang` alternates, `og:locale` — and the sitemap
+declares both locales. C6.3 was amended in
+`02-contract-transport-and-compliance.md` together with its tests
+(`language.test.ts`, `layout.test.tsx`, `indexing.spec.ts`), in the same
+change as the behaviour.
 
 ### 11.6 — French catalogue
 

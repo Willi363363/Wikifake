@@ -4,71 +4,99 @@
 // What it carries is deliberately minimal — the screens are phases 7 and 8, and
 // a layout that started deciding navigation would be deciding them here.
 //
-// `lang="fr"` is C6.3, and it stays here for now even though the interface above
-// it is English. Two things are true at once: the article, the topics and the
-// falsifications are French, and every word the game itself says is not. The
-// honest markup is `lang="en"` on the document with the article's own text
-// marked `lang="fr"` — which is half done, in `round/article.tsx`.
-//
-// The other half is **step 11.5's**, and deliberately: `lang` is a clause of
-// `02-contract-transport-and-compliance.md`, and phase 11 amends the clause and
-// its test together when the attribute becomes per-locale. Changing it here
-// would be changing a preserved guarantee in a step that does not own it.
+// `lang` follows the interface locale — step 11.5, and the amendment of C6.3.
+// The attribute was pinned to `"fr"` from the legacy stack until this step,
+// under an interface that had become English; now the document says what the
+// interface speaks, and the one thing that stays French whatever the locale is
+// the article itself, which carries its own `lang` in `round/article.tsx`. The
+// clause and its tests were amended together, as phase 11 requires.
 import type { Metadata, Viewport } from 'next';
-import { NextIntlClientProvider } from 'next-intl';
+import { hasLocale, NextIntlClientProvider } from 'next-intl';
+import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
+import { messagesFor } from '../../src/i18n/catalogue.js';
 import { LocaleSwitch } from '../../src/i18n/locale-switch.js';
-import {
-  absolute,
-  SITE_DESCRIPTION,
-  SITE_NAME,
-  SITE_TITLE,
-  siteOrigin,
-} from '../../src/indexing.js';
+import { LOCALES, type Locale } from '../../src/i18n/locales.js';
+import { absolute, localePath, siteOrigin } from '../../src/indexing.js';
 
 import '../globals.css';
 
 /**
- * C6.3 — the metadata, in the language of the interface.
+ * The `og:locale` value each interface locale declares.
  *
- * English from step 8.10, like every other word the game says. It becomes
- * per-locale in step 11.5, alongside the `hreflang` alternates.
+ * Open Graph wants the `language_TERRITORY` form. The old stack declared
+ * `fr_FR` unconditionally; since step 11.5 each locale declares its own, and
+ * the layout test holds the pair — `lang` and `og:locale` — together.
+ */
+const OG_LOCALES: Record<Locale, string> = { en: 'en_US', fr: 'fr_FR' };
+
+/** The `[locale]` segment, validated: an unknown segment is not a page. */
+async function localeFrom(params: Promise<{ locale: string }>): Promise<Locale> {
+  const { locale } = await params;
+  if (!hasLocale(LOCALES, locale)) notFound();
+  return locale;
+}
+
+/**
+ * C6.3 — the metadata, per locale since step 11.5.
  *
- * Step 10.0 adds the three halves that were missing and that C6.3 names: the
- * canonical link, Open Graph and the Twitter card. Without them a shared link
- * shows neither title nor image, which is what the old stack's `indexing.test.js`
- * was written to prevent, and a preview URL competes with production for the
- * same content in an index.
+ * The title and the description come from the `seo` zone of the catalogue, so
+ * a search result speaks the language of the page it points at. The
+ * `hreflang` alternates name every locale's URL for the same page — plus
+ * `x-default` for the language-less request, which the proxy answers by
+ * detection — and the canonical is the locale's own root, so a preview never
+ * competes with production and the two locales never compete with each other.
  *
  * `metadataBase` is what lets every relative URL below resolve — Next resolves
- * `alternates` and `openGraph.url` against it, so the origin is decided once, in
- * `src/indexing.ts`, and not spelled out per tag.
+ * `alternates` and `openGraph.url` against it, so the origin is decided once,
+ * in `src/indexing.ts`, and not spelled out per tag.
  *
- * No `og:locale`: the old stack declared `fr_FR`, and the honest value now is
- * neither that nor `en`, since the document is still `lang="fr"` under an
- * English interface. Step 11.5 owns that pair and will set both together.
+ * These alternates are the one place the locale URLs are emitted:
+ * `routing.ts` keeps `alternateLinks` off so the same statement is not also
+ * made as a `Link` header, half-consistently, on every route a crawler is
+ * kept out of anyway.
  */
-export const metadata: Metadata = {
-  metadataBase: new URL(siteOrigin()),
-  title: SITE_TITLE,
-  description: SITE_DESCRIPTION,
-  alternates: { canonical: '/' },
-  openGraph: {
-    type: 'website',
-    siteName: SITE_NAME,
-    url: absolute('/'),
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
-    images: ['/image.png'],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: SITE_TITLE,
-    description: SITE_DESCRIPTION,
-    images: ['/image.png'],
-  },
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const locale = await localeFrom(params);
+  const { seo } = await messagesFor(locale);
+  const home = localePath(locale, '/');
+
+  return {
+    metadataBase: new URL(siteOrigin()),
+    title: seo.title,
+    description: seo.description,
+    alternates: {
+      canonical: home,
+      languages: {
+        ...Object.fromEntries(LOCALES.map((other) => [other, localePath(other, '/')])),
+        'x-default': '/',
+      },
+    },
+    openGraph: {
+      type: 'website',
+      siteName: 'WikiFake',
+      url: absolute(home),
+      title: seo.title,
+      description: seo.description,
+      images: ['/image.png'],
+      locale: OG_LOCALES[locale],
+      alternateLocale: LOCALES.filter((other) => other !== locale).map(
+        (other) => OG_LOCALES[other],
+      ),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: seo.title,
+      description: seo.description,
+      images: ['/image.png'],
+    },
+  };
+}
 
 /**
  * Declared rather than left to a default.
@@ -83,9 +111,17 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({
+  children,
+  params,
+}: {
+  children: ReactNode;
+  params: Promise<{ locale: string }>;
+}) {
+  const locale = await localeFrom(params);
+
   return (
-    <html lang="fr">
+    <html lang={locale}>
       <body className="bg-bg text-ink">
         {/* Step 11.1: every screen below reads its copy through `next-intl`.
             No props on purpose — rendered in a server component, the provider
