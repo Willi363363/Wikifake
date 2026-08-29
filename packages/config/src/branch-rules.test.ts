@@ -56,6 +56,18 @@ describe('checks.sh branch', () => {
   });
 });
 
+describe('checks.sh commit-range', () => {
+  it('skips commit checks for the documented staging to main promotion', () => {
+    expect(checks('commit-range', 'deadbeef', 'badc0de', 'staging', 'main')).toBe(0);
+  });
+
+  it('still checks non-promotion ranges', () => {
+    expect(
+      checks('commit-range', 'deadbeef', 'badc0de', 'feat/demo', 'staging'),
+    ).not.toBe(0);
+  });
+});
+
 describe('checks.sh push', () => {
   // The promotion exemption belongs to pull request heads only. A push to a
   // protected branch stays refused, whatever a caller passes alongside it.

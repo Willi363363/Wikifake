@@ -10,6 +10,8 @@
 #   staged                  checks on staged files (pre-commit)
 #   diff <base> [head]      checks over a commit range (CI)
 #   commit-msg <file>       commit message format
+#   commit-range <base> <head> [head_ref] [base_ref]
+#                           commit message format over a commit range (CI)
 #   branch <name> [base]    protected branch + naming, for a PR head
 #   push <name>             protected branch (pre-push)
 #   lint <files...>         available linters on these files
@@ -176,6 +178,25 @@ check_commit_msg() {
   case "$subject" in *.) err "subject ends with a period";; esac
 }
 
+check_commit_range() {
+  [ -z "${1:-}" ] && { err 'usage: checks.sh commit-range <base> <head> [head_ref] [base_ref]'; return; }
+  [ -z "${2:-}" ] && { err 'usage: checks.sh commit-range <base> <head> [head_ref] [base_ref]'; return; }
+
+  if is_promotion "${3:-}" "${4:-}"; then
+    info "\"${3:-}\" → \"${4:-}\": documented promotion, commit messages are already checked on PRs to staging"
+    return 0
+  fi
+
+  local revs sha status=0
+  revs=$(git rev-list "$1..$2") || { err "cannot list commits in range $1..$2"; return; }
+  for sha in $revs; do
+    git log -1 --format=%B "$sha" > /tmp/msg
+    printf '\n%s %s\n' "$sha" "$(head -1 /tmp/msg)"
+    check_commit_msg /tmp/msg || status=1
+  done
+  return "$status"
+}
+
 # --- branches --------------------------------------------------------------
 check_protected() {
   for b in $PROTECTED_BRANCHES; do
@@ -232,10 +253,11 @@ case "${1:-}" in
     run_file_checks "${files[@]}"; check_docs
     ;;
   commit-msg) check_commit_msg "${2:?message file required}" ;;
+  commit-range) check_commit_range "${2:-}" "${3:-}" "${4:-}" "${5:-}" ;;
   branch)     check_branch "${2:?name required}" "${3:-}" ;;
   push)       check_protected "${2:?name required}" ;;
   lint)       shift; check_lint "$@" ;;
-  *) echo 'usage: scripts/checks.sh {staged|diff|commit-msg|branch|push|lint} [args]' >&2; exit 2 ;;
+  *) echo 'usage: scripts/checks.sh {staged|diff|commit-msg|commit-range|branch|push|lint} [args]' >&2; exit 2 ;;
 esac
 
 exit "$fail"
