@@ -43,9 +43,10 @@ describe('11.1 — the front door renders from the catalogue', () => {
 
   it('keeps the English description in step with the metadata', async () => {
     // `layout.tsx` still serves `SITE_DESCRIPTION` to crawlers until step 11.5
-    // makes the metadata per-locale. Until then the same sentence exists twice
-    // — catalogue and `src/indexing.ts` — and this is what stops them
-    // drifting apart quietly.
+    // makes the metadata per-locale. Since step 11.2 that constant reads the
+    // catalogue's `routes` zone, so the same sentence exists twice — the
+    // `home` and `routes` zone files — and this is what stops them drifting
+    // apart quietly.
     expect(await frontDoorIn('en')).toContain(SITE_DESCRIPTION);
   });
 });
