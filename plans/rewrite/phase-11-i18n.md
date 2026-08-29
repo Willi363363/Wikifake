@@ -107,6 +107,13 @@ ever falling back to a missing translation.
 **Done when**: the compliance tests assert the full attribution in each
 locale, during and after the round.
 
+**Done**: `attribution.test.tsx` renders the round in every locale, during
+and with the debrief up, and asserts the full attribution — exact wording
+held in the test itself, licence name and both links intact, the topic link
+kept `lang="fr"` — plus a catalogue guard that reads every locale directory
+on disk and fails on any missing, empty or placeholder-stripped attribution
+key. `renderIn` (per-locale render) joined `src/i18n/testing.tsx` for it.
+
 ## Exit gate
 
 - Every user-facing string lives in a catalogue; both locales are complete.
