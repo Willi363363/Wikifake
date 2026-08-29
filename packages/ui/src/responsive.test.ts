@@ -27,7 +27,11 @@ const FLOOR_PX = 360;
 // — `http://localhost:3000` — instead of against the module, and the failure is
 // "the URL must be of scheme file" a long way from the cause.
 const HERE = dirname(fileURLToPath(import.meta.url));
-const GALLERY = join(HERE, '..', '..', '..', 'apps', 'web', 'app', 'gallery');
+// `[locale]` since step 11.4: the gallery moved under the localised segment with
+// every other page. The path is hardcoded and read at module scope, so a move
+// that forgets this line does not fail an assertion — it throws ENOENT before
+// the first one runs, and the guard stops covering the gallery in silence.
+const GALLERY = join(HERE, '..', '..', '..', 'apps', 'web', 'app', '[locale]', 'gallery');
 
 function sourcesIn(directory: string): { path: string; text: string }[] {
   return readdirSync(directory).flatMap((name) => {

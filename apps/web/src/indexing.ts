@@ -19,6 +19,7 @@
 import routes from '../messages/en/routes.json';
 
 import type { Environment } from './deployment.js';
+import { DEFAULT_LOCALE, LOCALES } from './i18n/locales.js';
 
 /**
  * Crawlers refused outright, for a reason stronger than indexing.
@@ -138,9 +139,23 @@ export type RobotsRules = {
  * nobody fetches.
  */
 export function robotsRules(source: Environment = process.env): RobotsRules {
+  // Step 11.4 gave every locale but the default its own URL prefix, so a rule
+  // written for `/room/` no longer covers `/fr/room/` — the same falsified
+  // content, one prefix later. Derived from the locale list rather than
+  // hand-written, so a third language cannot ship crawlable screens. Uniform
+  // over the kept-out paths on purpose: this is a statement about URL space,
+  // and a disallow for a path nothing serves keeps nothing in.
+  const prefixes = LOCALES.filter((locale) => locale !== DEFAULT_LOCALE).map(
+    (locale) => `/${locale}`,
+  );
+  const keptOut = CRAWLERS_KEPT_OUT.flatMap((path) => [
+    path,
+    ...prefixes.map((prefix) => `${prefix}${path}`),
+  ]);
+
   return {
     rules: [
-      { userAgent: '*', allow: ['/'], disallow: [...CRAWLERS_KEPT_OUT] },
+      { userAgent: '*', allow: ['/'], disallow: keptOut },
       ...TRAINING_CRAWLERS.map((userAgent) => ({ userAgent, disallow: ['/'] })),
     ],
     sitemap: absolute('/sitemap.xml', source),

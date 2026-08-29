@@ -10,7 +10,7 @@
 // and only the part that needs the URL waits for the browser.
 import { Suspense } from 'react';
 
-import { SoloEntry } from '../../../src/solo/entry.js';
+import { SoloEntry } from '../../../../src/solo/entry.js';
 
 export default function SoloPage() {
   return (
