@@ -19,9 +19,10 @@ import {
   DialogTitle,
 } from '@wikifake/ui';
 import type { ItemInstance } from '@wikifake/protocol';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { labelFor } from './item-labels.js';
+import { ITEM_BLURB_VALUES, labelFor } from './item-labels.js';
 
 export interface ItemTargetProps {
   /** The item awaiting a target, or null when nothing is being thrown. */
@@ -33,6 +34,7 @@ export interface ItemTargetProps {
 }
 
 export function ItemTarget({ item, rivals, onConfirm, onCancel }: ItemTargetProps) {
+  const t = useTranslations('round');
   const [chosen, setChosen] = useState<string | null>(null);
   const label = item === null ? null : labelFor(item.itemId);
 
@@ -47,19 +49,26 @@ export function ItemTarget({ item, rivals, onConfirm, onCancel }: ItemTargetProp
     >
       <DialogContent>
         <DialogTitle>
-          {label === null ? 'Pick a target' : `${label.icon} ${label.name}`}
+          {label === null
+            ? t('itemTarget.titleFallback')
+            : t('itemTarget.title', {
+                icon: label.icon,
+                name: t(`items.${label.key}.name`),
+              })}
         </DialogTitle>
-        <DialogDescription>{label?.blurb ?? ''}</DialogDescription>
+        <DialogDescription>
+          {label === null ? '' : t(`items.${label.key}.blurb`, ITEM_BLURB_VALUES)}
+        </DialogDescription>
 
         {rivals.length === 0 ? (
           <p className="mt-5 text-center text-sm text-muted">
-            Nobody else is here to throw it at.
+            {t('itemTarget.noRivals')}
           </p>
         ) : (
           <ul
             className="mt-5 space-y-2"
             role="radiogroup"
-            aria-label="Who to throw it at"
+            aria-label={t('itemTarget.radiogroupAria')}
           >
             {rivals.map((rival) => (
               <li key={rival}>
@@ -94,7 +103,7 @@ export function ItemTarget({ item, rivals, onConfirm, onCancel }: ItemTargetProp
               onCancel();
             }}
           >
-            Cancel
+            {t('itemTarget.cancel')}
           </Button>
           <Button
             variant="primary"
@@ -106,7 +115,11 @@ export function ItemTarget({ item, rivals, onConfirm, onCancel }: ItemTargetProp
               setChosen(null);
             }}
           >
-            {chosen === null ? 'Throw it' : `Throw it at ${chosen}`}
+            {/* Two whole messages, not one derived from the other: word order
+                around the name is the translation's decision. */}
+            {chosen === null
+              ? t('itemTarget.throw')
+              : t('itemTarget.throwAt', { rival: chosen })}
           </Button>
         </div>
       </DialogContent>

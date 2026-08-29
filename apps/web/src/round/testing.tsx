@@ -4,10 +4,11 @@
 // went into its own file: the article, the ledger factory and the token query
 // were used by every suite, and copying them is how two harnesses start
 // disagreeing about what a round looks like.
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import type { ComponentProps } from 'react';
 import { vi } from 'vitest';
 
+import { render } from '../i18n/testing.js';
 import { Round } from './round.js';
 import type { ArticleFacts } from './article.js';
 import type { HintsState } from './hints.js';

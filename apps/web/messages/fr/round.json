@@ -1,0 +1,183 @@
+{
+  "article": {
+    "source": "Source · Wikipédia",
+    "modifiedTag": "Texte modifié"
+  },
+  "attribution": {
+    "modifiedWarning": {
+      "title": "Texte volontairement modifié.",
+      "body": "Des faits ont été altérés pour le jeu : ce n’est pas une source fiable."
+    },
+    "credit": "D’après l’article Wikipédia <article>« {topic} »</article> de ses contributeurs, sous <licence>{licenceName}</licence>. Les modifications sont celles de WikiFake, publiées sous la même licence."
+  },
+  "brief": {
+    "title": "La consigne",
+    "description": "{total, plural, one {Un paragraphe de cet article affirme quelque chose de faux.} other {# paragraphes de cet article affirment quelque chose de faux.}} Marquez chacun de ceux que vous trouvez, puis validez. Vous avez {time}.",
+    "scoring": {
+      "truePositive": "Une falsification trouvée",
+      "falsePositive": "Un paragraphe marqué pour rien",
+      "hint": "Un indice",
+      "earlyFinish": "Finir en avance",
+      "earlyFinishValue": "un bonus sur le temps restant"
+    },
+    "serverGradesNote": "Rien sur cet écran ne sait quels paragraphes ont été altérés. Le serveur corrige, et la réponse arrive à la fin de la manche."
+  },
+  "footer": {
+    "tagline": "WikiFake · un exercice d’éducation à la désinformation"
+  },
+  "topBar": {
+    "alteredCount": "{total, plural, one {# altéré} other {# altérés}}",
+    "brief": "Consigne",
+    "intel": "Renseignements",
+    "intelJammed": "Renseignements — brouillés",
+    "markedLabel": "marqués",
+    "timeLeft": "Temps restant",
+    "pressure": {
+      "warning": "le temps commence à manquer",
+      "urgent": "presque plus de temps"
+    },
+    "unsubmit": "Reprendre ma réponse",
+    "submitting": "Envoi…",
+    "submitted": "Envoyé",
+    "submit": "Valider"
+  },
+  "status": {
+    "answerWithServer": "Votre réponse est chez le serveur. La correction arrive à la fin de la manche."
+  },
+  "flags": {
+    "reportError": "Signaler une erreur"
+  },
+  "intel": {
+    "title": "Renseignements",
+    "description": "Achetez un coup de pouce, ou la réponse. Les deux sont facturés par le serveur, une seule fois.",
+    "hintCost": "indice −{cost}",
+    "revealCost": "révélation −{cost}",
+    "spent": "dépensé {penalty}",
+    "jammedAlert": "Un autre joueur a brouillé vos renseignements. Rien n’a été facturé — réessayez dans un instant.",
+    "targetNumber": "cible {number}",
+    "level": "niveau {level}",
+    "notBought": "non acheté",
+    "buyHintAria": "Acheter un indice sur la cible {number}",
+    "revealAria": "Révéler la cible {number}",
+    "hintButton": "Indice",
+    "revealButton": "Révéler"
+  },
+  "items": {
+    "barAria": "Vos objets",
+    "barLabel": "objets",
+    "cardAria": "{name} — {blurb}",
+    "cardAriaTargeted": "{name} — {blurb}. Demande une cible",
+    "hintLock": {
+      "name": "Brouilleur",
+      "blurb": "{lockSeconds, plural, one {Bloque ses indices pendant # seconde} other {Bloque ses indices pendant # secondes}}"
+    },
+    "freezeTime": {
+      "name": "Voleur de temps",
+      "blurb": "{freezeSeconds, plural, one {Dévore # seconde de son horloge} other {Dévore # secondes de son horloge}}"
+    },
+    "scoreSteal": {
+      "name": "Pickpocket",
+      "blurb": "{stealPoints, plural, one {Lui prend # point} other {Lui prend # points}}"
+    },
+    "scanner": {
+      "name": "Détecteur",
+      "blurb": "Vous indique un paragraphe falsifié que vous n’avez pas trouvé"
+    },
+    "earthquake": { "name": "Séisme", "blurb": "Secoue son écran" },
+    "blackout": { "name": "Caviardage", "blurb": "Noircit son texte" },
+    "blur": { "name": "Brouillard", "blurb": "Floute son écran" },
+    "rickroll": { "name": "Pop-up", "blurb": "Lui colle une fenêtre surgissante" },
+    "mirror": { "name": "Miroir", "blurb": "Retourne son article" },
+    "tiny": { "name": "Loupe cassée", "blurb": "Rétrécit son texte" },
+    "spin": { "name": "Vertige", "blurb": "Fait tourner son article" },
+    "confetti": { "name": "Fête", "blurb": "L’ensevelit sous les confettis" },
+    "invert": { "name": "Négatif", "blurb": "Inverse ses couleurs" }
+  },
+  "itemTarget": {
+    "titleFallback": "Choisissez une cible",
+    "title": "{icon} {name}",
+    "noRivals": "Personne d’autre n’est là pour le recevoir.",
+    "radiogroupAria": "À qui le lancer",
+    "cancel": "Annuler",
+    "throw": "Le lancer",
+    "throwAt": "Le lancer sur {rival}"
+  },
+  "toasts": {
+    "scannerExhausted": "Le détecteur n’a plus rien à montrer.",
+    "scannerResult": "Le détecteur pointe le paragraphe {paragraph}.",
+    "itemLanded": "<thrower>{from}</thrower> vous a lancé {itemName}",
+    "dismissAria": "Fermer {itemName} lancé par {from}"
+  },
+  "liveRanking": {
+    "aria": "Classement en direct",
+    "header": "classement · {count}",
+    "close": "fermer",
+    "you": "vous",
+    "progressAria": "{name} : {score}"
+  },
+  "debrief": {
+    "aria": "Débriefing",
+    "points": "{score, plural, one {# <unit>point</unit>} other {# <unit>points</unit>}}",
+    "rows": {
+      "found": "Trouvées",
+      "wronglyMarked": "Marqués à tort",
+      "hintsUsed": "Indices utilisés",
+      "hintPenalty": "Coût des indices",
+      "stolen": "Points volés",
+      "timeBonus": "Bonus de temps",
+      "letThrough": "Passées inaperçues"
+    },
+    "whatWasAltered": "Ce qui a été altéré",
+    "paragraphNumber": "paragraphe {number}",
+    "you": "vous",
+    "didNotSubmit": "n’a pas validé",
+    "finalRankingAria": "Classement final",
+    "stages": {
+      "corrections": {
+        "label": "Décompte des trouvailles",
+        "note": "Ce que vaut chaque falsification trouvée"
+      },
+      "penalties": {
+        "label": "Application des pénalités",
+        "note": "Les paragraphes marqués pour rien"
+      },
+      "intel": {
+        "label": "Décompte des indices",
+        "note": "Ce que les indices ont coûté"
+      },
+      "timeBonus": {
+        "label": "Attribution du bonus de temps",
+        "note": "Ce qui restait à l’horloge"
+      },
+      "final": { "label": "Classement final", "note": "Manche terminée" }
+    },
+    "grade": {
+      "takenIn": { "label": "Berné", "note": "Essayez un autre article" },
+      "promising": { "label": "Prometteur", "note": "Vous y êtes presque" },
+      "strong": { "label": "Solide", "note": "Difficile à berner" },
+      "outstanding": { "label": "Remarquable", "note": "Rien ne vous a échappé" }
+    }
+  },
+  "effects": {
+    "fog": { "aria": "Quelqu’un a embrumé votre écran" },
+    "quake": { "aria": "Quelqu’un secoue votre écran" },
+    "blackout": { "aria": "Quelqu’un a caviardé votre article", "stamp": "caviardé" },
+    "lightning": { "aria": "Quelqu’un vous a pris des points", "amount": "−{points}" },
+    "static": {
+      "aria": "Quelqu’un a brouillé vos renseignements",
+      "headline": "signal brouillé",
+      "subline": "aucun signal"
+    },
+    "blizzard": {
+      "aria": "{seconds, plural, one {Quelqu’un a pris # seconde à votre horloge} other {Quelqu’un a pris # secondes à votre horloge}}",
+      "amount": "−{seconds}s"
+    },
+    "confetti": { "aria": "Quelqu’un a lancé une fête sur votre écran" },
+    "rickroll": {
+      "aria": "Quelqu’un vous a collé une fenêtre surgissante",
+      "headline": "Never gonna give you up",
+      "body": "Never gonna let you down. Jamais cette fenêtre ne se fermera toute seule.",
+      "close": "La fermer"
+    }
+  }
+}

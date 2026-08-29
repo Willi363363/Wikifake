@@ -13,9 +13,12 @@
 import type { ScoreBreakdown } from '@wikifake/protocol';
 import { PER_FALSE_POSITIVE, PER_TRUE_POSITIVE } from '@wikifake/domain';
 
+/** The catalogue entry a stage reads its label and note from. */
+export type StageId = 'corrections' | 'penalties' | 'intel' | 'timeBonus' | 'final';
+
 export interface Stage {
-  readonly label: string;
-  readonly note: string;
+  /** What the stage is; the copy lives at `debrief.stages.<id>`. */
+  readonly id: StageId;
   /** How long this stage holds before the next, in milliseconds. */
   readonly holds: number;
 }
@@ -24,18 +27,16 @@ export interface Stage {
  * The five stages, and the current game's timings.
  *
  * Stage 0 is the warm-up: nothing has been added up yet. The scores at each
- * stage are cumulative, which is what makes the numbers climb.
+ * stage are cumulative, which is what makes the numbers climb. Since step 11.2
+ * a stage carries an identifier and not its copy: the sentences live in the
+ * catalogue, and this module keeps only the schedule.
  */
 export const STAGES: readonly Stage[] = [
-  {
-    label: 'Tallying corrections',
-    note: 'What each falsification found is worth',
-    holds: 800,
-  },
-  { label: 'Applying penalties', note: 'Paragraphs marked for nothing', holds: 1300 },
-  { label: 'Counting intel', note: 'What the hints cost', holds: 1100 },
-  { label: 'Awarding the time bonus', note: 'What was left on the clock', holds: 1000 },
-  { label: 'Final ranking', note: 'Round complete', holds: 900 },
+  { id: 'corrections', holds: 800 },
+  { id: 'penalties', holds: 1300 },
+  { id: 'intel', holds: 1100 },
+  { id: 'timeBonus', holds: 1000 },
+  { id: 'final', holds: 900 },
 ];
 
 /** How long the whole sequence takes. Derived, so it cannot disagree. */
@@ -77,19 +78,19 @@ export function accuracyOf(breakdown: ScoreBreakdown, totalFakes: number): numbe
   return (2 * precision * recall) / (precision + recall);
 }
 
+/** The catalogue entry a grade reads its label and note from. */
+export type GradeId = 'takenIn' | 'promising' | 'strong' | 'outstanding';
+
 export interface Grade {
-  readonly label: string;
-  readonly note: string;
+  /** Which band it is; the copy lives at `debrief.grade.<id>`. */
+  readonly id: GradeId;
   readonly tone: 'green' | 'accent' | 'bronze' | 'danger';
 }
 
 /** The four bands of the current debrief, with its thresholds. */
 export function gradeFor(accuracy: number | null): Grade {
-  if (accuracy === null || accuracy < 0.5) {
-    return { label: 'Taken in', note: 'Try another article', tone: 'danger' };
-  }
-  if (accuracy < 0.75)
-    return { label: 'Promising', note: 'Getting there', tone: 'bronze' };
-  if (accuracy < 0.95) return { label: 'Strong', note: 'Hard to fool', tone: 'accent' };
-  return { label: 'Outstanding', note: 'Nothing got past you', tone: 'green' };
+  if (accuracy === null || accuracy < 0.5) return { id: 'takenIn', tone: 'danger' };
+  if (accuracy < 0.75) return { id: 'promising', tone: 'bronze' };
+  if (accuracy < 0.95) return { id: 'strong', tone: 'accent' };
+  return { id: 'outstanding', tone: 'green' };
 }
