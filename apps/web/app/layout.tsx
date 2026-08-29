@@ -15,6 +15,7 @@
 // its test together when the attribute becomes per-locale. Changing it here
 // would be changing a preserved guarantee in a step that does not own it.
 import type { Metadata, Viewport } from 'next';
+import { NextIntlClientProvider } from 'next-intl';
 import type { ReactNode } from 'react';
 
 import { absolute, SITE_DESCRIPTION, SITE_TITLE, siteOrigin } from '../src/indexing.js';
@@ -78,7 +79,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
-      <body className="bg-bg text-ink">{children}</body>
+      <body className="bg-bg text-ink">
+        {/* Step 11.1: every screen below reads its copy through `next-intl`.
+            No props on purpose — rendered in a server component, the provider
+            inherits the locale and the messages from `src/i18n/request.ts`,
+            so the request configuration stays the single source of both. */}
+        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+      </body>
     </html>
   );
 }

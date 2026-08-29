@@ -1,3 +1,4 @@
+import createNextIntlPlugin from 'next-intl/plugin';
 import type { NextConfig } from 'next';
 
 // The workspace packages are TypeScript source, not built artefacts: `exports`
@@ -30,4 +31,9 @@ const config: NextConfig = {
   ],
 };
 
-export default config;
+// Points `next-intl` at the request configuration explicitly rather than
+// relying on its default lookup: the path is a decision of step 11.1, and a
+// moved file should fail the build loudly, not fall back.
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
+export default withNextIntl(config);
