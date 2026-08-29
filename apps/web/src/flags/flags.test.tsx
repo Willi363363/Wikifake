@@ -8,12 +8,14 @@
 // `app/api/flag-report/route.test.ts` — phase 4's step 4.9. What is here is the
 // other half: that the toast reflects the verdict, and that the two closed unions
 // the response carries are read exhaustively rather than printed.
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { flagsApi } from '@wikifake/protocol';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { FlagCapture } from './capture.js';
+import en from '../../messages/en/small.json';
+import { render } from '../i18n/testing.js';
 import { FlagPanel } from './panel.js';
 import {
   fateOf,
@@ -73,8 +75,10 @@ describe('8.8 — reading a verdict', () => {
   it.each(['likely_valid', 'uncertain', 'unsupported'] as const)(
     'has a sentence for %s',
     (verdict) => {
+      // Since 11.2 the reading is a catalogue key; the sentence it resolves to
+      // must exist in the catalogue, or a raw identifier reaches the player.
       const reading = readingOf({ ...VERDICT, verdict });
-      expect(reading.headline.length).toBeGreaterThan(0);
+      expect(Object.keys(en.flags.verdict)).toContain(reading.id);
       expect(['green', 'bronze', 'danger']).toContain(reading.tone);
     },
   );
@@ -87,12 +91,12 @@ describe('8.8 — reading a verdict', () => {
   it.each(['ai_reviewed', 'pending_human_review', 'rejected_by_ai'] as const)(
     'says what happens next for %s',
     (status) => {
-      expect(fateOf(status).length).toBeGreaterThan(0);
+      expect(Object.keys(en.flags.fate)).toContain(fateOf(status));
     },
   );
 
   it('says a promoted report will be read by a person', () => {
-    expect(fateOf('pending_human_review')).toContain('person');
+    expect(en.flags.fate[fateOf('pending_human_review')]).toContain('person');
   });
 });
 

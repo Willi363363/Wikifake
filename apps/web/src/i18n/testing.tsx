@@ -14,12 +14,13 @@ import { NextIntlClientProvider } from 'next-intl';
 import type { ReactElement, ReactNode } from 'react';
 
 import home from '../../messages/en/home.json';
+import small from '../../messages/en/small.json';
 import lobby from '../../messages/en/lobby.json';
 import round from '../../messages/en/round.json';
 import waiting from '../../messages/en/waiting.json';
 
 /** Statically imported: a test harness has no business being async. */
-const MESSAGES = { home, round, waiting, lobby };
+const MESSAGES = { home, round, waiting, lobby, small };
 
 function EnglishCatalogue({ children }: { readonly children: ReactNode }) {
   return (
