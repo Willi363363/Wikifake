@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — all seven steps done, exit gate passed |
+| **State** | ✅ **done** — all seven steps done, exit gate passed |
 | **Branch** | `feat/rewrite-phase-3` |
 | **Depends on** | phase 2 |
 | **Delivers** | `packages/article`: scraping, LLM falsification, Redis cache |

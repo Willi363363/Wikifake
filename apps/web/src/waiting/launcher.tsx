@@ -11,6 +11,7 @@
 // six games idling behind a grid is six intervals for a screen that is meant to
 // be waiting on a network call.
 import { Button } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { MINIGAMES, minigameById } from './catalogue.js';
@@ -24,6 +25,7 @@ const CLOSED: View = { at: 'closed' };
 const GRID: View = { at: 'grid' };
 
 export function GameLauncher() {
+  const t = useTranslations('waiting');
   const [view, setView] = useState<View>(CLOSED);
 
   if (view.at === 'closed') {
@@ -34,7 +36,7 @@ export function GameLauncher() {
             setView(GRID);
           }}
         >
-          Play while you wait
+          {t('launcher.open')}
         </Button>
       </div>
     );
@@ -58,7 +60,7 @@ export function GameLauncher() {
               <span aria-hidden="true" className="text-lg text-accent">
                 {game.icon}
               </span>
-              <span className="text-xs text-ink">{game.name}</span>
+              <span className="text-xs text-ink">{t(`games.${game.id}.name`)}</span>
             </button>
           ))}
         </div>
@@ -69,7 +71,7 @@ export function GameLauncher() {
             setView(CLOSED);
           }}
         >
-          Close
+          {t('launcher.close')}
         </Button>
       </div>
     );
@@ -91,10 +93,13 @@ export function GameLauncher() {
             setView(GRID);
           }}
         >
-          ← Games
+          {/* The arrow is decoration, not copy: it stays out of the message and
+              out of the button's accessible name. */}
+          <span aria-hidden="true">← </span>
+          {t('launcher.backToGames')}
         </Button>
         <p className="font-mono text-[10px] tracking-[0.14em] text-ink uppercase">
-          {game.name}
+          {t(`games.${game.id}.name`)}
         </p>
       </div>
       <Play />

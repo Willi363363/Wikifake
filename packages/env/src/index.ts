@@ -87,11 +87,27 @@ const schema = z.object({
   GITHUB_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
 
   /**
+   * How long a dropped player keeps their seat, in seconds.
+   *
+   * Absent, the domain's `GRACE_SECONDS` decides, and that is the contract's
+   * number. This variable exists for one reason: a host that sleeps. A free
+   * Render service spins down after fifteen minutes without inbound traffic and
+   * takes about a minute to come back, and there is no socket heartbeat — so a
+   * room left idle in a lobby drops every socket and comes back after the grace
+   * window has already expired. Raising it past the cold start is what keeps
+   * those seats.
+   *
+   * A deployment concern, therefore, and not a rule: the domain constant stays
+   * at what the contract says.
+   */
+  REALTIME_GRACE_SECONDS: z.coerce.number().int().positive().optional(),
+
+  /**
    * Sentry DSN — error tracking for both services.
    *
    * Optional: absent locally and in CI, which is intentional. Sentry is not a
    * development tool; its absence means "this process does not report to Sentry"
-   * rather than a misconfigured one. Present only on Vercel and Fly.io.
+   * rather than a misconfigured one. Present only on Vercel and the socket host.
    */
   SENTRY_DSN: z.url().optional(),
 });

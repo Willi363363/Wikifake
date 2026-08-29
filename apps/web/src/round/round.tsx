@@ -13,6 +13,7 @@
 // component's business.
 import type { FalsifiedPosition, ItemInstance, ScoreBreakdown } from '@wikifake/protocol';
 import { Button } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { ArticleCard, type ArticleFacts } from './article.js';
@@ -140,6 +141,7 @@ export function Round({
   flags,
   roomCode = '',
 }: RoundProps) {
+  const t = useTranslations('round');
   const timers = useTimers();
   const [marked, setMarked] = useState<readonly number[]>([]);
   const [left, setLeft] = useState(timeLimit);
@@ -273,7 +275,7 @@ export function Round({
 
         {submitted && !ended ? (
           <p aria-live="polite" className="mt-4 text-center text-sm text-muted">
-            Your answer is with the server. The correction arrives when the round ends.
+            {t('status.answerWithServer')}
           </p>
         ) : null}
 
@@ -291,7 +293,7 @@ export function Round({
               setFlagging(true);
             }}
           >
-            Report an error
+            {t('flags.reportError')}
             {flags.captures.length === 0 ? null : (
               <span className="font-mono text-[10px] tabular-nums text-danger">
                 {String(flags.captures.length)}

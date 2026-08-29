@@ -72,6 +72,12 @@ const service = createService({
     namespace: 'wikifake:room',
     idleSeconds: ROOM_IDLE_LIMIT_SECONDS,
   }),
+  // Spread rather than assigned: `exactOptionalPropertyTypes` refuses an
+  // explicit `undefined` where the option is optional, and the absence is what
+  // means "use the domain's number".
+  ...(env.REALTIME_GRACE_SECONDS === undefined
+    ? {}
+    : { graceSeconds: env.REALTIME_GRACE_SECONDS }),
 });
 
 const port = Number(process.env['PORT'] ?? PORT);

@@ -5,6 +5,7 @@
 // The move is arithmetic — `advance` — because that is the part worth a test:
 // where the head lands, what kills it, and when it grows. The component only
 // paints the result and owns the clock.
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import { GameOver } from './controls.js';
@@ -87,6 +88,7 @@ const somewhere = (): Cell => ({
 });
 
 export function Snake() {
+  const t = useTranslations('waiting');
   const timers = useTimers();
   const [body, setBody] = useState<Body>(START);
   const [food, setFood] = useState<Cell>({ x: 15, y: 15 });
@@ -146,7 +148,7 @@ export function Snake() {
         // A board of positioned squares says nothing to a screen reader, so it
         // says this instead.
         role="img"
-        aria-label={`Snake, ${body.length} long`}
+        aria-label={t('snake.boardLabel', { length: body.length })}
       >
         <div
           className="absolute rounded-full bg-danger"
@@ -172,9 +174,11 @@ export function Snake() {
         {over ? <GameOver onRestart={restart} /> : null}
       </div>
       <p className="font-mono text-xs tabular-nums text-muted" aria-live="polite">
-        Score {score}
+        {t('snake.score', { score })}
       </p>
-      <p className="text-xs text-muted">Arrows or WASD to steer</p>
+      {/* WASD are the physical keys `HEADINGS` binds by character: a French
+          hint still says WASD, because ZQSD is not bound. */}
+      <p className="text-xs text-muted">{t('snake.howToPlay')}</p>
     </div>
   );
 }

@@ -1,0 +1,20 @@
+{
+  "title": "WikiFake",
+  "description": "Un article de Wikipédia, une poignée de faits réécrits par un modèle, et vous. Trouvez-les seul ou contre d'autres joueurs — un jeu gratuit de lecture critique et de vérification des faits.",
+  "play": "Jouer",
+  "steps": {
+    "pick": {
+      "title": "Choisissez un sujet",
+      "detail": "N'importe quel sujet de Wikipédia. L'article est récupéré tel qu'il est aujourd'hui."
+    },
+    "read": {
+      "title": "Lisez-le face à un modèle",
+      "detail": "Un modèle réécrit quelques faits. Rien ne les signale, et le reste de l'article est intact."
+    },
+    "mark": {
+      "title": "Marquez ce qui est faux",
+      "detail": "Chaque paragraphe signalé compte : les bons rapportent, les mauvais coûtent, et l'horloge aussi."
+    }
+  },
+  "licence": "Les articles proviennent de Wikipédia et sont utilisés sous licence CC BY-SA. Pendant une manche, ils sont délibérément modifiés et ne constituent pas un contenu encyclopédique."
+}

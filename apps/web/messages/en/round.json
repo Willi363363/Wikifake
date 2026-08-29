@@ -1,0 +1,180 @@
+{
+  "article": {
+    "source": "Source · Wikipedia",
+    "modifiedTag": "Modified text"
+  },
+  "attribution": {
+    "modifiedWarning": {
+      "title": "Text deliberately modified.",
+      "body": "Facts have been altered for the game: this is not a reliable source."
+    },
+    "credit": "After the Wikipedia article <article>“{topic}”</article> by its contributors, under <licence>{licenceName}</licence>. The modifications are WikiFake’s, released under the same licence."
+  },
+  "brief": {
+    "title": "The brief",
+    "description": "{total, plural, one {One paragraph of this article states something false.} other {# paragraphs of this article state something false.}} Mark every one you find, then submit. You have {time}.",
+    "scoring": {
+      "truePositive": "A falsification you find",
+      "falsePositive": "A paragraph marked for nothing",
+      "hint": "A hint",
+      "earlyFinish": "Finishing early",
+      "earlyFinishValue": "a bonus on the time left"
+    },
+    "serverGradesNote": "Nothing on this screen knows which paragraphs were altered. The server grades, and the answer arrives when the round ends."
+  },
+  "footer": {
+    "tagline": "WikiFake · an exercise in disinformation literacy"
+  },
+  "topBar": {
+    "alteredCount": "{total} altered",
+    "brief": "Brief",
+    "intel": "Intel",
+    "intelJammed": "Intel — jammed",
+    "markedLabel": "marked",
+    "timeLeft": "Time left",
+    "pressure": {
+      "warning": "time is running short",
+      "urgent": "almost out of time"
+    },
+    "unsubmit": "Take it back",
+    "submitting": "Sending…",
+    "submitted": "Submitted",
+    "submit": "Submit"
+  },
+  "status": {
+    "answerWithServer": "Your answer is with the server. The correction arrives when the round ends."
+  },
+  "flags": {
+    "reportError": "Report an error"
+  },
+  "intel": {
+    "title": "Intel",
+    "description": "Buy a nudge, or the answer. Both are charged by the server, once.",
+    "hintCost": "hint −{cost}",
+    "revealCost": "reveal −{cost}",
+    "spent": "spent {penalty}",
+    "jammedAlert": "Another player has jammed your intel. Nothing was charged — try again in a moment.",
+    "targetNumber": "target {number}",
+    "level": "level {level}",
+    "notBought": "not bought",
+    "buyHintAria": "Buy a hint on target {number}",
+    "revealAria": "Reveal target {number}",
+    "hintButton": "Hint",
+    "revealButton": "Reveal"
+  },
+  "items": {
+    "barAria": "Your items",
+    "barLabel": "items",
+    "cardAria": "{name} — {blurb}",
+    "cardAriaTargeted": "{name} — {blurb}. Asks for a target",
+    "hintLock": {
+      "name": "Jammer",
+      "blurb": "{lockSeconds, plural, one {Blocks their hints for # second} other {Blocks their hints for # seconds}}"
+    },
+    "freezeTime": {
+      "name": "Time sink",
+      "blurb": "{freezeSeconds, plural, one {Eats # second of their clock} other {Eats # seconds of their clock}}"
+    },
+    "scoreSteal": {
+      "name": "Pickpocket",
+      "blurb": "{stealPoints, plural, one {Takes # point from them} other {Takes # points from them}}"
+    },
+    "scanner": {
+      "name": "Detector",
+      "blurb": "Points you at a falsified paragraph you have not found"
+    },
+    "earthquake": { "name": "Earthquake", "blurb": "Shakes their screen" },
+    "blackout": { "name": "Redaction", "blurb": "Blacks out their text" },
+    "blur": { "name": "Fog", "blurb": "Blurs their screen" },
+    "rickroll": { "name": "Pop-up", "blurb": "Drops a pop-up on them" },
+    "mirror": { "name": "Mirror", "blurb": "Flips their article" },
+    "tiny": { "name": "Broken lens", "blurb": "Shrinks their text" },
+    "spin": { "name": "Vertigo", "blurb": "Spins their article" },
+    "confetti": { "name": "Party", "blurb": "Buries them in confetti" },
+    "invert": { "name": "Negative", "blurb": "Inverts their colours" }
+  },
+  "itemTarget": {
+    "titleFallback": "Pick a target",
+    "title": "{icon} {name}",
+    "noRivals": "Nobody else is here to throw it at.",
+    "radiogroupAria": "Who to throw it at",
+    "cancel": "Cancel",
+    "throw": "Throw it",
+    "throwAt": "Throw it at {rival}"
+  },
+  "toasts": {
+    "scannerExhausted": "The detector found nothing left to point at.",
+    "scannerResult": "The detector points at paragraph {paragraph}.",
+    "itemLanded": "<thrower>{from}</thrower> hit you with {itemName}",
+    "dismissAria": "Dismiss {itemName} from {from}"
+  },
+  "liveRanking": {
+    "aria": "Live ranking",
+    "header": "ranking · {count}",
+    "close": "close",
+    "you": "you",
+    "progressAria": "{name}: {score}"
+  },
+  "debrief": {
+    "aria": "Debrief",
+    "points": "{score, plural, one {# <unit>point</unit>} other {# <unit>points</unit>}}",
+    "rows": {
+      "found": "Found",
+      "wronglyMarked": "Wrongly marked",
+      "hintsUsed": "Hints used",
+      "hintPenalty": "Hint penalty",
+      "stolen": "Stolen from you",
+      "timeBonus": "Time bonus",
+      "letThrough": "Let through"
+    },
+    "whatWasAltered": "What was altered",
+    "paragraphNumber": "paragraph {number}",
+    "you": "you",
+    "didNotSubmit": "did not submit",
+    "finalRankingAria": "Final ranking",
+    "stages": {
+      "corrections": {
+        "label": "Tallying corrections",
+        "note": "What each falsification found is worth"
+      },
+      "penalties": {
+        "label": "Applying penalties",
+        "note": "Paragraphs marked for nothing"
+      },
+      "intel": { "label": "Counting intel", "note": "What the hints cost" },
+      "timeBonus": {
+        "label": "Awarding the time bonus",
+        "note": "What was left on the clock"
+      },
+      "final": { "label": "Final ranking", "note": "Round complete" }
+    },
+    "grade": {
+      "takenIn": { "label": "Taken in", "note": "Try another article" },
+      "promising": { "label": "Promising", "note": "Getting there" },
+      "strong": { "label": "Strong", "note": "Hard to fool" },
+      "outstanding": { "label": "Outstanding", "note": "Nothing got past you" }
+    }
+  },
+  "effects": {
+    "fog": { "aria": "Someone has fogged your screen" },
+    "quake": { "aria": "Someone is shaking your screen" },
+    "blackout": { "aria": "Someone has redacted your article", "stamp": "redacted" },
+    "lightning": { "aria": "Someone has taken points from you", "amount": "−{points}" },
+    "static": {
+      "aria": "Someone has jammed your intel",
+      "headline": "intel jammed",
+      "subline": "no signal"
+    },
+    "blizzard": {
+      "aria": "{seconds, plural, one {Someone has taken # second off your clock} other {Someone has taken # seconds off your clock}}",
+      "amount": "−{seconds}s"
+    },
+    "confetti": { "aria": "Someone has thrown a party on your screen" },
+    "rickroll": {
+      "aria": "Someone has dropped a pop-up on you",
+      "headline": "Never gonna give you up",
+      "body": "Never gonna let you down. Never gonna close this window on its own.",
+      "close": "Close it"
+    }
+  }
+}

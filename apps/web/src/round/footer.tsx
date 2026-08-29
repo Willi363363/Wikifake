@@ -7,10 +7,14 @@
 // `/api/health`, which reports the actual commit.
 //
 // So what is left is what the footer is for: saying what this is.
+import { useTranslations } from 'next-intl';
+
 export function RoundFooter() {
+  const t = useTranslations('round');
+
   return (
     <footer className="mt-10 border-t border-line pt-5 pb-8 text-center font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-      WikiFake · an exercise in disinformation literacy
+      {t('footer.tagline')}
     </footer>
   );
 }

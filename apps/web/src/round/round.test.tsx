@@ -9,11 +9,12 @@
 // called `explanation` — it appears as the sentence itself, somewhere in the
 // markup. The test therefore holds a solution it knows the strings of and looks
 // for those strings in the whole document.
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { asClock, pressureAt, URGENT_SECONDS, WARNING_SECONDS } from './clock.js';
+import { render } from '../i18n/testing.js';
 import { Round } from './round.js';
 import {
   ARTICLE,

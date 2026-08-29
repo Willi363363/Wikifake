@@ -8,6 +8,7 @@
 // than any hand, and a reaction time nobody can check is a reaction time worth
 // nothing.
 import { Badge } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { PlayAgain } from './controls.js';
@@ -39,6 +40,7 @@ interface Spot {
 }
 
 export function ReactionSpeed() {
+  const t = useTranslations('waiting');
   const timers = useTimers();
   const [round, setRound] = useState(0);
   const [phase, setPhase] = useState<Phase>('waiting');
@@ -95,14 +97,14 @@ export function ReactionSpeed() {
         <button
           type="button"
           onClick={early}
-          aria-label="The playing field"
+          aria-label={t('reaction.fieldLabel')}
           className="size-full rounded-md border border-line bg-bg-grain outline-none focus-visible:ring-2 focus-visible:ring-accent"
         />
         {phase === 'target' ? (
           <button
             type="button"
             onClick={hit}
-            aria-label="Hit the target"
+            aria-label={t('reaction.hitTarget')}
             className="absolute size-9 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent bg-accent-soft outline-none focus-visible:ring-2 focus-visible:ring-accent"
             style={{ left: `${String(spot.x)}%`, top: `${String(spot.y)}%` }}
           />
@@ -112,9 +114,9 @@ export function ReactionSpeed() {
           aria-live="polite"
         >
           {phase === 'waiting'
-            ? 'Wait for the target…'
+            ? t('reaction.wait')
             : phase === 'early'
-              ? 'Too early'
+              ? t('reaction.tooEarly')
               : ''}
         </p>
       </div>
@@ -122,10 +124,12 @@ export function ReactionSpeed() {
       {/* The time is said once, here: announced in the field and again below it
           is a screen reader repeating itself on every round. */}
       <div className="flex items-center gap-2" aria-live="polite">
-        {last === null ? null : <Badge tone={toneFor(last)}>{String(last)} ms</Badge>}
+        {last === null ? null : (
+          <Badge tone={toneFor(last)}>{t('reaction.time', { ms: last })}</Badge>
+        )}
         {best === null ? null : (
           <span className="font-mono text-xs tabular-nums text-muted">
-            best {String(best)} ms
+            {t('reaction.best', { ms: best })}
           </span>
         )}
       </div>

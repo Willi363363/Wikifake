@@ -16,7 +16,7 @@ name: Deploy check
 # what answers those two until 10.11 repoints the domain and suspends it. Both
 # jobs then have nothing left to probe and go with the service.
 #   WEB_DEPLOY_URL       the Next.js app on Vercel
-#   REALTIME_DEPLOY_URL  the Hono service on Fly.io
+#   REALTIME_DEPLOY_URL  the Hono service on Render (free tier)
 #
 # Each job skips itself cleanly when its variable is unset, so a fork never sees
 # its CI fail on a URL it has no reason to hold, and the two new targets stay

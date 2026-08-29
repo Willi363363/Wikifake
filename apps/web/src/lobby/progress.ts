@@ -31,26 +31,32 @@ export function progressAt(elapsedMs: number, arrived: boolean): number {
   return CEILING * (1 - (1 - towards / CEILING) ** 2.5);
 }
 
+/** What the bar can say it is doing — catalogue keys under `generation.stages`. */
+export type StageKey =
+  'fetching' | 'reading' | 'falsifying' | 'building' | 'finishing' | 'ready';
+
 /**
  * What the bar says it is doing.
  *
  * Cosmetic, and the current code says so: the label is the first stage whose
  * threshold the progress has not passed. Kept because it is the only thing on
- * screen that suggests the wait is bounded.
+ * screen that suggests the wait is bounded. A stage is a catalogue key rather
+ * than a sentence, because this file is arithmetic and the copy lives in
+ * `messages/<locale>/lobby.json` — the screen resolves it (step 11.2).
  */
-export const STAGES: readonly { readonly label: string; readonly upTo: number }[] = [
-  { label: 'Fetching the article…', upTo: 18 },
-  { label: 'Reading it…', upTo: 38 },
-  { label: 'Slipping errors in…', upTo: 58 },
-  { label: 'Building the page…', upTo: 78 },
-  { label: 'Finishing up…', upTo: 92 },
-  { label: 'Ready', upTo: 100 },
+export const STAGES: readonly { readonly key: StageKey; readonly upTo: number }[] = [
+  { key: 'fetching', upTo: 18 },
+  { key: 'reading', upTo: 38 },
+  { key: 'falsifying', upTo: 58 },
+  { key: 'building', upTo: 78 },
+  { key: 'finishing', upTo: 92 },
+  { key: 'ready', upTo: 100 },
 ];
 
-export function stageAt(progress: number): string {
+export function stageAt(progress: number): StageKey {
   // The last stage is the fallback, and `noUncheckedIndexedAccess` is right to
   // ask: `STAGES` is a `readonly` array, and nothing here proves to the compiler
   // that it is not empty.
   const stage = STAGES.find((candidate) => progress <= candidate.upTo) ?? STAGES.at(-1);
-  return stage?.label ?? 'Ready';
+  return stage?.key ?? 'ready';
 }

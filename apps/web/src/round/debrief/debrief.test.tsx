@@ -7,7 +7,7 @@
 // and assert the statistics still appear after the last stage and not before.
 // It fails against the current design by construction, because there the two
 // durations are two numbers that happen to agree.
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, screen } from '@testing-library/react';
 import type { FalsifiedPosition, ScoreBreakdown } from '@wikifake/protocol';
 import { PER_FALSE_POSITIVE, PER_TRUE_POSITIVE } from '@wikifake/domain';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -23,6 +23,7 @@ import {
   type Stage,
 } from './stages.js';
 import { verdictsFor } from '../verdicts.js';
+import { render } from '../../i18n/testing.js';
 
 const BREAKDOWN: ScoreBreakdown = {
   truePositives: 2,
@@ -115,11 +116,11 @@ describe('8.7 — the sequence, as arithmetic', () => {
   });
 
   it('grades the four bands', () => {
-    expect(gradeFor(1).label).toBe('Outstanding');
-    expect(gradeFor(0.8).label).toBe('Strong');
-    expect(gradeFor(0.6).label).toBe('Promising');
-    expect(gradeFor(0.2).label).toBe('Taken in');
-    expect(gradeFor(null).label).toBe('Taken in');
+    expect(gradeFor(1).id).toBe('outstanding');
+    expect(gradeFor(0.8).id).toBe('strong');
+    expect(gradeFor(0.6).id).toBe('promising');
+    expect(gradeFor(0.2).id).toBe('takenIn');
+    expect(gradeFor(null).id).toBe('takenIn');
   });
 });
 

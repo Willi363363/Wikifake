@@ -4,7 +4,7 @@
 // is open by the time this renders. What the screen adds is the roster, the
 // host's settings and the ready state — all of it read from the server's
 // `lobby_update`, none of it tallied here.
-import { RoomScreen } from '../../../../src/lobby/room-screen.js';
+import { RoomScreen } from '../../../../../src/lobby/room-screen.js';
 
 export default function RoomPage() {
   return <RoomScreen />;

@@ -1,0 +1,20 @@
+{
+  "title": "WikiFake",
+  "description": "A Wikipedia article, a handful of facts rewritten by a model, and you. Find them alone or against other players — a free game of critical reading and fact-checking.",
+  "play": "Play",
+  "steps": {
+    "pick": {
+      "title": "Pick a subject",
+      "detail": "Any Wikipedia subject. The article is fetched as it stands today."
+    },
+    "read": {
+      "title": "Read it against a model",
+      "detail": "A model rewrites a few facts. Nothing marks them, and the rest of the article is untouched."
+    },
+    "mark": {
+      "title": "Mark what is wrong",
+      "detail": "Every paragraph you flag is scored: right ones pay, wrong ones cost, and the clock pays too."
+    }
+  },
+  "licence": "Articles come from Wikipedia and are used under CC BY-SA. In a round they are deliberately modified, and are not encyclopaedic content."
+}

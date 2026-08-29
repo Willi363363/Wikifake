@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | to do |
+| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales; 11.3 + 11.4 done: detection, the persistent switch, localised routing under `/fr`, no legacy URL 404s; 11.5 done: `lang` and the SEO metadata follow the locale, C6.3 amended with its tests; 11.6 done: the French catalogue, real translations held to the English keys by the build itself |
 | **Branch** | `feat/rewrite-phase-11` |
 | **Depends on** | phase 8 |
 | **Delivers** | an interface in English and French: catalogues, switch, localised routing, per-locale SEO |
@@ -40,6 +40,10 @@ routing story. The choice is a decision of this step, not a given.
 **Done when**: the library is installed, wired into the app, and one screen
 renders through it in both locales as proof.
 
+**Decided**: `next-intl` — the choice, its reasons, the alternatives and the
+per-zone catalogue layout are in `phase-11-library-decision.md`. The proof
+screen is the front door (`page.locale.test.tsx`, both locales).
+
 ### 11.2 — Extract every user-facing string
 
 Every string a player can see moves into the English message catalogue:
@@ -76,6 +80,14 @@ locale. It is amended in this step, with the contract file, never silenced.
 **Done when**: each locale serves its own `lang` and metadata, and the
 amended compliance test asserts both.
 
+**Done**: `lang` comes from the `[locale]` segment; the metadata is
+`generateMetadata` reading the catalogue's `seo` zone — title, description,
+per-locale canonical, `hreflang` alternates, `og:locale` — and the sitemap
+declares both locales. C6.3 was amended in
+`02-contract-transport-and-compliance.md` together with its tests
+(`language.test.ts`, `layout.test.tsx`, `indexing.spec.ts`), in the same
+change as the behaviour.
+
 ### 11.6 — French catalogue
 
 The English catalogue is translated to French — real translations, reviewed,
@@ -84,6 +96,16 @@ game's French players already know from the legacy UI.
 
 **Done when**: the French catalogue has no missing key — the build fails on
 one — and a French run of every screen shows no English.
+
+**Done**: every zone's French file is a real translation, reviewed against
+the legacy Vite frontend's vocabulary (salle, gel du temps, pillage, tournis,
+le chrono). `catalogue.check.ts` holds every French zone to the English shape
+at the type level, so a missing or extra key refuses to compile — `tsc` and
+`next build` both fail, before any test runs. `catalogue.test.ts` further
+refuses a French message that reads identically to its English counterpart
+unless it is defended by name, which is what "no English on a French screen"
+means at the catalogue's level; the per-screen French renders remain the
+locale suites' (front door, attribution).
 
 ### 11.7 — CC BY-SA attribution in every locale
 
@@ -94,6 +116,13 @@ ever falling back to a missing translation.
 
 **Done when**: the compliance tests assert the full attribution in each
 locale, during and after the round.
+
+**Done**: `attribution.test.tsx` renders the round in every locale, during
+and with the debrief up, and asserts the full attribution — exact wording
+held in the test itself, licence name and both links intact, the topic link
+kept `lang="fr"` — plus a catalogue guard that reads every locale directory
+on disk and fails on any missing, empty or placeholder-stripped attribution
+key. `renderIn` (per-locale render) joined `src/i18n/testing.tsx` for it.
 
 ## Exit gate
 

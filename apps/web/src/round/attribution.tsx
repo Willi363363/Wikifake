@@ -14,6 +14,8 @@
 // missing key in this block is a licence violation, which is why
 // `phase-11-i18n.md` singles it out.
 
+import { useTranslations } from 'next-intl';
+
 /** The licence the article text and our modifications are both under. */
 export const LICENCE = {
   name: 'CC BY-SA 4.0',
@@ -26,32 +28,46 @@ export interface AttributionProps {
 }
 
 export function Attribution({ topic, sourceUrl }: AttributionProps) {
+  const t = useTranslations('round');
+
   return (
     <aside className="mt-8 space-y-2 border-t border-line pt-4 text-xs text-muted">
       <p>
-        <strong className="font-semibold text-ink">Text deliberately modified.</strong>{' '}
-        Facts have been altered for the game: this is not a reliable source.
+        <strong className="font-semibold text-ink">
+          {t('attribution.modifiedWarning.title')}
+        </strong>{' '}
+        {t('attribution.modifiedWarning.body')}
       </p>
       <p>
-        After the Wikipedia article{' '}
-        <a
-          className="underline hover:text-ink"
-          href={sourceUrl}
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          “{topic}”
-        </a>{' '}
-        by its contributors, under{' '}
-        <a
-          className="underline hover:text-ink"
-          href={LICENCE.url}
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          {LICENCE.name}
-        </a>
-        . The modifications are WikiFake&rsquo;s, released under the same licence.
+        {/* One whole message with the two links as placeholders: a legal
+            sentence assembled from fragments is a sentence no translation can
+            reorder. The licence name is an identifier, injected untranslated,
+            and the topic is a French title — the link carries `lang="fr"`. */}
+        {t.rich('attribution.credit', {
+          topic,
+          licenceName: LICENCE.name,
+          article: (chunks) => (
+            <a
+              lang="fr"
+              className="underline hover:text-ink"
+              href={sourceUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {chunks}
+            </a>
+          ),
+          licence: (chunks) => (
+            <a
+              className="underline hover:text-ink"
+              href={LICENCE.url}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {chunks}
+            </a>
+          ),
+        })}
       </p>
     </aside>
   );

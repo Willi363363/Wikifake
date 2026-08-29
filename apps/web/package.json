@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.51",
+    "@sentry/node": "^10.71.0",
     "@wikifake/article": "workspace:*",
     "@wikifake/db": "workspace:*",
     "@wikifake/domain": "workspace:*",
@@ -21,7 +22,7 @@
     "@wikifake/ui": "workspace:*",
     "better-auth": "^1.7.1",
     "next": "^16.3.2",
-    "@sentry/node": "^10.71.0",
+    "next-intl": "^4.14.0",
     "pino": "^10.3.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

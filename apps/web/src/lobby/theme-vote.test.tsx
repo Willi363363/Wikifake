@@ -8,11 +8,12 @@
 // `submitted` flag the moment the form is sent. A ballot the server refused,
 // because the vote had closed or the socket was already down, still reads as
 // submitted, and the player waits for a vote they are not in.
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { OutgoingMessage } from '@wikifake/protocol';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { render } from '../i18n/testing.js';
 import { Room } from './room.js';
 import { RealtimeProvider } from '../realtime/provider.js';
 import { installFakeSocket, opened } from '../realtime/testing.js';

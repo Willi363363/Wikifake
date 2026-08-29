@@ -8,7 +8,13 @@ allowBuilds:
   # `@sentry/cli` downloads its binary at install time. Allowed here so the
   # sourcemap-upload step in CI can use it; it is absent from local installs
   # (no binary needed for error reporting alone).
+  # Both arrive with `next-intl`'s message compiler. Refused: each ships its
+  # prebuilt binary as a platform-specific optional dependency, so the install
+  # script is only the node-gyp fallback for platforms without one — and a
+  # build script is a build script.
+  '@parcel/watcher': false
   '@sentry/cli': true
+  '@swc/core': false
   esbuild: true
   # A native accelerator for `msgpackr`, which BullMQ uses to encode job data.
   # Optional by design: msgpackr falls back to its JavaScript path, and a queue

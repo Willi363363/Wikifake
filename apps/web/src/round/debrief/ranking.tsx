@@ -10,6 +10,7 @@
 // corrections and loses it on penalties is seen to lose it.
 import { cn } from '@wikifake/ui';
 import type { ScoreBreakdown } from '@wikifake/protocol';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { scoreAtStage, STAGES, type Stage } from './stages.js';
@@ -51,6 +52,7 @@ export function AnimatedRanking({
   stages = STAGES,
   onFinished,
 }: AnimatedRankingProps) {
+  const t = useTranslations('round');
   const timers = useTimers();
   const [stage, setStage] = useState(0);
 
@@ -88,18 +90,20 @@ export function AnimatedRanking({
     <div>
       <p className="flex items-baseline justify-between gap-3">
         <span aria-live="polite" className="text-sm text-ink">
-          {shown?.label}
+          {shown === undefined ? '' : t(`debrief.stages.${shown.id}.label`)}
         </span>
         <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
           {String(Math.min(stage, stages.length))}/{String(stages.length)}
         </span>
       </p>
-      <p className="mt-0.5 text-xs text-muted">{shown?.note}</p>
+      <p className="mt-0.5 text-xs text-muted">
+        {shown === undefined ? '' : t(`debrief.stages.${shown.id}.note`)}
+      </p>
 
       {/* Named, because the debrief holds two lists — this one and the
           falsifications — and a region with two unnamed lists in it is a region
           a screen reader reads as one long run of items. */}
-      <ol aria-label="Final ranking" className="mt-4 space-y-2">
+      <ol aria-label={t('debrief.finalRankingAria')} className="mt-4 space-y-2">
         {scored.map((standing, at) => (
           <li
             key={standing.name}
@@ -119,9 +123,12 @@ export function AnimatedRanking({
             </span>
             <span className="truncate text-sm text-ink">
               {standing.name}
-              {standing.you ? <span className="text-muted"> · you</span> : null}
+              {/* The separator is layout; only the words are translated. */}
+              {standing.you ? (
+                <span className="text-muted">{` · ${t('debrief.you')}`}</span>
+              ) : null}
               {standing.breakdown === null ? (
-                <span className="text-muted"> · did not submit</span>
+                <span className="text-muted">{` · ${t('debrief.didNotSubmit')}`}</span>
               ) : null}
             </span>
             <span className="font-mono text-sm font-semibold tabular-nums text-ink">

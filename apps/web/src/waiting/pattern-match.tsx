@@ -6,6 +6,7 @@
 // right, which were invented, which were forgotten. The component shows a
 // pattern, takes a guess of the same size, and grades it.
 import { cn } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { PlayAgain } from './controls.js';
@@ -72,6 +73,7 @@ export function drawPattern(
 }
 
 export function PatternMatch() {
+  const t = useTranslations('waiting');
   const timers = useTimers();
   const [round, setRound] = useState(0);
   const [difficulty, setDifficulty] = useState(EASIEST);
@@ -137,7 +139,11 @@ export function PatternMatch() {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Pattern grid">
+      <div
+        className="grid grid-cols-4 gap-1.5"
+        role="group"
+        aria-label={t('pattern.gridLabel')}
+      >
         {Array.from({ length: CELLS }, (_, at) => (
           <button
             key={at}
@@ -147,7 +153,7 @@ export function PatternMatch() {
             }}
             disabled={phase !== 'recalling'}
             aria-pressed={chosen.has(at)}
-            aria-label={`Square ${String(at + 1)}`}
+            aria-label={t('pattern.square', { number: at + 1 })}
             className={cn(
               'size-12 rounded-md border transition-colors',
               'outline-none focus-visible:ring-2 focus-visible:ring-accent',
@@ -159,15 +165,15 @@ export function PatternMatch() {
       </div>
       <p className="text-sm text-muted" aria-live="polite">
         {phase === 'showing'
-          ? 'Memorise the pattern…'
+          ? t('pattern.memorise')
           : phase === 'recalling'
-            ? `Pick ${String(pattern.size)} squares`
+            ? t('pattern.pick', { count: pattern.size })
             : marks !== null && isPerfect(marks)
-              ? 'Perfect'
-              : 'Not quite'}
+              ? t('pattern.perfect')
+              : t('pattern.notQuite')}
       </p>
       <p className="font-mono text-xs tabular-nums text-muted">
-        level {String(difficulty - EASIEST + 1)} · round {String(round + 1)}
+        {t('pattern.progress', { level: difficulty - EASIEST + 1, round: round + 1 })}
       </p>
       <PlayAgain onClick={again} />
     </div>

@@ -12,6 +12,7 @@
 // screen that will one day quote a scale nobody uses.
 import { HINT_COST, PER_FALSE_POSITIVE, PER_TRUE_POSITIVE } from '@wikifake/domain';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 
 import { asClock } from './clock.js';
 
@@ -24,34 +25,35 @@ export interface BriefProps {
 }
 
 export function Brief({ open, total, timeLimit, onOpenChange }: BriefProps) {
+  const t = useTranslations('round');
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent aria-describedby={undefined}>
-        <DialogTitle>The brief</DialogTitle>
+        <DialogTitle>{t('brief.title')}</DialogTitle>
         <DialogDescription>
-          {total === 1
-            ? 'One paragraph of this article states something false.'
-            : `${String(total)} paragraphs of this article state something false.`}{' '}
-          Mark every one you find, then submit. You have {asClock(timeLimit)}.
+          {/* One whole message: the plural is ICU's, not a ternary gluing
+              fragments, and the clock rides along as a placeholder. */}
+          {t('brief.description', { total, time: asClock(timeLimit) })}
         </DialogDescription>
 
         <dl className="mt-5 space-y-2 text-sm">
           <Line
-            label="A falsification you find"
+            label={t('brief.scoring.truePositive')}
             value={`+${String(PER_TRUE_POSITIVE)}`}
           />
           <Line
-            label="A paragraph marked for nothing"
+            label={t('brief.scoring.falsePositive')}
             value={`−${String(PER_FALSE_POSITIVE)}`}
           />
-          <Line label="A hint" value={`−${String(HINT_COST)}`} />
-          <Line label="Finishing early" value="a bonus on the time left" />
+          <Line label={t('brief.scoring.hint')} value={`−${String(HINT_COST)}`} />
+          <Line
+            label={t('brief.scoring.earlyFinish')}
+            value={t('brief.scoring.earlyFinishValue')}
+          />
         </dl>
 
-        <p className="mt-5 text-xs text-muted">
-          Nothing on this screen knows which paragraphs were altered. The server grades,
-          and the answer arrives when the round ends.
-        </p>
+        <p className="mt-5 text-xs text-muted">{t('brief.serverGradesNote')}</p>
       </DialogContent>
     </Dialog>
   );

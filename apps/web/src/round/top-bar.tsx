@@ -10,6 +10,7 @@
 // hard-coded "Intelligence System · v2.0.1", and a mode chip for an expert mode
 // the new protocol has no field for. Ported means the parts that do something.
 import { Badge, Button, cn } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 
 import { asClock, pressureAt, type Pressure } from './clock.js';
 
@@ -55,6 +56,7 @@ export function RoundTopBar({
   onOpenBrief,
   onOpenIntel,
 }: RoundTopBarProps) {
+  const t = useTranslations('round');
   const pressure = pressureAt(secondsLeft);
 
   return (
@@ -62,12 +64,12 @@ export function RoundTopBar({
       <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
         <p className="text-lg text-ink">{topic}</p>
 
-        <Badge tone="accent">{String(total)} altered</Badge>
+        <Badge tone="accent">{t('topBar.alteredCount', { total })}</Badge>
 
         <span className="flex-1" />
 
         <Button variant="ghost" onClick={onOpenBrief}>
-          Brief
+          {t('topBar.brief')}
         </Button>
 
         {/* C1.5 — a jam is said on the button, not by opening the panel over the
@@ -79,9 +81,9 @@ export function RoundTopBar({
         <Button
           variant={hintsJammed ? 'danger' : 'ghost'}
           onClick={onOpenIntel}
-          aria-label={hintsJammed ? 'Intel — jammed' : undefined}
+          aria-label={hintsJammed ? t('topBar.intelJammed') : undefined}
         >
-          Intel
+          {t('topBar.intel')}
           {hintsUsed === 0 ? null : (
             // The count is in the label rather than in a floating badge: a badge
             // positioned over the corner of a button is a number a screen reader
@@ -94,7 +96,7 @@ export function RoundTopBar({
 
         <p className="flex items-baseline gap-1.5">
           <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-            marked
+            {t('topBar.markedLabel')}
           </span>
           <span className="font-mono text-sm tabular-nums text-ink">
             {String(marked)}
@@ -104,28 +106,30 @@ export function RoundTopBar({
 
         <p
           role="timer"
-          aria-label="Time left"
+          aria-label={t('topBar.timeLeft')}
           className={cn('font-mono text-lg tabular-nums', TONE[pressure])}
         >
           {asClock(secondsLeft)}
           {/* The colour is not the message. A player who cannot see it is told
               in words, once per state rather than once per second. */}
           <span className="sr-only">
-            {pressure === 'urgent'
-              ? ' — almost out of time'
-              : pressure === 'warning'
-                ? ' — time is running short'
-                : ''}
+            {/* Whole messages; the dash is layout, joined here rather than
+                baked into a fragment a translator would have to keep. */}
+            {pressure === 'calm' ? '' : ` — ${t(`topBar.pressure.${pressure}`)}`}
           </span>
         </p>
 
         {submitted && onUnsubmit !== undefined ? (
           <Button variant="danger" onClick={onUnsubmit} disabled={busy}>
-            Take it back
+            {t('topBar.unsubmit')}
           </Button>
         ) : (
           <Button variant="primary" onClick={onSubmit} disabled={busy || submitted}>
-            {busy ? 'Sending…' : submitted ? 'Submitted' : 'Submit'}
+            {busy
+              ? t('topBar.submitting')
+              : submitted
+                ? t('topBar.submitted')
+                : t('topBar.submit')}
           </Button>
         )}
       </div>

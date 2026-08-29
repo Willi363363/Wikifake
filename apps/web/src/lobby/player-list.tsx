@@ -16,14 +16,16 @@
 // present. D5 keeps their seat for thirty seconds; a list that cannot say so is
 // a list where a disconnection looks like silence.
 import { Badge, cn } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 
 import type { RoomPlayer } from './use-room.js';
 
 export function PlayerList({ players }: { players: readonly RoomPlayer[] }) {
+  const t = useTranslations('lobby.players');
   return (
     <section>
       <h2 className="mb-2 text-xs font-semibold tracking-widest text-muted uppercase">
-        Players ({players.length})
+        {t('heading', { count: players.length })}
       </h2>
       <ul className="divide-y divide-line">
         {players.map((player) => (
@@ -45,18 +47,18 @@ export function PlayerList({ players }: { players: readonly RoomPlayer[] }) {
               >
                 {player.name}
               </span>
-              {player.isHost ? <Badge tone="accent">host</Badge> : null}
+              {player.isHost ? <Badge tone="accent">{t('host')}</Badge> : null}
             </span>
 
             <span className="shrink-0">
               {player.connected ? (
                 <Badge tone={player.ready ? 'green' : 'neutral'}>
-                  {player.ready ? 'ready' : 'waiting'}
+                  {player.ready ? t('ready') : t('waiting')}
                 </Badge>
               ) : (
                 // Not "gone": the seat is being kept, and saying "gone" would be
                 // wrong for the thirty seconds that matter most.
-                <Badge tone="warn">away</Badge>
+                <Badge tone="warn">{t('away')}</Badge>
               )}
             </span>
           </li>

@@ -11,35 +11,35 @@
 // mounted before a room is opened, and duplicating it here would be a second
 // place to keep in step. This is the one thing that group cannot hold: a static,
 // server-rendered, indexable page. It says what the game is and points at it.
+//
+// Since step 11.1 the copy lives in `messages/<locale>/home.json` and is read
+// through `next-intl` — this page is the proof screen: the first one rendered
+// through the catalogue in both locales (`page.locale.test.tsx`). Since step
+// 11.5 the metadata in `layout.tsx` is per-locale and reads the catalogue's
+// `seo` zone; its test pins that zone's description to this page's, so the
+// search result and the front door keep speaking one sentence.
 import { buttonVariants, Separator } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 
-import { SITE_DESCRIPTION } from '../src/indexing.js';
-
-/** What a round actually asks of a player, in the order it happens. */
-const STEPS: readonly { readonly title: string; readonly detail: string }[] = [
-  {
-    title: 'Pick a subject',
-    detail: 'Any Wikipedia subject. The article is fetched as it stands today.',
-  },
-  {
-    title: 'Read it against a model',
-    detail:
-      'A model rewrites a few facts. Nothing marks them, and the rest of the article is untouched.',
-  },
-  {
-    title: 'Mark what is wrong',
-    detail:
-      'Every paragraph you flag is scored: right ones pay, wrong ones cost, and the clock pays too.',
-  },
-];
+/**
+ * What a round actually asks of a player, in the order it happens.
+ *
+ * Keys into the `home.steps` namespace rather than the sentences themselves:
+ * the copy is the catalogue's, the order is this page's.
+ */
+const STEPS = ['pick', 'read', 'mark'] as const;
 
 export default function HomePage() {
+  // Works in a server component: `next-intl` resolves it against
+  // `src/i18n/request.ts` here, and against the provider when client-rendered.
+  const t = useTranslations('home');
+
   return (
     <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center px-4 py-12">
-      <h1 className="text-center text-4xl font-semibold text-ink">WikiFake</h1>
+      <h1 className="text-center text-4xl font-semibold text-ink">{t('title')}</h1>
       <p className="mx-auto mt-3 max-w-xl text-center text-sm text-muted">
-        {SITE_DESCRIPTION}
+        {t('description')}
       </p>
 
       <div className="mt-8 flex justify-center">
@@ -47,7 +47,7 @@ export default function HomePage() {
             button that navigates is a button a keyboard cannot open in a new
             tab. `solo.tsx` does the same, for the same reason. */}
         <Link href="/play" className={buttonVariants({ variant: 'primary', size: 'lg' })}>
-          Play
+          {t('play')}
         </Link>
       </div>
 
@@ -55,14 +55,16 @@ export default function HomePage() {
 
       <ol className="grid gap-6 sm:grid-cols-3">
         {STEPS.map((step, index) => (
-          <li key={step.title}>
+          <li key={step}>
             <p className="text-xs font-semibold tracking-wide text-muted">
               {/* Numbered for a reader, not for a screen reader: the list
                   already carries the order. */}
               {String(index + 1).padStart(2, '0')}
             </p>
-            <h2 className="mt-1 text-base font-semibold text-ink">{step.title}</h2>
-            <p className="mt-1 text-sm text-muted">{step.detail}</p>
+            <h2 className="mt-1 text-base font-semibold text-ink">
+              {t(`steps.${step}.title`)}
+            </h2>
+            <p className="mt-1 text-sm text-muted">{t(`steps.${step}.detail`)}</p>
           </li>
         ))}
       </ol>
@@ -70,10 +72,7 @@ export default function HomePage() {
       {/* The falsified text never reaches this page, so this is context rather
           than the attribution C6.1 asks for — that one is rendered beside the
           article itself, during the round and after it. */}
-      <p className="mt-10 text-center text-xs text-muted">
-        Articles come from Wikipedia and are used under CC BY-SA. In a round they are
-        deliberately modified, and are not encyclopaedic content.
-      </p>
+      <p className="mt-10 text-center text-xs text-muted">{t('licence')}</p>
     </main>
   );
 }

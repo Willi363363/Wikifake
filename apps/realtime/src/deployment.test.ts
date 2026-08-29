@@ -71,17 +71,33 @@ describe('C7.2 — the deployment identity', () => {
 });
 
 describe('the commit, from whichever platform provided it', () => {
-  // Fly injects no commit variable of its own, unlike Vercel and Render. The
-  // deploy workflow bakes FLY_GIT_COMMIT into the image; the other two names are
-  // there for a generic Docker host. A missing name is a probe that waits for a
-  // match that cannot come.
-  it('prefers FLY_GIT_COMMIT, then GIT_COMMIT, then SOURCE_COMMIT', () => {
+  // Render supplies RENDER_GIT_COMMIT itself, which is why it comes first: it is
+  // this service's host. FLY_GIT_COMMIT stays behind it because Fly injects no
+  // commit of its own and had to have one baked in as a build argument; the last
+  // two are there for a generic Docker host. A missing name is a probe that
+  // waits for a match that cannot come.
+  it('prefers RENDER, then FLY, then GIT_COMMIT, then SOURCE_COMMIT', () => {
+    expect(
+      deployedCommit({
+        RENDER_GIT_COMMIT: 'r',
+        FLY_GIT_COMMIT: 'f',
+        GIT_COMMIT: 'g',
+        SOURCE_COMMIT: 's',
+      }),
+    ).toBe('r');
     expect(
       deployedCommit({ FLY_GIT_COMMIT: 'f', GIT_COMMIT: 'g', SOURCE_COMMIT: 's' }),
     ).toBe('f');
     expect(deployedCommit({ GIT_COMMIT: 'g', SOURCE_COMMIT: 's' })).toBe('g');
     expect(deployedCommit({ SOURCE_COMMIT: 's' })).toBe('s');
     expect(deployedCommit({})).toBe('');
+  });
+
+  // The regression this PR exists to prevent: the service is deployed on Render,
+  // and a chain that does not name Render's variable answers an empty commit
+  // while every other field looks right.
+  it('answers the Render commit when that is the only name present', () => {
+    expect(deployedCommit({ RENDER_GIT_COMMIT: SHA })).toBe(SHA);
   });
 });
 

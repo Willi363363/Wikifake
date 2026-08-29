@@ -6,11 +6,12 @@
 // player looks like.
 //
 // It builds messages and drives a fake socket. Nothing here asserts anything.
-import { act, render } from '@testing-library/react';
+import { act } from '@testing-library/react';
 import type { OutgoingMessage } from '@wikifake/protocol';
 import { vi } from 'vitest';
 
 import { SETTLE_MS } from './generation.js';
+import { render } from '../i18n/testing.js';
 import { Room } from './room.js';
 import { RealtimeProvider } from '../realtime/provider.js';
 import { opened } from '../realtime/testing.js';

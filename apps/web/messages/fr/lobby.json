@@ -1,0 +1,87 @@
+{
+  "entry": {
+    "brand": "WikiFake",
+    "tagline": "Un article de Wikipédia, quelques erreurs glissées dedans, et vous.",
+    "tabsLabel": "Comment jouer",
+    "tabs": {
+      "solo": "Solo",
+      "host": "Héberger",
+      "join": "Rejoindre"
+    },
+    "nicknameLabel": "Pseudo",
+    "topicLabel": "Sujet Wikipédia",
+    "topicPlaceholder": "Chat",
+    "playSolo": "Jouer en solo",
+    "opening": "Ouverture…",
+    "openRoom": "Ouvrir une salle",
+    "roomCodeLabel": "Code de la salle",
+    "joinSubmit": "Rejoindre",
+    "serverAuthoritative": "le serveur fait foi",
+    "errors": {
+      "notAllowed": "ce n’est pas autorisé",
+      "nickname": "ce pseudo n’est pas autorisé",
+      "roomNotOpened": "la salle n’a pas pu être ouverte",
+      "unreadableRoom": "le serveur a ouvert une salle que nous ne pouvons pas lire",
+      "unreachable": "le serveur est injoignable"
+    }
+  },
+  "room": {
+    "eyebrow": "Salle",
+    "connection": {
+      "idle": "en attente",
+      "connecting": "connexion en cours",
+      "reconnecting": "reconnexion en cours",
+      "closed": "connexion fermée"
+    },
+    "waitingForHost": "En attente que l’hôte lance la manche.",
+    "readyCancel": "Prêt — annuler",
+    "imReady": "Je suis prêt",
+    "startRound": "Lancer la manche",
+    "startWithoutWaiting": "Lancer sans attendre",
+    "backToRoom": "Retour à la salle"
+  },
+  "vote": {
+    "title": "Choisissez un sujet",
+    "subtitle": "Chacun en propose un. Le serveur tire celui de la manche.",
+    "ballotIn": "votre bulletin est déposé",
+    "topicLabel": "Votre sujet",
+    "topicPlaceholder": "Chat",
+    "propose": "Le proposer",
+    "progressLabel": "Bulletins déposés",
+    "tally": "{submitted, plural, one {# sur {total} a voté} other {# sur {total} ont voté}}",
+    "drawNow": "Tirer maintenant",
+    "errors": {
+      "topic": "ce sujet n’est pas autorisé"
+    }
+  },
+  "generation": {
+    "topicEyebrow": "Sujet",
+    "drawnByServer": "tiré par le serveur",
+    "proposedBy": "proposé par {proposer}",
+    "progressLabel": "Génération de la manche",
+    "percent": "{progress} %",
+    "roundReady": "la manche est prête",
+    "takesAFewSeconds": "cela prend quelques secondes",
+    "stages": {
+      "fetching": "Récupération de l’article…",
+      "reading": "Lecture…",
+      "falsifying": "Insertion des erreurs…",
+      "building": "Construction de la page…",
+      "finishing": "Finitions…",
+      "ready": "Prêt"
+    }
+  },
+  "hostSettings": {
+    "timeLimit": "Temps limite — {limit}",
+    "seconds": "{seconds} s",
+    "minutes": "{minutes, number} min",
+    "playWithItems": "Jouer avec les objets"
+  },
+  "players": {
+    "heading": "Joueurs ({count})",
+    "host": "hôte",
+    "ready": "prêt",
+    "waiting": "en attente",
+    "away": "absent"
+  }
+}

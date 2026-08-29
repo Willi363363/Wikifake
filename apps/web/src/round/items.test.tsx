@@ -15,6 +15,7 @@ import type { ItemInstance } from '@wikifake/protocol';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { ITEM_LABELS, isSelfCast, labelFor } from './item-labels.js';
+import en from '../../messages/en/round.json';
 import { useItems, type ItemsState } from './items.js';
 
 const held = (instanceId: string, itemId: ItemInstance['itemId']): ItemInstance => ({
@@ -53,9 +54,12 @@ describe('8.3 — the catalogue is named, all of it', () => {
   // identifier it does not know — so a missing entry draws a blank card.
   it.each(ITEM_IDS)('names %s, with a glyph and a line', (id) => {
     const label = labelFor(id);
-    expect(label.name.length).toBeGreaterThan(0);
+    // The copy lives in the catalogue since step 11.2; the label carries the
+    // key, and a key pointing at nothing is the blank card coming back.
+    const entry = en.items[label.key];
+    expect(entry.name.length).toBeGreaterThan(0);
     expect(label.icon.length).toBeGreaterThan(0);
-    expect(label.blurb.length).toBeGreaterThan(0);
+    expect(entry.blurb.length).toBeGreaterThan(0);
   });
 
   it('names nothing that is not in the contract', () => {
