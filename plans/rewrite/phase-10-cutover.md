@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — production runs the new stack; 10.10's dry run and the socket deployment are left |
+| **State** | **in progress** — production runs the new stack, multiplayer included; only 10.10's dry run is left |
 | **Branch** | `feat/rewrite-phase-10-contract` |
 | **Depends on** | all the others (0 to 9) |
 | **Delivers** | a repository without Python, production on the new stack |
@@ -113,11 +113,9 @@ business holding and gained three the new stack actually has.
 - ✅ The grid of `01-contract-to-preserve.md` is checked off in full: every
   line points to a named test that passes in CI.
 - ✅ Not one Python file left in the repository; pnpm has replaced `make`.
-- ⚠️ Public production is served by Vercel and the socket host, `deploy-check`
-  green — **half of it**. Vercel serves the web app and the probe is green
-  against it. The socket service has never been deployed: step 9.8 retargeted it
-  from Fly, which asks for a card, to Render's free tier, and the blueprint is
-  committed and awaiting a sync.
+- ✅ Public production is served by Vercel and the socket host, `deploy-check`
+  green. The socket service went live on Render's free tier and a four-player
+  round was played against it — `phase-09-realtime-live.md`.
 - ⚠️ The rollback is written and has been dry-run — **written, never run.**
   Step 10.10.
 - ✅ The current state describes the real stack.
