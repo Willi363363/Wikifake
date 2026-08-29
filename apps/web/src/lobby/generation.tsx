@@ -13,6 +13,7 @@
 // `ready`: a socket message in one, a resolved request in the other, and neither
 // is this component's business.
 import { Badge, Progress } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 
 import { progressAt, stageAt } from './progress.js';
@@ -40,6 +41,7 @@ export function GenerationScreen({
   ready,
   onEnter,
 }: GenerationScreenProps) {
+  const t = useTranslations('lobby.generation');
   const [elapsed, setElapsed] = useState(0);
   const entered = useRef(false);
   const enter = useRef(onEnter);
@@ -72,31 +74,37 @@ export function GenerationScreen({
 
   return (
     <div className="rounded-xl border border-line bg-surface p-6 text-center shadow-md">
-      <p className="text-xs tracking-widest text-muted uppercase">Topic</p>
-      <p className="mt-1 text-xl text-ink">{topic}</p>
+      <p className="text-xs tracking-widest text-muted uppercase">{t('topicEyebrow')}</p>
+      {/* The topic is a fr.wikipedia.org subject: data, not interface copy.
+          It keeps its own `lang`, whatever the interface locale. */}
+      <p className="mt-1 text-xl text-ink" lang="fr">
+        {topic}
+      </p>
       <p className="mt-1 text-sm text-muted">
         {proposer === null || proposer === undefined
-          ? 'drawn by the server'
-          : `proposed by ${proposer}`}
+          ? t('drawnByServer')
+          : t('proposedBy', { proposer })}
       </p>
 
       <div className="mt-6 space-y-2">
         <Progress
           value={Math.round(progress)}
           max={100}
-          aria-label="Generating the round"
+          aria-label={t('progressLabel')}
         />
         <p className="flex items-baseline justify-between text-sm text-muted">
           {/* Announced, so a player who cannot see the bar is told the wait is
               progressing rather than left with a silent screen. */}
-          <span aria-live="polite">{stageAt(progress)}</span>
-          <span className="font-mono tabular-nums">{Math.round(progress)}%</span>
+          <span aria-live="polite">{t(`stages.${stageAt(progress)}`)}</span>
+          <span className="font-mono tabular-nums">
+            {t('percent', { progress: Math.round(progress) })}
+          </span>
         </p>
       </div>
 
       <p className="mt-6">
         <Badge tone={ready ? 'green' : 'bronze'}>
-          {ready ? 'the round is ready' : 'this takes a few seconds'}
+          {ready ? t('roundReady') : t('takesAFewSeconds')}
         </Badge>
       </p>
 

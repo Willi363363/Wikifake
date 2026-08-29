@@ -10,7 +10,7 @@
 // And every render here has items. The current smoke test renders with
 // `withItems: false`, which is how a `ReferenceError` on the main multiplayer
 // path survived to production.
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ITEM_CATALOGUE } from '@wikifake/domain';
 import { ITEM_IDS } from '@wikifake/protocol';
@@ -18,6 +18,8 @@ import type { ItemId, ItemInstance } from '@wikifake/protocol';
 import { afterEach, describe, expect, it, vi, type Mock } from 'vitest';
 
 import { isSelfCast, labelFor } from './item-labels.js';
+import { render } from '../i18n/testing.js';
+import en from '../../messages/en/round.json';
 import { ARTICLE, noHints, noItems, tokens } from './testing.js';
 import { Round } from './round.js';
 import type { ItemsState } from './items.js';
@@ -64,7 +66,9 @@ function paint(
 
 const pick = async (user: ReturnType<typeof userEvent.setup>, id: ItemId) => {
   await user.click(
-    screen.getByRole('button', { name: new RegExp(`^${labelFor(id).name} —`) }),
+    screen.getByRole('button', {
+      name: new RegExp(`^${en.items[labelFor(id).key].name} —`),
+    }),
   );
 };
 

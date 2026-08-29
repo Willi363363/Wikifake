@@ -6,6 +6,7 @@
 // loss, else the centre, else anywhere. It is beatable, which for a game played
 // while an article loads is the point.
 import { cn } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { PlayAgain } from './controls.js';
@@ -90,6 +91,7 @@ export interface Tally {
 }
 
 export function TicTacToe() {
+  const t = useTranslations('waiting');
   const timers = useTimers();
   const [board, setBoard] = useState<Board>(EMPTY);
   const [yours, setYours] = useState(true);
@@ -139,21 +141,21 @@ export function TicTacToe() {
 
   const status =
     outcome?.mark === 'X'
-      ? 'You win'
+      ? t('ttt.youWin')
       : outcome?.mark === 'O'
-        ? 'The opponent wins'
+        ? t('ttt.opponentWins')
         : outcome?.mark === 'draw'
-          ? 'Draw'
+          ? t('ttt.draw')
           : yours
-            ? 'Your turn'
-            : 'Thinking…';
+            ? t('ttt.yourTurn')
+            : t('ttt.thinking');
 
   return (
     <div className="flex flex-col items-center gap-3">
       <div
         className="grid grid-cols-3 gap-1.5"
         role="group"
-        aria-label="Tic-tac-toe board"
+        aria-label={t('ttt.boardLabel')}
       >
         {board.map((square, at) => (
           <button
@@ -163,7 +165,13 @@ export function TicTacToe() {
               play(at);
             }}
             disabled={square !== null || !yours || outcome !== null}
-            aria-label={`Square ${String(at + 1)}${square === null ? '' : `, ${square}`}`}
+            // Two whole messages, not a base and a suffix: the {mark} is the
+            // literal X or O on the board, a placeholder rather than copy.
+            aria-label={
+              square === null
+                ? t('ttt.squareEmpty', { number: at + 1 })
+                : t('ttt.squareMarked', { number: at + 1, mark: square })
+            }
             className={cn(
               'flex size-14 items-center justify-center rounded-md border text-xl transition-colors',
               'outline-none focus-visible:ring-2 focus-visible:ring-accent',
@@ -181,7 +189,7 @@ export function TicTacToe() {
         {status}
       </p>
       <p className="font-mono text-xs tabular-nums text-muted">
-        W {tally.wins} · D {tally.draws} · L {tally.losses}
+        {t('ttt.tally', { wins: tally.wins, draws: tally.draws, losses: tally.losses })}
       </p>
       <PlayAgain onClick={reset} />
     </div>

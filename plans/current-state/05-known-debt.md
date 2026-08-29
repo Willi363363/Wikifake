@@ -18,11 +18,10 @@ unthrottled `live_score`, `FREEZE_TIME` doing none of what it announced, the
 scoring scale in three places, and a cache that did not do what its own
 contract said in four separate ways.
 
-They are **not repeated here**, deliberately. They live in section D of
-`../rewrite/01-contract-to-preserve.md`, each with the file and line it was
-verified at and the step that closed it, and every one of them is now held shut
-by a named test in `../rewrite/phase-10-contract-map.md`. Copying the list into
-this file would be a second place to keep it, which is the habit the rewrite
+They are **not repeated here**, deliberately: they live in section D of
+`../rewrite/01-contract-to-preserve.md` with the file and line each was verified
+at, and every one is held shut by a named test in
+`../rewrite/phase-10-contract-map.md`. A second copy is the habit the rewrite
 exists to break.
 
 ## Fixed on discovery: the socket never opened after "Open a room"
@@ -64,12 +63,11 @@ skipped and why. Its own step, when somebody is annoyed enough.
 
 ## `plans/current-state/` is no longer mechanically checked
 
-`test_architecture_doc.py` verified this directory against the code with
-regexes: the cited modules existed, the `make` targets existed, the documented
-messages equalled the dispatch table, the documented routes equalled the route
-decorators. It was deleted with the Python at step 10.9, and C8.2 anticipated
-exactly this — a guarantee that dies with its subject disappears without a
-sound.
+`test_architecture_doc.py` checked this directory against the code with regexes:
+cited modules, `make` targets, documented messages against the dispatch table,
+documented routes against the decorators. It went with the Python at step 10.9,
+and C8.2 anticipated exactly this — a guarantee that dies with its subject
+disappears without a sound.
 
 What replaced it covers the *protocol* and the *routes*, which is most of what
 that test checked, and covers them better:
@@ -171,6 +169,24 @@ The honest fix is a client heartbeat — which means a new message in
 `packages/protocol`, regenerated `plans/protocol/` pages, and a snapshot test to
 update. That is its own step, not an aside in a deployment change, so it is
 recorded here rather than smuggled in.
+
+## Server refusals reach the round in the server's language
+
+`round.tsx` renders two strings it never wrote: `refusal` and `items.refusal`
+arrive from the server as protocol error messages and go on screen verbatim.
+Step 11.2 moved every client-authored string into the catalogue, but these are
+not the client's to key — whoever owns the server messages must decide whether
+they become error *codes* the client translates, or stay sentences in one
+language. Until then a French interface will show them in English.
+
+## A 404 and a crash speak Next's English, not the catalogue's
+
+`apps/web/app` has no `not-found.tsx` and no `error.tsx`, so an unknown URL or
+a render error shows Next's built-in default pages — English words no
+catalogue reaches, whatever locale phase 11 ends up serving. Step 11.2 moves
+strings that exist; these pages first have to exist to have strings, which is
+new-surface work the extraction pass does not own. Until someone builds them,
+the French interface of 11.6 will still crash in English.
 
 ## The structural debt is its own file
 

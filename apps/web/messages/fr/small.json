@@ -1,0 +1,70 @@
+{
+  "chat": {
+    "open": "Ouvrir le chat de la salle",
+    "openUnread": "Ouvrir le chat de la salle, {count, plural, one {# non lu} other {# non lus}}",
+    "tab": "Chat",
+    "title": "Chat de la salle",
+    "close": "Fermer le chat de la salle",
+    "empty": "Rien n’a encore été dit.",
+    "selfSender": "vous",
+    "inputAria": "Votre message",
+    "inputPlaceholder": "Dites quelque chose",
+    "sendHint": "Entrée envoie, maj+entrée passe à la ligne",
+    "errors": {
+      "cannotSend": "ce message ne peut pas être envoyé"
+    }
+  },
+  "flags": {
+    "paragraphTag": "paragraphe {number}",
+    "capture": {
+      "title": "Signaler une vraie erreur",
+      "description": "Pas une des nôtres — une erreur de Wikipédia lui-même. Choisissez le paragraphe ; le rapport se rédige à la fin de la manche.",
+      "paragraphGroup": "Quel paragraphe",
+      "paragraphOption": "Paragraphe {number}",
+      "noteLabel": "Une note rapide, si vous en avez une",
+      "notePlaceholder": "La date semble fausse",
+      "cancel": "Annuler",
+      "confirm": "Le signaler"
+    },
+    "verdict": {
+      "likelyValid": "Semble juste",
+      "uncertain": "Incertain",
+      "unsupported": "Non étayé"
+    },
+    "fate": {
+      "pendingHumanReview": "Une personne va l’examiner.",
+      "aiReviewed": "Enregistré, avec la vérification ci-dessus.",
+      "rejectedByAi": "Enregistré, mais il n’ira pas plus loin en l’état."
+    },
+    "panel": {
+      "title": "Ce que vous avez signalé",
+      "description": "De vraies erreurs dans l’article source, pas celles que nous y avons mises. Rédigez-en une : elle est vérifiée, puis conservée.",
+      "writeUp": "Rédiger",
+      "writeUpAria": "Rédiger le rapport pour le paragraphe {number}",
+      "discardAria": "Abandonner le signalement du paragraphe {number}"
+    },
+    "report": {
+      "resultAria": "Ce que la vérification a trouvé",
+      "confidence": "sûr à {confidence} %",
+      "done": "Terminé",
+      "quoted": "« <fr>{text}</fr> »",
+      "yourNote": "Votre note : {note}",
+      "correctionLabel": "Ce que cela devrait dire",
+      "explanationLabel": "Pourquoi, si vous pouvez le dire",
+      "sourcesLabel": "Sources, un lien par ligne",
+      "notNow": "Pas maintenant",
+      "checking": "Vérification…",
+      "send": "Envoyer le rapport"
+    }
+  },
+  "solo": {
+    "title": "Solo",
+    "errors": {
+      "noTopic": "Aucun sujet n’a été donné.",
+      "badTopic": "Ce sujet n’est pas de ceux que nous pouvons consulter."
+    },
+    "you": "Vous",
+    "playAgain": "Rejouer",
+    "back": "Retour"
+  }
+}

@@ -6,16 +6,20 @@
 // contract — six games that launch, replay and leave no timer behind — in
 // `launcher.test.tsx`. What is left is the wiring between the two: that a click
 // reaches the rule, and that what the rule decided reaches the screen.
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { PLAY_AGAIN } from './controls.js';
 import { DinoRun } from './dino-run.js';
 import { MemoryCards } from './memory-cards.js';
 import { PatternMatch } from './pattern-match.js';
 import { ReactionSpeed } from './reaction-speed.js';
 import { Snake } from './snake.js';
 import { TicTacToe } from './tic-tac-toe.js';
+import { render } from '../i18n/testing.js';
+import en from '../../messages/en/waiting.json';
+
+/** The one replay label all six games share, read where they read it. */
+const PLAY_AGAIN = en.controls.playAgain;
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -145,7 +149,8 @@ describe('7.6 — memory cards', () => {
     advance(600);
 
     expect(screen.getByText('1 of 4 pairs')).not.toBeNull();
-    expect(screen.getByText('1 moves')).not.toBeNull();
+    // Since 11.2 the count is an ICU plural, so one move reads "1 move".
+    expect(screen.getByText('1 move')).not.toBeNull();
   });
 
   it('turns a mismatched pair back over', () => {

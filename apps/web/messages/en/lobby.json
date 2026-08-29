@@ -1,0 +1,87 @@
+{
+  "entry": {
+    "brand": "WikiFake",
+    "tagline": "A Wikipedia article, some errors slipped into it, and you.",
+    "tabsLabel": "How to play",
+    "tabs": {
+      "solo": "Solo",
+      "host": "Host",
+      "join": "Join"
+    },
+    "nicknameLabel": "Nickname",
+    "topicLabel": "Wikipedia topic",
+    "topicPlaceholder": "Chat",
+    "playSolo": "Play solo",
+    "opening": "Opening…",
+    "openRoom": "Open a room",
+    "roomCodeLabel": "Room code",
+    "joinSubmit": "Join",
+    "serverAuthoritative": "server-authoritative",
+    "errors": {
+      "notAllowed": "that is not allowed",
+      "nickname": "that nickname is not allowed",
+      "roomNotOpened": "the room could not be opened",
+      "unreadableRoom": "the server opened a room we cannot read",
+      "unreachable": "the server could not be reached"
+    }
+  },
+  "room": {
+    "eyebrow": "Room",
+    "connection": {
+      "idle": "idle",
+      "connecting": "connecting",
+      "reconnecting": "reconnecting",
+      "closed": "closed"
+    },
+    "waitingForHost": "Waiting for the host to start the round.",
+    "readyCancel": "Ready — cancel",
+    "imReady": "I'm ready",
+    "startRound": "Start the round",
+    "startWithoutWaiting": "Start without waiting",
+    "backToRoom": "Back to the room"
+  },
+  "vote": {
+    "title": "Pick a topic",
+    "subtitle": "Everyone proposes one. The server draws the round’s.",
+    "ballotIn": "your ballot is in",
+    "topicLabel": "Your topic",
+    "topicPlaceholder": "Chat",
+    "propose": "Propose it",
+    "progressLabel": "Ballots in",
+    "tally": "{submitted, plural, one {# of {total} has voted} other {# of {total} have voted}}",
+    "drawNow": "Draw now",
+    "errors": {
+      "topic": "that topic is not allowed"
+    }
+  },
+  "generation": {
+    "topicEyebrow": "Topic",
+    "drawnByServer": "drawn by the server",
+    "proposedBy": "proposed by {proposer}",
+    "progressLabel": "Generating the round",
+    "percent": "{progress}%",
+    "roundReady": "the round is ready",
+    "takesAFewSeconds": "this takes a few seconds",
+    "stages": {
+      "fetching": "Fetching the article…",
+      "reading": "Reading it…",
+      "falsifying": "Slipping errors in…",
+      "building": "Building the page…",
+      "finishing": "Finishing up…",
+      "ready": "Ready"
+    }
+  },
+  "hostSettings": {
+    "timeLimit": "Time limit — {limit}",
+    "seconds": "{seconds}s",
+    "minutes": "{minutes, number}min",
+    "playWithItems": "Play with items"
+  },
+  "players": {
+    "heading": "Players ({count})",
+    "host": "host",
+    "ready": "ready",
+    "waiting": "waiting",
+    "away": "away"
+  }
+}

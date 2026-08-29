@@ -115,11 +115,15 @@ describe('8.10 — the article keeps its own language', () => {
     expect(article.match(/lang="fr"/g)).toHaveLength(2);
   });
 
-  it('leaves the document’s own lang to step 11.5', () => {
-    // C6.3 is a clause of the contract, and phase 11 amends the clause and this
-    // test together when `lang` becomes per-locale. Changing it in a step that
-    // does not own it is how a preserved guarantee goes quietly.
-    const layout = code(readFileSync(join(WEB, 'app', 'layout.tsx'), 'utf8'));
-    expect(layout).toContain('<html lang="fr">');
+  it('gives the document the locale’s lang, not a hardcoded one', () => {
+    // C6.3, as amended by step 11.5: the document says what the interface
+    // speaks. Until that step this test locked `<html lang="fr">` — the legacy
+    // stack's value — and it was amended together with the contract clause, in
+    // the same change as the behaviour, the way phase 11 requires. What must
+    // never come back is a constant: a hardcoded `lang` on the document makes
+    // one locale lie, whichever constant is picked.
+    const layout = code(readFileSync(join(WEB, 'app', '[locale]', 'layout.tsx'), 'utf8'));
+    expect(layout).toContain('<html lang={locale}>');
+    expect(layout).not.toMatch(/<html lang="/);
   });
 });

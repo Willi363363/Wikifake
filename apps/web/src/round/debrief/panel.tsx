@@ -14,6 +14,7 @@
 // attribution underneath.
 import type { FalsifiedPosition, ScoreBreakdown } from '@wikifake/protocol';
 import { Badge, Button, Separator } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { AnimatedRanking, type FinalStanding } from './ranking.js';
@@ -35,16 +36,18 @@ export interface DebriefProps {
 }
 
 const ROWS: readonly {
-  readonly label: string;
+  /** The catalogue entry, under `debrief.rows`. */
+  readonly label:
+    'found' | 'wronglyMarked' | 'hintsUsed' | 'hintPenalty' | 'stolen' | 'timeBonus';
   readonly of: keyof ScoreBreakdown;
   readonly against?: true;
 }[] = [
-  { label: 'Found', of: 'truePositives' },
-  { label: 'Wrongly marked', of: 'falsePositives', against: true },
-  { label: 'Hints used', of: 'hintsUsed' },
-  { label: 'Hint penalty', of: 'hintPenalty', against: true },
-  { label: 'Stolen from you', of: 'scoreStolen', against: true },
-  { label: 'Time bonus', of: 'timeBonus' },
+  { label: 'found', of: 'truePositives' },
+  { label: 'wronglyMarked', of: 'falsePositives', against: true },
+  { label: 'hintsUsed', of: 'hintsUsed' },
+  { label: 'hintPenalty', of: 'hintPenalty', against: true },
+  { label: 'stolen', of: 'scoreStolen', against: true },
+  { label: 'timeBonus', of: 'timeBonus' },
 ];
 
 export function Debrief({
@@ -57,6 +60,7 @@ export function Debrief({
   onwardLabel,
   onOnward,
 }: DebriefProps) {
+  const t = useTranslations('round');
   const [revealed, setRevealed] = useState(false);
   const accuracy = accuracyOf(breakdown, totalFakes);
   const grade = gradeFor(accuracy);
@@ -64,7 +68,7 @@ export function Debrief({
 
   return (
     <section
-      aria-label="Debrief"
+      aria-label={t('debrief.aria')}
       className="rounded-xl border border-line bg-surface p-6 shadow-md"
     >
       <AnimatedRanking
@@ -81,12 +85,20 @@ export function Debrief({
 
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <p>
-              <Badge tone={grade.tone}>{grade.label}</Badge>
-              <span className="ml-2 text-sm text-muted">{grade.note}</span>
+              <Badge tone={grade.tone}>{t(`debrief.grade.${grade.id}.label`)}</Badge>
+              <span className="ml-2 text-sm text-muted">
+                {t(`debrief.grade.${grade.id}.note`)}
+              </span>
             </p>
             <p className="font-mono text-4xl tabular-nums text-ink" aria-live="polite">
-              {String(score)}
-              <span className="ml-1 text-sm text-muted">points</span>
+              {/* One plural-capable message: "points" is not a suffix a
+                  translation can be trusted to leave invariant. */}
+              {t.rich('debrief.points', {
+                score,
+                unit: (chunks) => (
+                  <span className="ml-1 text-sm text-muted">{chunks}</span>
+                ),
+              })}
             </p>
           </div>
 
@@ -95,7 +107,7 @@ export function Debrief({
               const value = breakdown[row.of];
               return (
                 <div key={row.of} className="flex items-baseline justify-between gap-3">
-                  <dt className="text-muted">{row.label}</dt>
+                  <dt className="text-muted">{t(`debrief.rows.${row.label}`)}</dt>
                   <dd className="font-mono tabular-nums text-ink">
                     {row.against === true && value > 0
                       ? `−${String(value)}`
@@ -105,7 +117,7 @@ export function Debrief({
               );
             })}
             <div className="flex items-baseline justify-between gap-3">
-              <dt className="text-muted">Let through</dt>
+              <dt className="text-muted">{t('debrief.rows.letThrough')}</dt>
               <dd className="font-mono tabular-nums text-ink">{String(missed)}</dd>
             </div>
           </dl>
@@ -115,16 +127,23 @@ export function Debrief({
           {/* C1.2 — every falsification, and the truth behind it. This is the
               first moment any of it has been on this client at all. */}
           <h3 id="what-was-altered" className="text-sm font-medium text-ink">
-            What was altered
+            {t('debrief.whatWasAltered')}
           </h3>
           <ol aria-labelledby="what-was-altered" className="mt-3 space-y-4">
             {solution.map((position) => (
               <li key={position.falseInfoNumber} className="text-sm">
                 <p className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-                  paragraph {String(position.paragraphIndex)}
+                  {t('debrief.paragraphNumber', { number: position.paragraphIndex })}
                 </p>
-                <p className="mt-1 text-ink italic">“{position.falseStatement}”</p>
-                <p className="mt-1 text-ink-2">{position.explanation}</p>
+                {/* Article content and the server's explanation of it — French
+                    data under whatever the interface speaks, so both keep
+                    their own `lang`. */}
+                <p lang="fr" className="mt-1 text-ink italic">
+                  “{position.falseStatement}”
+                </p>
+                <p lang="fr" className="mt-1 text-ink-2">
+                  {position.explanation}
+                </p>
               </li>
             ))}
           </ol>

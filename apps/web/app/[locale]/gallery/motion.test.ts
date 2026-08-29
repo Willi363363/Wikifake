@@ -12,7 +12,7 @@ import { MOTIONS } from '@wikifake/ui';
 import { describe, expect, it } from 'vitest';
 
 const CSS = readFileSync(
-  fileURLToPath(new URL('../globals.css', import.meta.url)),
+  fileURLToPath(new URL('../../globals.css', import.meta.url)),
   'utf8',
 );
 

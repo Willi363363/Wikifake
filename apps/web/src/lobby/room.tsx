@@ -14,6 +14,7 @@
 // wants a protocol change, and this is not the step for one.
 import { DEFAULT_TIME_LIMIT_SECONDS } from '@wikifake/protocol';
 import { Badge, Button, Separator } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { GenerationScreen } from './generation.js';
@@ -51,6 +52,7 @@ export interface RoomProps {
 }
 
 export function Room({ roomCode, nickname }: RoomProps) {
+  const t = useTranslations('lobby.room');
   const { status, refusal: transportRefusal } = useRealtime();
   const { send } = useRealtime();
   const room = useRoom(nickname);
@@ -174,7 +176,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
                   breakdown: entry.breakdown,
                   you: entry.player === nickname,
                 })),
-                onwardLabel: 'Back to the room',
+                onwardLabel: t('backToRoom'),
                 onOnward: room.leaveDebrief,
               },
             })}
@@ -185,13 +187,17 @@ export function Room({ roomCode, nickname }: RoomProps) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-5 px-4 py-10">
       <header className="text-center">
-        <p className="text-xs tracking-widest text-muted uppercase">Room</p>
+        <p className="text-xs tracking-widest text-muted uppercase">{t('eyebrow')}</p>
         <h1 className="font-mono text-3xl tracking-[0.2em] text-ink">{roomCode}</h1>
         {status === 'open' ? null : (
           // Said plainly rather than hidden: a roster that has stopped updating
           // looks exactly like a room where nobody is doing anything.
           <p className="mt-2">
-            <Badge tone={status === 'closed' ? 'danger' : 'warn'}>{status}</Badge>
+            {/* A message per state, never the transport's enum value shipped
+                verbatim: the identifier is code, the badge is copy. */}
+            <Badge tone={status === 'closed' ? 'danger' : 'warn'}>
+              {t(`connection.${status}`)}
+            </Badge>
           </p>
         )}
       </header>
@@ -252,9 +258,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
               <Separator />
             </div>
           ) : (
-            <p className="mb-4 text-center text-sm text-muted">
-              Waiting for the host to start the round.
-            </p>
+            <p className="mb-4 text-center text-sm text-muted">{t('waitingForHost')}</p>
           )}
 
           <div className="mt-4 flex flex-col gap-2">
@@ -266,7 +270,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
                 declare(!room.isReady);
               }}
             >
-              {room.isReady ? 'Ready — cancel' : "I'm ready"}
+              {room.isReady ? t('readyCancel') : t('imReady')}
             </Button>
 
             {room.isHost ? (
@@ -278,7 +282,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
                   send({ type: 'force_start', timeLimit, withItems });
                 }}
               >
-                {everyoneReady ? 'Start the round' : 'Start without waiting'}
+                {everyoneReady ? t('startRound') : t('startWithoutWaiting')}
               </Button>
             ) : null}
           </div>

@@ -13,6 +13,7 @@
 import { decode, topicLabel, type gameApi } from '@wikifake/protocol';
 import { buttonVariants } from '@wikifake/ui';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -41,6 +42,7 @@ export interface SoloGameProps {
 }
 
 export function SoloGame({ topic }: SoloGameProps) {
+  const t = useTranslations('small.solo');
   const router = useRouter();
   const valid = validTopic(topic);
 
@@ -72,11 +74,9 @@ export function SoloGame({ topic }: SoloGameProps) {
   if (valid === null) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 text-center">
-        <h1 className="text-2xl font-semibold text-ink">Solo</h1>
+        <h1 className="text-2xl font-semibold text-ink">{t('title')}</h1>
         <p role="alert" className="text-sm text-danger">
-          {topic === null || topic === ''
-            ? 'No topic was given.'
-            : 'That topic is not one we can look up.'}
+          {topic === null || topic === '' ? t('errors.noTopic') : t('errors.badTopic')}
         </p>
         <Back />
       </main>
@@ -88,7 +88,12 @@ export function SoloGame({ topic }: SoloGameProps) {
   if (round === null && refusal !== null) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 text-center">
-        <h1 className="text-2xl font-semibold text-ink">{valid}</h1>
+        {/* The topic is an fr.wikipedia.org subject — data, not interface
+            copy — so it keeps its own `lang` whatever the interface locale. */}
+        <h1 lang="fr" className="text-2xl font-semibold text-ink">
+          {valid}
+        </h1>
+        {/* The refusal is the server's sentence, shown as received. */}
         <p role="alert" className="text-sm text-danger">
           {refusal}
         </p>
@@ -178,13 +183,13 @@ export function SoloGame({ topic }: SoloGameProps) {
               // as a number that was simply there.
               standings: [
                 {
-                  name: 'You',
+                  name: t('you'),
                   colour: '#1f574d',
                   breakdown: result.breakdown,
                   you: true,
                 },
               ],
-              onwardLabel: 'Play again',
+              onwardLabel: t('playAgain'),
               onOnward: () => {
                 router.push('/play');
               },
@@ -195,10 +200,11 @@ export function SoloGame({ topic }: SoloGameProps) {
 }
 
 function Back() {
+  const t = useTranslations('small.solo');
   return (
     <p>
       <Link href="/play" className={buttonVariants({ variant: 'ghost' })}>
-        Back
+        {t('back')}
       </Link>
     </p>
   );

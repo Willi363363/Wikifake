@@ -7,6 +7,7 @@
 // state rather than a ref — a ref does not re-render, so the current game
 // briefly accepts a click it then ignores.
 import { cn } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { PlayAgain } from './controls.js';
@@ -56,6 +57,7 @@ const shuffled = (): readonly Card[] =>
   deal((below) => Math.floor(Math.random() * below));
 
 export function MemoryCards() {
+  const t = useTranslations('waiting');
   const timers = useTimers();
   const [cards, setCards] = useState<readonly Card[]>(shuffled);
   const [turned, setTurned] = useState<readonly number[]>([]);
@@ -109,7 +111,11 @@ export function MemoryCards() {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="grid grid-cols-4 gap-1.5" role="group" aria-label="Memory cards">
+      <div
+        className="grid grid-cols-4 gap-1.5"
+        role="group"
+        aria-label={t('memory.gridLabel')}
+      >
         {cards.map((card, at) => {
           const showing = card.matched || turned.includes(at);
           return (
@@ -123,10 +129,12 @@ export function MemoryCards() {
               // The glyph is in the document either way — a card that swaps its
               // text on flip is a card whose whole grid re-reads itself to a
               // screen reader on every turn. What it is *called* is what hides.
+              // The glyph is a placeholder, not copy: what translates is the
+              // sentence around it.
               aria-label={
                 showing
-                  ? `Card ${String(at + 1)}, ${card.icon}`
-                  : `Card ${String(at + 1)}, face down`
+                  ? t('memory.cardShowing', { number: at + 1, icon: card.icon })
+                  : t('memory.cardFaceDown', { number: at + 1 })
               }
               className={cn(
                 'flex size-12 items-center justify-center rounded-md border text-lg transition-all',
@@ -146,9 +154,13 @@ export function MemoryCards() {
         })}
       </div>
       <p className="text-sm text-muted" aria-live="polite">
-        {found === PAIRS ? 'All matched' : `${String(found)} of ${String(PAIRS)} pairs`}
+        {found === PAIRS
+          ? t('memory.allMatched')
+          : t('memory.pairsProgress', { found, total: PAIRS })}
       </p>
-      <p className="font-mono text-xs tabular-nums text-muted">{String(moves)} moves</p>
+      <p className="font-mono text-xs tabular-nums text-muted">
+        {t('memory.moves', { moves })}
+      </p>
       <PlayAgain onClick={redeal} />
     </div>
   );

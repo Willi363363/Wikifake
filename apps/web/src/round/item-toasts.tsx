@@ -12,6 +12,7 @@
 // to miss what happened; these stay until they are read. The visual effects
 // themselves are step 8.4.
 import { Button } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 
 import { labelFor } from './item-labels.js';
 import type { Landed, ScanNotice } from './items.js';
@@ -23,6 +24,8 @@ export interface ItemToastsProps {
 }
 
 export function ItemToasts({ landed, lastScan, onDismiss }: ItemToastsProps) {
+  const t = useTranslations('round');
+
   if (landed.length === 0 && lastScan === null) return null;
 
   return (
@@ -38,13 +41,14 @@ export function ItemToasts({ landed, lastScan, onDismiss }: ItemToastsProps) {
             ? // C1.6 — the SCANNER answers `null` once nothing is left. The
               // current server sends nothing at all, so the client cannot tell
               // exhaustion from a lost frame.
-              'The detector found nothing left to point at.'
-            : `The detector points at paragraph ${String(lastScan.paragraphIndex)}.`}
+              t('toasts.scannerExhausted')
+            : t('toasts.scannerResult', { paragraph: lastScan.paragraphIndex })}
         </p>
       )}
 
       {landed.map((each) => {
         const label = labelFor(each.itemId);
+        const itemName = t(`items.${label.key}.name`);
         return (
           <div
             key={each.id}
@@ -54,13 +58,18 @@ export function ItemToasts({ landed, lastScan, onDismiss }: ItemToastsProps) {
               {label.icon}
             </span>
             <p className="flex-1">
-              <strong className="font-medium">{each.from}</strong> hit you with{' '}
-              {label.name}
+              {/* One rich message: the thrower's name is a bold placeholder,
+                  because the words around it change order per language. */}
+              {t.rich('toasts.itemLanded', {
+                itemName,
+                from: each.from,
+                thrower: (chunks) => <strong className="font-medium">{chunks}</strong>,
+              })}
             </p>
             <Button
               variant="ghost"
               size="icon"
-              aria-label={`Dismiss ${label.name} from ${each.from}`}
+              aria-label={t('toasts.dismissAria', { itemName, from: each.from })}
               onClick={() => {
                 onDismiss(each.id);
               }}

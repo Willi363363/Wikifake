@@ -76,8 +76,12 @@ export async function reportFlag(
     : { ok: false, message: UNREADABLE, code: null };
 }
 
+/** The catalogue entry a verdict reads its headline from, under `flags.verdict`. */
+export type VerdictId = 'likelyValid' | 'uncertain' | 'unsupported';
+
 export interface VerdictReading {
-  readonly headline: string;
+  /** Which verdict it is; the copy lives at `small.flags.verdict.<id>`. */
+  readonly id: VerdictId;
   readonly tone: 'green' | 'bronze' | 'danger';
 }
 
@@ -87,27 +91,32 @@ export interface VerdictReading {
  * The three values are the contract's, and the mapping is exhaustive by type:
  * the current form prints whatever string the model produced, which is how a
  * value nobody planned for would be shown to a player as though it meant
- * something.
+ * something. Since step 11.2 the reading is a catalogue key rather than a
+ * sentence, because this file is logic and the copy lives in
+ * `messages/<locale>/small.json` — the screen resolves it.
  */
 export function readingOf(verification: flagsApi.FlagVerification): VerdictReading {
   switch (verification.verdict) {
     case 'likely_valid':
-      return { headline: 'Looks right', tone: 'green' };
+      return { id: 'likelyValid', tone: 'green' };
     case 'uncertain':
-      return { headline: 'Not sure', tone: 'bronze' };
+      return { id: 'uncertain', tone: 'bronze' };
     case 'unsupported':
-      return { headline: 'Not supported', tone: 'danger' };
+      return { id: 'unsupported', tone: 'danger' };
   }
 }
 
+/** The catalogue entry a status reads its sentence from, under `flags.fate`. */
+export type FateId = 'pendingHumanReview' | 'aiReviewed' | 'rejectedByAi';
+
 /** What happens to the report next. Also exhaustive, and also a closed union. */
-export function fateOf(status: flagsApi.FlagStatus): string {
+export function fateOf(status: flagsApi.FlagStatus): FateId {
   switch (status) {
     case 'pending_human_review':
-      return 'A person will look at it.';
+      return 'pendingHumanReview';
     case 'ai_reviewed':
-      return 'Recorded, with the check above.';
+      return 'aiReviewed';
     case 'rejected_by_ai':
-      return 'Recorded, but it will not go further as it stands.';
+      return 'rejectedByAi';
   }
 }

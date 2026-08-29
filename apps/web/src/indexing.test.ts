@@ -15,13 +15,13 @@ import { describe, expect, it } from 'vitest';
 
 import robots from '../app/robots.js';
 import sitemap from '../app/sitemap.js';
+import { LOCALES } from './i18n/locales.js';
 import {
   absolute,
   CRAWLERS_KEPT_OUT,
   INDEXABLE_ROUTES,
+  localePath,
   robotsRules,
-  SITE_DESCRIPTION,
-  SITE_TITLE,
   siteOrigin,
   sitemapEntries,
   TRAINING_CRAWLERS,
@@ -44,6 +44,15 @@ describe('C6.2 — robots.txt', () => {
     // shell in an index is still a page claiming a Wikipedia subject.
     expect(everybody?.disallow).toContain('/room/');
     expect(everybody?.disallow).toContain('/solo');
+  });
+
+  it('keeps them out of the same screens under a locale prefix', () => {
+    // Step 11.4 gave French its own routes: `/fr/room/...` renders the same
+    // falsified article as `/room/...`, and a disallow that names only the
+    // unprefixed path invites a crawler in through the prefixed one.
+    expect(everybody?.disallow).toContain('/fr/room/');
+    expect(everybody?.disallow).toContain('/fr/solo');
+    expect(everybody?.disallow).toContain('/fr/gallery');
   });
 
   it('still lets the pages that are ours be read', () => {
@@ -80,8 +89,27 @@ describe('C6.2 — robots.txt', () => {
 describe('C6.2 — sitemap.xml', () => {
   const entries = sitemapEntries(BARE);
 
-  it('declares the front door', () => {
+  it('declares the front door first', () => {
     expect(entries[0]?.url).toBe('http://localhost:3000/');
+  });
+
+  it('declares every locale of every publishable route', () => {
+    // Step 11.5: the French pages carry hreflang alternates, but a sitemap
+    // that names only English is still a sitemap that hides half the site.
+    const urls = entries.map((entry) => entry.url);
+    for (const route of INDEXABLE_ROUTES) {
+      for (const locale of LOCALES) {
+        expect(urls).toContain(absolute(localePath(locale, route), BARE));
+      }
+    }
+  });
+
+  it('gives the locales of one route the same priority', () => {
+    // They are the same page in two languages, not two pages competing.
+    const roots = entries.filter((entry) =>
+      LOCALES.some((locale) => entry.url === absolute(localePath(locale, '/'), BARE)),
+    );
+    expect(new Set(roots.map((entry) => entry.priority)).size).toBe(1);
   });
 
   it('gives every entry an absolute URL', () => {
@@ -92,9 +120,15 @@ describe('C6.2 — sitemap.xml', () => {
   });
 
   it('declares nothing robots.txt keeps crawlers out of', () => {
+    // Under every locale's prefix, since both live in the sitemap now.
     for (const route of INDEXABLE_ROUTES) {
-      for (const kept of CRAWLERS_KEPT_OUT) {
-        expect(route.startsWith(kept)).toBe(false);
+      for (const locale of LOCALES) {
+        for (const kept of CRAWLERS_KEPT_OUT) {
+          expect(localePath(locale, route).startsWith(kept)).toBe(false);
+          expect(localePath(locale, route).startsWith(localePath(locale, kept))).toBe(
+            false,
+          );
+        }
       }
     }
   });
@@ -147,15 +181,6 @@ describe('the origin a canonical link is built on', () => {
   });
 });
 
-describe('C6.3 — what a search result and a shared link show', () => {
-  it('has a title a search engine will neither ignore nor cut', () => {
-    // Under 20 says nothing; over 80 is truncated. The old test's bounds.
-    expect(SITE_TITLE.length).toBeGreaterThanOrEqual(20);
-    expect(SITE_TITLE.length).toBeLessThanOrEqual(80);
-  });
-
-  it('has a description within the same kind of bounds', () => {
-    expect(SITE_DESCRIPTION.length).toBeGreaterThan(70);
-    expect(SITE_DESCRIPTION.length).toBeLessThan(320);
-  });
-});
+// C6.3 — the title and description bounds moved with the strings themselves:
+// per locale, in `app/[locale]/layout.test.tsx`, against the `seo` zone of the
+// catalogue (step 11.5).

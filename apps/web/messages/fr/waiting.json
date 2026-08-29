@@ -1,0 +1,65 @@
+{
+  "launcher": {
+    "open": "Jouer en attendant",
+    "close": "Fermer",
+    "backToGames": "Jeux"
+  },
+  "games": {
+    "ttt": { "name": "Morpion" },
+    "reaction": { "name": "Vitesse de réaction" },
+    "memory": { "name": "Memory" },
+    "pattern": { "name": "Motifs" },
+    "snake": { "name": "Snake" },
+    "dino": { "name": "Agent Dash" }
+  },
+  "controls": {
+    "playAgain": "Rejouer",
+    "gameOver": "Partie terminée"
+  },
+  "ttt": {
+    "boardLabel": "Plateau de morpion",
+    "squareEmpty": "Case {number}",
+    "squareMarked": "Case {number}, {mark}",
+    "youWin": "Vous gagnez",
+    "opponentWins": "L’adversaire gagne",
+    "draw": "Égalité",
+    "yourTurn": "À vous de jouer",
+    "thinking": "L’adversaire réfléchit…",
+    "tally": "V {wins} · N {draws} · D {losses}"
+  },
+  "reaction": {
+    "fieldLabel": "Le terrain de jeu",
+    "hitTarget": "Touchez la cible",
+    "wait": "Attendez la cible…",
+    "tooEarly": "Trop tôt",
+    "time": "{ms} ms",
+    "best": "record {ms} ms"
+  },
+  "memory": {
+    "gridLabel": "Cartes de memory",
+    "cardShowing": "Carte {number}, {icon}",
+    "cardFaceDown": "Carte {number}, face cachée",
+    "allMatched": "Toutes les paires trouvées",
+    "pairsProgress": "{found} sur {total, plural, one {# paire} other {# paires}}",
+    "moves": "{moves, plural, one {# coup} other {# coups}}"
+  },
+  "pattern": {
+    "gridLabel": "Grille du motif",
+    "square": "Case {number}",
+    "memorise": "Mémorisez le motif…",
+    "pick": "{count, plural, one {Choisissez # case} other {Choisissez # cases}}",
+    "perfect": "Parfait",
+    "notQuite": "Pas tout à fait",
+    "progress": "niveau {level} · manche {round}"
+  },
+  "snake": {
+    "boardLabel": "Serpent, {length} de long",
+    "score": "Score {score}",
+    "howToPlay": "Les flèches ou WASD pour diriger"
+  },
+  "dino": {
+    "jump": "Sauter",
+    "score": "Score {score}",
+    "howToPlay": "Touchez l’écran, espace ou flèche haut pour sauter"
+  }
+}

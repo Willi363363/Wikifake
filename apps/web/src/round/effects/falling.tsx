@@ -8,6 +8,9 @@
 // particles at all rather than a hundred and twenty of them piled motionless at
 // the top of the screen. The wash and the number stay: what happened is still
 // said.
+import { FREEZE_TIME_SECONDS } from '@wikifake/domain';
+import { useTranslations } from 'next-intl';
+
 import { CONFETTI, SNOW, useParticles, type Particle } from './particles.js';
 import { Sheet } from './screen.js';
 import { usePrefersReducedMotion } from '../reduced-motion.js';
@@ -26,11 +29,17 @@ function driftOf(particle: Particle): Record<string, string> {
 }
 
 export function Blizzard() {
+  const t = useTranslations('round');
   const still = usePrefersReducedMotion();
   const flakes = useParticles(SNOW, still);
 
   return (
-    <Sheet label="Someone has taken ten seconds off your clock" className="bg-accent/15">
+    <Sheet
+      // The number is `FREEZE_TIME_SECONDS`'s, injected: a sheet that spells
+      // out "ten" is a sheet a balance change turns into a lie.
+      label={t('effects.blizzard.aria', { seconds: FREEZE_TIME_SECONDS })}
+      className="bg-accent/15"
+    >
       <div className="absolute inset-0 animate-frost-pulse bg-[radial-gradient(ellipse_at_center,transparent_15%,var(--color-accent)_130%)] opacity-30" />
 
       {flakes.map((flake) => (
@@ -52,18 +61,19 @@ export function Blizzard() {
       ))}
 
       <p className="absolute inset-0 flex items-center justify-center font-mono text-7xl font-black text-accent">
-        −10s
+        {t('effects.blizzard.amount', { seconds: FREEZE_TIME_SECONDS })}
       </p>
     </Sheet>
   );
 }
 
 export function Confetti() {
+  const t = useTranslations('round');
   const still = usePrefersReducedMotion();
   const pieces = useParticles(CONFETTI, still);
 
   return (
-    <Sheet label="Someone has thrown a party on your screen" className="bg-transparent">
+    <Sheet label={t('effects.confetti.aria')} className="bg-transparent">
       {pieces.map((piece) => (
         <span
           key={piece.id}

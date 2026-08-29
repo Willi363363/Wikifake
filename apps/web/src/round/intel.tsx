@@ -19,6 +19,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@wikifake/ui';
+import { useTranslations } from 'next-intl';
 
 import type { HintsState } from './hints.js';
 
@@ -44,6 +45,8 @@ export function Intel({
   onOpenChange,
   onUnlock,
 }: IntelProps) {
+  const t = useTranslations('round');
+
   return (
     <Dialog
       open={open}
@@ -53,17 +56,15 @@ export function Intel({
       }}
     >
       <DialogContent className="max-w-2xl">
-        <DialogTitle>Intel</DialogTitle>
-        <DialogDescription>
-          Buy a nudge, or the answer. Both are charged by the server, once.
-        </DialogDescription>
+        <DialogTitle>{t('intel.title')}</DialogTitle>
+        <DialogDescription>{t('intel.description')}</DialogDescription>
 
         <p className="mt-3 flex flex-wrap items-center gap-2">
-          <Badge tone="bronze">hint −{String(HINT_COST)}</Badge>
-          <Badge tone="danger">reveal −{String(REVEAL_COST)}</Badge>
+          <Badge tone="bronze">{t('intel.hintCost', { cost: HINT_COST })}</Badge>
+          <Badge tone="danger">{t('intel.revealCost', { cost: REVEAL_COST })}</Badge>
           {hints.penalty > 0 ? (
             <span className="font-mono text-xs tabular-nums text-muted">
-              spent {String(hints.penalty)}
+              {t('intel.spent', { penalty: hints.penalty })}
             </span>
           ) : null}
         </p>
@@ -75,8 +76,7 @@ export function Intel({
             role="alert"
             className="mt-4 rounded-lg border border-danger/25 bg-danger-soft px-4 py-3 text-sm text-danger"
           >
-            Another player has jammed your intel. Nothing was charged — try again in a
-            moment.
+            {t('intel.jammedAlert')}
           </p>
         ) : null}
 
@@ -97,11 +97,14 @@ export function Intel({
               >
                 <p className="flex items-center justify-between gap-2">
                   <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-                    target {String(number).padStart(2, '0')}
+                    {/* Padded in code: zero-padding is formatting, not copy. */}
+                    {t('intel.targetNumber', {
+                      number: String(number).padStart(2, '0'),
+                    })}
                   </span>
                   {level === 0 ? null : (
                     <Badge tone={level === 2 ? 'danger' : 'bronze'}>
-                      level {String(level)}
+                      {t('intel.level', { level })}
                     </Badge>
                   )}
                 </p>
@@ -115,9 +118,11 @@ export function Intel({
                   )}
                 >
                   {level === 0 ? (
-                    <span aria-label="not bought">{REDACTED}</span>
+                    <span aria-label={t('intel.notBought')}>{REDACTED}</span>
                   ) : (
-                    (held?.truth ?? held?.hint)
+                    // Server text about the French article — data, not
+                    // interface copy, so it keeps its own `lang`.
+                    <span lang="fr">{held?.truth ?? held?.hint}</span>
                   )}
                 </p>
 
@@ -129,9 +134,9 @@ export function Intel({
                     onClick={() => {
                       onUnlock(number, 1);
                     }}
-                    aria-label={`Buy a hint on target ${String(number)}`}
+                    aria-label={t('intel.buyHintAria', { number })}
                   >
-                    Hint
+                    {t('intel.hintButton')}
                   </Button>
                   <Button
                     variant="ghost"
@@ -140,9 +145,9 @@ export function Intel({
                     onClick={() => {
                       onUnlock(number, 2);
                     }}
-                    aria-label={`Reveal target ${String(number)}`}
+                    aria-label={t('intel.revealAria', { number })}
                   >
-                    Reveal
+                    {t('intel.revealButton')}
                   </Button>
                 </p>
               </li>
