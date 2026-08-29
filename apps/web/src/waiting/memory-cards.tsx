@@ -111,7 +111,11 @@ export function MemoryCards() {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="grid grid-cols-4 gap-1.5" role="group" aria-label={t('memory.gridLabel')}>
+      <div
+        className="grid grid-cols-4 gap-1.5"
+        role="group"
+        aria-label={t('memory.gridLabel')}
+      >
         {cards.map((card, at) => {
           const showing = card.matched || turned.includes(at);
           return (

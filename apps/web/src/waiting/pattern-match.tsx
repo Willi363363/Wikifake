@@ -139,7 +139,11 @@ export function PatternMatch() {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="grid grid-cols-4 gap-1.5" role="group" aria-label={t('pattern.gridLabel')}>
+      <div
+        className="grid grid-cols-4 gap-1.5"
+        role="group"
+        aria-label={t('pattern.gridLabel')}
+      >
         {Array.from({ length: CELLS }, (_, at) => (
           <button
             key={at}

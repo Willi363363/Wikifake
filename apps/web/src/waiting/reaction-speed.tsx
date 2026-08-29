@@ -124,7 +124,9 @@ export function ReactionSpeed() {
       {/* The time is said once, here: announced in the field and again below it
           is a screen reader repeating itself on every round. */}
       <div className="flex items-center gap-2" aria-live="polite">
-        {last === null ? null : <Badge tone={toneFor(last)}>{t('reaction.time', { ms: last })}</Badge>}
+        {last === null ? null : (
+          <Badge tone={toneFor(last)}>{t('reaction.time', { ms: last })}</Badge>
+        )}
         {best === null ? null : (
           <span className="font-mono text-xs tabular-nums text-muted">
             {t('reaction.best', { ms: best })}
