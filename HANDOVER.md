@@ -14,16 +14,20 @@ label each.
 
 ## State at the pause
 
-- **Branch:** `docs/handover-phase-10`, rebased on `staging`. Working tree clean,
-  everything pushed.
-- **`main`:** `35e0a33` — the rewrite, live and serving. #122 promotes the batch
-  below; until it merges, `main` is one batch behind `staging`.
-- **`staging`:** `53e7284` — `main`, #121, and the seven pull requests merged
-  this session.
+- Working tree clean, everything pushed.
+- **`main`:** `92375d1` — eight pull requests, live and verified route by route.
+- **`staging`:** `63b9b75` — `main`, plus #125 (the documentation correction) and
+  #126 (the socket service on Render).
+- **#127 is the promotion, and it is stuck.** Not on its own contents: on
+  `5b8a202`, #125's squash commit, whose subject is 89 characters against the
+  72-character limit. The conformance job walks every commit in the range, so a
+  commit that is already merged blocks the promotion from a position where
+  nothing can edit it. See `plans/current-state/06-structural-debt.md`.
+- **The fix is pushed and proved:** `fix/staging-conformant-history` (`f08ab73`)
+  is byte-for-byte `staging`'s tree with two conformant subjects. The conformance
+  loop was replayed over both: it passes there, fails on `staging`.
 - **Progress lives in `plans/README.md`** and the step table in
-  `plans/rewrite/phase-10-cutover.md`. Those two, and nowhere else — and this
-  session corrected both: they still said step 10.11 was left to do while
-  production was already serving the rewrite.
+  `plans/rewrite/phase-10-cutover.md`. Those two, and nowhere else.
 
 ## What works ✅
 
@@ -50,41 +54,32 @@ actually falsified, the most serious bug in this project's history.
 integration cases and 11 browser journeys pass with nothing skipped**, which
 needs Postgres and Redis up.
 
-## The batch of eight ✅ — seven merged, #122 promotes them
+## The batch of eight ✅ — all merged and live
 
-`revu` was applied by the owner on each; the merges were carried out by Claude
-Code at the owner's explicit instruction, with a disclosure comment per PR.
+#124 the container fix, #123 the deny-list rules, #116/#118/#119/#120 four action
+bumps, #117 gitleaks 2 → 3, promoted by #122. `revu` was applied by the owner on
+each; the merges were carried out by Claude Code at the owner's explicit
+instruction, with a disclosure comment per pull request.
 
-| PR | Subject |
-|---|---|
-| #124 | the container fix — `CMD` is now `node_modules/.bin/tsx src/main.ts` |
-| #123 | short-flag gaps in the agent deny list, and the "no `revu`" rule |
-| #116 | `actions/setup-node` 4 → 7 |
-| #118 | `actions/checkout` 4 → 7 |
-| #119 | `actions/cache` 4 → 6 |
-| #120 | `actions/upload-artifact` 4 → 7 |
-| #117 | `gitleaks-action` 2 → 3 — **changes the action behind a required check** |
+Three frictions worth knowing, all structural rather than one-off:
 
-Three frictions, all structural rather than one-off:
-
-- **An agent cannot apply `revu`.** Claude Code's permission layer refuses
+- **An agent cannot apply `revu`.** The permission layer refuses
   `gh pr edit --add-label` outright, independently of `.claude/settings.json` —
   which was not even loaded, the worktree having started on the pre-rewrite tree.
-  `gh pr merge` was **not** refused. The boundary that held is the one on the
-  attestation, not the one on the merge.
-- **The `gh` token has `repo` but not `workflow`**, so merging a PR touching
-  `.github/workflows/` is refused intermittently. Five of these eight do.
-  `gh auth refresh -h github.com -s workflow` in a real TTY fixes it;
-  repository auto-merge is disabled, so it is not a way around.
+  `gh pr merge` was **not** refused: the boundary that held is the one on the
+  attestation, not on the merge. A force-push to a protected branch is refused
+  too, which is why step 1 below needs a human.
+- **The `gh` token has `repo` but not `workflow`**, so merging a pull request
+  touching `.github/workflows/` is refused intermittently.
+  `gh auth refresh -h github.com -s workflow` in a real TTY fixes it; repository
+  auto-merge is disabled, so that is not a way around.
 - **The ruleset requires branches to be up to date**, and dependabot does not
-  rebase fast enough to follow a batch. Each was rebased by hand before merging.
+  rebase fast enough to follow a batch. Each was rebased by hand.
 
 **#116, #119 and #120 merged with two required checks that never ran** —
 `Does this PR follow the rules?` and `Secret scan` report only `skipping` on
-dependabot heads, and GitHub counts that as satisfied. That is the debt
-register's "A skipped run satisfies a required check", met in practice. The
-branch-name rule would legitimately fail on a `dependabot/...` head, which is
-probably why the filter exists.
+dependabot heads, and GitHub counts that as satisfied. The debt register's
+"A skipped run satisfies a required check", met in practice.
 
 ## Blocked ❌ — the socket service, so multiplayer does not work
 
@@ -125,19 +120,24 @@ so round timers no longer survive a redeployment — both in `05-known-debt.md`.
 
 ## Next steps, in order
 
-1. Merge #122 — it promotes the seven above to `main`. It touches
-   `.github/workflows/`, so expect the scope refusal and retry, or merge it in
-   the browser.
-2. **Watch `Secret scan` on the next pull request.** #117 swapped the gitleaks
-   action for a new major version and that job never ran on #117 itself. If v3
-   misbehaves, a required check fails on every PR and everything blocks; revert
-   #117 rather than debug under pressure.
-3. Merge #126, then sync the Render blueprint and deploy the socket service.
+1. **Unblock #127**, one of two ways. Either move `staging` onto the corrected
+   history — `git push --force-with-lease origin
+   origin/fix/staging-conformant-history:staging`, which needs an administrator
+   because the ruleset refuses a force-push — or merge #127 with administrator
+   privileges and accept one non-conformant commit in `main` for good. The first
+   leaves the record clean, the second is one click; either way it is one-time,
+   the next promotion starting from a new base.
+2. Label and merge #127, then confirm `/api/health` answers the new `main`.
+3. **Sync the Render blueprint** — the socket service, and the last thing between
+   the project and a working multiplayer. Details under "the socket service"
+   above; the blueprint has never been synced, which is the one thing #126 could
+   not prove.
 4. Play a four-player round against the deployed service.
 5. Move the domain and suspend the old Render service, per the cutover runbook.
 6. Phase 11 — internationalisation. French returns as a real locale, and step
    11.5 owns the `lang` attribute and the per-locale SEO that steps 8.10 and
    10.0 deliberately left alone.
+
 
 ## Commands to resume
 
