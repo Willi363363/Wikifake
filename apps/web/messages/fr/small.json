@@ -1,10 +1,10 @@
 {
   "chat": {
-    "open": "Ouvrir le chat du salon",
-    "openUnread": "Ouvrir le chat du salon, {count, plural, one {# non lu} other {# non lus}}",
+    "open": "Ouvrir le chat de la salle",
+    "openUnread": "Ouvrir le chat de la salle, {count, plural, one {# non lu} other {# non lus}}",
     "tab": "Chat",
-    "title": "Chat du salon",
-    "close": "Fermer le chat du salon",
+    "title": "Chat de la salle",
+    "close": "Fermer le chat de la salle",
     "empty": "Rien n’a encore été dit.",
     "selfSender": "vous",
     "inputAria": "Votre message",

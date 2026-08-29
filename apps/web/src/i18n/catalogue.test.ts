@@ -69,3 +69,57 @@ describe('11.1 — every locale answers the same keys', () => {
     },
   );
 });
+
+describe('11.6 — French is translated, not copied', () => {
+  /** [dotted key path, leaf message] pairs, sorted for a stable diff. */
+  function entriesOf(value: unknown, prefix = ''): [string, unknown][] {
+    if (typeof value !== 'object' || value === null) return [[prefix, value]];
+    return Object.entries(value)
+      .flatMap(([key, child]) =>
+        entriesOf(child, prefix === '' ? key : `${prefix}.${key}`),
+      )
+      .sort(([a], [b]) => a.localeCompare(b));
+  }
+
+  // The messages allowed to read the same in both locales: the brand, proper
+  // names, placeholder-only messages, and the handful of words French really
+  // spells the same. Everything else reading identically is a paste of the
+  // English, which is exactly what a French screen must never show — so this
+  // list is exact, not a lower bound: an entry that stops being identical is
+  // removed, and a new identical message is either translated or defended here.
+  const IDENTICAL_ON_PURPOSE = [
+    'home.title',
+    'language.names.en',
+    'language.names.fr',
+    'lobby.entry.brand',
+    'lobby.entry.tabs.solo',
+    'lobby.entry.topicPlaceholder',
+    'lobby.vote.topicPlaceholder',
+    'round.debrief.points',
+    'round.effects.blizzard.amount',
+    'round.effects.lightning.amount',
+    'round.effects.rickroll.headline',
+    'round.items.cardAria',
+    'round.items.rickroll.name',
+    'round.itemTarget.title',
+    'routes.metadata.siteName',
+    'small.chat.tab',
+    'small.solo.title',
+    'waiting.dino.score',
+    'waiting.games.dino.name',
+    'waiting.games.snake.name',
+    'waiting.reaction.time',
+    'waiting.snake.score',
+  ];
+
+  it('every message identical to the English is defended by name', () => {
+    const identical = ZONES.flatMap((zone) => {
+      const english = new Map(entriesOf(zoneFile('en', zone)));
+      return entriesOf(zoneFile('fr', zone))
+        .filter(([key, message]) => english.get(key) === message)
+        .map(([key]) => `${zone}.${key}`);
+    }).sort();
+
+    expect(identical).toEqual([...IDENTICAL_ON_PURPOSE].sort());
+  });
+});
