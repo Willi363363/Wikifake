@@ -127,19 +127,19 @@ PR's commit.
 
 ### 9.8 — Deploy the realtime on Render's free tier
 
-✅ **Done (repository side)** — `render.yaml` declares the service and a free
-Key Value instance; `apps/realtime/Dockerfile` is unchanged. **Retargeted from
-Fly.io**, which requires a payment card this project does not have; `fly.toml`
-and `deploy-realtime.yml` are deleted rather than left as a second way to
-deploy.
+✅ **Done, and live** at `wikifake-realtime.onrender.com`, from `render.yaml`,
+with its own free Key Value instance. **Retargeted from Fly.io**, which requires
+a payment card this project does not have; `fly.toml` and `deploy-realtime.yml`
+are deleted rather than left as a second way to deploy.
 
-The switch cost three code changes and each was a latent bug rather than a
-port — an unnamed `RENDER_GIT_COMMIT`, a Sentry release gated on `FLY_APP_NAME`,
-and a grace window shorter than a cold start. All three, what the free tier
-costs, and the dashboard half: `phase-09-deployment-setup.md`.
+The switch cost three code changes, each a latent bug rather than a port: an
+unnamed `RENDER_GIT_COMMIT`, a Sentry release gated on `FLY_APP_NAME`, and a
+grace window shorter than a cold start. See `phase-09-deployment-setup.md`.
 
-**Done when**: a multiplayer game plays from a Vercel preview against the
-deployed Render instance.
+**The exit criterion is met**: a four-player round was played against the
+deployed instance, and eight transport guarantees were exercised over the wire.
+The evidence, and the trap that awaits the next person to probe it, are in
+`phase-09-realtime-live.md`.
 
 ### 9.9 — Port the `deploy-check` probe
 

@@ -8,7 +8,7 @@ fact is why there are two applications and two hosts.
 | Runs | Where | Config |
 |---|---|---|
 | `apps/web` | Vercel | `vercel.json` |
-| `apps/realtime` | Render (free) | `render.yaml` + `apps/realtime/Dockerfile` |
+| `apps/realtime` | Render (free) — **live** at `wikifake-realtime.onrender.com` | `render.yaml` + `apps/realtime/Dockerfile` |
 | Postgres | Neon | `DATABASE_URL` |
 | Redis — web | Upstash | `REDIS_URL` |
 | Redis — realtime | Render Key Value (free) | `REDIS_URL`, from `render.yaml` |
