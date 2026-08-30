@@ -38,16 +38,45 @@ The gate therefore sits in two places:
    `gh pr merge`, `gh pr review`, `gh pr edit`, ruleset modification, and
    pushing to `main` or `staging`. This is not a convention: the call does not
    go through.
-2. **In CI.** The `Revue humaine` job (a live check name, renamed in phase 9)
-   fails as long as the PR does not carry the `revu` label, applied by hand
-   after reading. An agent cannot grant it to itself, since `gh pr edit` is
-   denied to it. The gesture is timestamped in the repository's log.
+2. **In CI.** The `Human review` job fails as long as the PR does not carry the
+   `revu` label, applied by hand after reading. An agent cannot grant it to
+   itself, since `gh pr edit` is denied to it. The gesture is timestamped in the
+   repository's log.
 
-**What this does not cover:** a human who deliberately bypasses it, or an
-agent launched outside this harness. The real enterprise answer is a distinct
-identity for agents — machine account or GitHub App — and a mandatory
-approval. The day the repository has more than one person, that is the first
-setting to change: required approvals at 1, and the label gate becomes
+### The owner bypasses the ruleset, and that is deliberate
+
+This is the part that was missing here, and its absence made the rest read as a
+stronger guarantee than it is.
+
+The ruleset lists **one bypass actor — the repository owner — with
+`bypass_mode: always`.** Required checks, the pull-request requirement and the
+force-push block are all advisory for that account, on every branch the ruleset
+covers.
+
+It is not a leftover. With a single maintainer, a ruleset with no bypass makes
+the repository unrecoverable by the only person who can recover it — the
+promotion blocked by an already-merged commit, in `../current-state/06-structural-debt.md`,
+is exactly the situation where the bypass is the way out. The cost is that it is
+always on rather than reached for.
+
+**What that costs, measured rather than supposed.** Pull requests #142 to #145
+were all merged without the `revu` label, and #144 merged with `Human review`
+reporting `failure`. So for the owner's account the label is a **record that a
+human read the change, not a lock that makes them**. It is worth having as a
+record — it is timestamped and it is visible — and it must not be quoted as a
+control.
+
+The consequence for agents is the one that matters: since an agent carries the
+same token as the account that bypasses everything, **the deny list is the only
+mechanism that actually stops it**, and `02-repository-rules.md` says what a
+deny list is worth — a pattern blocks a spelling, not an action. The
+written rules are the boundary. Nothing below them is a wall.
+
+**What none of this covers:** a human who deliberately bypasses it, or an agent
+launched outside this harness. The real answer is a distinct identity for agents
+— machine account or GitHub App — and a mandatory approval. The day the
+repository has more than one person, that is the first setting to change:
+required approvals at 1, the bypass actor removed, and the label gate becomes
 redundant.
 
 ## Automated analysis
@@ -69,17 +98,25 @@ same path as everything else.
 ## Required checks
 
 The GitHub ruleset covers `main` and `staging`: pull request required, no
-direct push, no force-push, no deletion, and these checks green:
+direct push, no force-push, no deletion, and these nine checks green:
 
-`frontend`, `backend`, `Conformité de la PR`, `Revue humaine`,
-`Analyse de secrets`.
+`Is this run useful?`, `Lint & format`, `Typecheck`, `Test`, `Build`,
+`Browser journeys`, `Does this PR follow the rules?`, `Human review`,
+`Secret scan`.
 
-The French names are live check contexts declared in the ruleset; they are
-renamed in phase 9, ruleset updated in the same move.
+Nine, and the two the old stack contributed — `Frontend (legacy)` and
+`Backend (Python)` — are deliberately **not** among them: step 10.9 deleted the
+jobs, and a required context whose job no longer exists never reports.
+
+`Does <target> serve this commit?` is not there either, and never should be: the
+probe runs after a merge, so requiring it on a pull request requires a check
+that cannot report until the thing it checks has happened. Same for
+`No direct push to main or staging`, which is a `push` job.
 
 **A required check that never reports blocks the merge forever.** Every time a
-job name changes — and the rewrite will change them — the required-checks list
-must be updated in the same move. This is written into the phase 9 file.
+job name changes, the required-checks list must be updated in the same move —
+`../rewrite/phase-09-ruleset-rename.md` is the ordering that makes that
+survivable, and it is worth rereading before renaming anything.
 
 Modifying the ruleset is denied to agents. The command is:
 

@@ -108,3 +108,40 @@ If the stack is ever split — phases 1 to 9 promoted, phase 10 held back — th
 and only then do the two names belong on the list in between, and the reverse
 dance comes back. `plans/rewrite/phase-10-cutover-runbook.md` is written for the
 stack as it actually stands.
+
+## What was actually done
+
+The three steps were carried out on 2026-08-29. The ruleset now requires exactly
+the nine names above — read back from the API, not from memory:
+
+```
+Is this run useful?  ·  Lint & format  ·  Typecheck  ·  Test  ·  Build
+Browser journeys  ·  Does this PR follow the rules?  ·  Human review  ·  Secret scan
+```
+
+Nine, and neither `Frontend (legacy)` nor `Backend (Python)`, which is the one
+thing this file insists on twice.
+
+**There is no ghost check**, and the evidence is better than an inspection of
+the list. On pull requests #144 and #146 every one of the nine *reported* —
+eight passing and `Human review` failing for want of its label. A ghost check
+does not fail; it stays pending forever. A check that fails is a check that ran.
+
+### The window was real, and it left a mark
+
+Step 1 empties the required-checks list, and while it was empty the stack
+merged — #142 to #145, none of them carrying the `revu` label. That is the
+window working as designed rather than a lapse.
+
+What it means for reading the history: **those four merges are not evidence that
+the gate holds**, and they should not be quoted as such. The first merge that
+will be is the one after this file, through a refilled list.
+
+### The list is not the whole lock
+
+Refilling it closed the step, and it does not make the required checks
+mandatory for everybody. The ruleset carries one bypass actor — the repository
+owner, `bypass_mode: always` — so for that account the nine names are advisory.
+That is a deliberate choice with a single maintainer, and
+`../method/03-infrastructure.md` now says so plainly instead of leaving this
+file's reader to infer a lock that is not there.
