@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — production runs the new stack, multiplayer included; 10.10's dry run and two runbook steps are left |
+| **State** | **in progress** — production runs the new stack, multiplayer included; 10.10's dry run and the domain are left |
 | **Branch** | `feat/rewrite-phase-10-contract` |
 | **Depends on** | all the others (0 to 9) |
 | **Delivers** | a repository without Python, production on the new stack |
@@ -83,19 +83,19 @@ explanation, hint or position anywhere in the payload. Eleven contract
 guarantees were re-verified against production rather than against a test
 runner, C3.1 among them.
 
-What 10.11 did **not** finish are two of the runbook's own steps, and it did
-step 7 without them:
+What 10.11 did **not** finish was two of the runbook's own steps, and it did
+step 7 without them. One has since been caught up:
 
-- **Step 5 — the domain.** Render still holds it, suspended, so the public
-  address answers nothing; `wikifake.vercel.app` does. Flagged since 10.9.
-- **Step 6 — the probe variables.** `WEB_DEPLOY_URL` was never set, so the probe
-  for the application users actually reach skips and reports success while
-  checking nothing; `DEPLOY_URL` was never deleted, so the probe for the
-  suspended Python service fails on every push to `main`. #143 and #145 both
-  carry that red. This is the noise the runbook warned would mask a real
-  failure, and it is the reason phase 9's exit gate is not passed either.
+- **Step 5 — the domain.** Still outstanding. Render holds it, suspended, so the
+  public address answers nothing; `wikifake.vercel.app` does. Flagged since 10.9.
+- **Step 6 — the probe variables.** ✅ Done 2026-08-30. `WEB_DEPLOY_URL` was
+  never set, so the probe for the application users actually reach skipped while
+  reporting success; `DEPLOY_URL` was never deleted, so the probe for the
+  suspended Python service failed on every push to `main` — the red on #143,
+  #145, #152 and #155. Both were fixed and the probe run by hand to prove it.
+  Phase 9's exit gate passed with it.
 
-`phase-10-cutover-runbook.md` owns both, and now records which of its steps ran.
+`phase-10-cutover-runbook.md` owns the domain, and records which of its steps ran.
 
 **10.10 is written and not run**, and it is cheaper now than when it was
 written. The procedure is `phase-10-rollback.md` — one page, read before 10.11
