@@ -177,7 +177,7 @@ ruleset.
 | `print` / `console.log` | `pre-commit` | blocking | — |
 | Documentation: 200 lines, inside `plans/` | `pre-commit` | blocking | — |
 | Linters | if installed | blocking | — |
-| Human review | — | `Revue humaine` job | ruleset |
+| ~~Human review~~ — retired, see above | — | `Human review` job, now a formality | — |
 | PR required, CI green | — | — | ruleset |
 
 Both sides run the **same** file, `scripts/checks.sh`: there is no local

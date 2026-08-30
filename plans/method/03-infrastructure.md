@@ -32,16 +32,27 @@ control can tell a human from an agent.** Both carry the same token. Requiring
 an approval achieves nothing — nobody can approve their own pull request, and
 an agent that bypassed it would go undetected.
 
-The gate therefore sits in two places:
+**There is no human gate any more.** It sat in two places and both are gone:
 
-1. **Where the agents run.** `.claude/settings.json` denies them
-   `gh pr merge`, `gh pr review`, `gh pr edit`, ruleset modification, and
-   pushing to `main` or `staging`. This is not a convention: the call does not
+1. **Where the agents run.** `.claude/settings.json` used to deny `gh pr merge`,
+   `gh pr review` and `gh pr edit`. Since 2026-08-30 it **allows** them —
+   `02-repository-rules.md` carries the decision. It still denies ruleset
+   modification, `gh label`, the `gh api` write verbs, and direct or forced
+   pushes to `main` and `staging`, and those refusals are real: the call does not
    go through.
-2. **In CI.** The `Human review` job fails as long as the PR does not carry the
-   `revu` label, applied by hand after reading. An agent cannot grant it to
-   itself, since `gh pr edit` is denied to it. The gesture is timestamped in the
-   repository's log.
+2. **In CI.** The `Human review` job still fails until a pull request carries the
+   `revu` label — and an agent now applies it. The job is intact; what it
+   attests is not. A label that whoever merges can grant themselves records that
+   the pull request was ready, not that anybody read it.
+
+So the honest statement, and the one to quote: **nothing in this repository
+records that a human read a change before it merged.** Do not cite `revu` as
+review, and do not read a green `Human review` as one.
+
+What still holds is the second list above — an agent cannot alter the ruleset,
+the labels, or the branches themselves. That is a boundary around
+*configuration*, not around *code*: any change an agent can write, it can now
+also merge.
 
 ### The owner bypasses the ruleset, and that is deliberate
 
@@ -61,23 +72,24 @@ always on rather than reached for.
 
 **What that costs, measured rather than supposed.** Pull requests #142 to #145
 were all merged without the `revu` label, and #144 merged with `Human review`
-reporting `failure`. So for the owner's account the label is a **record that a
-human read the change, not a lock that makes them**. It is worth having as a
-record — it is timestamped and it is visible — and it must not be quoted as a
-control.
+reporting `failure`. The label never made anybody read anything; it only ever
+recorded that somebody clicked. That measurement is what retired it on
+2026-08-30 — a gesture demanded on every branch, buying nothing.
 
-The consequence for agents is the one that matters: since an agent carries the
-same token as the account that bypasses everything, **the deny list is the only
-mechanism that actually stops it**, and `02-repository-rules.md` says what a
-deny list is worth — a pattern blocks a spelling, not an action. The
-written rules are the boundary. Nothing below them is a wall.
+The consequence for agents is the one that matters. An agent carries the same
+token as the account that bypasses everything, so **the deny list is the only
+mechanism that stops it at all** — and it now stops only configuration:
+the ruleset, the labels, the `gh api` write verbs, the branches. Code that an
+agent can write, it can merge. `02-repository-rules.md` says what a deny list is
+worth even there — a pattern blocks a spelling, not an action. The written rules
+are the boundary. Nothing below them is a wall.
 
-**What none of this covers:** a human who deliberately bypasses it, or an agent
-launched outside this harness. The real answer is a distinct identity for agents
-— machine account or GitHub App — and a mandatory approval. The day the
-repository has more than one person, that is the first setting to change:
-required approvals at 1, the bypass actor removed, and the label gate becomes
-redundant.
+**The real answer, unchanged and now unavoidable:** a distinct identity for
+agents — machine account or GitHub App — with required approvals at 1 and the
+bypass actor removed. That was already the recommendation when a label gate stood
+in front of it; the gate is gone, so it is the only proposal left rather than the
+ambitious one. The day this repository has more than one person, it is the first
+setting to change.
 
 ## Automated analysis
 
