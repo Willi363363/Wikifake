@@ -1,20 +1,33 @@
 // The contrast audit, and what it found.
 //
-// It found that the palette this phase transcribes does not pass. Three pairs
-// are below three to one — unusable for text at any size — and four more clear
+// It found that the palette this phase transcribed did not pass: three pairs
+// below three to one — unusable for text at any size — and four more clearing
 // three but not four and a half. The dark palette, which is this phase's own
-// invention and has no identity to preserve, passes everywhere.
+// invention and had no identity to preserve, passed everywhere.
 //
-// Nothing is quietly adjusted here. "No redesign" is one of the phase's own
-// pitfalls and these are the current game's colours, shipped today; changing
-// them is a decision about how the game looks, and that is not a decision a
-// transcription gets to take. So the failures are **named**, with their numbers,
-// and this test fails if a new one appears *or* if a named one is fixed without
-// the list being updated — drift in either direction is caught.
+// The seven are repaired, and the repair was a decision rather than a tidy-up.
+// "No redesign" is one of phase 6's own pitfalls, and it was the right one while
+// the transcription was in flight: adjusting the colours then would have been a
+// transcription quietly taking a decision that was not its own. The decision has
+// since been taken, so the correction lands here instead of being deferred.
 //
-// The worst of them is worth reading twice: `warn` on `warn-soft` is 2.56, and
-// that pair is the MISSED verdict. The debrief tells a player which
-// falsifications they let through in amber on amber.
+// It is the smallest correction that works. Five solids had their luminosity
+// scaled by a single factor each, which leaves the hue and the saturation
+// exactly as transcribed — ×0.98 for `muted`, ×0.96 for `green`, ×0.94 for
+// `bronze`, ×0.85 for `muted-2`, ×0.72 for `warn`. Four of those are invisible.
+// No wash moved at all.
+//
+// The washes were the tempting half, and they were measured before being ruled
+// out. `warn` on `warn-soft` was the worst pair at 2.56 — and that pair is the
+// MISSED verdict, the debrief telling a player which falsifications they let
+// through, in amber on amber. Lightening the wash to share the correction buys
+// almost nothing: 60% lighter lets `warn` back up only from ×0.72 to ×0.77, and
+// costs the wash its distinction from the page — 1.03:1 against a background it
+// has to read as a panel on. So the solid moved and the wash stayed.
+//
+// What this test now holds is the result, pinned: every pair passes, and the
+// seven that were repaired are pinned to two decimals so that a change to any of
+// these colours shows up as a failing number rather than as a discovery.
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -64,21 +77,25 @@ const at = (results: readonly { fg: string; bg: string; ratio: number }[], key: 
   results.find((result) => `${result.fg} on ${result.bg}` === key);
 
 /**
- * What the light palette fails, today, to two decimals.
+ * The seven pairs the light palette used to fail, and what they measure now.
  *
- * Inherited from `frontend/src/styles/tokens.css`, not introduced here. Each is
- * a decision waiting: raising `warn` to reach 4.5 on its own wash changes what
- * the debrief looks like, and that is the user's call rather than a
- * transcription's.
+ * The ratio each one was inherited at, from `frontend/src/styles/tokens.css`,
+ * is in the comment beside it — so the diff of this file is the record of what
+ * the correction actually bought, and nobody has to go looking for the numbers
+ * it replaced.
+ *
+ * `muted-2` is held to three rather than four and a half because the palette's
+ * own role line declares it large text only. That is the floor `CONTRAST_PAIRS`
+ * gives it, and it is not a discount taken here.
  */
-const INHERITED: Readonly<Record<string, number>> = {
-  'muted-2 on bg': 2.33,
-  'muted-2 on surface': 2.56,
-  'warn on warn-soft': 2.56,
-  'muted on bg': 4.4,
-  'bronze on bg': 4.39,
-  'bronze on bronze-soft': 4.1,
-  'green on green-soft': 4.26,
+const REPAIRED: Readonly<Record<string, number>> = {
+  'muted-2 on bg': 3.2, // was 2.33 — below three, unusable at any size
+  'muted-2 on surface': 3.52, // was 2.56 — likewise
+  'warn on warn-soft': 4.59, // was 2.56 — the MISSED verdict, amber on amber
+  'muted on bg': 4.59, // was 4.4
+  'bronze on bg': 4.88, // was 4.39
+  'bronze on bronze-soft': 4.56, // was 4.1
+  'green on green-soft': 4.56, // was 4.26
 };
 
 describe('the maths', () => {
@@ -143,36 +160,34 @@ describe('6.6 — the audit', () => {
     });
   });
 
+  // Held exactly as the dark palette is: same assertion, same shape, no clause
+  // excusing the palette that happens to be inherited.
   describe('the light palette', () => {
-    it('fails exactly the pairs inherited from the current game', () => {
-      const failing = light
-        .filter((result) => !result.passes)
-        .map((result) => `${result.fg} on ${result.bg}`)
-        .sort();
-      expect(failing).toEqual(Object.keys(INHERITED).sort());
+    it.each(light)('$fg on $bg — $use', (result) => {
+      expect({
+        pair: `${result.fg} on ${result.bg}`,
+        ratio: Number(result.ratio.toFixed(2)),
+        needs: result.needs,
+        passes: result.passes,
+      }).toMatchObject({ passes: true });
+    });
+
+    it('passes every pair, with nothing exempted', () => {
+      expect(light.filter((result) => result.passes)).toHaveLength(CONTRAST_PAIRS.length);
     });
 
     // Pinned to two decimals, so a change to any of these colours is visible in
     // a diff rather than discovered later.
-    it.each(Object.entries(INHERITED))('%s is still %s', (key, ratio) => {
+    it.each(Object.entries(REPAIRED))('%s is %s', (key, ratio) => {
       expect(at(light, key)?.ratio).toBeCloseTo(ratio, 2);
     });
 
-    it('passes everything else', () => {
-      const passing = light.filter((result) => result.passes);
-      expect(passing.length).toBe(CONTRAST_PAIRS.length - Object.keys(INHERITED).length);
-    });
-
-    // The three that are not merely short of AA but unusable for text at any
-    // size. `warn on warn-soft` is the MISSED verdict in the debrief.
-    it('has three pairs below three to one, and names them', () => {
+    // The floor under the floor: `large` excuses a pair from 4.5, never from 3.
+    it('has nothing below three to one', () => {
       const unusable = light
         .filter((result) => result.grade === 'fail')
-        .map((result) => `${result.fg} on ${result.bg}`)
-        .sort();
-      expect(unusable).toEqual(
-        ['muted-2 on bg', 'muted-2 on surface', 'warn on warn-soft'].sort(),
-      );
+        .map((result) => `${result.fg} on ${result.bg}`);
+      expect(unusable).toEqual([]);
     });
   });
 });

@@ -46,6 +46,31 @@ indices, sorted positions, sequential numbers)` is `C3.3`). Each needs reading.
 It also touches sheets that open pull requests have in flight, so it wants its
 own step on a quiet tree.
 
+## Two accessibility criteria are inferred from CSS, never seen
+
+Phase 6's exit gate asks that `prefers-reduced-motion` neutralise the shakes and
+the stroboscopic flashes, and that the gallery hold at 360 px. Both are checked
+by reading a stylesheet: `packages/ui/src/motion.test.ts` asserts that the seven
+reducible animations — the strobes and the displacements — are set to `none` by
+name inside `motion.css`'s media block, and `packages/ui/src/responsive.test.ts`
+refuses a length larger than `--width-floor` with no breakpoint in front of it.
+
+That is real evidence and it catches real regressions. It is not the criterion.
+A media block can be correct and still not apply; a layout can declare no oversized
+length and still overflow at 360 px, because overflow comes from content as
+often as from a declaration.
+
+The obstacle the phase named — "there is no browser in CI" — **is gone**. Step
+9.5 brought Playwright, and `Browser journeys` runs on every pull request. What
+is missing is two journeys: one with `reducedMotion: 'reduce'` on the context,
+one with a 360 px viewport, both asserting on what the page actually does.
+Playwright supports each in one line of configuration.
+
+Recorded rather than done because it is new test surface, not an unfinished step
+of phase 6 — and because a journey asserting on animation is the kind that
+flakes if it is written in a hurry. The phase closed on the evidence it has;
+this is what would make the evidence match the claim.
+
 ## The `Makefile` targets that outlived the Makefile
 
 Step 10.9 rewrote `make check` and `make hooks` as `pnpm check` and
