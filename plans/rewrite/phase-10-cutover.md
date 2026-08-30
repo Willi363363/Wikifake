@@ -125,8 +125,10 @@ business holding and gained three the new stack actually has.
 - ✅ Public production is served by Vercel and the socket host, `deploy-check`
   green. The socket service went live on Render's free tier and a four-player
   round was played against it — `phase-09-realtime-live.md`.
-- ⚠️ The rollback is written and has been dry-run — **written, never run.**
-  Step 10.10.
+- ⚠️ The rollback is written and has been dry-run — **written, never run.** The
+  criterion asks for both; only the first is true. Step 10.10, and its dry run
+  no longer touches production, so what is left of it is three dashboard
+  gestures.
 - ✅ The current state describes the real stack.
 
 ## Contract touched

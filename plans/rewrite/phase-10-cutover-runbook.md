@@ -46,7 +46,7 @@ for repointing it when the domain moves, not for leaving `main` red.
 
 | Check | Why it comes first |
 |---|---|
-| Every step of `phase-10-cutover.md` except 10.11 is ✅, and 10.10's dry run has been done | The rollback net has to exist before the thing it catches |
+| Every step of `phase-10-cutover.md` except 10.11 is ✅, and 10.10's dry run has been done — **this one was not satisfied: the cutover ran with the net untested** | The rollback net has to exist before the thing it catches |
 | Vercel and Render are provisioned per `phase-09-deployment-setup.md`, and `NEXT_PUBLIC_SITE_URL` is set on **production only** | Without it the canonical link and the sitemap name whichever host answered |
 | A Vercel preview plays a full multiplayer game against the deployed Render instance | This is 9.8's own exit criterion, and it is the last chance to find a wiring problem while production is untouched |
 
