@@ -41,12 +41,17 @@ Under ten minutes, and no step depends on anything the merge removed.
 2. **Repoint the domain.** DNS back to Render, or in Render's own custom-domain
    panel if the record never moved. Remove the domain from Vercel first, or
    both providers claim it and one of them answers a certificate error.
+   **Today this step is already true**: the domain never left Render, because
+   runbook step 5 was not done.
 3. **Restore the probe.** `DEPLOY_URL` back to the Render URL, so
    `deploy-check` stops failing against a service that no longer holds the
-   domain and starts telling the truth again.
-4. **Leave Fly running.** It costs little and holds no state that matters — the
-   rooms are in Redis, and a room in flight is lost by the cutover either way.
-   Stopping it is one more thing to undo when you roll forward again.
+   domain and starts telling the truth again. **Also already true**, and for the
+   same reason — which is why `main` currently shows a red probe on every push.
+4. **Leave the realtime service running.** It costs little and holds no state
+   that matters — the rooms are in Redis, and a room in flight is lost by the
+   cutover either way. Stopping it is one more thing to undo when you roll
+   forward again. (This said "Fly" until the realtime service was retargeted to
+   Render's free tier; Fly was never used.)
 
 That is the whole procedure. Nothing in it needs a build, a deploy or a code
 change.
@@ -72,21 +77,39 @@ This is the part that must be written down rather than discovered:
 
 ## The dry run
 
-The step is not done until this has been performed, **outside playing hours**:
+Written as three steps — note the commit, suspend, resume — for a service that
+was still serving production. **It is no longer, and that changes the step in
+two ways.**
 
-1. Note the commit Render serves.
-2. Suspend the service. Confirm the URL stops answering.
-3. Resume it. Confirm `GET /api/health` answers, and that `commit` is the value
-   from step 1.
+Half of it is already proved. The service was suspended at the cutover and has
+stayed suspended: `https://wikifake.onrender.com/api/health` answers `503` with
+`x-render-routing: suspend-by-user`. "Suspend it, confirm the URL stops
+answering" is a fact on record rather than an experiment to run.
 
-That is the only part of this procedure with any doubt in it — whether a
-suspended free-tier Render service comes back with the same image. Everything
-else is DNS and an environment variable, and both are reversible in a minute.
+The other half is the only part of this whole procedure that ever had doubt in
+it: **whether a suspended free-tier Render service comes back with the same
+image.** Everything else is DNS and an environment variable.
 
-> **Status: not run.** Suspending and resuming touches live production, so it
-> is a human's gesture on the dashboard rather than something CI or an agent
-> should do. Step 10.10 stays open until it has been done and this line says
-> so.
+What is missing to run it is the step-1 value — the commit Render served — which
+was to be captured at runbook step 1 and is not written down anywhere. Without
+it, "the same image" has nothing to be compared against, so the check becomes
+weaker: that it answers at all, and that its `commit` is a pre-cutover SHA rather
+than one of `main`'s recent ones.
+
+So the dry run reduces to:
+
+1. Dashboard → the service → **Resume**. Wait for `GET /api/health` to answer.
+2. Record the `commit` it returns **in this file** — that is the value the
+   procedure has been missing, and capturing it is most of what this run buys.
+3. Suspend it again.
+
+**It no longer touches production.** Production is `wikifake.vercel.app`; this
+service holds no traffic and no state — so the reason to do it outside playing
+hours is gone, and with it the main excuse for not having done it. It is still a
+human's gesture on a dashboard: no CI job and no agent here holds a token for it.
+
+> **Status: not run.** Step 10.10 stays open until it has been, and until the
+> commit from step 2 is written above.
 
 ## When to stop rolling back and fix forward instead
 

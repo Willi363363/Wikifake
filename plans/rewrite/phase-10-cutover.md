@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — production runs the new stack, multiplayer included; only 10.10's dry run is left |
+| **State** | **in progress** — production runs the new stack, multiplayer included; 10.10's dry run and two runbook steps are left |
 | **Branch** | `feat/rewrite-phase-10-contract` |
 | **Depends on** | all the others (0 to 9) |
 | **Delivers** | a repository without Python, production on the new stack |
@@ -83,20 +83,29 @@ explanation, hint or position anywhere in the payload. Eleven contract
 guarantees were re-verified against production rather than against a test
 runner, C3.1 among them.
 
-What 10.11 did **not** finish, and what 10.9 had already flagged: **Render
-still holds the public domain**, suspended, so the public address does not
-answer — `wikifake.vercel.app` does. `phase-10-cutover-runbook.md` owns that
-move. And **`apps/realtime` has never been deployed**, so production serves the
-solo game alone; the socket service belongs to step 9.8 — retargeted to Render
-since, Fly having wanted a card — and the exit gate below waits on it.
+What 10.11 did **not** finish are two of the runbook's own steps, and it did
+step 7 without them:
 
-**10.10 is written and not run.** The procedure is
-`phase-10-rollback.md` — one page, read before 10.11 rather than during. Its
-one uncertain claim is whether a suspended Render service comes back with the
-same image, and confirming that means suspending live production: a human's
-gesture on a dashboard, outside playing hours. Everything else in the
-procedure is DNS and one environment variable. The step stays open until the
-dry run has happened and the sheet says so.
+- **Step 5 — the domain.** Render still holds it, suspended, so the public
+  address answers nothing; `wikifake.vercel.app` does. Flagged since 10.9.
+- **Step 6 — the probe variables.** `WEB_DEPLOY_URL` was never set, so the probe
+  for the application users actually reach skips and reports success while
+  checking nothing; `DEPLOY_URL` was never deleted, so the probe for the
+  suspended Python service fails on every push to `main`. #143 and #145 both
+  carry that red. This is the noise the runbook warned would mask a real
+  failure, and it is the reason phase 9's exit gate is not passed either.
+
+`phase-10-cutover-runbook.md` owns both, and now records which of its steps ran.
+
+**10.10 is written and not run**, and it is cheaper now than when it was
+written. The procedure is `phase-10-rollback.md` — one page, read before 10.11
+rather than during. Its one uncertain claim is whether a suspended Render
+service comes back with the same image. Confirming that used to mean suspending
+**live production**; it no longer does, because that service holds no traffic —
+so the dry run is a resume, a reading of `/api/health`, and a suspend. What it
+mainly buys is the pre-cutover commit value, which runbook step 1 was supposed
+to capture and nobody wrote down. The step stays open until it has happened and
+the sheet says so.
 
 **10.12 is done, and it changed the shape of `plans/current-state/`.** Three
 files went — the FastAPI modules, the Vite directories, the hand-written
@@ -116,8 +125,10 @@ business holding and gained three the new stack actually has.
 - ✅ Public production is served by Vercel and the socket host, `deploy-check`
   green. The socket service went live on Render's free tier and a four-player
   round was played against it — `phase-09-realtime-live.md`.
-- ⚠️ The rollback is written and has been dry-run — **written, never run.**
-  Step 10.10.
+- ⚠️ The rollback is written and has been dry-run — **written, never run.** The
+  criterion asks for both; only the first is true. Step 10.10, and its dry run
+  no longer touches production, so what is left of it is three dashboard
+  gestures.
 - ✅ The current state describes the real stack.
 
 ## Contract touched
