@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | six steps delivered — the exit gate awaits a decision |
+| **State** | ✅ done — the exit gate is passed, the contrast decision taken |
 | **Branch** | `feat/rewrite-phase-6` |
 | **Depends on** | phase 1 |
 | **Delivers** | `packages/ui`: theme, primitives, animations, token component |
@@ -54,26 +54,33 @@ Definitions: `phase-06-steps-delivery.md`.
 
 ## Exit gate
 
-**Not passed.** One line of it cannot be, and the reason is a contradiction in
-this sheet rather than an omission in the work.
+**Passed.** The one line that could not be was the contrast audit, and it could
+not be because it was waiting on a decision rather than on work.
 
 - ✅ The component gallery is rendered, all exported components included —
   derived from the package's exports, so the list cannot fall behind.
-- ⚠️ Contrasts are audited in both modes — **audited, and the light palette
-  fails seven pairs**, three of them below 3:1. They are the current game's
-  colours; fixing them is the redesign this phase's own pitfalls forbid. The
-  numbers are in `phase-06-steps-components.md` and the decision is the user's.
+- ✅ Contrasts are audited in both modes, and **both palettes now pass every
+  pair**. The light one failed seven, three below 3:1 — the current game's
+  colours, inherited rather than introduced here, so correcting them was the
+  redesign this phase's own pitfalls forbade a transcription from taking on its
+  own. The decision was taken after the transcription closed, and the five
+  solids were darkened by the smallest factor that works, hue and saturation
+  untouched, no wash moved. The reasoning and the pinned ratios are in
+  `packages/ui/src/contrast.test.ts`.
 - ✅ `prefers-reduced-motion` neutralises shakes and stroboscopic flashes —
-  seven animations to `none`, verified in a real build's CSS. Emulating the
-  preference in a browser was not possible: there is none in CI.
+  seven animations to `none`, verified in a real build's CSS.
 - ✅ The paragraph token is playable by keyboard, its seven states rendered and
   tested.
 - ✅ No `style={{}}` object in `packages/ui`.
 
-Two of the six criteria ask to *see* something — the preference emulated, the
-gallery displayed at 360 px. Both rest on an inference from the emitted CSS
-instead. **Whether CI grows a headless browser is a decision this phase has now
-raised twice**, and it belongs to phase 9.
+**Two criteria still rest on an inference, and closing the phase does not make
+them stop.** `prefers-reduced-motion` and the 360 px rendering are both read
+out of the emitted CSS rather than seen. CI has had a headless browser since
+step 9.5 — the Playwright journeys — so the obstacle this sheet named twice is
+gone; what is missing is a journey that emulates the preference and one that
+sets the viewport, and neither exists today. That is new work rather than an
+unfinished step, so it is recorded in `../current-state/06-structural-debt.md`
+and not held against this gate.
 
 ## Contract touched
 

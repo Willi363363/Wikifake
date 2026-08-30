@@ -73,9 +73,32 @@ A pull request is mergeable when:
   `../current-state/05-known-debt.md`; it does not get fixed here.
 - **Report optimistically.** A failing test, a skipped step, a check that was
   never run: say it. A flattering report costs more than an announced failure.
-- **Grant itself the `revu` label, review a pull request, or merge one.** That
-  label is the one thing in this repository that says a human looked. An agent
-  applying it makes the record assert something false.
+### Merging is an agent's job now, and the `revu` label is retired
+
+This used to read: *"an agent never grants itself the `revu` label, reviews a
+pull request, or merges one — that label is the one thing in this repository
+that says a human looked."* The owner ended that rule on 2026-08-30, and the
+reason is worth keeping rather than the rule.
+
+**It was already not true.** The ruleset carries the owner as a bypass actor,
+`bypass_mode: always`, so `Human review` never blocked the account that does the
+merging; #142 to #145 all merged with no label at all and #144 merged with that
+check reporting `failure`. A gate that stops nobody costs one click per pull
+request and buys nothing, and paying it on every branch is what ended it.
+
+So: **an agent may label, review and merge**, and `.claude/settings.json` allows
+those four verbs instead of denying them.
+
+**What this costs, stated rather than discovered later.** Nothing in this
+repository now records that a human read a change before it merged. The `revu`
+label, wherever it still appears, means the pull request was ready to merge —
+not that anybody read it. Do not cite it as review, in a post-mortem or to
+anyone outside this repository.
+
+The way to get a real attestation back is not to reinstate the ceremony: it is a
+distinct identity for agents — machine account or GitHub App — with required
+approvals at 1 and the bypass actor removed. `03-infrastructure.md` says why.
+Until then this repository has one reviewer, and it is whoever chooses to read.
 
 ### The deny list is a reminder, not a wall
 
@@ -154,7 +177,7 @@ ruleset.
 | `print` / `console.log` | `pre-commit` | blocking | — |
 | Documentation: 200 lines, inside `plans/` | `pre-commit` | blocking | — |
 | Linters | if installed | blocking | — |
-| Human review | — | `Revue humaine` job | ruleset |
+| ~~Human review~~ — retired, see above | — | `Human review` job, now a formality | — |
 | PR required, CI green | — | — | ruleset |
 
 Both sides run the **same** file, `scripts/checks.sh`: there is no local

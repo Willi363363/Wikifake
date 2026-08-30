@@ -61,21 +61,34 @@
   --color-line: rgba(24, 24, 27, 0.07);
   --color-line-strong: rgba(24, 24, 27, 0.14);
 
-  /* Text, from the darkest to the most withdrawn. */
+  /*
+   * Text, from the darkest to the most withdrawn.
+   *
+   * `muted` and `muted-2` are darker here than in the game this palette was
+   * transcribed from: they missed their own targets by 0.1 and 0.72. Only the
+   * luminosity moved — each channel scaled by one factor — so the hue and the
+   * saturation are the ones phase 6 transcribed.
+   */
   --color-ink: #18181b;
   --color-ink-2: #3f3f46;
-  --color-muted: #71717a;
-  --color-muted-2: #a1a1aa;
+  --color-muted: #6e6e77;
+  --color-muted-2: #888890;
 
-  /* The five accents. Each has a solid and a wash. */
+  /*
+   * The five accents. Each has a solid and a wash.
+   *
+   * `bronze`, `green` and `warn` are likewise darkened to reach 4.5:1 on their
+   * own wash. The washes are untouched: sharing the correction with them was
+   * measured and rejected — see `contrast.test.ts`.
+   */
   --color-accent: #1f574d;
   --color-accent-soft: #e8f0ed;
   --color-accent-line: rgba(31, 87, 77, 0.18);
-  --color-bronze: #8c6d36;
+  --color-bronze: #836633;
   --color-bronze-soft: #f3ecdc;
-  --color-green: #4a7a52;
+  --color-green: #47754f;
   --color-green-soft: #e7efe6;
-  --color-warn: #b58f3a;
+  --color-warn: #82662a;
   --color-warn-soft: #f6ecd1;
   --color-danger: #a64b48;
   --color-danger-soft: #f5e2dd;

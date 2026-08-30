@@ -1,10 +1,12 @@
 {
   "permissions": {
-    "deny": [
+    "allow": [
       "Bash(gh pr merge:*)",
       "Bash(gh pr review:*)",
       "Bash(gh pr edit:*)",
-      "Bash(gh pr ready:*)",
+      "Bash(gh pr ready:*)"
+    ],
+    "deny": [
       "Bash(gh api --method PUT:*)",
       "Bash(gh api --method DELETE:*)",
       "Bash(gh api --method POST:*)",
