@@ -9,13 +9,46 @@
 > order from four files **during** a cutover is how a step gets skipped, so it
 > is assembled here once.
 
+## Where this stands
+
+The cutover was run, and **not in this order**. Step 7 was done before steps 5
+and 6, which were not done at all. Read this before running anything below: most
+of it has happened.
+
+| Step | State |
+|---|---|
+| 1 — Render `autoDeploy` off | done (the service is suspended, so moot either way) |
+| 2 — empty the required-checks list | done |
+| 3 — merge the stack | done — `main` serves the rewrite |
+| 4 — refill the list | done — the nine names, verified against the API |
+| 5 — move the domain | ❌ **not done** — the public domain still points at Render, which is suspended, so it answers nothing. `wikifake.vercel.app` is what works |
+| 6 — repoint the probe | ❌ **not done** — see below |
+| 7 — suspend Render | done — `x-render-routing: suspend-by-user` |
+
+**Step 6 is the one that costs something every day.** `WEB_DEPLOY_URL` was never
+set, so the probe job for the application users actually reach skips itself and
+reports success while checking nothing. `DEPLOY_URL` was never deleted, so the
+probe for the suspended Python service runs, gets no answer for forty attempts,
+and fails — on every push to `main`. Both promotions since the cutover, #143 and
+#145, show that red.
+
+This file predicted it: *"deleting the two Render variables is what makes those
+probe jobs skip cleanly instead of failing on every push against a suspended
+service — and that noise is what would mask a real failure of the two that
+matter."* The noise is there, and it is masking exactly what it was said it
+would.
+
+`phase-10-rollback.md` has the one nuance: `DEPLOY_URL` is also the rollback's
+probe, so deleting it is a step of the rollback in reverse. That is an argument
+for repointing it when the domain moves, not for leaving `main` red.
+
 ## Before anything: three preflight facts
 
 | Check | Why it comes first |
 |---|---|
 | Every step of `phase-10-cutover.md` except 10.11 is ✅, and 10.10's dry run has been done | The rollback net has to exist before the thing it catches |
-| Vercel and Fly are provisioned per `phase-09-deployment-setup.md`, and `NEXT_PUBLIC_SITE_URL` is set on **production only** | Without it the canonical link and the sitemap name whichever host answered |
-| A Vercel preview plays a full multiplayer game against the deployed Fly instance | This is 9.8's own exit criterion, and it is the last chance to find a wiring problem while production is untouched |
+| Vercel and Render are provisioned per `phase-09-deployment-setup.md`, and `NEXT_PUBLIC_SITE_URL` is set on **production only** | Without it the canonical link and the sitemap name whichever host answered |
+| A Vercel preview plays a full multiplayer game against the deployed Render instance | This is 9.8's own exit criterion, and it is the last chance to find a wiring problem while production is untouched |
 
 ## 1 — Turn off Render's `autoDeploy`
 
@@ -76,11 +109,11 @@ wrong, and it costs a minute.
 1. Remove the custom domain from Render, or both providers claim it and one
    answers a certificate error.
 2. Add it to the Vercel project; let the certificate issue before going on.
-3. Set `NEXT_PUBLIC_REALTIME_URL` on Vercel production to the Fly service,
+3. Set `NEXT_PUBLIC_REALTIME_URL` on Vercel production to the realtime service,
    `wss://…`, and redeploy so the literal is inlined — it is a
    `NEXT_PUBLIC_` variable, so it is baked at build time and a variable change
    alone does nothing.
-4. Add the production origin to Fly's `REALTIME_ALLOWED_ORIGINS`. An origin the
+4. Add the production origin to the realtime service's `REALTIME_ALLOWED_ORIGINS`. An origin the
    list does not name is refused **before** the upgrade, which fails closed —
    correctly, and invisibly, until somebody tries to play.
 
@@ -91,7 +124,7 @@ Repository variables, Settings → Secrets and variables → Actions → Variabl
 | Variable | Set to |
 |---|---|
 | `WEB_DEPLOY_URL` | the public domain |
-| `REALTIME_DEPLOY_URL` | the Fly service |
+| `REALTIME_DEPLOY_URL` | the realtime service on Render |
 | `DEPLOY_URL`, `STAGING_DEPLOY_URL` | **delete them** |
 
 Deleting the two Render variables is what makes those probe jobs skip cleanly
