@@ -36,7 +36,7 @@ previous one unless its file says otherwise.
 | 8 | Frontend — the round | ✅ **done** | `rewrite/phase-08-frontend-round.md` |
 | 9 | Observability and CI/CD | ⚠️ **all ten steps done** — the exit gate waits on the probe variable of phase 10's runbook | `rewrite/phase-09-observability-and-cicd.md` |
 | 10 | Cutover — removing the Python | ⚠️ **production runs the new stack**, multiplayer included — 10.10's dry run, plus the domain and the probe variables the runbook never got | `rewrite/phase-10-cutover.md` |
-| 11 | Internationalisation | ⚠️ **live in English and French** — the French catalogue awaits a human review, and two string classes await a decision | `rewrite/phase-11-i18n.md` |
+| 11 | Internationalisation | ⚠️ **live in English and French**, error pages included — the French catalogue awaits a human review, and the protocol's sentences await a decision | `rewrite/phase-11-i18n.md` |
 
 **This table is the only place that says where we stand.** It is updated when
 a phase changes state. Steps are ticked off in the phase file.

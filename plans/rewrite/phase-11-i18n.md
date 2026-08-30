@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales; 11.3 + 11.4 done: detection, the persistent switch, localised routing under `/fr`, no legacy URL 404s; 11.5 done: `lang` and the SEO metadata follow the locale, C6.3 amended with its tests; 11.6 done: the French catalogue, real translations held to the English keys by the build itself |
+| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales; 11.3 + 11.4 done: detection, the persistent switch, localised routing under `/fr`, no legacy URL 404s; 11.5 done: `lang` and the SEO metadata follow the locale, C6.3 amended with its tests; 11.6 done: the French catalogue, real translations held to the English keys by the build itself; 11.8 done: the 404 and error surfaces exist, and speak both locales |
 | **Branch** | `feat/rewrite-phase-11` |
 | **Depends on** | phase 8 |
 | **Delivers** | an interface in English and French: catalogues, switch, localised routing, per-locale SEO |
@@ -123,6 +123,45 @@ held in the test itself, licence name and both links intact, the topic link
 kept `lang="fr"` — plus a catalogue guard that reads every locale directory
 on disk and fails on any missing, empty or placeholder-stripped attribution
 key. `renderIn` (per-locale render) joined `src/i18n/testing.tsx` for it.
+
+### 11.8 — The pages that do not exist yet speak no language
+
+`apps/web/app` has no `not-found.tsx` and no `error.tsx`, so an unknown URL or a
+render error shows Next's built-in defaults: English words no catalogue reaches,
+under a French interface, with none of the design system on them.
+
+Step 11.2 moved the strings that existed. These pages have none because they do
+not exist, which is why the extraction pass could not own them and why this is a
+step of its own rather than a line in that one.
+
+Three surfaces, and they are not the same surface:
+
+- **`[locale]/not-found.tsx`** — a 404 inside a locale. Has the layout, the
+  provider and the catalogue; reads its copy like any screen.
+- **`[locale]/error.tsx`** — a render error inside a locale. A client component
+  by Next's contract, with a `reset()`. The layout is still standing, so the
+  catalogue is still reachable.
+- **`global-error.tsx`** — the root layout itself failed. **It replaces `<html>`,
+  so there is no provider and no messages**: it carries its own markup and its
+  own words, and translating it is not possible rather than not done.
+
+The unmatched-locale 404 belongs to the root, not to `[locale]`: a URL whose
+first segment is not a locale never reaches the segment's layout.
+
+**Done when**: an unknown URL and a thrown render error each show a WikiFake
+page in the interface locale, in both locales, asserted by a test per surface;
+and the French run shows no English on any of them.
+
+**Done**, and the browser found what the unit tests could not. Rendering the
+components proves the words; it does not prove Next reaches them. It does not:
+the root `not-found.tsx` answers every unmatched URL, and a segment's own
+`not-found.tsx` only answers a `notFound()` thrown *inside* it — so a typo never
+entered the locale and a French player got the English root page, which is this
+step's defect arriving through the back door. A catch-all
+`[locale]/[...rest]/page.tsx` that calls `notFound()` is what makes the typo
+match something inside the segment. `apps/e2e/specs/not-found.spec.ts` asserts
+the status code as well as the words, in both locales: a 404 served with 200 is
+a soft 404, indexed by a crawler and invisible to a monitor.
 
 ## Exit gate
 

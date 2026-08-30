@@ -52,9 +52,11 @@ Found by causing it: an e2e run followed immediately by `pnpm test` failed
 `apps/realtime/src/broadcast.test.ts` — *"timed out waiting for the lobby to hold
 ada, bob"* — and the same suite passed on its own a minute later.
 
-Both read `REDIS_URL`, and locally that is one instance. The browser journeys
-leave rooms, subscriptions and delayed jobs behind them; the socket suite then
-opens its own rooms against a database that is not empty. Nothing is corrupted
+Both read `REDIS_URL`, and locally that is one instance. Measured since:
+`redis-cli DBSIZE` reported **36 keys** left behind after a journey run, and
+`FLUSHALL` made the same socket suite pass. The journeys leave rooms,
+subscriptions and delayed jobs; the socket suite then opens its own rooms
+against a database that is not empty. Nothing is corrupted
 and nothing is wrong with either suite — they simply were not written to run
 back to back against shared state.
 
