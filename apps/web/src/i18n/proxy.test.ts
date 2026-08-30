@@ -105,7 +105,16 @@ describe('11.3 — the explicit choice persists, and wins over detection', () =>
  * decide its sample here, or the legacy-URL guarantee quietly stops covering
  * it.
  */
-const SAMPLES: Record<string, string> = { '[code]': 'A1B2C3' };
+const SAMPLES: Record<string, string> = {
+  '[code]': 'A1B2C3',
+  // Step 11.8's catch-all, which exists to answer 404 from *inside* the locale
+  // so the page a player sees is in their language. Walking it asserts the one
+  // thing that makes it work: the proxy has to route an unknown path into the
+  // segment. If it stopped, the catch-all would never run, the root
+  // `not-found.tsx` would answer instead, and a French player would be back to
+  // an English page — silently, since every other route still resolves.
+  '[...rest]': 'no-such-page',
+};
 
 /** Every page under `app/[locale]`, as the unprefixed URL it answered before. */
 function legacyPages(): string[] {

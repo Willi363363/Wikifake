@@ -14,6 +14,7 @@ import { render as renderBare, type RenderOptions } from '@testing-library/react
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactElement, ReactNode } from 'react';
 
+import errorsEn from '../../messages/en/errors.json';
 import homeEn from '../../messages/en/home.json';
 import roundEn from '../../messages/en/round.json';
 import waitingEn from '../../messages/en/waiting.json';
@@ -22,6 +23,7 @@ import smallEn from '../../messages/en/small.json';
 import routesEn from '../../messages/en/routes.json';
 import languageEn from '../../messages/en/language.json';
 import seoEn from '../../messages/en/seo.json';
+import errorsFr from '../../messages/fr/errors.json';
 import homeFr from '../../messages/fr/home.json';
 import roundFr from '../../messages/fr/round.json';
 import waitingFr from '../../messages/fr/waiting.json';
@@ -37,6 +39,7 @@ import type { Locale } from './locales.js';
 const CATALOGUES: Record<Locale, CatalogueMessages> = {
   en: {
     home: homeEn,
+    errors: errorsEn,
     round: roundEn,
     waiting: waitingEn,
     lobby: lobbyEn,
@@ -47,6 +50,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
   },
   fr: {
     home: homeFr,
+    errors: errorsFr,
     round: roundFr,
     waiting: waitingFr,
     lobby: lobbyFr,
