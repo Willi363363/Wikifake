@@ -1,0 +1,15 @@
+{
+  "notFound": {
+    "title": "Cette page n'est pas là",
+    "description": "L'adresse ne figure dans aucun plan du site. Une faute de frappe, peut-être, ou une salle qui a fermé depuis.",
+    "home": "Revenir à l'accueil",
+    "play": "Lancer une manche"
+  },
+  "crash": {
+    "title": "Quelque chose a cassé chez nous",
+    "description": "Ce n'est ni vous ni l'article. La manche en cours est gardée sur le serveur : réessayer la reprend le plus souvent là où elle était.",
+    "retry": "Réessayer",
+    "home": "Revenir à l'accueil",
+    "reference": "Référence : {digest}"
+  }
+}

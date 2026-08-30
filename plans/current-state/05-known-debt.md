@@ -179,15 +179,6 @@ not the client's to key — whoever owns the server messages must decide whether
 they become error *codes* the client translates, or stay sentences in one
 language. Until then a French interface will show them in English.
 
-## A 404 and a crash speak Next's English, not the catalogue's
-
-`apps/web/app` has no `not-found.tsx` and no `error.tsx`, so an unknown URL or
-a render error shows Next's built-in default pages — English words no
-catalogue reaches, whatever locale phase 11 ends up serving. Step 11.2 moves
-strings that exist; these pages first have to exist to have strings, which is
-new-surface work the extraction pass does not own. Until someone builds them,
-the French interface of 11.6 will still crash in English.
-
 ## The structural debt is its own file
 
 The entries above are defects and gaps with a location. The notes that are

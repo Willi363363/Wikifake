@@ -1,0 +1,15 @@
+{
+  "notFound": {
+    "title": "That page is not here",
+    "description": "The address exists in nobody's sitemap. It may have been a typo, or a room that has since closed.",
+    "home": "Back to the front door",
+    "play": "Start a round"
+  },
+  "crash": {
+    "title": "Something broke on our side",
+    "description": "Not your doing, and not the article's. The round you were in is held on the server, so trying again usually picks it back up.",
+    "retry": "Try that again",
+    "home": "Back to the front door",
+    "reference": "Reference: {digest}"
+  }
+}
