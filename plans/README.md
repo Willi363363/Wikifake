@@ -34,8 +34,8 @@ previous one unless its file says otherwise.
 | 6 | Design system | ✅ **done** — both palettes pass every contrast pair | `rewrite/phase-06-design-system.md` |
 | 7 | Frontend — lobby and waiting room | ✅ **done** | `rewrite/phase-07-frontend-lobby.md` |
 | 8 | Frontend — the round | ✅ **done** | `rewrite/phase-08-frontend-round.md` |
-| 9 | Observability and CI/CD | ⚠️ **all ten steps done** — the exit gate waits on the probe variable of phase 10's runbook | `rewrite/phase-09-observability-and-cicd.md` |
-| 10 | Cutover — removing the Python | ⚠️ **production runs the new stack**, multiplayer included — 10.10's dry run, plus the domain and the probe variables the runbook never got | `rewrite/phase-10-cutover.md` |
+| 9 | Observability and CI/CD | ✅ **done** — both services probed, and the probe proved by hand | `rewrite/phase-09-observability-and-cicd.md` |
+| 10 | Cutover — removing the Python | ⚠️ **production runs the new stack**, multiplayer included — 10.10's dry run and the domain are what is left | `rewrite/phase-10-cutover.md` |
 | 11 | Internationalisation | ⚠️ **live in English and French**, error pages included — the French catalogue awaits a human review, and the protocol's sentences await a decision | `rewrite/phase-11-i18n.md` |
 
 **This table is the only place that says where we stand.** It is updated when

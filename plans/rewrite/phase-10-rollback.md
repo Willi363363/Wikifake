@@ -28,8 +28,10 @@ Three things, all of them cheap, all of them worthless if done afterwards:
    and keep the `commit` value. It is what tells you, later, that the woken
    service is the one you meant to wake, and it is what the dry run below
    asserts.
-3. **Keep `DEPLOY_URL` set.** It probes Render. Repointing it is part of the
-   cutover, not part of the preparation, so a rollback finds it where it was.
+3. **`DEPLOY_URL` is gone**, deleted with runbook step 6 on 2026-08-30. This
+   line used to say to keep it set so a rollback would find it where it was;
+   what it bought instead was a red probe on every promotion. Recreating it is
+   step 3 of the rollback below rather than a thing to preserve in advance.
 
 ## The rollback, in order
 
@@ -43,10 +45,11 @@ Under ten minutes, and no step depends on anything the merge removed.
    both providers claim it and one of them answers a certificate error.
    **Today this step is already true**: the domain never left Render, because
    runbook step 5 was not done.
-3. **Restore the probe.** `DEPLOY_URL` back to the Render URL, so
-   `deploy-check` stops failing against a service that no longer holds the
-   domain and starts telling the truth again. **Also already true**, and for the
-   same reason — which is why `main` currently shows a red probe on every push.
+3. **Recreate the probe.** `DEPLOY_URL` was **deleted** on 2026-08-30, when
+   runbook step 6 was caught up: with the service suspended it was failing on
+   every push to `main`, and that noise is what would hide a real failure of the
+   two probes that matter. A rollback has to set it again — to the Render URL —
+   which is a repository variable and takes a minute.
 4. **Leave the realtime service running.** It costs little and holds no state
    that matters — the rooms are in Redis, and a room in flight is lost by the
    cutover either way. Stopping it is one more thing to undo when you roll

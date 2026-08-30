@@ -15,19 +15,14 @@ points at a service suspended on purpose.**
 
 ## State at the pause
 
-- Working tree clean, everything pushed.
-- **`main`:** `c268a66` — served by Vercel, verified over HTTP this session.
-  **`staging` is five commits ahead of it and has not been promoted.**
-- **`staging`:** everything below, merged this session.
-
-| PR | Subject |
-|---|---|
-| #146 | `fix(ui)` — the light palette passes every contrast pair |
-| #147 | `docs` — close 9.10, and say what the ruleset actually enforces |
-| #148 | `docs` — the cutover's unfinished tail, and 10.10 rescoped |
-| #150 | `chore(rules)` — let agents merge, and retire the `revu` label |
-| #149 | `docs` — this handover |
-
+- Working tree clean, nothing unpushed, no pull request open.
+- **`main`:** `f6c53b9` — served by Vercel and by the socket service, both
+  verified over HTTP, and by the deploy probe run by hand.
+- **`staging`:** `main` plus this handover's own batch.
+- Ten pull requests merged this session, #146 to #155: the light palette's
+  contrast, what the ruleset actually enforces, the cutover's unfinished tail,
+  the rule change that let an agent merge, two browser journeys phase 6 could
+  only infer, and the 404 and error pages of step 11.8.
 - **Progress lives in `plans/README.md`** and the step tables in the phase files.
   Those, and nowhere else.
 
@@ -77,28 +72,33 @@ verified against the API — and `phase-10-cutover.md` still claimed that
 `apps/realtime` had never been deployed, eight days after it went live.
 #147 and #148.
 
-## Blocked ❌ — the deploy probe, and it is costing every push
+## Fixed at the end of the session ✅ — the deploy probe
+
+For most of this session the probe lied in both directions:
 
 ```
-DEPLOY_URL          = https://wikifake.onrender.com          suspended → 503
-WEB_DEPLOY_URL      = (unset)                                production, unprobed
-REALTIME_DEPLOY_URL = https://wikifake-realtime.onrender.com ✓ works
+DEPLOY_URL          = wikifake.onrender.com   suspended → failed every push to main
+WEB_DEPLOY_URL      = (unset)                 production, skipped and reported success
+REALTIME_DEPLOY_URL = wikifake-realtime…      the only one that worked
 ```
 
-`WEB_DEPLOY_URL` was never set, so the probe job for the application users
-actually reach **skips itself and reports success while checking nothing**.
-`DEPLOY_URL` was never deleted, so the probe for the suspended Python service
-runs, gets no answer for forty attempts, and fails — on **every push to `main`**.
-Both promotions since the cutover, #143 and #145, carry that red.
+That was step 6 of `plans/rewrite/phase-10-cutover-runbook.md`, left undone while
+step 7 was done — and the runbook had predicted the exact symptom in its own
+words, while `phase-10-cutover.md` listed it among its pitfalls. **The plan
+foresaw this twice and it happened anyway**, which is the argument for reading a
+pitfalls list before a cutover rather than after.
 
-This is step 6 of `plans/rewrite/phase-10-cutover-runbook.md`, left undone while
-step 7 was done. The runbook predicted the symptom in its own words, and
-`phase-10-cutover.md` lists it among its pitfalls. **The plan foresaw this twice
-and it happened anyway** — which is the argument for reading the pitfalls list
-before a cutover rather than after.
+Both variables were set at the end of the session, and the probe was **run by
+hand against `main` to prove it rather than assume it**: the web and realtime
+targets each polled and matched `f6c53b9` on the first attempt, and the Render
+target now skips cleanly. Phase 9's exit gate passed with it.
 
-It is also why phase 9 is *not* marked done: its exit gate asks for a probe
-working against both services, and only one does.
+Two consequences to carry:
+
+- **A rollback must recreate `DEPLOY_URL`.** It is deleted, so
+  `phase-10-rollback.md` step 3 is now a thing to do rather than a thing already
+  true.
+- **The red on #143, #145, #152 and #155 was this**, not those batches.
 
 ## Why the gate never held
 
@@ -122,29 +122,26 @@ the rename window, so **they are not evidence that the gate works.** #147.
   nothing to compare against.
 - **The Google AI key from the 2026-08-27 transcript** — regenerate it in AI
   Studio if that was never done.
-- `05-known-debt.md` is at **exactly 200 lines**, its cap, and so is
-  `phase-09-observability-and-cicd.md`. A new entry in either needs a split or a
-  trim first; the accessibility gap found this session went to
-  `06-structural-debt.md` for that reason.
+- **Two documents sit on the 200-line cap**: `phase-09-observability-and-cicd.md`
+  and `phase-11-i18n.md`. A line added to either needs a line removed, or a
+  split. `05-known-debt.md` came down to 191 when step 11.8 closed its 404 entry,
+  but it was at the cap for most of this session — which is why the findings went
+  to `06-structural-debt.md`.
 
 ## Next steps, in order
 
-1. **Promote `staging` to `main`.** Five commits are waiting, none of them
-   promoted. The `deploy-check` probe will go red on that push — the probe
-   section above says why, and it is not this batch's doing.
-2. **Set the probe variables** — `WEB_DEPLOY_URL` to the production URL, and
-   decide `DEPLOY_URL` together with the domain: it is also the rollback's probe,
-   so deleting it is a step of the rollback in reverse. **This is the one thing
-   an agent cannot do here**: `gh api` write verbs and `gh ruleset` stay denied,
-   deliberately, and repository variables are set in the GitHub UI.
-3. **Run 10.10's dry run** and write the commit into `phase-10-rollback.md`.
-4. **Move the domain**, runbook step 5, and the probe follows it.
-5. Phase 11's two open decisions: whether protocol and socket packages emit
-   translatable *codes* rather than English sentences, and whether
-   `not-found.tsx` / `error.tsx` get built so a French interface stops crashing
-   in English.
-6. Two accessibility journeys — reduced motion, 360 px — now that CI has a
-   browser. `06-structural-debt.md`.
+1. **Run 10.10's dry run** — Resume the suspended Render service, read
+   `/api/health`, **write the commit into `phase-10-rollback.md`**, Suspend. That
+   value is what runbook step 1 was meant to capture and nobody did, so the
+   procedure's own comparison currently has nothing to compare against. It no
+   longer touches production.
+2. **Move the domain**, runbook step 5 — the last line of the cutover.
+3. **Decide the protocol's sentences**: may a package put a player-visible
+   sentence on the wire, or must it emit a code the client translates? It
+   changes what `@wikifake/protocol` and `apps/realtime` are allowed to do.
+   `06-structural-debt.md`.
+4. The French catalogue still wants a human read. Nothing is wrong with it that
+   a test can see, which is exactly why.
 
 ## Commands to resume
 
