@@ -46,30 +46,27 @@ indices, sorted positions, sequential numbers)` is `C3.3`). Each needs reading.
 It also touches sheets that open pull requests have in flight, so it wants its
 own step on a quiet tree.
 
-## Two accessibility criteria are inferred from CSS, never seen
+## `pnpm e2e` and `pnpm test` share one Redis, and the second one loses
 
-Phase 6's exit gate asks that `prefers-reduced-motion` neutralise the shakes and
-the stroboscopic flashes, and that the gallery hold at 360 px. Both are checked
-by reading a stylesheet: `packages/ui/src/motion.test.ts` asserts that the seven
-reducible animations — the strobes and the displacements — are set to `none` by
-name inside `motion.css`'s media block, and `packages/ui/src/responsive.test.ts`
-refuses a length larger than `--width-floor` with no breakpoint in front of it.
+Found by causing it: an e2e run followed immediately by `pnpm test` failed
+`apps/realtime/src/broadcast.test.ts` — *"timed out waiting for the lobby to hold
+ada, bob"* — and the same suite passed on its own a minute later.
 
-That is real evidence and it catches real regressions. It is not the criterion.
-A media block can be correct and still not apply; a layout can declare no oversized
-length and still overflow at 360 px, because overflow comes from content as
-often as from a declaration.
+Both read `REDIS_URL`, and locally that is one instance. The browser journeys
+leave rooms, subscriptions and delayed jobs behind them; the socket suite then
+opens its own rooms against a database that is not empty. Nothing is corrupted
+and nothing is wrong with either suite — they simply were not written to run
+back to back against shared state.
 
-The obstacle the phase named — "there is no browser in CI" — **is gone**. Step
-9.5 brought Playwright, and `Browser journeys` runs on every pull request. What
-is missing is two journeys: one with `reducedMotion: 'reduce'` on the context,
-one with a 360 px viewport, both asserting on what the page actually does.
-Playwright supports each in one line of configuration.
+CI never sees it: each job brings up its own services. A developer running both
+in one sitting sees it, reads a red socket test, and goes looking in the wrong
+file — which is the whole cost, and it is a real one.
 
-Recorded rather than done because it is new test surface, not an unfinished step
-of phase 6 — and because a journey asserting on animation is the kind that
-flakes if it is written in a hurry. The phase closed on the evidence it has;
-this is what would make the evidence match the claim.
+The fixes are all cheap and none is obviously right: a distinct Redis database
+index per suite (`REDIS_URL` already carries one), a flush between runs, or
+prefixed keys. Choosing wants a moment's thought about which of the three the
+socket service should tolerate in production, so it is recorded rather than
+guessed at.
 
 ## The `Makefile` targets that outlived the Makefile
 

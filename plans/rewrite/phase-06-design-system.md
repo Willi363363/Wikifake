@@ -73,14 +73,19 @@ not be because it was waiting on a decision rather than on work.
   tested.
 - ✅ No `style={{}}` object in `packages/ui`.
 
-**Two criteria still rest on an inference, and closing the phase does not make
-them stop.** `prefers-reduced-motion` and the 360 px rendering are both read
-out of the emitted CSS rather than seen. CI has had a headless browser since
-step 9.5 — the Playwright journeys — so the obstacle this sheet named twice is
-gone; what is missing is a journey that emulates the preference and one that
-sets the viewport, and neither exists today. That is new work rather than an
-unfinished step, so it is recorded in `../current-state/06-structural-debt.md`
-and not held against this gate.
+**The two criteria that asked to *see* something are now seen.** This sheet said
+twice that `prefers-reduced-motion` and the 360 px rendering rested on reading
+the emitted CSS because there was no browser in CI. Step 9.5 brought one, and
+`apps/e2e/specs/accessibility.spec.ts` asks both questions of a browser that
+painted the page: the seven reducible animations resolve to `none` under the
+preference and to something else without it, and `/`, `/play` and `/gallery`
+do not scroll sideways at 360 px.
+
+The unit suites stay. They fail in a second and they say which line of which
+stylesheet is wrong, which a journey cannot. What the journey adds is that the
+rule *applied* — and the second reduced-motion test is there because a theme
+shipping `none` unconditionally would satisfy the first while neutralising
+nothing.
 
 ## Contract touched
 
