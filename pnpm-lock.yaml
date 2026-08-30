@@ -47,6 +47,9 @@ importers:
       '@wikifake/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
+      '@wikifake/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       eslint:
         specifier: ^9.39.0
         version: 9.39.5(jiti@2.7.0)(supports-color@8.1.1)
