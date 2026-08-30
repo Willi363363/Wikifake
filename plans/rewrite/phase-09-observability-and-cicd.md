@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — 9.7 live; 9.8 retargeted to Render, awaiting its dashboard; 9.10 needs an administrator |
+| **State** | all ten steps done — the exit gate waits on one repository variable |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
@@ -156,25 +156,25 @@ the right SHA and fails on a different one.
 
 ### 9.10 — Update the ruleset's required checks
 
-⚠️ **Half done — the other half is an administrator's.** The four remaining
-French job names are renamed in `rules.yml`. Updating the ruleset is a gesture
-in the GitHub UI, and no workflow here has a token that can do it.
-
-The ordering is not obvious: a PR carrying the rename reports the new names
-while the ruleset still waits for the old ones, so it cannot merge through its
-own gate. The three steps and why the alternatives are worse are in
-`phase-09-ruleset-rename.md`. **Read it first.**
+✅ **Done.** `rules.yml` carries the English names, and the ruleset requires
+exactly the nine live contexts — read back from the API, with neither
+`Frontend (legacy)` nor `Backend (Python)` among them. No ghost check, proved on
+a pull request rather than by inspecting a list: on #144 and #146 all nine
+*reported*, and a ghost never fails — it stays pending. The window this needed,
+and why the list is not the whole lock: `phase-09-ruleset-rename.md`.
 
 **Done when**: a test PR towards `staging` goes green without a ghost
 check, and the new names appear in the required checks list.
 
 ## Exit gate
 
-- Green CI: lint, typecheck, tests, build, e2e.
-- Per-PR Vercel preview; the socket service deployed on Render and reachable.
-- `deploy-check` probe working against both services.
-- Documentation lock active: generated doc = committed doc, checked in CI.
-- The cost of a game is readable in the database and survives a restart.
+- ✅ Green CI: lint, typecheck, tests, build, e2e.
+- ✅ Per-PR Vercel preview; the socket service deployed on Render and reachable.
+- ⚠️ `deploy-check` probe working against both services — realtime yes, web no.
+  `WEB_DEPLOY_URL` unset (its job skips, probing nothing); `DEPLOY_URL` still on
+  the suspended Python service, so `main` reds one probe a push. Runbook step 6.
+- ✅ Documentation lock active: generated doc = committed doc, checked in CI.
+- ✅ The cost of a game is readable in the database and survives a restart.
 
 ## Contract touched
 

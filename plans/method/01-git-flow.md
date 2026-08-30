@@ -8,7 +8,9 @@ Two permanent branches, never touched directly:
 
 Both are protected by a GitHub ruleset: pull request required, green CI
 required, no direct push, no force-push, no deletion. The `pre-push` hook also
-refuses locally, but the ruleset is what decides.
+refuses locally, but the ruleset is what decides — for everyone except the
+repository owner, who is a bypass actor on it. What that costs, and why it is
+kept, is in `03-infrastructure.md`.
 
 ## The path of a change
 
