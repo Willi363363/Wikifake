@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | all ten steps done — the exit gate waits on one repository variable |
+| **State** | ✅ done — ten steps, and the probe proved against both live services |
 | **Branch** | `feat/rewrite-phase-9` |
 | **Depends on** | phases 4, 5 and 8 |
 | **Delivers** | a complete CI/CD and a system that lets itself be observed |
@@ -170,9 +170,9 @@ check, and the new names appear in the required checks list.
 
 - ✅ Green CI: lint, typecheck, tests, build, e2e.
 - ✅ Per-PR Vercel preview; the socket service deployed on Render and reachable.
-- ⚠️ `deploy-check` probe working against both services — realtime yes, web no.
-  `WEB_DEPLOY_URL` unset (its job skips, probing nothing); `DEPLOY_URL` still on
-  the suspended Python service, so `main` reds one probe a push. Runbook step 6.
+- ✅ `deploy-check` probe working against both services — run by hand against
+  `main` on 2026-08-30, not assumed: web and realtime each polled and matched
+  `f6c53b9` first attempt. The third skips; `DEPLOY_URL` went with step 6.
 - ✅ Documentation lock active: generated doc = committed doc, checked in CI.
 - ✅ The cost of a game is readable in the database and survives a restart.
 

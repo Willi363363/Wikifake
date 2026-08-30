@@ -12,7 +12,8 @@
 ## Where this stands
 
 The cutover was run, and **not in this order**. Step 7 was done before steps 5
-and 6, which were not done at all. Read this before running anything below: most
+and 6, neither of which was done at the time; step 6 was caught up on
+2026-08-30, step 5 has not been. Read this before running anything below: most
 of it has happened.
 
 | Step | State |
@@ -22,21 +23,29 @@ of it has happened.
 | 3 — merge the stack | done — `main` serves the rewrite |
 | 4 — refill the list | done — the nine names, verified against the API |
 | 5 — move the domain | ❌ **not done** — the public domain still points at Render, which is suspended, so it answers nothing. `wikifake.vercel.app` is what works |
-| 6 — repoint the probe | ❌ **not done** — see below |
+| 6 — repoint the probe | ✅ **done 2026-08-30** — see below |
 | 7 — suspend Render | done — `x-render-routing: suspend-by-user` |
 
-**Step 6 is the one that costs something every day.** `WEB_DEPLOY_URL` was never
-set, so the probe job for the application users actually reach skips itself and
-reports success while checking nothing. `DEPLOY_URL` was never deleted, so the
-probe for the suspended Python service runs, gets no answer for forty attempts,
-and fails — on every push to `main`. Both promotions since the cutover, #143 and
-#145, show that red.
+**Step 6 cost something every day until it was done.** `WEB_DEPLOY_URL` was
+never set, so the probe for the application users actually reach skipped itself
+and reported success while checking nothing; `DEPLOY_URL` was never deleted, so
+the probe for the suspended Python service ran, got no answer for forty attempts,
+and failed on every push to `main`. Promotions #143, #145, #152 and #155 all
+carry that red.
 
 This file predicted it: *"deleting the two Render variables is what makes those
 probe jobs skip cleanly instead of failing on every push against a suspended
 service — and that noise is what would mask a real failure of the two that
-matter."* The noise is there, and it is masking exactly what it was said it
-would.
+matter."* The noise was there, and it was masking exactly what it said it would.
+
+Both variables were set on 2026-08-30 and the probe was run by hand against
+`main` to prove it rather than assume it: `Does the web app serve this commit?`
+polled and matched `f6c53b9` on its first attempt, the realtime target likewise,
+and the Render target skipped cleanly with `DEPLOY_URL` gone. Three green, and
+only one of them a skip.
+
+`STAGING_DEPLOY_URL` was never set in the first place, so there was nothing to
+delete.
 
 `phase-10-rollback.md` has the one nuance: `DEPLOY_URL` is also the rollback's
 probe, so deleting it is a step of the rollback in reverse. That is an argument
