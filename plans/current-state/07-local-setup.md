@@ -28,10 +28,20 @@ docker run -d --name wf-pg \
   -p 5432:5432 postgres:17-alpine
 docker run -d --name wf-redis -p 6379:6379 redis:8-alpine
 
-cp .env.example .env    # then fill it in
-pnpm migrate            # apply the Drizzle migrations
-pnpm seed               # optional: development data, idempotent
+cp .env.example .env.local   # then fill it in
+pnpm migrate                 # apply the Drizzle migrations
+pnpm seed                    # optional: development data, idempotent
 ```
+
+The database is named `wikifake` and the role is `postgres` — that `docker run`
+creates no role of its own, which is why `.env.example` connects as `postgres`.
+
+**`.env.local` at the repository root, not `.env` in a package.** Both entry
+points load it through `packages/env/src/files.ts`, which walks up from
+wherever Turborepo started the task: `.env.local` first, then `.env` as a
+fallback, and a variable already exported in the shell beats both. Nothing is
+loaded in CI or in production, where there is no file and the platform sets the
+environment itself.
 
 `.env.example` documents every variable, and **`packages/env/src/index.ts` is
 the schema of record** — a variable added to the example but not declared
@@ -53,6 +63,20 @@ sign-in button silently absent is worse than a startup error.
 ```bash
 pnpm dev        # web app on :3000, socket service on :8080
 ```
+
+No flags, no `export`. Both answer, and reading them is how you know:
+
+```bash
+curl -s localhost:3000/api/health   # {"status":"ok", … "llmConfigured":true}
+curl -s localhost:8080/api/health   # {"status":"ok", …}
+```
+
+**`NEXT_PUBLIC_REALTIME_URL` is what makes a room connect.** The app and the
+socket service are two deployments, so the browser has to be told where the
+second one is; left empty it falls back to the page's own origin — :3000, where
+nothing listens, and the room silently never connects. `.env.example` ships the
+local value, `ws://localhost:8080`, the same one `apps/e2e` sets. It is inlined
+into the bundle when the dev server starts, so changing it means restarting.
 
 ## The commands CI runs
 
