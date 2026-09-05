@@ -5,7 +5,27 @@
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "passThroughEnv": [
+        "NEXT_PUBLIC_*",
+        "VERCEL_*",
+        "BETTER_AUTH_URL",
+        "BETTER_AUTH_SECRET",
+        "DATABASE_URL",
+        "REDIS_URL",
+        "GOOGLE_GENERATIVE_AI_API_KEY",
+        "MODEL_NAME",
+        "SENTRY_DSN",
+        "REALTIME_ALLOWED_ORIGINS",
+        "GOOGLE_OAUTH_CLIENT_ID",
+        "GOOGLE_OAUTH_CLIENT_SECRET",
+        "GITHUB_OAUTH_CLIENT_ID",
+        "GITHUB_OAUTH_CLIENT_SECRET",
+        "WIKIPEDIA_API_URL",
+        "MODEL_BASE_URL",
+        "LOG_LEVEL",
+        "REALTIME_GRACE_SECONDS"
+      ]
     },
     "build": {
       "dependsOn": ["^build"],

@@ -13,7 +13,7 @@
 // the game is reachable at all: a `<button>` with `aria-pressed`, focusable,
 // answering Enter and Space. The current `<span onClick>` answers none of them.
 import type { gameApi } from '@wikifake/protocol';
-import { cn, ParagraphToken, tokenStateFor } from '@wikifake/ui';
+import { cn, ParagraphToken, ReadingSheet, tokenStateFor } from '@wikifake/ui';
 import { useTranslations } from 'next-intl';
 
 import { Attribution } from './attribution.js';
@@ -93,14 +93,14 @@ export function ArticleCard({
   return (
     <article
       className={cn(
-        'rounded-xl border border-line bg-surface px-5 py-6 shadow-md sm:px-10 sm:py-8',
+        'border-3 border-line-strong bg-surface px-5 py-6 shadow-md sm:px-10 sm:py-8',
         'transition-[filter,transform] duration-300',
         [...distortions].map((distortion) => DISTORTED[distortion]),
       )}
     >
-      <header className="flex flex-wrap items-center gap-3 border-b border-line pb-3 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
+      <header className="flex flex-wrap items-center gap-3 border-b-3 border-line-strong pb-3 font-mono text-[10px] font-bold tracking-[0.12em] text-muted uppercase">
         <span>{t('article.source')}</span>
-        <span aria-hidden="true" className="h-3 w-px bg-line" />
+        <span aria-hidden="true" className="h-3 w-px bg-line-strong" />
         <span>{t('article.modifiedTag')}</span>
       </header>
 
@@ -110,8 +110,18 @@ export function ArticleCard({
       </h1>
 
       {/*
-        The body. `space-y` rather than a gap on a flex column, so a paragraph
-        that wraps keeps the rhythm of prose.
+        The body, on `ReadingSheet` — the component that owns the measure, the
+        line height and the prose colours, and refuses a border, a fill or a
+        shadow. This is the surface `01-art-direction.md` exempts from the
+        brutalist grammar, and the exemption is the whole reason it exists: the
+        chassis around this element is loud, and what is being read is not.
+
+        It replaces `text-[15px] leading-relaxed`, which was a size and a
+        rhythm nobody had measured. The pair it lands on — `ink` on `surface` —
+        is the one the audit measures at 21.00 and 15.51.
+
+        `space-y` rather than a gap on a flex column, so a paragraph that wraps
+        keeps the rhythm of prose.
 
         `lang="fr"` because it is: the text comes from `fr.wikipedia.org`, and
         the interface around it is English from step 8.10. A screen reader
@@ -119,7 +129,7 @@ export function ArticleCard({
         exists to prevent, and marking the content is the half of that which does
         not touch the contract — the document's own `lang` is step 11.5's.
       */}
-      <div lang="fr" className="mt-5 space-y-2 text-[15px] leading-relaxed">
+      <ReadingSheet as="div" lang="fr" className="mt-5 space-y-2">
         {article.paragraphs.map((text, at) => {
           const paragraph = at + 1;
           return (
@@ -142,7 +152,7 @@ export function ArticleCard({
             </ParagraphToken>
           );
         })}
-      </div>
+      </ReadingSheet>
 
       <Attribution topic={article.topic} sourceUrl={article.wikipediaUrl} />
     </article>

@@ -3,7 +3,12 @@
 // The stylesheet is not exported from here: CSS is imported by path
 // (`@wikifake/ui/theme.css`) so a bundler can see it, and a module that imported
 // it would make every consumer of a single type pull the whole theme in.
-export { COLOUR_TOKENS, RADIUS_TOKENS, SHADOW_TOKENS } from './tokens.js';
+export {
+  COLOUR_TOKENS,
+  RADIUS_TOKENS,
+  SHADOW_TOKENS,
+  THEME_INDEPENDENT,
+} from './tokens.js';
 export type { ColourToken, TokenGroup } from './tokens.js';
 
 export { MOTIONS, REDUCIBLE } from './motion.js';
@@ -53,6 +58,9 @@ export {
 } from './primitives/dialog.js';
 export type { DialogContentProps } from './primitives/dialog.js';
 
+export { ReadingSheet } from './sheet/reading-sheet.js';
+export type { ReadingSheetProps } from './sheet/reading-sheet.js';
+
 export { ParagraphToken, tokenVariants } from './token/paragraph-token.js';
 export type { ParagraphTokenProps } from './token/paragraph-token.js';
 export {
@@ -84,5 +92,6 @@ export const PRIMITIVES: readonly string[] = [
   'Label',
   'ParagraphToken',
   'Progress',
+  'ReadingSheet',
   'Separator',
 ];

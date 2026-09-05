@@ -189,3 +189,10 @@ read.
 
 A finding recorded on the way through goes in whichever of the two it belongs
 to. Both are the debt register.
+
+## The chat rail sits on the room card at 360 px
+
+`chat/chat.tsx:106` pins the closed handle to `right-0`, and the waiting room's
+card reaches within a dozen pixels of that edge on a phone, so the handle covers
+its border. Nothing is hidden and nothing is unreachable: this is a placement
+decision for the rail rather than a width to shave, and it is its own step.

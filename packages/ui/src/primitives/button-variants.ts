@@ -14,51 +14,69 @@ import { cva } from 'class-variance-authority';
 
 import { cn } from '../cn.js';
 
-// The button, in the four shapes the current game uses.
+// The button, in the four shapes the game uses.
 //
-// `.btn`, `.btn.primary`, `.btn.ghost` and `.btn-icon` of `ui.css`, transcribed:
-// the same pill, the same hairline, the same lift on hover, the same fade when
-// disabled.
+// The interaction *is* the direction: at rest the button carries a hard offset
+// shadow, and on hover it moves into it — `translate` by exactly the shadow's
+// own 4px, shadow to none. Nothing else moves, nothing fades, nothing lifts.
+// The old lift-and-glow was the previous identity and it has no meaning here:
+// this direction does not float things, so it cannot raise one.
 //
-// The focus ring is the visible one, deliberately. `outline: none` with nothing
-// in its place is the single most common way a design system becomes unusable
-// by keyboard, and this one is checked by a test rather than by eye.
+// The focus ring is `accent-line`, which is what that token now means. It is
+// deliberately the one colour used for nothing else — a focus indicator that
+// shares a hue with a state is a focus indicator you have to think about.
+//
+// `outline: none` with nothing in its place is the single most common way a
+// design system becomes unusable by keyboard, and a test holds this one rather
+// than an eye.
 export const buttonVariants = cva(
   cn(
-    'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full',
-    'font-medium tracking-tight transition-all duration-150',
-    // The ring is offset from the control so it reads on a dark and a light
-    // ground alike, which the current inline styles have no answer for.
-    'outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
+    'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-none',
+    'font-bold tracking-tight',
+    // Only the two properties the collapse touches, so the transition cannot
+    // quietly start animating a colour or a size somebody adds later.
+    'transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(.2,.9,.3,1)]',
+    'motion-reduce:transition-none',
+    'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
     'disabled:pointer-events-none disabled:opacity-40',
   ),
   {
     variants: {
       variant: {
         default: cn(
-          'border border-line-strong bg-surface text-ink',
-          'hover:-translate-y-px hover:bg-bg-grain hover:shadow-sm',
-          'active:translate-y-0',
+          'border-3 border-line-strong bg-surface text-ink shadow-md',
+          'hover:translate-x-1 hover:translate-y-1 hover:shadow-none',
         ),
+        /*
+         * `text-on-fill`, and this is the line the whole palette was built
+         * around.
+         *
+         * It used to read `bg-accent text-surface`, which was right while the
+         * accent was a dark teal — paper on it measured about seven to one. The
+         * brutalist accent is #ffe14d, and paper on that is **1.30:1**. `ink`
+         * would be no better in the dark palette, where it *is* paper.
+         *
+         * So the text on a fill is `on-fill`, black on either ground, and
+         * `CONTRAST_PAIRS` measures exactly this pair at 16.13:1.
+         */
         primary: cn(
-          'border border-accent bg-accent text-surface',
-          'hover:-translate-y-px hover:brightness-90 hover:shadow-md',
-          'active:translate-y-0',
+          'border-3 border-line-strong bg-accent text-on-fill shadow-md',
+          'hover:translate-x-1 hover:translate-y-1 hover:shadow-none',
         ),
+        /** No shadow, so there is nothing to collapse into: it stays put. */
         ghost: cn(
-          'border border-line bg-transparent text-ink-2',
+          'border-3 border-transparent bg-transparent text-ink-2',
           'hover:border-line-strong hover:bg-bg-grain hover:text-ink',
         ),
         danger: cn(
-          'border border-danger bg-danger-soft text-danger',
-          'hover:-translate-y-px hover:shadow-sm',
-          'active:translate-y-0',
+          'border-3 border-line-strong bg-danger text-on-fill shadow-md',
+          'hover:translate-x-1 hover:translate-y-1 hover:shadow-none',
         ),
       },
       size: {
         default: 'px-4 py-2 text-[13px]',
         lg: 'px-5 py-2.5 text-sm',
-        /** `.btn-icon`: square, so a lone glyph is not a lopsided pill. */
+        /** Square, so a lone glyph is not a lopsided rectangle. */
         icon: 'size-9 p-0',
       },
     },

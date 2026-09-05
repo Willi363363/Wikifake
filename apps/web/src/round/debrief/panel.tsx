@@ -69,7 +69,7 @@ export function Debrief({
   return (
     <section
       aria-label={t('debrief.aria')}
-      className="rounded-xl border border-line bg-surface p-6 shadow-md"
+      className="border-3 border-line-strong bg-surface p-6 shadow-md"
     >
       <AnimatedRanking
         standings={standings}

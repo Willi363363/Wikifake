@@ -68,7 +68,15 @@ export const MOTIONS: readonly Motion[] = [
     role: 'the SCANNER reading the article',
     reducible: false,
   },
-  { name: 'frost-pulse', kind: 'fade', role: 'frost on the glass', reducible: false },
+  // "Glass" here is the screen, not the token: `glass` and `glass-strong` were
+  // deleted with the brutalist direction, and a role naming a colour that no
+  // longer exists is a role that sends the next reader looking for it.
+  {
+    name: 'frost-pulse',
+    kind: 'fade',
+    role: 'the FROST item, over the article',
+    reducible: false,
+  },
   {
     name: 'damage-pop',
     kind: 'settle',

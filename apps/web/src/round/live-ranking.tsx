@@ -32,7 +32,7 @@ export function LiveRanking({ standings }: LiveRankingProps) {
   return (
     <aside
       aria-label={t('liveRanking.aria')}
-      className="fixed bottom-3 left-3 z-30 w-[min(17rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-line bg-glass-strong shadow-md backdrop-blur-md"
+      className="fixed bottom-3 left-3 z-30 w-[min(17rem,calc(100vw-1.5rem))] overflow-hidden border-3 border-line-strong bg-surface shadow-md"
     >
       <Button
         variant="ghost"
@@ -74,7 +74,7 @@ export function LiveRanking({ standings }: LiveRankingProps) {
               <span
                 className={cn(
                   'font-mono text-[11px] font-semibold tabular-nums',
-                  at === 0 ? 'text-bronze' : 'text-muted',
+                  at === 0 ? 'bg-bronze px-1 text-on-fill' : 'text-muted',
                 )}
               >
                 {String(at + 1).padStart(2, '0')}

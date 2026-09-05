@@ -82,6 +82,56 @@ test.describe('6.3 — and the preference is what does it', () => {
   });
 });
 
+/*
+ * The round, at 360, with an article actually on screen.
+ *
+ * The static routes below are entry screens: a form, a heading, a button. The
+ * screen this game is played on is none of those — it is a Wikipedia article
+ * of several hundred words, with a clock, a score, an item bar and other
+ * players' cursors over it, and it is the only screen where a single unbroken
+ * German compound decides the width of the page.
+ *
+ * Step D.8 asked for every screen at phone width. This is the one that could
+ * not be reached by navigating to a URL, so it is reached by playing.
+ */
+test.describe('D.8 — the round at 360 px', () => {
+  test.use({ viewport: { width: 360, height: 800 } });
+
+  test('the article screen does not scroll sideways', async ({ page }) => {
+    await page.goto('/play');
+    await page.getByLabel('Wikipedia topic').fill('Chat');
+    await page.getByRole('button', { name: 'Play solo' }).click();
+
+    const article = page.getByRole('article');
+    await expect(article).toBeVisible({ timeout: 30_000 });
+    await page.waitForLoadState('networkidle');
+
+    const overflow = await page.evaluate(() => {
+      const root = document.documentElement;
+      if (root.scrollWidth <= root.clientWidth + 1) return null;
+      return { scroll: root.scrollWidth, client: root.clientWidth };
+    });
+
+    expect(overflow).toBeNull();
+  });
+
+  // The paragraph is the reading surface, and a measure that has collapsed to
+  // one word per line is a paragraph nobody can judge. Two words is a floor,
+  // not a target: it says the prose still wraps like prose.
+  test('the prose still reads as prose', async ({ page }) => {
+    await page.goto('/play');
+    await page.getByLabel('Wikipedia topic').fill('Chat');
+    await page.getByRole('button', { name: 'Play solo' }).click();
+
+    const article = page.getByRole('article');
+    await expect(article).toBeVisible({ timeout: 30_000 });
+
+    const box = await article.getByRole('button').first().boundingBox();
+    expect(box).not.toBeNull();
+    expect(box?.width).toBeGreaterThan(200);
+  });
+});
+
 test.describe('6.5 — the interface at 360 px', () => {
   // 360 CSS pixels: a phone held upright, and `--width-floor` in the theme. The
   // page itself must never scroll sideways; a wide table or a code block inside
@@ -90,7 +140,7 @@ test.describe('6.5 — the interface at 360 px', () => {
 
   // `/gallery` is the one the phase's own criterion names — it renders every
   // component the design system exports, so it is the widest page there is.
-  for (const route of ['/', '/play', '/gallery']) {
+  for (const route of ['/', '/play', '/solo', '/gallery']) {
     test(`${route} does not scroll sideways`, async ({ page }) => {
       await page.goto(route);
       // Fonts and images change layout after first paint, and a page measured

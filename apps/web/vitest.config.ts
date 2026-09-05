@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url';
+
 import { baseConfig } from '@wikifake/config/vitest';
 
 // The route handlers live under `app/`, not `src/`: that is where Next looks for
@@ -10,6 +12,18 @@ export default {
   // alone — so a rendered component fails with "React is not defined", a long
   // way from the cause.
   esbuild: { jsx: 'automatic' as const },
+  // `next/font/google` is a build-time transform, not a runtime module: Next's
+  // compiler rewrites each call into a self-hosted `@font-face`. Vitest has no
+  // such compiler, so the import resolves to a non-function and every test that
+  // renders the layout dies on it. The stub returns the shape the layout reads.
+  resolve: {
+    alias: [
+      {
+        find: 'next/font/google',
+        replacement: fileURLToPath(new URL('./test/next-font-stub.ts', import.meta.url)),
+      },
+    ],
+  },
   test: {
     ...baseConfig.test,
     // `next-intl`'s ESM build imports `next/server` and `next/navigation`

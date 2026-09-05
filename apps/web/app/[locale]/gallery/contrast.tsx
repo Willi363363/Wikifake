@@ -32,7 +32,7 @@ export function ContrastAudit() {
   }, []);
 
   return (
-    <div ref={ground} className="rounded-xl border border-line bg-bg p-6 text-ink">
+    <div ref={ground} className="border-3 border-line-strong bg-bg p-6 text-ink">
       {results === null ? (
         <p className="text-sm text-muted">Measuring…</p>
       ) : (
@@ -52,7 +52,9 @@ export function ContrastAudit() {
                 <span
                   className={cn(
                     'font-mono text-xs tabular-nums',
-                    result.passes ? 'text-ink-2' : 'text-danger',
+                    result.passes
+                      ? 'text-ink-2'
+                      : 'bg-danger px-1 font-bold text-on-fill',
                   )}
                 >
                   {result.ratio.toFixed(2)}:1

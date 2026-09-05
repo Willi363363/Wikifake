@@ -12,13 +12,25 @@
 // `cursor: default`, and a control that looks pressable and does nothing is
 // worse than one that does not look pressable.
 //
-// The looks are `article.css`, transcribed — the same washes, the same inset
-// hairlines, the same crosshair, the same 360ms flash on marking, the same
-// sweep on a bought hint. What changes is that the badges are **content**
-// instead of `::before`/`::after`. A pseudo-element's `content` is
-// inconsistently exposed to assistive technology and cannot be translated at
-// all, which is how `"🔎 INDICE"` came to be French text living inside a
-// stylesheet.
+// The badges are **content** rather than `::before`/`::after`. A
+// pseudo-element's `content` is inconsistently exposed to assistive technology
+// and cannot be translated at all, which is how `"🔎 INDICE"` came to be French
+// text living inside a stylesheet.
+//
+// Step B.8 gave the states the brutalist grammar and left the prose alone,
+// which is the whole of `01-art-direction.md`'s exemption in one component:
+// **the text is calm, the act of marking it is loud.** At rest there is no
+// border, no fill and no shadow — only the crosshair says the paragraph can be
+// marked. Marked, it takes the structural border and a wash.
+//
+// The border is `border-3 border-transparent` at rest rather than absent, so
+// that the box is the same size before and after: a border that appears on
+// hover and reflows the paragraph under the cursor is a paragraph that is hard
+// to click and impossible to read while choosing.
+//
+// The three bronze states are told apart by border *style* rather than by a
+// fourth shade of the same hue — dashed for edited, dotted for scanned, solid
+// for hinted. That is one more thing that survives being seen in grey.
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
@@ -27,57 +39,48 @@ import { isInteractive, TOKEN_LABELS, type TokenState } from './state.js';
 
 export const tokenVariants = cva(
   cn(
-    'relative block w-full rounded-sm px-1 py-0.5 text-left',
+    'relative block w-full rounded-token border-3 px-1 py-0.5 text-left',
     // Wikipedia prose carries chemical names, German compounds and bare URLs.
     // Without this a single word decides the width of the page, and at 360 CSS
     // pixels that is a page which scrolls sideways.
     'break-words hyphens-auto',
-    'transition-[background-color,color,box-shadow] duration-150',
+    'transition-[background-color,border-color] duration-150 motion-reduce:transition-none',
   ),
   {
     variants: {
       state: {
+        // Nothing at all, which is the exemption. The crosshair is the only
+        // thing that says this paragraph is markable, and that is enough while
+        // the player is reading rather than deciding.
         idle: cn(
-          'cursor-crosshair bg-transparent text-ink',
-          'hover:bg-accent/7 hover:shadow-[inset_0_0_0_1px_var(--color-accent-line)]',
+          'cursor-crosshair border-transparent bg-transparent text-ink',
+          'hover:border-line-strong',
         ),
         selected: cn(
-          'cursor-crosshair bg-accent-soft text-accent',
-          'shadow-[inset_0_0_0_1px_var(--color-accent-line)]',
+          'cursor-crosshair border-line-strong bg-accent-soft text-ink',
           'animate-token-flash',
         ),
         edited: cn(
-          'cursor-crosshair bg-bronze-soft text-bronze',
-          'shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-bronze)_25%,transparent)]',
+          'cursor-crosshair border-dashed border-line-strong bg-bronze-soft text-ink',
         ),
         scanned: cn(
-          'cursor-crosshair bg-bronze/15 text-ink',
-          'shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-bronze)_30%,transparent)]',
+          'cursor-crosshair border-dotted border-line-strong bg-bronze-soft text-ink',
         ),
-        hinted: cn(
-          'cursor-crosshair bg-bronze-soft text-bronze',
-          'shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-bronze)_25%,transparent)]',
-        ),
-        found: cn(
-          'cursor-default bg-green-soft text-green',
-          'shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-green)_32%,transparent)]',
-        ),
-        missed: cn(
-          'cursor-default bg-warn-soft text-warn',
-          'shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-warn)_32%,transparent)]',
-        ),
-        // Line-through as well as colour: three verdicts told apart by hue alone
-        // is three verdicts nobody colour-blind can tell apart.
+        hinted: cn('cursor-crosshair border-line-strong bg-bronze-soft text-ink'),
+        found: 'cursor-default border-line-strong bg-green-soft text-ink',
+        missed: 'cursor-default border-line-strong bg-warn-soft text-ink',
+        // Line-through as well as colour, and now in `ink` rather than in a
+        // tint of `danger`: three verdicts told apart by hue alone is three
+        // verdicts nobody colour-blind can tell apart.
         'false-positive': cn(
-          'cursor-default bg-danger-soft text-danger line-through decoration-1',
-          'decoration-danger/60',
-          'shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-danger)_30%,transparent)]',
+          'cursor-default border-line-strong bg-danger-soft text-ink',
+          'line-through decoration-ink decoration-2',
         ),
       },
       interactive: {
         true: cn(
           'outline-none',
-          'focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
+          'focus-visible:ring-[3px] focus-visible:ring-accent-line focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
         ),
         false: '',
       },
@@ -128,21 +131,36 @@ export function ParagraphToken({
           stylesheet, and one of the seven `prefers-reduced-motion` switches
           off. Decorative, so it is hidden and it is not a child of the text. */}
       {shown === 'hinted' ? (
+        // A line, not a wash. The wrapper clips, and what travels inside it is
+        // a full-width element carrying only a left border — so the scanner
+        // reads across the paragraph without ever covering it. Step B.9.
+        //
+        // The border width is spelled the long way on purpose, and the reason
+        // is narrower and stranger than it first looked.
+        //
+        // `border-3`, `border-r-3`, `border-t-3` and `border-b-3` all resolve
+        // through the theme's `--border-width-3`. **`border-l-3` alone emits no
+        // rule at all** — measured on all four sides, in one build, from one
+        // file Tailwind scanned. It is a class that looks right, reads right,
+        // passes review and draws an invisible line.
+        //
+        // Recorded in `plans/current-state/05-known-debt.md`; it looks like a
+        // Tailwind bug rather than anything this repository can fix. Until it
+        // is understood, this spelling both works and keeps the number in the
+        // token instead of repeating `3px` here.
         <span
           aria-hidden
-          className={cn(
-            'pointer-events-none absolute inset-0 rounded-sm',
-            'bg-linear-to-r from-transparent via-bronze/20 to-transparent',
-            'animate-scan-sweep',
-          )}
-        />
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-token"
+        >
+          <span className="absolute inset-y-0 left-0 w-full border-l-[length:var(--border-width-3)] border-bronze animate-scan-sweep" />
+        </span>
       ) : null}
 
       {/* The marked underline: `.token.selected::after`. */}
       {shown === 'selected' ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-1 -bottom-0.5 h-0.5 rounded-sm bg-accent"
+          className="pointer-events-none absolute inset-x-1 -bottom-0.5 h-1 bg-accent"
         />
       ) : null}
 
@@ -154,9 +172,12 @@ export function ParagraphToken({
             shown === 'scanned'
               ? '-top-5 left-0 text-[10px] text-bronze'
               : cn(
-                  '-top-2 -right-1 flex size-3 items-center justify-center rounded-full',
-                  'text-[9px] text-surface',
-                  shown === 'found' ? 'bg-green shadow-sm' : 'bg-warn',
+                  // `text-surface` here was paper on a fill, exactly the pair
+                  // the primary button carried: white on #5fe08b is about
+                  // 1.7:1. `on-fill` is what the audit measures at 12.52.
+                  '-top-2 -right-1 flex size-3.5 items-center justify-center',
+                  'border-2 border-line-strong text-[9px] text-on-fill',
+                  shown === 'found' ? 'bg-green' : 'bg-warn',
                 ),
           )}
         >

@@ -145,10 +145,10 @@ export function LobbyEntry() {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10">
-      <h1 className="text-center text-3xl font-semibold text-ink">{t('brand')}</h1>
+      <h1 className="text-center text-3xl text-ink">{t('brand')}</h1>
       <p className="mt-2 text-center text-sm text-muted">{t('tagline')}</p>
 
-      <div className="mt-8 rounded-xl border border-line bg-surface p-6 shadow-md">
+      <div className="mt-8 border-3 border-line-strong bg-surface p-6 shadow-md">
         {/* A tablist, not three buttons that happen to look like one: the roles
             are what let a keyboard move between them. */}
         <div role="tablist" aria-label={t('tabsLabel')} className="flex gap-2">
@@ -242,7 +242,12 @@ export function LobbyEntry() {
         {error === null ? null : (
           // `role="alert"`, so it is announced rather than merely displayed —
           // the current one is a red paragraph and nothing else.
-          <p role="alert" className={cn('mt-4 text-center text-sm text-danger')}>
+          <p
+            role="alert"
+            className={cn(
+              'mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center',
+            )}
+          >
             {error}
           </p>
         )}

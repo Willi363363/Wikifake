@@ -5,6 +5,12 @@
 // process refuses to start, naming what is missing.
 import { z } from 'zod';
 
+// The other half of the story: `loadEnv` validates what is in `process.env`,
+// `loadEnvFiles` is what puts it there when no platform did. Re-exported so a
+// consumer needs one import; entry points that must run it before anything else
+// reads the environment import `@wikifake/env/load` instead.
+export { ENV_FILE_NAMES, findWorkspaceRoot, loadEnvFiles } from './files.js';
+
 /**
  * The model served when none is configured.
  *

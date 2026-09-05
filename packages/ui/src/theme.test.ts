@@ -20,7 +20,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-import { COLOUR_TOKENS, RADIUS_TOKENS, SHADOW_TOKENS } from './tokens.js';
+import {
+  COLOUR_TOKENS,
+  RADIUS_TOKENS,
+  SHADOW_TOKENS,
+  THEME_INDEPENDENT,
+} from './tokens.js';
 
 const read = (relative: string): string =>
   readFileSync(fileURLToPath(new URL(relative, import.meta.url)), 'utf8');
@@ -93,18 +98,60 @@ describe('6.1 — the tokens', () => {
       ).toEqual([...colours].sort());
     });
 
-    it('answers differently — a token repeated is a token forgotten', () => {
+    /*
+     * This assertion used to read: *answers differently — a token repeated is a
+     * token forgotten*, with no exceptions. The brutalist direction broke it on
+     * purpose, and the fix is to state the new rule rather than to drop the old
+     * check.
+     *
+     * A fill is the same colour on either ground — a yellow button is that
+     * yellow on a dark page — and `on-fill` is black on either ground because
+     * what it sits on is. Everything else still has to move, so the protection
+     * the original assertion bought is intact: a ground or a wash nobody
+     * translated fails here exactly as it did before.
+     */
+    const independent = THEME_INDEPENDENT.map((name) => `--color-${name}`);
+
+    it('repeats the theme-independent tokens, and only those', () => {
       const unchanged = colours.filter(
         (name) => comparable(dark.get(name) ?? '') === comparable(theme.get(name) ?? ''),
       );
-      expect(unchanged).toEqual([]);
+      expect(unchanged.sort()).toEqual([...independent].sort());
     });
 
-    // The elevations too: the light shadows are a haze that vanishes on a dark
-    // ground, where depth has to come from something darker than the surface.
-    it('restates the elevations', () => {
+    // The other half of it: a fill that drifted between the palettes would pass
+    // the assertion above by simply not being in `unchanged`, and the failure
+    // would be a button that changes colour with the theme for no reason.
+    it('holds each of them to the same value in both palettes', () => {
+      for (const name of independent) {
+        expect(comparable(dark.get(name) ?? '')).toBe(comparable(theme.get(name) ?? ''));
+      }
+    });
+
+    /*
+     * This used to require the dark palette to restate every elevation, and it
+     * was right to: phase 6's shadows were a haze of near-black that vanished
+     * on a dark ground, so dark needed its own.
+     *
+     * The brutalist elevations are a solid block of `--color-line-strong` at an
+     * offset, and that token already inverts — so restating them would be
+     * copying a line that says the same thing twice. What has to stay true is
+     * the *shape*: an elevation expressed as a literal colour would silently
+     * stop inverting, and that is what this now catches.
+     */
+    it('needs no elevation of its own, because they invert through a token', () => {
       for (const level of SHADOW_TOKENS) {
-        expect(dark.has(`--shadow-${level}`)).toBe(true);
+        expect(theme.get(`--shadow-${level}`)).toContain('var(--color-line-strong)');
+        expect(dark.has(`--shadow-${level}`)).toBe(false);
+      }
+    });
+
+    // A blur radius is the thing this direction does not do. Written as an
+    // assertion because "no blurred shadow" is exactly the kind of rule that
+    // erodes one convenient exception at a time.
+    it('blurs nothing', () => {
+      for (const level of SHADOW_TOKENS) {
+        expect(theme.get(`--shadow-${level}`)).toMatch(/^\d+px \d+px 0 /);
       }
     });
 
@@ -138,6 +185,31 @@ describe('6.1 — the tokens', () => {
     // above covers them. They are what step 6.5 rests on: a length larger than
     // the floor with no breakpoint in front of it is a page that scrolls
     // sideways on a phone.
+    /*
+     * The families, and the fallback that is doing real work.
+     *
+     * An undefined custom property invalidates the whole declaration at
+     * computed-value time — so `var(--font-archivo), sans-serif` resolves to
+     * nothing at all, not to `sans-serif`, anywhere the application has not
+     * loaded the face. The gallery in isolation and every jsdom test are
+     * exactly that, and the failure would be silent.
+     *
+     * So each `var()` carries its own fallback, and this says so out loud.
+     */
+    it('names a family for prose and one for code, each with a fallback', () => {
+      for (const role of ['sans', 'mono']) {
+        const stack = theme.get(`--font-${role}`) ?? '';
+        expect(stack).toMatch(/var\(--font-[\w-]+,\s*ui-(?:sans-serif|monospace)\)/);
+        expect(stack).toMatch(/(?:sans-serif|monospace)\s*$/);
+      }
+    });
+
+    // 3px, and it is a token so that twenty components do not each carry the
+    // number. The primitives read it in step B.6.
+    it('names the structural border width', () => {
+      expect(theme.get('--border-width-3')).toBe('3px');
+    });
+
     it('names the breakpoints and the viewport floor', () => {
       expect(
         [...theme.keys()].filter((name) => name.startsWith('--breakpoint-')),

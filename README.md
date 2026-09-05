@@ -1,86 +1,85 @@
 # WikiFake
 
-A misinformation-detection game. The server fetches a Wikipedia article, a
-language model injects factual errors into it, and players have to find
-them — alone or together, sabotaging each other with items.
+**A game about spotting a lie in something that looks true.**
 
-The principle that structures everything else: **the server is the only
-authority, and the solution never leaves it before the end of the round.**
+The server pulls a real article from Wikipedia. A language model rewrites a
+few of its paragraphs — same tone, same style, same confident encyclopedic
+voice, different facts. Then it hands you the article and tells you one thing
+only: *how many* paragraphs it touched.
 
-## Getting started
+Finding them is the game.
 
-A TypeScript monorepo — pnpm workspaces and Turborepo. No Python: the old
-stack was deleted at the cutover of phase 10.
+## How a round plays
 
-```bash
-nvm use                 # Node 22, pinned by .nvmrc
-corepack enable pnpm    # if needed: npm i -g corepack@latest first
-pnpm install
-pnpm hooks              # install the git hooks — once per clone
-```
+You read. That is most of it. The falsified paragraph does not look wrong —
+it looks exactly as plausible as the others, because the same model wrote it
+in the same register. What gives it away is a date that does not fit, a
+consequence that does not follow, a name in the wrong decade.
 
-> The Corepack shipped with Node 20 has stale signature keys and fails with
-> `Cannot find matching keyid`: update it before enabling it.
+When you think you have one, you mark it. The clock is running, the score
+rewards precision over speed, and marking a paragraph that was authentic
+costs you.
 
-Copy `.env.example` to `.env` and fill it in. You need a Google AI Studio key,
-a Postgres URL and a Redis URL; the two services run locally however you like
-them to — Docker is the short answer:
+At the end the article opens up: every falsification is revealed, with what
+the original actually said and what the model changed it to. You find out
+which ones you caught, which you let through, and which you accused for
+nothing.
 
-```bash
-docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=wikifake -e POSTGRES_DB=wikifake postgres:17-alpine
-docker run -d -p 6379:6379 redis:8-alpine
-pnpm migrate            # apply the Drizzle migrations
-```
+## Alone, or against other people
 
-Then:
+**Solo** — pick a topic, or take one at random, and play against the clock.
 
-```bash
-pnpm dev                # the web app on :3000, the socket service on :8080
-pnpm test               # unit and integration, across every package
-pnpm typecheck          # what CI runs, and what it runs first
-pnpm lint
-pnpm build
-pnpm e2e                # the browser journeys — builds the app, starts both
-pnpm check              # repository compliance checks, as the hook runs them
-```
+**In a room** — up to a table's worth of players on the same article, each
+seeing the others' cursors move through the text. You can watch somebody
+hesitate over a paragraph. You can watch them mark the wrong one.
 
-`pnpm test` and `pnpm e2e` want Postgres and Redis up; without them the
-integration suites skip rather than fail, which is how a green run can still
-be an incomplete one.
+And you can interfere. **Items** are bought during the round and land on other
+players: obscure their view, scramble what they are reading, hurry them.
+Everything is resolved on the server, so an item that lands is an item that
+was really paid for.
 
-## What is where
+**Hints** work the other way — spend on yourself, narrow the search, take the
+score penalty. The game will not sell you the same hint twice.
 
-```
-apps/web         Next.js — the screens, the REST API, the auth, the SEO surface
-apps/realtime    the WebSocket service — Hono, ws, Redis
-apps/e2e         the Playwright journeys
-packages/protocol  ★ every contract, as Zod schemas
-packages/domain    ★ the rules: scoring, grading, items, the room reducer
-packages/article   Wikipedia, the model, the cache
-packages/db        Drizzle: schema, migrations, queries
-packages/ui        the design system
-packages/env       the validated environment
-packages/config    shared tsconfig, eslint and vitest presets
-```
+## The one rule the whole thing is built on
 
-The two marked ★ are why the rewrite happened: they hold each truth once, so
-the scoring scale, the item identifiers and the message shapes cannot drift
-between a client and a server that disagree.
+**The server is the only authority, and the solution never leaves it before
+the round is over.**
 
-## Documentation
+Not obscured in the payload. Not sent and hidden by the interface. Not
+present. What the browser receives is the article and a count — never which
+paragraphs were touched, never the original text, never the explanations. The
+score is computed server-side and the client is told the result.
 
-Everything is in **[`plans/`](plans/README.md)**. Three entry points:
+It is the reason this project was rewritten from top to bottom, and the tests
+that hold it are the ones nobody is allowed to delete.
 
-- **`plans/method/`** — how we work: phases and steps, git flow, repository
-  rules. Read before contributing.
-- **`plans/current-state/`** — how the code works today.
-- **`plans/rewrite/`** — where the project is going, phase by phase.
+## Where it runs
 
-Agents read `CLAUDE.md` at the root, which points to these documents and
-restates the non-negotiable rules.
+The game is live, in English and in French, on the web and on a phone. You can
+play a full game without an account.
 
-## Project status
+## Read next
 
-The rewrite is at phase 10 — the cutover. Python and FastAPI are gone;
-progress is tracked in [`plans/README.md`](plans/README.md), which is the only
-file that says where the project stands.
+| You want to… | Go to |
+|---|---|
+| **run it locally** | [`plans/current-state/07-local-setup.md`](plans/current-state/07-local-setup.md) |
+| **understand the stack** | [`plans/current-state/`](plans/current-state/00-overview.md) — packages, web app, socket service, deployment |
+| **contribute** | [`plans/method/`](plans/method/01-git-flow.md) — git flow, then the repository rules |
+| **know what is being built now** | [`plans/product/00-overview.md`](plans/product/00-overview.md) |
+| **know where the project stands** | [`plans/README.md`](plans/README.md) — the only file that says |
+| **read the protocol** | [`plans/protocol/`](plans/protocol/README.md) — generated from the schemas |
+| **know what must never break** | [`plans/rewrite/01-contract-to-preserve.md`](plans/rewrite/01-contract-to-preserve.md) |
+
+All documentation lives in [`plans/`](plans/README.md). Agents read
+[`CLAUDE.md`](CLAUDE.md), which restates the non-negotiable rules.
+
+## In one paragraph, for the technically curious
+
+A TypeScript monorepo — pnpm workspaces, Turborepo. Next.js for the app and
+the REST surface, a separate WebSocket service for rooms, Postgres through
+Drizzle, Redis for room state, Gemini for the falsifications. Two packages
+hold every shared truth: `protocol` has the contracts as Zod schemas,
+`domain` has the rules — scoring, grading, items, the room reducer. They exist
+so that a client and a server can never disagree about what a message means.
+The full picture is in [`plans/current-state/`](plans/current-state/00-overview.md).

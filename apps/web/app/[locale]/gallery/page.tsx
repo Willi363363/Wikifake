@@ -35,23 +35,22 @@ import { TokenGallery } from './token.js';
 const GROUPS: readonly { readonly id: TokenGroup; readonly title: string }[] = [
   { id: 'surface', title: 'Surfaces' },
   { id: 'text', title: 'Text' },
-  { id: 'accent', title: 'Accents' },
+  { id: 'fill', title: 'Fills — the same in both palettes' },
+  { id: 'wash', title: 'Washes — a tint of the ground' },
 ];
 
 function Swatch({ token }: { token: ColourToken }) {
   return (
     <li className="flex items-center gap-3">
-      {/* Over a chequered ground, so a translucent token reads as translucent
-          rather than as a slightly different flat colour. */}
+      {/* The chequerboard is gone with the tokens that needed it. It existed so
+          a translucent swatch read as translucent rather than as a slightly
+          different flat colour, and the palette has no translucent token left —
+          it was also a gradient, which this direction does not have. */}
       <span
-        className="size-10 shrink-0 rounded-md border border-line-strong bg-[repeating-conic-gradient(var(--color-bg-grain)_0_25%,transparent_0_50%)] bg-[length:12px_12px]"
+        className="size-10 shrink-0 border-3 border-line-strong"
+        style={{ backgroundColor: `var(--color-${token.name})` }}
         aria-hidden
-      >
-        <span
-          className="block size-full rounded-md"
-          style={{ backgroundColor: `var(--color-${token.name})` }}
-        />
-      </span>
+      />
       <span className="min-w-0">
         <code className="block text-sm text-ink">{token.name}</code>
         <span className="block text-xs text-muted">{token.role}</span>
@@ -62,7 +61,7 @@ function Swatch({ token }: { token: ColourToken }) {
 
 function Palette() {
   return (
-    <div className="flex-1 rounded-xl border border-line bg-bg p-6 text-ink">
+    <div className="flex-1 border-3 border-line-strong bg-bg p-6 text-ink">
       <div className="space-y-8">
         {GROUPS.map((group) => (
           <section key={group.id}>
@@ -81,11 +80,13 @@ function Palette() {
           <h3 className="mb-3 text-xs font-semibold tracking-widest text-muted uppercase">
             Elevation
           </h3>
-          <ul className="flex flex-wrap gap-4">
+          {/* `gap-4` plus the offset: a 6px shadow on a flex row with a 4px gap
+              lands on top of the next sample. The room is the gap now. */}
+          <ul className="flex flex-wrap gap-6 pr-2 pb-2">
             {SHADOW_TOKENS.map((level) => (
               <li
                 key={level}
-                className="rounded-lg bg-surface px-5 py-4 text-sm text-ink-2"
+                className="border-3 border-line-strong bg-surface px-5 py-4 text-sm text-ink"
                 style={{ boxShadow: `var(--shadow-${level})` }}
               >
                 shadow-{level}
@@ -102,7 +103,7 @@ function Palette() {
             {RADIUS_TOKENS.map((size) => (
               <li
                 key={size}
-                className="border border-line-strong bg-surface px-5 py-4 text-sm text-ink-2"
+                className="border-3 border-line-strong bg-surface px-5 py-4 text-sm text-ink"
                 style={{ borderRadius: `var(--radius-${size})` }}
               >
                 rounded-{size}
@@ -124,7 +125,7 @@ function Palette() {
  */
 function Primitives() {
   return (
-    <div className="flex-1 space-y-8 rounded-xl border border-line bg-bg p-6 text-ink">
+    <div className="flex-1 space-y-8 border-3 border-line-strong bg-bg p-6 text-ink">
       <section>
         <h3 className="mb-3 text-xs font-semibold tracking-widest text-muted uppercase">
           Button
@@ -221,10 +222,16 @@ function Primitives() {
 export default function GalleryPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-semibold text-ink">Design system</h1>
+      {/* No weight utility: the theme gives a heading 800, and this is a
+          heading rather than a label. The `h3`s below keep `font-semibold`
+          on purpose — a small uppercase label at 800 with display tracking
+          is not what the direction means by display type, and a utility
+          beating the base rule is the cascade working. */}
+      <h1 className="text-2xl text-ink">Design system</h1>
       <p className="mt-2 max-w-prose text-sm text-muted">
-        The tokens of the current game, transcribed. Light and dark are the same markup:
-        the right-hand column is wrapped in <code>.dark</code>.
+        Every token, primitive and state, in both palettes. Light and dark are the same
+        markup: the right-hand column is wrapped in <code>.dark</code>, which is what
+        makes the fills visibly the same colour on either ground.
       </p>
 
       <h2 className="mt-10 text-lg font-medium text-ink">Palette</h2>
