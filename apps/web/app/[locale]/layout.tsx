@@ -11,6 +11,7 @@
 // the article itself, which carries its own `lang` in `round/article.tsx`. The
 // clause and its tests were amended together, as phase 11 requires.
 import type { Metadata, Viewport } from 'next';
+import { Archivo, JetBrains_Mono } from 'next/font/google';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
@@ -21,6 +22,43 @@ import { LOCALES, type Locale } from '../../src/i18n/locales.js';
 import { absolute, localePath, siteOrigin } from '../../src/indexing.js';
 
 import '../globals.css';
+
+/*
+ * The two families, self-hosted at build time.
+ *
+ * `next/font/google` downloads the files during the build and serves them from
+ * our own origin. No request to a third party at runtime, nothing for a content
+ * policy to allow, and the metrics are known before the first paint — so no
+ * layout shift when the face arrives.
+ *
+ * **Archivo carries the whole interface.** It is one variable file across the
+ * weight axis, which is what makes `01-art-direction.md`'s "one family, two
+ * weights" cost one download rather than two: display is the same face at 800,
+ * body is it at 400. It was drawn for highlights *and* for text, which is the
+ * unusual property being relied on here — most grotesques bold enough for this
+ * direction are unpleasant to read a paragraph in.
+ *
+ * **JetBrains Mono is the second family, and the argument for it is not
+ * aesthetic.** Players type a room code. A face where `0` and `O`, or `1`, `l`
+ * and `I`, are hard to tell apart turns a shared code into a failed join, and
+ * that is a real defect rather than a matter of taste — this one slashes the
+ * zero and separates the three. It carries codes, scores, timers and badges.
+ *
+ * Latin only, on both: the interface is English and French, and the article
+ * text is French. Loading Cyrillic and Greek would be paying for coverage
+ * nothing renders.
+ */
+const archivo = Archivo({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-archivo',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jetbrains-mono',
+});
 
 /**
  * The `og:locale` value each interface locale declares.
@@ -121,7 +159,7 @@ export default async function RootLayout({
   const locale = await localeFrom(params);
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={`${archivo.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-bg text-ink">
         {/* Step 11.1: every screen below reads its copy through `next-intl`.
             No props on purpose — rendered in a server component, the provider
