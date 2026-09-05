@@ -61,7 +61,20 @@ describe('6.2 — the primitives', () => {
       // `outline-none` with nothing in its place is the single most common way a
       // design system becomes unusable by keyboard.
       expect(classes).toContain('outline-none');
-      expect(classes).toContain('focus-visible:ring-2');
+      // A ring of *some* non-zero width, rather than one exact spelling.
+      // Pinning `ring-2` meant a width change failed here for no reason, while
+      // `ring-0` — the change that actually matters — would have passed it.
+      expect(classes).toMatch(/focus-visible:ring-(?:\[[1-9]\d*px\]|[1-9]\d*(?![\w-]))/);
+    });
+
+    // The ring is `accent-line`, the colour this direction reserves for focus
+    // and for nothing else. A ring that shares a hue with a state is a ring you
+    // have to think about before you know what it is telling you.
+    it('rings in the colour reserved for focus', () => {
+      render(<Button>Start</Button>);
+      expect(screen.getByRole('button').className).toContain(
+        'focus-visible:ring-accent-line',
+      );
     });
 
     it('does not submit the form it happens to be inside', () => {
