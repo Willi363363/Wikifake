@@ -135,12 +135,19 @@ export function ParagraphToken({
         // a full-width element carrying only a left border — so the scanner
         // reads across the paragraph without ever covering it. Step B.9.
         //
-        // The border width is spelled the long way on purpose. `border-3`
-        // resolves through the theme's `--border-width-3`, but `border-l-3`
-        // matches nothing at all and emits **no rule** — a class that looks
-        // right, passes review and draws an invisible line. Verified in the
-        // built stylesheet, not assumed. This spelling keeps the number in the
-        // token rather than repeating `3px` here.
+        // The border width is spelled the long way on purpose, and the reason
+        // is narrower and stranger than it first looked.
+        //
+        // `border-3`, `border-r-3`, `border-t-3` and `border-b-3` all resolve
+        // through the theme's `--border-width-3`. **`border-l-3` alone emits no
+        // rule at all** — measured on all four sides, in one build, from one
+        // file Tailwind scanned. It is a class that looks right, reads right,
+        // passes review and draws an invisible line.
+        //
+        // Recorded in `plans/current-state/05-known-debt.md`; it looks like a
+        // Tailwind bug rather than anything this repository can fix. Until it
+        // is understood, this spelling both works and keeps the number in the
+        // token instead of repeating `3px` here.
         <span
           aria-hidden
           className="pointer-events-none absolute inset-0 overflow-hidden rounded-token"
