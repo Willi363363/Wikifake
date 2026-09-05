@@ -286,6 +286,11 @@
    * direction whose headings are 800 only where somebody remembered to type
    * `font-extrabold` is a direction that is 400 on the screen nobody checked.
    *
+   * It is a *default*, not a lock, and a utility still beats it — which is the
+   * cascade working rather than a gap. Headings used as small uppercase labels
+   * say `font-semibold` and mean it: 800 with display tracking is not what this
+   * direction means by display type.
+   *
    * The tracking tightens because a grotesque at 800 and a generous size opens
    * up: what reads as tight at 16px reads as loose at 48.
    */

@@ -50,7 +50,7 @@ const WHEN: Readonly<Record<TokenState, string>> = {
 
 function Card({ state, children }: { state: TokenState; children: React.ReactNode }) {
   return (
-    <li className="rounded-lg border border-line bg-surface p-4">
+    <li className="border-3 border-line-strong bg-surface p-4">
       <div className="mb-3 flex items-baseline justify-between gap-3">
         <code className="min-w-0 text-sm text-ink">{state}</code>
         <span className="text-right text-xs text-muted">{WHEN[state]}</span>
@@ -65,7 +65,7 @@ export function TokenGallery() {
   const [marked, setMarked] = useState(false);
 
   return (
-    <div className="rounded-xl border border-line bg-bg p-6 text-ink">
+    <div className="border-3 border-line-strong bg-bg p-6 text-ink">
       <p className="mb-4 max-w-prose text-sm text-muted">
         The gesture the whole game is made of. The first card is live — tab to it and
         press Enter or Space. The rest are pinned: five of these states cannot be reached

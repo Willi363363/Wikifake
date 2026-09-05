@@ -32,7 +32,7 @@ export function ContrastAudit() {
   }, []);
 
   return (
-    <div ref={ground} className="rounded-xl border border-line bg-bg p-6 text-ink">
+    <div ref={ground} className="border-3 border-line-strong bg-bg p-6 text-ink">
       {results === null ? (
         <p className="text-sm text-muted">Measuring…</p>
       ) : (
