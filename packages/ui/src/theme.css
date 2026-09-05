@@ -114,15 +114,55 @@
   --color-warn-soft: #ffebc7;
   --color-danger-soft: #ffdede;
 
-  --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.04), 0 1px 1px rgba(24, 24, 27, 0.03);
-  --shadow-md: 0 6px 20px -8px rgba(24, 24, 27, 0.1), 0 2px 4px rgba(24, 24, 27, 0.04);
-  --shadow-lg:
-    0 24px 60px -20px rgba(24, 24, 27, 0.18), 0 6px 16px rgba(24, 24, 27, 0.06);
+  /*
+   * The elevations. Hard offsets, and nothing else.
+   *
+   * A blurred shadow says *this floats above the page*. This direction does not
+   * float anything: a raised object is drawn as the same object shifted, with
+   * its own border colour showing through the gap. So a shadow is a solid block
+   * at an offset, no blur radius and no spread.
+   *
+   * They are expressed in terms of `--color-line-strong`, which is the reason
+   * the dark palette no longer restates them. Phase 6 had to: its shadows were
+   * a haze of near-black that vanished on a dark ground, so dark needed its own.
+   * A shadow that *is* the border colour inverts wherever the border does, by
+   * construction rather than by a second declaration somebody has to remember —
+   * and `theme.test.ts` holds that shape rather than the values.
+   *
+   * The scale is a distance, not a blur: `sm` on a chip, `md` on a button or a
+   * card, `lg` on a dialog.
+   */
+  --shadow-sm: 2px 2px 0 var(--color-line-strong);
+  --shadow-md: 4px 4px 0 var(--color-line-strong);
+  --shadow-lg: 6px 6px 0 var(--color-line-strong);
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 24px;
+  /*
+   * The structural border, as a width.
+   *
+   * 3px, everywhere it is structural. It is a token rather than a number
+   * repeated in twenty components, and it is what the primitives will read in
+   * step B.6 — `border-3` rather than Tailwind's 1px `border`.
+   */
+  --border-width-3: 3px;
+
+  /*
+   * The corners. Square, because the direction is.
+   *
+   * All four are zero rather than three of them being deleted: every
+   * `rounded-sm|md|lg|xl` already written in the applications becomes square in
+   * one move, with no file to edit and nothing to miss. The names survive as
+   * the scale Tailwind knows; what they mean is now "no corner".
+   *
+   * `--radius-token` is the single exception the direction grants, and it
+   * exists so the exception is a token somebody can find rather than a 4px
+   * literal buried in one component. It belongs to the paragraph token — the
+   * thing a player marks — and to nothing else. Step B.8 uses it.
+   */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-token: 4px;
 
   /*
    * The breakpoints, named here rather than inherited silently.
@@ -199,11 +239,6 @@
     --color-green-soft: #14301f;
     --color-warn-soft: #3a2a0c;
     --color-danger-soft: #3a1717;
-
-    /* Elevation reads as depth rather than as haze once the ground is dark. */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 6px 20px -8px rgba(0, 0, 0, 0.6), 0 2px 4px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 24px 60px -20px rgba(0, 0, 0, 0.75), 0 6px 16px rgba(0, 0, 0, 0.5);
   }
 }
 

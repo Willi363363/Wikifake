@@ -128,11 +128,30 @@ describe('6.1 — the tokens', () => {
       }
     });
 
-    // The elevations too: the light shadows are a haze that vanishes on a dark
-    // ground, where depth has to come from something darker than the surface.
-    it('restates the elevations', () => {
+    /*
+     * This used to require the dark palette to restate every elevation, and it
+     * was right to: phase 6's shadows were a haze of near-black that vanished
+     * on a dark ground, so dark needed its own.
+     *
+     * The brutalist elevations are a solid block of `--color-line-strong` at an
+     * offset, and that token already inverts — so restating them would be
+     * copying a line that says the same thing twice. What has to stay true is
+     * the *shape*: an elevation expressed as a literal colour would silently
+     * stop inverting, and that is what this now catches.
+     */
+    it('needs no elevation of its own, because they invert through a token', () => {
       for (const level of SHADOW_TOKENS) {
-        expect(dark.has(`--shadow-${level}`)).toBe(true);
+        expect(theme.get(`--shadow-${level}`)).toContain('var(--color-line-strong)');
+        expect(dark.has(`--shadow-${level}`)).toBe(false);
+      }
+    });
+
+    // A blur radius is the thing this direction does not do. Written as an
+    // assertion because "no blurred shadow" is exactly the kind of rule that
+    // erodes one convenient exception at a time.
+    it('blurs nothing', () => {
+      for (const level of SHADOW_TOKENS) {
+        expect(theme.get(`--shadow-${level}`)).toMatch(/^\d+px \d+px 0 /);
       }
     });
 
@@ -166,6 +185,12 @@ describe('6.1 — the tokens', () => {
     // above covers them. They are what step 6.5 rests on: a length larger than
     // the floor with no breakpoint in front of it is a page that scrolls
     // sideways on a phone.
+    // 3px, and it is a token so that twenty components do not each carry the
+    // number. The primitives read it in step B.6.
+    it('names the structural border width', () => {
+      expect(theme.get('--border-width-3')).toBe('3px');
+    });
+
     it('names the breakpoints and the viewport floor', () => {
       expect(
         [...theme.keys()].filter((name) => name.startsWith('--breakpoint-')),

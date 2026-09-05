@@ -65,8 +65,20 @@ export const THEME_INDEPENDENT: readonly string[] = [
   'danger',
 ];
 
-/** The elevations, from a hairline to a dialog. */
+/**
+ * The elevations — a distance, not a blur.
+ *
+ * Each is a solid block of `--color-line-strong` at an offset: `sm` on a chip,
+ * `md` on a button or a card, `lg` on a dialog. Nothing in this direction
+ * floats, so nothing is blurred.
+ */
 export const SHADOW_TOKENS: readonly string[] = ['sm', 'md', 'lg'];
 
-/** The corners. `sm` on a chip, `xl` on a sheet. */
-export const RADIUS_TOKENS: readonly string[] = ['sm', 'md', 'lg', 'xl'];
+/**
+ * The corners. `sm` to `xl` are all zero — the direction is square.
+ *
+ * `token` is the one exception it grants, at 4px, and it belongs to the
+ * paragraph token and to nothing else. It is a token rather than a literal so
+ * that the exception is findable: one grep says where the direction bends.
+ */
+export const RADIUS_TOKENS: readonly string[] = ['sm', 'md', 'lg', 'xl', 'token'];
