@@ -11,15 +11,39 @@ All project documentation lives here. Nothing at the repository root except
 | create a branch, open a PR | `method/01-git-flow.md` |
 | know what is forbidden | `method/02-repository-rules.md` |
 | understand the environments and the locks | `method/03-infrastructure.md` |
+| run the project locally | `current-state/07-local-setup.md` |
 | understand the current code | `current-state/` |
-| know where the project is going | `rewrite/00-overview.md` |
+| know what is being built now | `product/00-overview.md` |
+| know where the rewrite went | `rewrite/00-overview.md` |
 | **know what must never break** | `rewrite/01-contract-to-preserve.md` |
 | read the protocol, message by message | `protocol/README.md` |
 | work right now | the file for the current phase, below |
 
 ## Where the project stands
 
-The rewrite replaces the whole stack: Python and FastAPI disappear in favour
+**The rewrite is finished and in production.** The effort under way now is the
+product one: art direction, gamification, and what a launch needs. Its tracks
+are defined in `product/`, and their state is the table below.
+
+| # | Track | State | File |
+|---|---|---|---|
+| A | Art direction | ⬜ not started | `product/01-art-direction.md` |
+| B | Design system on the new direction | ⬜ not started | `product/02-design-system.md` |
+| C | Landing — the scroll scene | ⬜ not started | `product/03-landing.md` |
+| D | Game surface | ⬜ not started | `product/04-game-surface.md` |
+| E | Accounts and player statistics | ⬜ not started | `product/05-accounts.md` |
+| F | Quests | ⬜ not started | `product/06-quests.md` |
+| G | Leaderboards | ⬜ not started | `product/07-leaderboards.md` |
+| H | Coins and the shop | ⬜ not started | `product/08-economy.md` |
+| I | Admin panel | ⬜ not started | `product/09-admin.md` |
+| J | SEO, legal and polish | ⬜ not started | `product/10-seo-and-legal.md` |
+
+What was deliberately left out of it, with the reasons, is in
+`product/11-deferred.md`.
+
+## Where the rewrite ended
+
+The rewrite replaced the whole stack: Python and FastAPI disappear in favour
 of a TypeScript monorepo. Twelve phases, in this order — each depends on the
 previous one unless its file says otherwise.
 
@@ -52,11 +76,13 @@ test in the new stack. As long as one is missing, the Python stays.
 plans/
 ├── method/          how we work — read once, respect always
 ├── protocol/        generated from the Zod schemas — never edited by hand
-├── current-state/   what exists today, and the known debt
-└── rewrite/         where we are going: overview, contract, one file per phase.
-                     A big phase splits: the phase file keeps the frame and the
-                     step tables, satellite sheets carry the definitions and
-                     the decisions. See phase 1.
+├── current-state/   what exists today, how to run it, and the known debt
+├── rewrite/         how the stack got here: overview, contract, one file per
+│                    phase. Finished. A big phase splits: the phase file keeps
+│                    the frame and the step tables, satellite sheets carry the
+│                    definitions and the decisions. See phase 1.
+└── product/         what is being built now: one file per track, each one
+                     startable without reading the other ten.
 ```
 
 ## Rules of this documentation
