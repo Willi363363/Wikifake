@@ -98,14 +98,14 @@ export function ReactionSpeed() {
           type="button"
           onClick={early}
           aria-label={t('reaction.fieldLabel')}
-          className="size-full rounded-md border border-line bg-bg-grain outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="size-full border-3 border-line-strong bg-bg-grain outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
         />
         {phase === 'target' ? (
           <button
             type="button"
             onClick={hit}
             aria-label={t('reaction.hitTarget')}
-            className="absolute size-9 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent bg-accent-soft outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="absolute size-9 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent bg-accent-soft outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
             style={{ left: `${String(spot.x)}%`, top: `${String(spot.y)}%` }}
           />
         ) : null}

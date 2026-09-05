@@ -75,10 +75,10 @@ export function FlagCapture({
                     setChosen(number);
                   }}
                   className={cn(
-                    'w-full rounded-lg border px-3 py-2 text-left text-[13px] leading-snug',
-                    'outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                    'w-full border px-3 py-2 text-left text-[13px] leading-snug',
+                    'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
                     chosen === number
-                      ? 'border-accent bg-accent-soft text-accent'
+                      ? 'border-accent bg-accent-soft text-ink'
                       : 'border-line bg-surface text-ink-2 hover:border-line-strong',
                   )}
                 >

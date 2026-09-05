@@ -14,11 +14,23 @@ import { useTranslations } from 'next-intl';
 
 import { asClock, pressureAt, type Pressure } from './clock.js';
 
-/** How urgency reads, in the theme's colours. */
+/**
+ * How urgency reads.
+ *
+ * It used to be a text colour per level, and after the brutalist palette that
+ * meant the clock grew *less* legible as the pressure rose: `warn` on `surface`
+ * measures 1.83 and `danger` 3.03, against 21.00 for the calm state. A timer
+ * that fades as it runs out is the exact opposite of what it is for.
+ *
+ * A level is a fill now, carrying `on-fill` — 11.48 and 6.94, both measured —
+ * and a slab of colour reads across a room in a way a coloured numeral does
+ * not. `calm` stays plain text: not every state needs to shout, and a clock
+ * that is always a chip has nothing left to escalate to.
+ */
 const TONE: Readonly<Record<Pressure, string>> = {
   calm: 'text-ink',
-  warning: 'text-warn',
-  urgent: 'text-danger',
+  warning: 'border-3 border-line-strong bg-warn px-2 text-on-fill',
+  urgent: 'border-3 border-line-strong bg-danger px-2 text-on-fill',
 };
 
 export interface RoundTopBarProps {
@@ -88,7 +100,7 @@ export function RoundTopBar({
             // The count is in the label rather than in a floating badge: a badge
             // positioned over the corner of a button is a number a screen reader
             // reads out of order, or not at all.
-            <span className="font-mono text-[10px] tabular-nums text-bronze">
+            <span className="border-2 border-line-strong bg-bronze px-1 font-mono text-[10px] tabular-nums text-on-fill">
               {String(hintsUsed)}
             </span>
           )}

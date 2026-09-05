@@ -46,7 +46,7 @@ export function Blizzard() {
         <span
           key={flake.id}
           aria-hidden="true"
-          className="absolute -top-8 animate-snowfall text-accent"
+          className="absolute -top-8 animate-snowfall text-ink"
           style={{
             left: `${String(flake.left)}%`,
             fontSize: `${String(flake.size)}px`,
@@ -60,8 +60,12 @@ export function Blizzard() {
         </span>
       ))}
 
-      <p className="absolute inset-0 flex items-center justify-center font-mono text-7xl font-black text-accent">
-        {t('effects.blizzard.amount', { seconds: FREEZE_TIME_SECONDS })}
+      <p className="absolute inset-0 flex items-center justify-center">
+        {/* Same reason as `screen.tsx`: an overlay has no measurable ground, so
+            the announcement carries its own. `on-fill` on `accent` is 16.13. */}
+        <span className="border-3 border-line-strong bg-accent px-6 py-3 font-mono text-7xl font-black text-on-fill">
+          {t('effects.blizzard.amount', { seconds: FREEZE_TIME_SECONDS })}
+        </span>
       </p>
     </Sheet>
   );

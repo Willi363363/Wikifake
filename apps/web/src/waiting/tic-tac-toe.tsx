@@ -173,11 +173,11 @@ export function TicTacToe() {
                 : t('ttt.squareMarked', { number: at + 1, mark: square })
             }
             className={cn(
-              'flex size-14 items-center justify-center rounded-md border text-xl transition-colors',
-              'outline-none focus-visible:ring-2 focus-visible:ring-accent',
-              'disabled:cursor-default enabled:hover:border-accent-line enabled:hover:bg-accent-soft',
+              'flex size-14 items-center justify-center border text-xl transition-colors',
+              'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
+              'disabled:cursor-default enabled:hover:bg-accent-soft enabled:hover:bg-accent-soft',
               outcome?.line?.includes(at) === true
-                ? 'border-green bg-green-soft text-green'
+                ? 'border-green bg-green-soft text-ink'
                 : 'border-line bg-surface text-ink',
             )}
           >

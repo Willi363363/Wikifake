@@ -236,7 +236,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
       ) : null}
 
       {room.phase !== 'lobby' ? null : (
-        <div className="rounded-xl border border-line bg-surface p-6 shadow-md">
+        <div className="border-3 border-line-strong bg-surface p-6 shadow-md">
           <PlayerList players={room.players} />
 
           <Separator className="my-5" />
@@ -291,12 +291,18 @@ export function Room({ roomCode, nickname }: RoomProps) {
             // C1.7 — the server said no. It is displayed and it changes nothing:
             // the roster that arrives next is the truth. A guest whose client
             // sends a host-only message sees this rather than a dead screen.
-            <p role="alert" className="mt-4 text-center text-sm text-danger">
+            <p
+              role="alert"
+              className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+            >
               {room.refusal.message}
             </p>
           )}
           {transportRefusal === null ? null : (
-            <p role="alert" className="mt-4 text-center text-sm text-danger">
+            <p
+              role="alert"
+              className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+            >
               {transportRefusal}
             </p>
           )}

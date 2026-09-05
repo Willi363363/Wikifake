@@ -137,12 +137,12 @@ export function MemoryCards() {
                   : t('memory.cardFaceDown', { number: at + 1 })
               }
               className={cn(
-                'flex size-12 items-center justify-center rounded-md border text-lg transition-all',
-                'outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                'flex size-12 items-center justify-center border text-lg transition-all',
+                'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
                 card.matched
-                  ? 'border-green bg-green-soft text-green'
+                  ? 'border-green bg-green-soft text-ink'
                   : showing
-                    ? 'border-accent-line bg-accent-soft text-accent'
+                    ? 'border-line-strong bg-accent-soft text-ink'
                     : 'border-line bg-surface text-transparent',
               )}
             >

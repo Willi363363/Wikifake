@@ -95,7 +95,7 @@ export function ChatDock() {
           setOpen(true);
         }}
         aria-label={unread === 0 ? t('open') : t('openUnread', { count: unread })}
-        className="fixed top-1/2 right-0 z-40 flex h-28 -translate-y-1/2 items-center gap-2 rounded-l-xl border border-r-0 border-line bg-surface px-2 shadow-md outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="fixed top-1/2 right-0 z-40 flex h-28 -translate-y-1/2 items-center gap-2 rounded-l-xl border border-r-0 border-line bg-surface px-2 shadow-md outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
       >
         <span className="font-mono text-[11px] tracking-[0.1em] text-ink uppercase [writing-mode:vertical-rl] [transform:rotate(180deg)]">
           {t('tab')}
@@ -123,7 +123,7 @@ export function ChatDock() {
             setOpen(false);
           }}
           aria-label={t('close')}
-          className="rounded-md px-2 py-1 text-sm text-muted outline-none hover:text-ink focus-visible:ring-2 focus-visible:ring-accent"
+          className="px-2 py-1 text-sm text-muted outline-none hover:text-ink focus-visible:ring-[3px] focus-visible:ring-accent-line"
         >
           ✕
         </button>
@@ -153,8 +153,8 @@ export function ChatDock() {
                 </span>
                 <p
                   className={cn(
-                    'max-w-[85%] rounded-xl px-3 py-2 text-sm break-words',
-                    mine ? 'bg-accent text-surface' : 'bg-bg-grain text-ink',
+                    'max-w-[85%] px-3 py-2 text-sm break-words',
+                    mine ? 'bg-accent text-on-fill' : 'bg-bg-grain text-ink',
                   )}
                 >
                   {line.content}
@@ -179,7 +179,7 @@ export function ChatDock() {
           rows={2}
           aria-label={t('inputAria')}
           placeholder={t('inputPlaceholder')}
-          className="w-full resize-none rounded-lg border border-line bg-bg px-3 py-2 text-sm text-ink outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent"
+          className="w-full resize-none border-3 border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus-visible:border-accent focus-visible:ring-[3px] focus-visible:ring-accent-line"
         />
         <div className="mt-1 flex items-baseline justify-between gap-2">
           <span className="text-[11px] text-muted">{t('sendHint')}</span>
@@ -190,7 +190,10 @@ export function ChatDock() {
           )}
         </div>
         {wrong === null ? null : (
-          <p role="alert" className="mt-2 text-sm text-danger">
+          <p
+            role="alert"
+            className="mt-2 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink"
+          >
             {wrong}
           </p>
         )}

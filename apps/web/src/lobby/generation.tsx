@@ -73,7 +73,7 @@ export function GenerationScreen({
   const progress = progressAt(elapsed, ready);
 
   return (
-    <div className="rounded-xl border border-line bg-surface p-6 text-center shadow-md">
+    <div className="border-3 border-line-strong bg-surface p-6 text-center shadow-md">
       <p className="text-xs tracking-widest text-muted uppercase">{t('topicEyebrow')}</p>
       {/* The topic is a fr.wikipedia.org subject: data, not interface copy.
           It keeps its own `lang`, whatever the interface locale. */}

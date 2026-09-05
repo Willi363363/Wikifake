@@ -79,12 +79,12 @@ export function HostSettings({
           onWithItemsChange(!withItems);
         }}
         className={[
-          'flex w-full items-center justify-between rounded-md border px-3.5 py-2.5',
+          'flex w-full items-center justify-between border px-3.5 py-2.5',
           'text-sm transition-colors outline-none',
-          'focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
+          'focus-visible:ring-[3px] focus-visible:ring-accent-line focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
           'disabled:pointer-events-none disabled:opacity-40',
           withItems
-            ? 'border-accent-line bg-accent-soft text-accent'
+            ? 'border-line-strong bg-accent-soft text-ink'
             : 'border-line-strong bg-surface text-ink-2',
         ].join(' ')}
       >

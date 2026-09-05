@@ -74,8 +74,11 @@ export function SoloGame({ topic }: SoloGameProps) {
   if (valid === null) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 text-center">
-        <h1 className="text-2xl font-semibold text-ink">{t('title')}</h1>
-        <p role="alert" className="text-sm text-danger">
+        <h1 className="text-2xl text-ink">{t('title')}</h1>
+        <p
+          role="alert"
+          className="border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink"
+        >
           {topic === null || topic === '' ? t('errors.noTopic') : t('errors.badTopic')}
         </p>
         <Back />
@@ -90,11 +93,14 @@ export function SoloGame({ topic }: SoloGameProps) {
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 text-center">
         {/* The topic is an fr.wikipedia.org subject — data, not interface
             copy — so it keeps its own `lang` whatever the interface locale. */}
-        <h1 lang="fr" className="text-2xl font-semibold text-ink">
+        <h1 lang="fr" className="text-2xl text-ink">
           {valid}
         </h1>
         {/* The refusal is the server's sentence, shown as received. */}
-        <p role="alert" className="text-sm text-danger">
+        <p
+          role="alert"
+          className="border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink"
+        >
           {refusal}
         </p>
         <Back />

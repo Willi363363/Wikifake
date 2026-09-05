@@ -80,10 +80,10 @@ export function ItemTarget({ item, rivals, onConfirm, onCancel }: ItemTargetProp
                     setChosen(rival);
                   }}
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-lg border px-4 py-2.5 text-left transition-colors',
-                    'outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                    'flex w-full items-center gap-3 border px-4 py-2.5 text-left transition-colors',
+                    'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
                     chosen === rival
-                      ? 'border-accent bg-accent-soft text-accent'
+                      ? 'border-accent bg-accent-soft text-ink'
                       : 'border-line bg-surface text-ink hover:border-line-strong',
                   )}
                 >
