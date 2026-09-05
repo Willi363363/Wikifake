@@ -31,9 +31,9 @@ offset distance.
 
 | # | Step | State |
 |---|---|---|
-| B.1 | Palette: choose the exact values, both themes | ⬜ |
-| B.2 | `theme.css` — the two palettes, and `glass*` removed | ⬜ |
-| B.3 | Contrast audit re-run, adjusted, and re-pinned | ⬜ |
+| B.1 | Transcribe both palettes from `01-palette.md` | ⬜ |
+| B.2 | `glass*` removed, `on-fill` added, `accent-line` re-roled | ⬜ |
+| B.3 | `CONTRAST_PAIRS` rewritten, forty ratios re-pinned | ⬜ |
 | B.4 | Type scale and the single grotesque family | ⬜ |
 | B.5 | Borders, radii, offset shadows | ⬜ |
 | B.6 | Primitives restyled — button, badge, dialog, input, progress | ⬜ |
@@ -42,28 +42,44 @@ offset distance.
 | B.9 | Motion: the collapse, and the reduced-motion path | ⬜ |
 | B.10 | Gallery updated, and read on a phone | ⬜ |
 
-### B.1 — Palette
+### B.1 — Transcription, not choice
 
-Anchors are given by track A: ink, paper, and the two brights. What this step
-decides is the verdict trio (`green`, `warn`, `danger`) and their washes, as
-flat fills carrying ink text. **Choose them against the audit, not against a
-screenshot** — phase 6 lost a week to a palette that looked right and failed
-seven pairs, and its worst offender was the debrief's MISSED verdict at 2.56.
+**Track A already chose the values and measured them.** `01-palette.md` holds
+both palettes and the forty ratios they produce, so this step copies numbers
+character for character and the next step proves the copy.
+
+The three structural changes that come with them, all defined in that sheet:
+`glass` and `glass-strong` are deleted, `on-fill` is added — black in both
+palettes, the text colour on a saturated fill — and `accent-line` stops being
+the accent's border and becomes the focus and selection colour.
+
+`on-fill` is the one to understand before typing anything. The fills do not
+change between themes; `ink` does. Text on a fill therefore cannot be `ink`,
+or a dark-mode button puts white on yellow at 1.30:1.
 
 ### B.3 — The audit is the gate, not the formality
 
-`CONTRAST_PAIRS` is a declared list; every pair must pass, and the pinned
-ratios in `contrast.test.ts` are replaced with the new measured ones. Two
-rules from track A are enforced here rather than remembered:
+`CONTRAST_PAIRS` is rewritten to the twenty rows of `01-palette.md`: the three
+`glass` rows go with the token they measured, and the accent rows are
+re-expressed as `on-fill` on each fill and `ink` on each wash. The measured
+ratios are then pinned in `contrast.test.ts`, as the current test pins its own.
+
+**A number that disagrees with the sheet means the transcription is wrong**,
+not that the target is. That is the whole reason track A measured before track
+B typed.
+
+Two rules from track A are enforced here rather than remembered:
 
 - No bright colour is used as text on a light surface. If a pair does that,
   the pair is wrong, not the threshold.
-- The reading sheet's prose pair is held above 12:1 in both palettes. It is
-  the one surface where the player is asked to concentrate.
+- The reading sheet's prose pair stays above 12:1 in both palettes. It is
+  measured at 21.00 and 15.51, so the margin exists — it is there to be kept,
+  not spent.
 
 **A pair that fails is repaired by moving the colour, not by removing the
 pair.** Deleting a row from `CONTRAST_PAIRS` to get a green test is the exact
-move `plans/method/02-repository-rules.md` forbids.
+move `plans/method/02-repository-rules.md` forbids. Removing the `glass` rows
+is not that, and `01-palette.md` says why in as many words.
 
 ### B.7 — The reading sheet
 

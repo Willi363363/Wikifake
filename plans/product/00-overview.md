@@ -21,7 +21,7 @@ be handed to somebody else — or sold — without an apology.*
 
 | # | Track | State | Depends on | File |
 |---|---|---|---|---|
-| A | Art direction — the DA itself | ⬜ not started | — | `01-art-direction.md` |
+| A | Art direction — the DA itself | ✅ done | — | `01-art-direction.md` |
 | B | Design system — the DA in code | ⬜ not started | A | `02-design-system.md` |
 | C | Landing — the scroll scene | ⬜ not started | A, B | `03-landing.md` |
 | D | Game surface — the DA on the screens | ⬜ not started | B | `04-game-surface.md` |
@@ -69,6 +69,8 @@ rewrite already shipped. Checked against the code, not remembered:
   `room`, and the `audit` and `usage` tables. Tracks F, G, H and I add tables;
   they do not choose a database. Supabase was considered and refused —
   `11-deferred.md` records why.
+- **The palette is already decided and measured** — `01-palette.md`, forty
+  ratios, all passing. Track B transcribes it; nothing downstream re-opens it.
 - **The design system exists.** `packages/ui` has tokens as data, a themed
   stylesheet, keyboard-reachable primitives, a motion layer that honours
   `prefers-reduced-motion`, and a contrast audit over 20 pairs that both

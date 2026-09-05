@@ -27,7 +27,7 @@ are defined in `product/`, and their state is the table below.
 
 | # | Track | State | File |
 |---|---|---|---|
-| A | Art direction | ⬜ not started | `product/01-art-direction.md` |
+| A | Art direction | ✅ done — palette chosen and measured | `product/01-art-direction.md` |
 | B | Design system on the new direction | ⬜ not started | `product/02-design-system.md` |
 | C | Landing — the scroll scene | ⬜ not started | `product/03-landing.md` |
 | D | Game surface | ⬜ not started | `product/04-game-surface.md` |
