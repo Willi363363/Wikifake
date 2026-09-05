@@ -77,6 +77,32 @@ describe('6.2 — the primitives', () => {
       );
     });
 
+    /*
+     * The collapse is the direction's own motion, so it answers to the
+     * preference directly rather than through `motion.ts`.
+     *
+     * That list types the *game's* effects — a flash, a displacement — and
+     * switches off what is hazardous. A hover transition is neither, and it is
+     * not in the list; what stops it is this class. Without the assertion,
+     * "reduced motion is handled" would be true of the item effects and quietly
+     * false of every control on the page.
+     */
+    it('stops moving when the viewer asks for less motion', () => {
+      render(<Button>Start</Button>);
+      expect(screen.getByRole('button').className).toContain(
+        'motion-reduce:transition-none',
+      );
+    });
+
+    // And what it animates is named, so a colour or a size added later cannot
+    // join the transition by accident and make the collapse a fade.
+    it('transitions only what the collapse moves', () => {
+      render(<Button>Start</Button>);
+      expect(screen.getByRole('button').className).toContain(
+        'transition-[transform,box-shadow]',
+      );
+    });
+
     it('does not submit the form it happens to be inside', () => {
       render(
         <form>
