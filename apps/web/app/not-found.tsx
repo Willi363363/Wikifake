@@ -19,7 +19,7 @@ export default function RootNotFound() {
     <html lang="en">
       <body className="bg-bg text-ink">
         <main className="mx-auto flex min-h-dvh max-w-xl flex-col justify-center px-4 py-12 text-center">
-          <h1 className="text-3xl font-semibold text-ink">That page is not here</h1>
+          <h1 className="text-3xl text-ink">That page is not here</h1>
           <p className="mt-3 text-sm text-muted">
             The address does not name a language WikiFake serves, so there is nothing to
             show. The front door will pick one for you.
@@ -28,7 +28,10 @@ export default function RootNotFound() {
               locale tree, and a hard navigation is what puts the request back
               through the proxy that does the detection. */}
           <p className="mt-8">
-            <a href="/" className="text-accent underline underline-offset-4">
+            <a
+              href="/"
+              className="font-bold text-ink underline decoration-2 underline-offset-4"
+            >
               wikifake — start here
             </a>
           </p>

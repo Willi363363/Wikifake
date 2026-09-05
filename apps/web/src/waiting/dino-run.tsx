@@ -142,7 +142,7 @@ export function DinoRun() {
           type="button"
           onClick={leap}
           aria-label={t('dino.jump')}
-          className="relative h-28 w-full overflow-hidden rounded-md border border-line bg-bg-grain outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="relative h-28 w-full overflow-hidden border-3 border-line-strong bg-bg-grain outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
         >
           <span className="absolute inset-x-0 bottom-[22px] block h-px bg-line-strong" />
           <span

@@ -23,7 +23,7 @@ export function Rickroll({ onDismiss }: RickrollProps) {
     <div
       role="status"
       aria-label={t('effects.rickroll.aria')}
-      className="fixed inset-x-3 top-24 z-50 mx-auto max-w-sm animate-slide-up-fade rounded-xl border border-line-strong bg-surface p-5 text-center shadow-lg"
+      className="fixed inset-x-3 top-24 z-50 mx-auto max-w-sm animate-slide-up-fade border-3 border-line-strong bg-surface p-5 text-center shadow-lg"
     >
       <p aria-hidden="true" className="text-4xl">
         🤡

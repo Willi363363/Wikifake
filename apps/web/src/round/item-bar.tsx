@@ -35,7 +35,7 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
         role="toolbar"
         aria-label={t('items.barAria')}
         aria-orientation="horizontal"
-        className="flex max-w-full items-center gap-2 overflow-x-auto rounded-none border border-line bg-surface px-3 py-2 shadow-lg"
+        className="flex max-w-full items-center gap-2 overflow-x-auto border-3 border-line-strong bg-surface px-3 py-2 shadow-lg"
       >
         <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
           {t('items.barLabel')}
@@ -65,12 +65,24 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
                   ? t('items.cardAria', { name, blurb })
                   : t('items.cardAriaTargeted', { name, blurb })
               }
+              // The card carries the structural border and the hard offset, and
+              // the hover is the direction's: the shadow collapses and the card
+              // moves the shadow's own 4px into it. What was here — rise a
+              // pixel, *gain* a shadow — is the previous identity's lift, and
+              // this direction floats nothing, so it cannot raise one.
+              //
+              // The state is the fill. `border-accent` on `bg-accent-soft` was
+              // a yellow border on a yellow wash, which is the colour-on-colour
+              // border the direction refuses; in flight is now said by the wash
+              // alone, against the same black edge as at rest.
               className={cn(
-                'flex min-w-[4.5rem] flex-col items-center gap-1 rounded-xl border px-3 py-2 transition-all',
-                'outline-none focus-visible:ring-2 focus-visible:ring-accent',
-                'enabled:hover:-translate-y-px enabled:hover:shadow-md',
+                'flex min-w-[4.5rem] flex-col items-center gap-1 px-3 py-2',
+                'border-3 border-line-strong shadow-md',
+                'transition-[transform,box-shadow] duration-150 motion-reduce:transition-none',
+                'enabled:hover:translate-x-1 enabled:hover:translate-y-1 enabled:hover:shadow-none',
+                'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
                 'disabled:opacity-50',
-                inFlight ? 'border-accent bg-accent-soft' : 'border-line bg-surface',
+                inFlight ? 'bg-accent-soft' : 'bg-surface',
               )}
             >
               <span aria-hidden="true" className="text-xl">

@@ -132,3 +132,59 @@ change what those packages are allowed to put on the wire.
 
 Recorded during phase 11 because the zone work ran into it and could not fix it
 from where it stood.
+
+## `border-l-3` emits nothing, and the other three sides do
+
+Measured on 2026-09-06, in one build, from one file Tailwind scans, with all
+four classes present in the source:
+
+```
+border-3     → border-width: var(--border-width-3)          ✅
+border-r-3   → border-right-width: var(--border-width-3)    ✅
+border-t-3   → border-top-width: var(--border-width-3)      ✅
+border-b-3   → border-bottom-width: var(--border-width-3)   ✅
+border-l-3   → (no rule at all)                             ❌
+```
+
+**Why this is worth a register entry rather than a shrug.** The failure is
+silent in every direction it can be. Nothing errors, nothing warns, the class
+stays in the markup, the build succeeds, review passes — and the border is
+simply not drawn. The one place it was used, the scanner line of the paragraph
+token, would have been an animation nobody could see moving, which is the
+hardest kind of absence to notice: there is no gap where it should be, because
+a line that was never there leaves no gap.
+
+It was found by reading the built stylesheet, not by looking at the page.
+
+**What we do about it.** The workaround is
+`border-l-[length:var(--border-width-3)]`, which works and keeps the number in
+the token. It is in `packages/ui/src/token/paragraph-token.tsx`, with a comment
+saying why, so nobody simplifies it back.
+
+**What we have not done.** Understood it. `--border-width-3` is a theme token
+rather than one of Tailwind's own scale values, and the left side behaving
+differently from the other three points at the framework rather than at us —
+but that is a hypothesis, not a diagnosis. Reproducing it in a bare Tailwind
+project is what would turn this into an upstream bug report, and nobody has.
+
+**The general lesson, which outlives this particular class.** A utility class
+that generates nothing is indistinguishable from one that generates correctly,
+in the source, in a diff and in a review. Where a class carries something
+structural — a border that is the design, a colour that is a contrast pair —
+read the built stylesheet once rather than trusting the name.
+
+## `disabled:opacity-40` is a translucency the direction otherwise forbids
+
+`buttonVariants` fades a disabled button to 40%. On the primary button that
+composites `#ffe14d` against the page and black text with it, so `Submitted` in
+the round's top bar and a not-yet-valid `Flag it` read as grey on cream —
+recognisably disabled, and only just legible.
+
+Nothing measures it: `CONTRAST_PAIRS` measures declared token pairs, and an
+opacity composite is neither of the two colours in one. WCAG 1.4.3 exempts a
+disabled control, so no audit calls it either.
+
+The answer is a disabled *style* rather than an opacity — the direction has one
+already, in that a flat fill and a collapsed shadow say "not now" without
+diluting anything. It belongs to `packages/ui`, which owns the variant and the
+gallery that pins it, so track D looked at it and left it.

@@ -52,7 +52,9 @@ export function ContrastAudit() {
                 <span
                   className={cn(
                     'font-mono text-xs tabular-nums',
-                    result.passes ? 'text-ink-2' : 'text-danger',
+                    result.passes
+                      ? 'text-ink-2'
+                      : 'bg-danger px-1 font-bold text-on-fill',
                   )}
                 >
                   {result.ratio.toFixed(2)}:1
