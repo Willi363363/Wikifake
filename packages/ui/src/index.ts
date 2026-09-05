@@ -58,6 +58,9 @@ export {
 } from './primitives/dialog.js';
 export type { DialogContentProps } from './primitives/dialog.js';
 
+export { ReadingSheet } from './sheet/reading-sheet.js';
+export type { ReadingSheetProps } from './sheet/reading-sheet.js';
+
 export { ParagraphToken, tokenVariants } from './token/paragraph-token.js';
 export type { ParagraphTokenProps } from './token/paragraph-token.js';
 export {
@@ -89,5 +92,6 @@ export const PRIMITIVES: readonly string[] = [
   'Label',
   'ParagraphToken',
   'Progress',
+  'ReadingSheet',
   'Separator',
 ];

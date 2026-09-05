@@ -39,7 +39,7 @@ offset distance.
 | B.6 | Primitives restyled — button, badge, dialog, input, progress | ⬜ |
 | B.7 | The reading sheet, as its own component | ⬜ |
 | B.8 | Paragraph token — brutalist states, calm prose | ⬜ |
-| B.9 | Motion: the collapse, and the reduced-motion path | ⬜ |
+| B.9 | Motion: the collapse, the sweep's gradient, reduced motion | ⬜ |
 | B.10 | Gallery updated, and read on a phone | ⬜ |
 
 ### B.1 — Transcription, not choice
@@ -80,6 +80,15 @@ Two rules from track A are enforced here rather than remembered:
 pair.** Deleting a row from `CONTRAST_PAIRS` to get a green test is the exact
 move `plans/method/02-repository-rules.md` forbids. Removing the `glass` rows
 is not that, and `01-palette.md` says why in as many words.
+
+### B.9 — One thing it inherits
+
+The hinted paragraph's sweep is still a gradient, and the direction has none.
+It survived B.8 because the fix is in the keyframe rather than in the
+component: `scan-sweep` translates the element by **its own width**, so a solid
+bar would travel four pixels and stop. Moving the bar in the stylesheet is what
+turns it into a block of `bronze`, and that is this step's file rather than the
+token's.
 
 ### B.7 — The reading sheet
 

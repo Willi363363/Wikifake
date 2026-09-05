@@ -113,7 +113,11 @@ describe('6.4 — the paragraph token', () => {
       paint('idle');
       const classes = screen.getByRole('button').className;
       expect(classes).toContain('outline-none');
-      expect(classes).toContain('focus-visible:ring-2');
+      // A ring of any non-zero width, and in the colour reserved for focus.
+      // Pinning `ring-2` failed on a width change for no reason, while
+      // `ring-0` — the change that matters — would have passed it.
+      expect(classes).toMatch(/focus-visible:ring-(?:\[[1-9]\d*px\]|[1-9]\d*(?![\w-]))/);
+      expect(classes).toContain('focus-visible:ring-accent-line');
     });
 
     // The gesture is a toggle, and nothing in the current interface says so.
