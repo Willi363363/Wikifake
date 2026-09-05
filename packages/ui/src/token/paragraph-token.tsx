@@ -131,19 +131,22 @@ export function ParagraphToken({
           stylesheet, and one of the seven `prefers-reduced-motion` switches
           off. Decorative, so it is hidden and it is not a child of the text. */}
       {shown === 'hinted' ? (
+        // A line, not a wash. The wrapper clips, and what travels inside it is
+        // a full-width element carrying only a left border — so the scanner
+        // reads across the paragraph without ever covering it. Step B.9.
+        //
+        // The border width is spelled the long way on purpose. `border-3`
+        // resolves through the theme's `--border-width-3`, but `border-l-3`
+        // matches nothing at all and emits **no rule** — a class that looks
+        // right, passes review and draws an invisible line. Verified in the
+        // built stylesheet, not assumed. This spelling keeps the number in the
+        // token rather than repeating `3px` here.
         <span
           aria-hidden
-          className={cn(
-            'pointer-events-none absolute inset-0 rounded-token',
-            // Still a gradient, and the direction has none. It stays for one
-            // more step because the fix is in the keyframe rather than here:
-            // `scan-sweep` translates the element by its own width, so a solid
-            // bar would travel four pixels and stop. Step B.9 moves the bar in
-            // the stylesheet and this becomes a block of `bronze`.
-            'bg-linear-to-r from-transparent via-bronze/20 to-transparent',
-            'animate-scan-sweep',
-          )}
-        />
+          className="pointer-events-none absolute inset-0 overflow-hidden rounded-token"
+        >
+          <span className="absolute inset-y-0 left-0 w-full border-l-[length:var(--border-width-3)] border-bronze animate-scan-sweep" />
+        </span>
       ) : null}
 
       {/* The marked underline: `.token.selected::after`. */}
