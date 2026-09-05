@@ -35,11 +35,14 @@ export function Progress({ className, value, max, ...props }: ProgressProps) {
     <Root
       value={filled}
       max={ceiling}
-      className={cn('h-[3px] w-full overflow-hidden rounded-full bg-line', className)}
+      className={cn(
+        'h-2 w-full overflow-hidden rounded-none border-3 border-line-strong bg-surface',
+        className,
+      )}
       {...props}
     >
       <Indicator
-        className="h-full rounded-full bg-accent transition-[width] duration-600 ease-[cubic-bezier(.2,.6,.2,1)]"
+        className="h-full rounded-none bg-accent transition-[width] duration-600 ease-[cubic-bezier(.2,.6,.2,1)] motion-reduce:transition-none"
         style={{ width: `${String((filled / ceiling) * 100)}%` }}
       />
     </Root>
