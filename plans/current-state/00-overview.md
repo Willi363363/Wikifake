@@ -12,6 +12,7 @@ This series of documents describes **what exists**, as it runs:
 - `04-deployment.md` — Vercel, Fly, Neon, Upstash, and the deploy probe.
 - `05-known-debt.md` — the verified defects, with their references.
 - `06-structural-debt.md` — the debt that is about the shape of the repository.
+- `07-local-setup.md` — from a fresh clone to a game you can play.
 
 The protocol itself is not described here: it is **generated** from the Zod
 schemas into `plans/protocol/`, and a test fails if the committed pages and the
