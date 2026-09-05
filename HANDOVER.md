@@ -1,195 +1,160 @@
-# Session handover — 2026-08-30
+# Session handover — 2026-09-06
 
 > Written in English, like everything else in this repository (`CLAUDE.md`).
 >
-> Replaces the handover of 2026-08-27, which was already three merges behind: it
-> described #127 as stuck and the socket service as never deployed. Both were
-> resolved on 2026-08-29, by #142 and #144.
+> Replaces the handover of 2026-08-30, which described the rewrite's last loose
+> ends. Those are still open and are restated below; everything else in it is
+> now history.
 
 ## Context
 
-The rewrite is finished and in production. This session closed phase 6, recorded
-what phases 9 and 10 had actually done, and found one thing nobody was watching:
-**the deploy probe for production has never existed, and the probe that does run
-points at a service suspended on purpose.**
+The rewrite was finished; the game was not. This session planned the product
+effort, and delivered the first two tracks of it: an art direction and the
+design system that carries it. It also fixed `pnpm dev`, which had never worked.
 
 ## State at the pause
 
-- Working tree clean, nothing unpushed, no pull request open.
-- **`main`:** `f6c53b9` — served by Vercel and by the socket service, both
-  verified over HTTP, and by the deploy probe run by hand.
-- **`staging`:** `main` plus this handover's own batch.
-- Ten pull requests merged this session, #146 to #155: the light palette's
-  contrast, what the ruleset actually enforces, the cutover's unfinished tail,
-  the rule change that let an agent merge, two browser journeys phase 6 could
-  only infer, and the 404 and error pages of step 11.8.
-- **Progress lives in `plans/README.md`** and the step tables in the phase files.
-  Those, and nowhere else.
+- Working tree clean. `main` and `staging` are the only remote branches.
+- **`plans/product/`** is new: ten tracks, one file each, plus what was
+  deliberately deferred and why. `plans/README.md` carries their state.
+- **Tracks A, B and D are done.** C and E to J are not started.
+- Thirteen pull requests, #158 to #170.
 
-## Read this before trusting a `revu` label
+## What went out
 
-The rule that an agent never labels, reviews or merges a pull request **ended on
-2026-08-30**, by the owner's decision, and `.claude/settings.json` now allows
-those verbs. #150 carries the reasoning; the short version is that the gate was
-already inert — the ruleset's bypass actor meant `Human review` never blocked the
-account doing the merging — while still costing one manual gesture per branch.
+**The art direction.** Playful neo-brutalism, chosen by the owner from four
+proposals: flat saturated fills, 3px structural borders, hard offset shadows,
+square corners, Archivo throughout, JetBrains Mono where a room code is typed.
 
-**Every pull request in this session was labelled and merged by Claude Code, and
-no human read any of them before they merged.** Each carries a disclosure comment
-saying so. Wherever the label appears from now on it means *the pull request was
-ready to merge*, not that anybody read it, and it must not be cited as review.
+**Its one important decision is the reading-surface exemption.** The grammar
+applies to the chassis and never to the article being judged. A paragraph in a
+3px box with a yellow fill is a paragraph nobody reads carefully, and reading
+carefully is the game. `ReadingSheet` enforces it by construction: it accepts no
+prop for a border, a fill, a shadow or a tone, and a test holds it to that by
+prefix. The text is calm; the act of marking it is loud.
 
-Getting a real attestation back means a distinct identity for agents — machine
-account or GitHub App — with required approvals at 1 and the bypass actor
-removed. Not reinstating the ceremony.
+**The palette was measured before it was written** — forty pairs, both palettes,
+tightest margin ×1.54, recorded in `plans/product/01-palette.md`. Phase 6 had
+shipped a palette that looked right and failed seven pairs; measuring first cost
+an hour, and repairing after had cost a session.
 
-## What works ✅
+## The finding this session turned on
 
-Both services live, both serving the same commit — checked with `curl`, not
-inferred:
+Making the accents *fills* silently broke every place still using them as
+*text*. Measured with the audit's own functions, in the light palette:
 
 ```
-wikifake.vercel.app/api/health              commit c268a66 = main exactly
-wikifake-realtime.onrender.com/api/health   commit c268a66   (24 s cold start)
+danger on bg           2.95   every error message
+warn   on surface      1.83   the clock, at its most urgent
+bronze on surface      2.01   what a hint costs
+accent on accent-soft  1.20   a paragraph the player designated
 ```
 
-The full suite: **2,016 unit and integration cases, 0 skipped**, with Postgres
-and Redis up. `typecheck`, `lint`, `format:check` and `build` green, all forced
-past the Turbo cache — the first run of the session was `FULL TURBO` and proved
-nothing.
+Each had been **correct** while the accents were dark. All of them pass in the
+dark palette, which is why nobody saw it: the failure was invisible to anybody
+working in dark mode.
 
-**Phase 6 is closed.** The light palette failed seven contrast pairs, three of
-them below 3:1, and the worst was the debrief's MISSED verdict in amber on amber
-at 2.56. Five solids were darkened by the smallest factor that reaches the
-target, hue and saturation untouched, no wash moved; the alternative of sharing
-the correction with the washes was measured and rejected. 20/20 pairs pass in
-both palettes now. #146.
+Thirty-two came out of a pattern sweep. Four more only a browser found,
+including a rival player's name written in white on a colour the *server*
+chooses — eight hues, half light and half dark, so **no** text colour passes on
+it. That pair was not unmeasured, it was unmeasurable; the colour is a swatch
+beside the name now.
 
-## Corrected this session ✅
+**Why the audit could not see any of it:** `CONTRAST_PAIRS` measures the pairs
+the *design system* declares. These were pairs the *screens* invented, in
+`apps/web`, out of its reach. `apps/web/src/fills.test.ts` is that gap closed.
 
-Step 9.10 was already complete — the ruleset carries the nine live check names,
-verified against the API — and `phase-10-cutover.md` still claimed that
-`apps/realtime` had never been deployed, eight days after it went live.
-#147 and #148.
+## What the tests learned
 
-## Fixed at the end of the session ✅ — the deploy probe
+Every finding left a scan behind rather than a fix alone:
 
-For most of this session the probe lied in both directions:
+- `fills.test.ts` — no fill as a text colour, no `text-white`/`text-black`, no
+  colour-on-colour edge, no hover lift, no hover shadow. With a test for its own
+  comment-stripping, because a scan of nothing passes everything.
+- `global-error.palette.test.ts` — the crash page's hardcoded hexes held to the
+  theme. It wore phase 6's palette through the entire change, because no scanner
+  in this repository sees a hex inside a `style={{ }}` object.
 
-```
-DEPLOY_URL          = wikifake.onrender.com   suspended → failed every push to main
-WEB_DEPLOY_URL      = (unset)                 production, skipped and reported success
-REALTIME_DEPLOY_URL = wikifake-realtime…      the only one that worked
-```
+**Two assertions were rewritten rather than deleted** when the direction
+invalidated them, and both got stronger. `theme.test.ts` said every colour must
+differ between the palettes; the fills break that deliberately, so it now names
+which repeat and holds them *identical* — catching a fill that drifted, which
+the original could not. `contrast.test.ts` pinned seven ratios; it pins forty.
 
-That was step 6 of `plans/rewrite/phase-10-cutover-runbook.md`, left undone while
-step 7 was done — and the runbook had predicted the exact symptom in its own
-words, while `phase-10-cutover.md` listed it among its pitfalls. **The plan
-foresaw this twice and it happened anyway**, which is the argument for reading a
-pitfalls list before a cutover rather than after.
+## `pnpm dev` works now
 
-Both variables were set at the end of the session, and the probe was **run by
-hand against `main` to prove it rather than assume it**: the web and realtime
-targets each polled and matched `f6c53b9` on the first attempt, and the Render
-target now skips cleanly. Phase 9's exit gate passed with it.
+It had never loaded an environment: nothing read the root `.env`, and Turbo's
+strict mode stripped what survived. `.env.local` is read first, `.env` still
+accepted, and a variable already exported always wins — which is what keeps CI
+and production untouched. `#168`.
 
-Two consequences to carry:
+## Read this before trusting a green
 
-- **A rollback must recreate `DEPLOY_URL`.** It is deleted, so
-  `phase-10-rollback.md` step 3 is now a thing to do rather than a thing already
-  true.
-- **The red on #143, #145, #152 and #155 was this**, not those batches.
+- **The suites skip ~250 cases without Postgres and Redis, and still report
+  success.** Read the `skipped` count; a real run says `0 skipped`.
+- **Turborepo replays greens it never ran.** `pnpm exec turbo run <task> --force`.
+- **`border-l-3` emits no CSS rule at all**, while `border-3`, `border-r-3`,
+  `border-t-3` and `border-b-3` all resolve. Measured on all four sides.
+  `06-structural-debt.md` carries it. Read the built stylesheet rather than
+  trusting a class name.
+- **Applying `revu` right after opening a pull request cancels the in-flight
+  conformance run**, and the `labeled` run that replaces it skips those jobs —
+  so they read `skipping` and the pull request looks green. It bit twice this
+  session. Wait for the checks, *then* label.
 
-## Why the gate never held
+## Outstanding
 
-The ruleset lists one bypass actor — the owner, `bypass_mode: always` — so every
-required check is advisory for the account that merges. Measured, not supposed:
-**#142 to #145 merged without the `revu` label**, #144 with `Human review`
-reporting `failure`. Those four went through an empty required-checks list during
-the rename window, so **they are not evidence that the gate works.** #147.
+Inherited from the last handover, still open:
 
-## Also outstanding
+- **Step 10.10's dry run** — Resume the suspended Render service, read
+  `/api/health`, write the commit into `phase-10-rollback.md`, Suspend.
+- **Move the domain**, runbook step 5. The public domain still points at Render.
+- **A rollback must recreate `DEPLOY_URL`.**
+- **The Google AI key from the 2026-08-27 transcript**, if never regenerated.
 
-- **The public domain still points at Render**, which is suspended, so it
-  answers nothing. `wikifake.vercel.app` does. Runbook step 5.
-- **Step 10.10's dry run** — but it is cheaper than the sheet used to say. The
-  service is suspended and answers `503` with `x-render-routing: suspend-by-user`,
-  so half the run is already on record. The half with doubt in it — whether a
-  suspended free-tier service comes back with the same image — **no longer
-  touches production**. It reduces to: Resume → read `/api/health` → **write the
-  `commit` down** → Suspend. That value is what runbook step 1 was supposed to
-  capture and nobody did, so the procedure's own comparison currently has
-  nothing to compare against.
-- **The Google AI key from the 2026-08-27 transcript** — regenerate it in AI
-  Studio if that was never done.
-- **Two documents sit on the 200-line cap**: `phase-09-observability-and-cicd.md`
-  and `phase-11-i18n.md`. A line added to either needs a line removed, or a
-  split. `05-known-debt.md` came down to 191 when step 11.8 closed its 404 entry,
-  but it was at the cap for most of this session — which is why the findings went
-  to `06-structural-debt.md`.
+New:
+
+- **The `rules.yml` concurrency bug** above. Fixing it means editing
+  `.github/workflows/`, and the `gh` token has no `workflow` scope.
+- **Chat rail covers a card border at 360px** — placement, its own step.
+- **`disabled:opacity-40`** is the one translucency the direction forbids, and
+  it belongs to `packages/ui`.
+- **Both debt registers are near the 200-line cap** (198 and 190). The next
+  finding needs a split, not a squeeze.
 
 ## Next steps, in order
 
-1. **Run 10.10's dry run** — Resume the suspended Render service, read
-   `/api/health`, **write the commit into `phase-10-rollback.md`**, Suspend. That
-   value is what runbook step 1 was meant to capture and nobody did, so the
-   procedure's own comparison currently has nothing to compare against. It no
-   longer touches production.
-2. **Move the domain**, runbook step 5 — the last line of the cutover.
-3. **Decide the protocol's sentences**: may a package put a player-visible
-   sentence on the wire, or must it emit a code the client translates? It
-   changes what `@wikifake/protocol` and `apps/realtime` are allowed to do.
-   `06-structural-debt.md`.
-4. The French catalogue still wants a human read. Nothing is wrong with it that
-   a test can see, which is exactly why.
+1. **Track C — the landing.** It is the only track B unblocked that is not done,
+   and `03-landing.md`'s four non-negotiables are the whole of it: native
+   scroll, a real page underneath, a performance budget decided first, and
+   content that is HTML.
+2. **Track E — accounts.** Google sign-in is already wired and waiting on two
+   environment variables; the work is the profile and the statistics.
+3. The tracks after that are E's dependents: F, G, H, I.
 
 ## Commands to resume
 
 ```bash
-export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH"   # see below
+export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH"   # nvm use is a no-op here
 pnpm install && pnpm hooks
 
-docker run -d --name wf-pg -e POSTGRES_PASSWORD=wikifake -e POSTGRES_DB=wikifake -p 5432:5432 postgres:17-alpine
-docker run -d --name wf-redis -p 6379:6379 redis:8-alpine
-export DATABASE_URL=postgres://postgres:wikifake@localhost:5432/wikifake
-export REDIS_URL=redis://localhost:6379
+docker start wf-pg wf-redis
+cp .env.example .env.local        # then fill it in
 pnpm migrate
 
-pnpm test && pnpm typecheck && pnpm lint    # what CI runs
-pnpm e2e                                    # the browser journeys
-pnpm check                                  # before asking for a merge
+pnpm dev                          # both services, no flags
+pnpm test && pnpm typecheck       # read the skipped count
+pnpm e2e                          # 24 browser journeys
 ```
 
 Read first, in this order:
 
 ```
-plans/README.md                             # where the project stands
-plans/rewrite/phase-10-cutover-runbook.md   # which of its steps actually ran
-plans/method/03-infrastructure.md           # what the ruleset does and does not do
-plans/current-state/                        # the stack as it actually is
+plans/README.md                     # where the project stands
+plans/product/00-overview.md        # the effort under way, and its rules
+plans/product/01-art-direction.md   # the direction, and what it costs
+plans/current-state/06-structural-debt.md
 ```
 
-## Technical notes
-
-- **`nvm use` does not take effect in a non-interactive shell here.** It reports
-  "Now using node v22" and `node -v` still answers v20, so pnpm fails with
-  `ERR_UNKNOWN_BUILTIN_MODULE: node:sqlite` — which reads as a broken install
-  rather than a `PATH` problem. Export the path.
-- **The tests skip rather than fail without Postgres and Redis**, ~250 cases. The
-  output says `0 skipped` when the run was real; read that line before believing
-  a green one.
-- **Turborepo will replay a green it did not run.** `pnpm typecheck` answered
-  `FULL TURBO` in 56 ms on a fresh worktree. `pnpm exec turbo <task> --force` is
-  what actually executes; `pnpm <task> -- --force` passes the flag to `tsc` and
-  fails.
-- **A skipped probe reports success**, exactly like a skipped required check.
-  That is how production went unprobed without anybody noticing.
-- **A pull request title becomes a squash commit's subject** plus ` (#NNN)`, and
-  the 72-character limit is checked on every commit in a promotion's range. Keep
-  titles at **65 characters or fewer** — `06-structural-debt.md` has the story of
-  the promotion this deadlocked.
-- **`gh` has `repo` but not `workflow` scope**, so merging a pull request that
-  touches `.github/workflows/` is refused intermittently.
-
 ---
-*Written by Claude Code, from a session that read the repository before touching it.*
+*Written by Claude Code, from a session that measured before it wrote.*
