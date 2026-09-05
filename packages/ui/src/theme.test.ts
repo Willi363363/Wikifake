@@ -185,6 +185,25 @@ describe('6.1 — the tokens', () => {
     // above covers them. They are what step 6.5 rests on: a length larger than
     // the floor with no breakpoint in front of it is a page that scrolls
     // sideways on a phone.
+    /*
+     * The families, and the fallback that is doing real work.
+     *
+     * An undefined custom property invalidates the whole declaration at
+     * computed-value time — so `var(--font-archivo), sans-serif` resolves to
+     * nothing at all, not to `sans-serif`, anywhere the application has not
+     * loaded the face. The gallery in isolation and every jsdom test are
+     * exactly that, and the failure would be silent.
+     *
+     * So each `var()` carries its own fallback, and this says so out loud.
+     */
+    it('names a family for prose and one for code, each with a fallback', () => {
+      for (const role of ['sans', 'mono']) {
+        const stack = theme.get(`--font-${role}`) ?? '';
+        expect(stack).toMatch(/var\(--font-[\w-]+,\s*ui-(?:sans-serif|monospace)\)/);
+        expect(stack).toMatch(/(?:sans-serif|monospace)\s*$/);
+      }
+    });
+
     // 3px, and it is a token so that twenty components do not each carry the
     // number. The primitives read it in step B.6.
     it('names the structural border width', () => {

@@ -122,8 +122,14 @@ describe('8.10 — the article keeps its own language', () => {
     // the same change as the behaviour, the way phase 11 requires. What must
     // never come back is a constant: a hardcoded `lang` on the document makes
     // one locale lie, whichever constant is picked.
+    //
+    // Matched as a pattern rather than as the exact opening tag: step B.4 added
+    // the font variables to that same element, and an assertion that breaks
+    // when an unrelated attribute lands beside the one it cares about is an
+    // assertion people learn to edit rather than to read. What it holds is
+    // unchanged — `lang` is the locale, and `lang` is never a constant.
     const layout = code(readFileSync(join(WEB, 'app', '[locale]', 'layout.tsx'), 'utf8'));
-    expect(layout).toContain('<html lang={locale}>');
-    expect(layout).not.toMatch(/<html lang="/);
+    expect(layout).toMatch(/<html[^>]*\slang=\{locale\}/);
+    expect(layout).not.toMatch(/<html[^>]*\slang="/);
   });
 });

@@ -137,6 +137,29 @@
   --shadow-lg: 6px 6px 0 var(--color-line-strong);
 
   /*
+   * The families.
+   *
+   * The theme owns the *stack*; the application owns the *files*. `apps/web`
+   * loads both through `next/font/google` and exposes each as a variable, and
+   * this is where they become `font-sans` and `font-mono`. A design system that
+   * imported its own fonts would make every consumer download them, including
+   * one that only wanted a type.
+   *
+   * Each `var()` carries its own fallback rather than relying on the list after
+   * it, and that is not belt-and-braces: an undefined custom property makes the
+   * whole declaration invalid at computed-value time, so `var(--font-archivo),
+   * sans-serif` would fall back to *nothing* — not to `sans-serif` — anywhere
+   * the application has not loaded the face. The gallery in isolation and every
+   * jsdom test are exactly that.
+   */
+  --font-sans:
+    var(--font-archivo, ui-sans-serif), ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, sans-serif;
+  --font-mono:
+    var(--font-jetbrains-mono, ui-monospace), ui-monospace, SFMono-Regular, Menlo,
+    Consolas, monospace;
+
+  /*
    * The structural border, as a width.
    *
    * 3px, everywhere it is structural. It is a token rather than a number
@@ -253,5 +276,24 @@
   body {
     background-color: var(--color-bg);
     color: var(--color-ink);
+    font-family: var(--font-sans);
+  }
+
+  /*
+   * Display type: the same family, at the weight the direction names.
+   *
+   * Set on the elements rather than left to a utility on every heading. A
+   * direction whose headings are 800 only where somebody remembered to type
+   * `font-extrabold` is a direction that is 400 on the screen nobody checked.
+   *
+   * The tracking tightens because a grotesque at 800 and a generous size opens
+   * up: what reads as tight at 16px reads as loose at 48.
+   */
+  h1,
+  h2,
+  h3 {
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
   }
 }
