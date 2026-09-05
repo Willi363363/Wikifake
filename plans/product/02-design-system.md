@@ -2,10 +2,18 @@
 
 | | |
 |---|---|
-| **State** | ⬜ not started |
+| **State** | ✅ done — merged to `staging` in #167 |
 | **Branch** | `feat/design-system-v2` |
 | **Depends on** | track A |
 | **Delivers** | `packages/ui` carrying the brutalist direction, audit green |
+
+**Ticked by track D, not by track B.** #163 to #167 shipped every step below and
+merged without touching this table or `plans/README.md`, so both said "not
+started" about a track running in production. Track D found it while updating
+its own row and corrected it rather than publishing a tracker it knew was
+wrong; each step above was verified in the merged code before it was ticked.
+The rule it broke is the one in `../method/02-repository-rules.md`:
+documentation is updated in the pull request that changes the behaviour.
 
 ## Objective
 
@@ -31,16 +39,16 @@ offset distance.
 
 | # | Step | State |
 |---|---|---|
-| B.1 | Transcribe both palettes from `01-palette.md` | ⬜ |
-| B.2 | `glass*` removed, `on-fill` added, `accent-line` re-roled | ⬜ |
-| B.3 | `CONTRAST_PAIRS` rewritten, forty ratios re-pinned | ⬜ |
-| B.4 | Type scale and the single grotesque family | ⬜ |
-| B.5 | Borders, radii, offset shadows | ⬜ |
-| B.6 | Primitives restyled — button, badge, dialog, input, progress | ⬜ |
-| B.7 | The reading sheet, as its own component | ⬜ |
-| B.8 | Paragraph token — brutalist states, calm prose | ⬜ |
-| B.9 | Motion: the collapse, the sweep's gradient, reduced motion | ⬜ |
-| B.10 | Gallery updated, and read on a phone | ⬜ |
+| B.1 | Transcribe both palettes from `01-palette.md` | ✅ |
+| B.2 | `glass*` removed, `on-fill` added, `accent-line` re-roled | ✅ |
+| B.3 | `CONTRAST_PAIRS` rewritten, forty ratios re-pinned | ✅ |
+| B.4 | Type scale and the single grotesque family | ✅ |
+| B.5 | Borders, radii, offset shadows | ✅ |
+| B.6 | Primitives restyled — button, badge, dialog, input, progress | ✅ |
+| B.7 | The reading sheet, as its own component | ✅ |
+| B.8 | Paragraph token — brutalist states, calm prose | ✅ |
+| B.9 | Motion: the collapse, the sweep's gradient, reduced motion | ✅ |
+| B.10 | Gallery updated, and read on a phone | ✅ |
 
 ### B.1 — Transcription, not choice
 
