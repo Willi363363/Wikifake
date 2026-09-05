@@ -20,9 +20,10 @@ playwright-report/
 # Vercel CLI: the local project link and the env it pulls down.
 .vercel
 
-# Every local env file — including whatever `vercel env pull` writes, which
-# carries real credentials. The negation comes last, because in gitignore the
-# later pattern wins.
+# Every local env file — `.env.local` and any `.env.*.local`, the plain `.env`
+# still accepted as a fallback, and whatever `vercel env pull` writes, which
+# carries real credentials. One pattern covers the lot; the negation comes last,
+# because in gitignore the later pattern wins.
 .env*
 !.env.example
 

@@ -1,6 +1,16 @@
 import createNextIntlPlugin from 'next-intl/plugin';
 import type { NextConfig } from 'next';
 
+import { loadEnvFiles } from '@wikifake/env/files';
+
+// The configuration is the first thing Next evaluates in every process it
+// starts, which makes it the only place early enough to fill `process.env` from
+// the workspace root. Next reads `apps/web/.env`, never the root, and
+// `NEXT_PUBLIC_*` is inlined into the bundle when the compiler starts — after
+// this file, before any application code. So a variable that arrives later
+// arrives too late.
+loadEnvFiles();
+
 // The workspace packages are TypeScript source, not built artefacts: `exports`
 // in each `package.json` points straight at `src/index.ts`. Next has to compile
 // them, which is what `transpilePackages` is for — without it the app imports a

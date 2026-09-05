@@ -5,6 +5,14 @@
 // also the only one that reads `process.env`, and it does it through `loadEnv`,
 // which refuses a missing variable by name at startup rather than three layers
 // later.
+//
+// This import comes first and has to: it fills `process.env` from the
+// workspace's `.env.local` or `.env`, and every import below it — `logger.js`
+// reads `LOG_LEVEL` while it is being evaluated — would otherwise read an empty
+// environment. A deployment sets its variables itself and the files are absent,
+// so this is a no-op there.
+import '@wikifake/env/load';
+
 import { initSentry } from './sentry.js';
 import { logger } from './logger.js';
 import { createArticleCache } from '@wikifake/article';
