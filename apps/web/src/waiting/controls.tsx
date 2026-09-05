@@ -37,7 +37,7 @@ export function GameOver({ onRestart }: GameOverProps) {
     <div
       // Above the board, and announced: a game that has ended looks exactly
       // like a game nobody is playing.
-      className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-glass-strong backdrop-blur-sm"
+      className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-surface"
       role="status"
     >
       <p className="text-2xl text-ink">{t('controls.gameOver')}</p>

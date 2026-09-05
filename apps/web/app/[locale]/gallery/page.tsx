@@ -35,7 +35,8 @@ import { TokenGallery } from './token.js';
 const GROUPS: readonly { readonly id: TokenGroup; readonly title: string }[] = [
   { id: 'surface', title: 'Surfaces' },
   { id: 'text', title: 'Text' },
-  { id: 'accent', title: 'Accents' },
+  { id: 'fill', title: 'Fills — the same in both palettes' },
+  { id: 'wash', title: 'Washes — a tint of the ground' },
 ];
 
 function Swatch({ token }: { token: ColourToken }) {
