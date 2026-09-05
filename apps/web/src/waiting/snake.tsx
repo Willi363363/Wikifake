@@ -143,7 +143,7 @@ export function Snake() {
   return (
     <div className="flex flex-col items-center gap-2">
       <div
-        className="relative overflow-hidden rounded-md border border-line bg-bg-grain"
+        className="relative overflow-hidden border-3 border-line-strong bg-bg-grain"
         style={{ width: GRID * CELL, height: GRID * CELL }}
         // A board of positioned squares says nothing to a screen reader, so it
         // says this instead.

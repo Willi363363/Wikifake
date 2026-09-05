@@ -28,7 +28,10 @@ export default function RootNotFound() {
               locale tree, and a hard navigation is what puts the request back
               through the proxy that does the detection. */}
           <p className="mt-8">
-            <a href="/" className="text-accent underline underline-offset-4">
+            <a
+              href="/"
+              className="font-bold text-ink underline decoration-2 underline-offset-4"
+            >
               wikifake — start here
             </a>
           </p>

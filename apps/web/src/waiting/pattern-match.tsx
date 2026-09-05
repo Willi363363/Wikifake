@@ -133,7 +133,7 @@ export function PatternMatch() {
       return 'border-line bg-surface';
     }
     return chosen.has(at)
-      ? 'border-accent-line bg-accent-soft'
+      ? 'border-line-strong bg-accent-soft'
       : 'border-line bg-surface';
   };
 
@@ -155,9 +155,9 @@ export function PatternMatch() {
             aria-pressed={chosen.has(at)}
             aria-label={t('pattern.square', { number: at + 1 })}
             className={cn(
-              'size-12 rounded-md border transition-colors',
-              'outline-none focus-visible:ring-2 focus-visible:ring-accent',
-              'enabled:hover:border-accent-line',
+              'size-12 border transition-colors',
+              'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
+              'enabled:hover:bg-accent-soft',
               toneOf(at),
             )}
           />

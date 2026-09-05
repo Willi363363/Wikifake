@@ -108,7 +108,7 @@ export function AnimatedRanking({
           <li
             key={standing.name}
             className={cn(
-              'grid grid-cols-[1.5rem_1fr_auto] items-center gap-3 rounded-lg px-2 py-1.5',
+              'grid grid-cols-[1.5rem_1fr_auto] items-center gap-3 px-2 py-1.5',
               'transition-colors',
               standing.you ? 'bg-accent-soft' : 'bg-transparent',
             )}
@@ -116,7 +116,7 @@ export function AnimatedRanking({
             <span
               className={cn(
                 'font-mono text-xs font-semibold tabular-nums',
-                at === 0 ? 'text-bronze' : 'text-muted',
+                at === 0 ? 'bg-bronze px-1 text-on-fill' : 'text-muted',
               )}
             >
               {String(at + 1).padStart(2, '0')}

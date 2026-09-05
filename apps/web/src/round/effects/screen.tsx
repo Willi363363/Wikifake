@@ -88,10 +88,16 @@ export function Lightning() {
   return (
     <Sheet label={t('effects.lightning.aria')} className="bg-danger/20">
       <div className="absolute inset-0 animate-screen-flash bg-danger/30" />
-      <p className="absolute inset-0 flex items-center justify-center font-mono text-6xl font-black text-danger">
-        {/* The number is the rule's (`STEAL_AMOUNT`), not the sheet's: a copy
+      <p className="absolute inset-0 flex items-center justify-center">
+        {/* A slab rather than coloured text. What is behind an overlay is the
+            article, so a text colour here has no pair anybody can measure; a
+            fill brings its own ground with it, and `on-fill` on it is 6.94.
+
+            The number is the rule's (`STEAL_AMOUNT`), not the sheet's: a copy
             here is a copy a balance change leaves lying. */}
-        {t('effects.lightning.amount', { points: STEAL_AMOUNT })}
+        <span className="border-3 border-line-strong bg-danger px-6 py-3 text-on-fill font-mono text-6xl font-black">
+          {t('effects.lightning.amount', { points: STEAL_AMOUNT })}
+        </span>
       </p>
     </Sheet>
   );

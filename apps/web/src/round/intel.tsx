@@ -74,7 +74,7 @@ export function Intel({
         {hints.blocked ? (
           <p
             role="alert"
-            className="mt-4 rounded-lg border border-danger/25 bg-danger-soft px-4 py-3 text-sm text-danger"
+            className="mt-4 border-3 border-line-strong bg-danger-soft px-4 py-3 text-sm text-ink"
           >
             {t('intel.jammedAlert')}
           </p>
@@ -89,9 +89,9 @@ export function Intel({
               <li
                 key={number}
                 className={cn(
-                  'flex flex-col gap-2 rounded-lg border p-3',
+                  'flex flex-col gap-2 border p-3',
                   level > 0
-                    ? 'border-bronze/25 bg-bronze-soft'
+                    ? 'border-line-strong bg-bronze-soft'
                     : 'border-line bg-bg-grain',
                 )}
               >

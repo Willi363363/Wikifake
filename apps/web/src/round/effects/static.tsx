@@ -110,7 +110,7 @@ export function Static() {
       <div className="absolute inset-0 bg-ink/50" />
       <div className="absolute inset-0 bg-[repeating-linear-gradient(0deg,color-mix(in_srgb,var(--color-ink)_45%,transparent)_0px,color-mix(in_srgb,var(--color-ink)_45%,transparent)_2px,transparent_2px,transparent_4px)]" />
       <p className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-        <span className="animate-static-glitch font-mono text-2xl font-bold tracking-[0.35em] text-danger uppercase">
+        <span className="animate-static-glitch border-3 border-line-strong bg-danger px-6 py-3 text-on-fill font-mono text-2xl font-bold tracking-[0.35em] uppercase">
           {t('effects.static.headline')}
         </span>
         <span className="font-mono text-xs tracking-[0.28em] text-muted uppercase">

@@ -259,7 +259,10 @@ export function Round({
         />
 
         {refusal === null ? null : (
-          <p role="alert" className="mt-4 text-center text-sm text-danger">
+          <p
+            role="alert"
+            className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+          >
             {refusal}
           </p>
         )}
@@ -268,7 +271,10 @@ export function Round({
           // D6 — an item the server would not let land. Said rather than
           // dropped: an item that vanishes without a word is indistinguishable
           // from a lost frame, which is exactly what the current server does.
-          <p role="alert" className="mt-4 text-center text-sm text-danger">
+          <p
+            role="alert"
+            className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+          >
             {items.refusal}
           </p>
         )}
@@ -295,7 +301,7 @@ export function Round({
           >
             {t('flags.reportError')}
             {flags.captures.length === 0 ? null : (
-              <span className="font-mono text-[10px] tabular-nums text-danger">
+              <span className="border-2 border-line-strong bg-danger px-1 font-mono text-[10px] tabular-nums text-on-fill">
                 {String(flags.captures.length)}
               </span>
             )}

@@ -35,7 +35,7 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
         role="toolbar"
         aria-label={t('items.barAria')}
         aria-orientation="horizontal"
-        className="flex max-w-full items-center gap-2 overflow-x-auto rounded-none border border-line bg-surface px-3 py-2 shadow-lg"
+        className="flex max-w-full items-center gap-2 overflow-x-auto border-3 border-line-strong bg-surface px-3 py-2 shadow-lg"
       >
         <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
           {t('items.barLabel')}
@@ -66,8 +66,8 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
                   : t('items.cardAriaTargeted', { name, blurb })
               }
               className={cn(
-                'flex min-w-[4.5rem] flex-col items-center gap-1 rounded-xl border px-3 py-2 transition-all',
-                'outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                'flex min-w-[4.5rem] flex-col items-center gap-1 border px-3 py-2 transition-all',
+                'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
                 'enabled:hover:-translate-y-px enabled:hover:shadow-md',
                 'disabled:opacity-50',
                 inFlight ? 'border-accent bg-accent-soft' : 'border-line bg-surface',

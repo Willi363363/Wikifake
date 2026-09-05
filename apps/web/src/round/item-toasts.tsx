@@ -36,7 +36,7 @@ export function ItemToasts({ landed, lastScan, onDismiss }: ItemToastsProps) {
       className="fixed top-20 right-3 z-40 flex w-[min(20rem,calc(100vw-1.5rem))] flex-col gap-2"
     >
       {lastScan === null ? null : (
-        <p className="rounded-xl border border-bronze/25 bg-bronze-soft px-4 py-3 text-sm text-bronze shadow-md">
+        <p className="border-3 border-line-strong bg-bronze-soft px-4 py-3 text-sm text-ink shadow-md">
           {lastScan.paragraphIndex === null
             ? // C1.6 — the SCANNER answers `null` once nothing is left. The
               // current server sends nothing at all, so the client cannot tell
@@ -52,7 +52,7 @@ export function ItemToasts({ landed, lastScan, onDismiss }: ItemToastsProps) {
         return (
           <div
             key={each.id}
-            className="flex items-center gap-3 rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink shadow-md"
+            className="flex items-center gap-3 border-3 border-line-strong bg-surface px-4 py-3 text-sm text-ink shadow-md"
           >
             <span aria-hidden="true" className="text-lg">
               {label.icon}
