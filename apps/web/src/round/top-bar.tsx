@@ -60,7 +60,7 @@ export function RoundTopBar({
   const pressure = pressureAt(secondsLeft);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-glass-strong backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-line bg-surface">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
         <p className="text-lg text-ink">{topic}</p>
 

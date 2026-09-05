@@ -8,11 +8,15 @@
 // forgets the directive fails at build time in the application, a long way from
 // here.
 
-// The text field. `.expert-input` of `ui.css`, transcribed.
+// The text field.
 //
-// The bronze focus glow is kept — it is the identity — and a real focus ring is
-// added beside it: a glow is a colour change, and a colour change is not a focus
-// indicator for anyone who cannot see the colour.
+// The bronze focus glow is gone. It was the previous identity, and it now says
+// the wrong thing twice over: `bronze` means *a hint, which is paid for*, and a
+// soft 25% glow is a haze this direction does not have. Focus is `accent-line`,
+// the colour reserved for it, drawn as a hard ring.
+//
+// A colour change alone was never a focus indicator for anyone who cannot see
+// the colour, which is why the ring is the indicator and not an addition to it.
 import type { InputHTMLAttributes } from 'react';
 
 import { cn } from '../cn.js';
@@ -24,10 +28,10 @@ export function Input({ className, type, ...props }: InputProps) {
     <input
       type={type ?? 'text'}
       className={cn(
-        'w-full rounded-md border border-line-strong bg-surface px-3 py-2',
+        'w-full rounded-none border-3 border-line-strong bg-surface px-3 py-2',
         'text-sm text-ink placeholder:text-muted-2',
-        'transition-shadow duration-150 outline-none',
-        'focus-visible:border-bronze focus-visible:ring-2 focus-visible:ring-bronze/25',
+        'outline-none',
+        'focus-visible:ring-[3px] focus-visible:ring-accent-line focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
         'disabled:cursor-not-allowed disabled:opacity-40',
         className,
       )}

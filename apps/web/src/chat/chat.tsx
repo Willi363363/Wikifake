@@ -95,7 +95,7 @@ export function ChatDock() {
           setOpen(true);
         }}
         aria-label={unread === 0 ? t('open') : t('openUnread', { count: unread })}
-        className="fixed top-1/2 right-0 z-40 flex h-28 -translate-y-1/2 items-center gap-2 rounded-l-xl border border-r-0 border-line bg-glass-strong px-2 shadow-md backdrop-blur-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="fixed top-1/2 right-0 z-40 flex h-28 -translate-y-1/2 items-center gap-2 rounded-l-xl border border-r-0 border-line bg-surface px-2 shadow-md outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         <span className="font-mono text-[11px] tracking-[0.1em] text-ink uppercase [writing-mode:vertical-rl] [transform:rotate(180deg)]">
           {t('tab')}

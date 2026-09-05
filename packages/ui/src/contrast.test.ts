@@ -77,25 +77,54 @@ const at = (results: readonly { fg: string; bg: string; ratio: number }[], key: 
   results.find((result) => `${result.fg} on ${result.bg}` === key);
 
 /**
- * The seven pairs the light palette used to fail, and what they measure now.
+ * Every ratio, pinned to two decimals, in both palettes.
  *
- * The ratio each one was inherited at, from `frontend/src/styles/tokens.css`,
- * is in the comment beside it — so the diff of this file is the record of what
- * the correction actually bought, and nobody has to go looking for the numbers
- * it replaced.
+ * Phase 6 pinned only the seven pairs it had repaired, because the rest were
+ * inherited and nobody had decided them. Nothing is inherited any more: the
+ * brutalist palette was chosen against this audit before a line of it reached
+ * the stylesheet, and `plans/product/01-palette.md` carries the same forty
+ * numbers. So all forty are pinned here.
  *
- * `muted-2` is held to three rather than four and a half because the palette's
- * own role line declares it large text only. That is the floor `CONTRAST_PAIRS`
- * gives it, and it is not a discount taken here.
+ * What that buys is direction. An unpinned pair only says *still above the
+ * threshold*, which stays true while a colour drifts a long way. A pinned one
+ * says *this colour changed*, and the diff of this file is the record of what
+ * changed and by how much.
+ *
+ * The five `on-fill` rows are identical between the palettes on purpose — the
+ * fills do not move, so neither do their ratios. A number that stopped being
+ * identical would mean a fill drifted in one palette, which `theme.test.ts`
+ * also catches from the other side.
  */
-const REPAIRED: Readonly<Record<string, number>> = {
-  'muted-2 on bg': 3.2, // was 2.33 — below three, unusable at any size
-  'muted-2 on surface': 3.52, // was 2.56 — likewise
-  'warn on warn-soft': 4.59, // was 2.56 — the MISSED verdict, amber on amber
-  'muted on bg': 4.59, // was 4.4
-  'bronze on bg': 4.88, // was 4.39
-  'bronze on bronze-soft': 4.56, // was 4.1
-  'green on green-soft': 4.56, // was 4.26
+const PINNED: Readonly<Record<string, readonly [number, number]>> = {
+  // pair                            light   dark
+  'ink on bg': [20.46, 16.86],
+  'ink on surface': [21.0, 15.51],
+  'ink on bg-grain': [18.08, 15.82],
+  'ink-2 on bg': [13.59, 12.26],
+  'ink-2 on surface': [13.95, 11.28],
+  'muted on bg': [7.37, 7.52],
+  'muted on surface': [7.57, 6.92],
+  // `muted-2` is held to three rather than four and a half because the
+  // palette's own role line declares it large text only. That is the floor
+  // `CONTRAST_PAIRS` gives it, and it is not a discount taken here.
+  'muted-2 on bg': [5.18, 5.14],
+  'muted-2 on surface': [5.32, 4.73],
+
+  'on-fill on accent': [16.13, 16.13],
+  'on-fill on accent-line': [13.65, 13.65],
+  'on-fill on bronze': [10.45, 10.45],
+  'on-fill on green': [12.52, 12.52],
+  'on-fill on warn': [11.48, 11.48],
+  // The tightest pair in the palette, at ×1.54 of its target. `danger` is the
+  // darkest fill, and darkening it further to look more alarming is the change
+  // that breaks this row first.
+  'on-fill on danger': [6.94, 6.94],
+
+  'ink on accent-soft': [19.31, 11.4],
+  'ink on bronze-soft': [17.43, 13.27],
+  'ink on green-soft': [18.46, 12.73],
+  'ink on warn-soft': [17.96, 12.36],
+  'ink on danger-soft': [16.76, 14.26],
 };
 
 describe('the maths', () => {
@@ -176,18 +205,36 @@ describe('6.6 — the audit', () => {
       expect(light.filter((result) => result.passes)).toHaveLength(CONTRAST_PAIRS.length);
     });
 
-    // Pinned to two decimals, so a change to any of these colours is visible in
-    // a diff rather than discovered later.
-    it.each(Object.entries(REPAIRED))('%s is %s', (key, ratio) => {
-      expect(at(light, key)?.ratio).toBeCloseTo(ratio, 2);
-    });
-
     // The floor under the floor: `large` excuses a pair from 4.5, never from 3.
     it('has nothing below three to one', () => {
       const unusable = light
         .filter((result) => result.grade === 'fail')
         .map((result) => `${result.fg} on ${result.bg}`);
       expect(unusable).toEqual([]);
+    });
+  });
+
+  describe('the pinned ratios', () => {
+    // A pin nobody measures is a pin that rots. This is what makes the table
+    // above a claim about the stylesheet rather than a list of numbers.
+    it('names every pair the audit renders, and only those', () => {
+      expect(Object.keys(PINNED).sort()).toEqual(
+        CONTRAST_PAIRS.map((pair) => `${pair.fg} on ${pair.bg}`).sort(),
+      );
+    });
+
+    it.each(Object.entries(PINNED))('%s', (key, [inLight, inDark]) => {
+      expect(at(light, key)?.ratio).toBeCloseTo(inLight, 2);
+      expect(at(dark, key)?.ratio).toBeCloseTo(inDark, 2);
+    });
+
+    // The fills are the same colour in both palettes, so their ratios are the
+    // same number twice. Stated as its own assertion because it is a design
+    // decision, and a decision that quietly stopped holding should fail.
+    it('measures each fill identically in both palettes', () => {
+      for (const [key, [inLight, inDark]] of Object.entries(PINNED)) {
+        if (key.startsWith('on-fill on ')) expect(inLight).toBe(inDark);
+      }
     });
   });
 });

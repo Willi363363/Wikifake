@@ -61,7 +61,46 @@ describe('6.2 — the primitives', () => {
       // `outline-none` with nothing in its place is the single most common way a
       // design system becomes unusable by keyboard.
       expect(classes).toContain('outline-none');
-      expect(classes).toContain('focus-visible:ring-2');
+      // A ring of *some* non-zero width, rather than one exact spelling.
+      // Pinning `ring-2` meant a width change failed here for no reason, while
+      // `ring-0` — the change that actually matters — would have passed it.
+      expect(classes).toMatch(/focus-visible:ring-(?:\[[1-9]\d*px\]|[1-9]\d*(?![\w-]))/);
+    });
+
+    // The ring is `accent-line`, the colour this direction reserves for focus
+    // and for nothing else. A ring that shares a hue with a state is a ring you
+    // have to think about before you know what it is telling you.
+    it('rings in the colour reserved for focus', () => {
+      render(<Button>Start</Button>);
+      expect(screen.getByRole('button').className).toContain(
+        'focus-visible:ring-accent-line',
+      );
+    });
+
+    /*
+     * The collapse is the direction's own motion, so it answers to the
+     * preference directly rather than through `motion.ts`.
+     *
+     * That list types the *game's* effects — a flash, a displacement — and
+     * switches off what is hazardous. A hover transition is neither, and it is
+     * not in the list; what stops it is this class. Without the assertion,
+     * "reduced motion is handled" would be true of the item effects and quietly
+     * false of every control on the page.
+     */
+    it('stops moving when the viewer asks for less motion', () => {
+      render(<Button>Start</Button>);
+      expect(screen.getByRole('button').className).toContain(
+        'motion-reduce:transition-none',
+      );
+    });
+
+    // And what it animates is named, so a colour or a size added later cannot
+    // join the transition by accident and make the collapse a fade.
+    it('transitions only what the collapse moves', () => {
+      render(<Button>Start</Button>);
+      expect(screen.getByRole('button').className).toContain(
+        'transition-[transform,box-shadow]',
+      );
     });
 
     it('does not submit the form it happens to be inside', () => {

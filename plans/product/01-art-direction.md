@@ -112,12 +112,27 @@ near-white prose. Still no border, still no fill.
 
 ## Motion, and the preference that overrides it
 
-`packages/ui/src/motion.ts` already honours `prefers-reduced-motion`, and this
-direction leans on motion harder than the last one did — so the reduced-motion
-path is not a fallback to test at the end. **Every animation in this direction
-is decorative by construction**: the shadow collapse, the scroll scene of
-track C, the verdict reveal. With the preference set, each resolves instantly
-to its end state. Nothing conveys information through movement alone.
+This direction leans on motion harder than the last one did, so the
+reduced-motion path is not a fallback to test at the end.
+
+**The direction's own motion resolves instantly.** The shadow collapse, the
+scroll scene of track C, the reveal: each is decorative by construction, each
+carries `motion-reduce:transition-none`, and none conveys information through
+movement alone.
+
+**The game's item effects follow a different rule, and it is the better one.**
+`packages/ui/src/motion.ts` types every animation and switches off exactly what
+flashes or displaces — `shake` at 7 Hz, `static-glitch` at 10 Hz,
+`screen-flash` and `lightning-zap` at about 4.4 flashes a second against a
+threshold of three. Those are a photosensitivity hazard rather than a comfort
+question. The fades and settles stay, deliberately: removing every one of them
+makes state changes snap rather than settle, which helps nobody and is not what
+the preference asks for.
+
+An earlier draft of this file said *every* animation resolves instantly under
+the preference. That was written before the policy in `motion.ts` was read, and
+it was wrong about the game's effects — the classification there is argued and
+tested, and this file now describes it rather than contradicting it.
 
 ## Exit condition
 

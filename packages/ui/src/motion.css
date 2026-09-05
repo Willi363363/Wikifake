@@ -112,9 +112,23 @@
     }
   }
 
+  /*
+   * The scanner line, and why it starts at zero rather than at -100%.
+   *
+   * It used to sweep a translucent gradient across the paragraph, and the
+   * brutalist direction has no gradient. A gradient could not simply be swapped
+   * for a solid block, because a block wide enough to travel would cover the
+   * text it is scanning — so what travels now is a **line**: a full-width
+   * element carrying only a left border, clipped by a wrapper.
+   *
+   * `translateX` is a percentage of the element's own width, which is the
+   * container's. From 0% the border sits at the left edge; at 100% it has
+   * reached the right one. The old -100% start belonged to a gradient that had
+   * to enter from off-stage, and kept a bar invisible for half of every cycle.
+   */
   @keyframes scan-sweep {
     0% {
-      transform: translateX(-100%);
+      transform: translateX(0);
       opacity: 0;
     }
     20%,
