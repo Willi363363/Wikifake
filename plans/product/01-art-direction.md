@@ -55,22 +55,33 @@ opinion:
 
 Two tokens in the current stylesheet — `glass` and `glass-strong` — describe
 translucent surfaces. **They are removed by this direction**, not recoloured.
-Track B handles the deletion and whatever referenced them.
+Track B handles the deletion and whatever referenced them; `01-palette.md`
+records why removing their contrast pairs is bookkeeping rather than
+disarming a check.
 
 ## The palette
 
-Three anchors, plus the semantic colours the game already owns.
+**Decided and measured. The values are in `01-palette.md`**, together with the
+forty measurements that justify them — track B transcribes that sheet rather
+than choosing anything.
+
+The anchors:
 
 ```
-ink        #000000    every border, every piece of body text
-paper      #FFFFFF    the page, and the reading sheet
-primary    #FFE14D    the yellow — the main call to action
-secondary  #00E5FF    the cyan — selection, focus, the player's own marks
+ink        #000000    body text, and the structural 3px border
+paper      #FFFCF2    the page
+accent     #FFE14D    the yellow — the primary action
+focus      #00E5FF    the cyan — focus, selection, the player's own marks
 ```
 
-The game's verdict colours (`green` = found, `warn` = missed, `danger` =
-wrong) survive as flat fills. Their exact values are track B's job, because
-they must clear the audit before they are real.
+The game's verdict colours survive as flat fills: `green` = found,
+`warn` = missed, `danger` = wrong, and `bronze` = a hint that was paid for.
+
+**The fills are the same colour in both palettes.** A yellow button is that
+yellow on a dark page too; what a theme switches is the ground, the text and
+the washes. That is why `01-palette.md` adds a token — `on-fill`, black in
+both — for text sitting on a fill, and it is the mechanism behind the rule
+below rather than a detail of it.
 
 ### The one hard colour rule
 
@@ -110,11 +121,22 @@ to its end state. Nothing conveys information through movement alone.
 
 ## Exit condition
 
+Track A decides; it does not draw. The gallery, the pinned ratios and the
+restyled primitives are track B's exit gate, and the side-by-side screenshot
+test is track D's — putting them here would mean track A could not close until
+two other tracks had.
+
 Track A is done when:
 
-1. This file is agreed, and the palette's exact values are chosen.
-2. The gallery at `/gallery` renders the new tokens, primitives and states.
-3. `contrast.test.ts` passes on both palettes with **no pair below 4.5:1** for
-   normal text, pinned as it is today.
-4. A screenshot of the landing hero and one of a round sit side by side and
-   read as the same product — which is the check no test can perform.
+1. This file is agreed.
+2. **Every token has a value in both palettes** — `01-palette.md`.
+3. **Every pair the direction declares passes, measured**, with the numbers
+   recorded so that a transcription error shows up as a disagreement rather
+   than as a discovery. Done: forty measurements, all passing, tightest
+   margin ×1.54.
+4. The token changes are named — removed, added, re-roled — so that track B
+   transcribes rather than decides.
+
+What is deliberately **not** settled here: the type family. The direction
+names a bold grotesque and the choice of which one is a licensing and
+loading-cost decision that belongs with the work that loads it, in step B.4.

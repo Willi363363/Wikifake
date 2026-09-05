@@ -69,4 +69,11 @@ something real.
 - Keyboard: a full solo game start to debrief, and a paragraph marked, without
   a mouse.
 - `prefers-reduced-motion`: every screen usable, no information lost.
+- **The debrief is readable with every fill rendered grey.** FOUND, MISSED and
+  WRONGLY MARKED always carry their word — `01-palette.md` measured `green`
+  and `warn` close enough in luminance that colour alone will not separate
+  them for a deuteranope, and no hue choice fixes that.
+- **A screenshot of the landing hero and one of a round, side by side, read as
+  the same product.** Handed over from track A, which could not perform it
+  before anything was drawn. It is the check no test can run.
 - Nothing behavioural in the diff — no route, message, reducer or score.
