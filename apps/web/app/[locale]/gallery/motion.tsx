@@ -26,7 +26,7 @@ function Card({ motion }: { motion: Motion }) {
   const [playing, setPlaying] = useState(!motion.reducible);
 
   return (
-    <li className="rounded-lg border border-line bg-surface p-4">
+    <li className="border-3 border-line-strong bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <code className="block text-sm text-ink">animate-{motion.name}</code>
@@ -69,7 +69,7 @@ function Card({ motion }: { motion: Motion }) {
 
 export function MotionGallery() {
   return (
-    <div className="rounded-xl border border-line bg-bg p-6 text-ink">
+    <div className="border-3 border-line-strong bg-bg p-6 text-ink">
       <p className="mb-4 max-w-prose text-sm text-muted">
         Sixteen keyframes, carried over from the current game. The seven marked{' '}
         <em>flash</em> or <em>displace</em> do not play on their own: they are a
