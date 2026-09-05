@@ -52,46 +52,67 @@
  * theme shipped eight colours out of twenty-two.
  */
 @theme static {
-  /* Surfaces — "warm paper", and what sits on it. */
-  --color-bg: #f6f4ef;
-  --color-bg-grain: #f1ede5;
+  /*
+   * Surfaces. Flat and opaque, separated by a border rather than by a tint.
+   *
+   * `glass` and `glass-strong` are gone rather than recoloured: the direction
+   * has no translucent surface, so they are tokens that ceased to exist. The
+   * three contrast pairs that measured them went with them, and
+   * `plans/product/01-palette.md` records why that is bookkeeping rather than
+   * disarming a check.
+   */
+  --color-bg: #fffcf2;
+  --color-bg-grain: #f2eee0;
   --color-surface: #ffffff;
-  --color-glass: rgba(255, 255, 255, 0.74);
-  --color-glass-strong: rgba(255, 255, 255, 0.86);
-  --color-line: rgba(24, 24, 27, 0.07);
-  --color-line-strong: rgba(24, 24, 27, 0.14);
 
   /*
-   * Text, from the darkest to the most withdrawn.
-   *
-   * `muted` and `muted-2` are darker here than in the game this palette was
-   * transcribed from: they missed their own targets by 0.1 and 0.72. Only the
-   * luminosity moved — each channel scaled by one factor — so the hue and the
-   * saturation are the ones phase 6 transcribed.
+   * `line` is an internal divider inside a card; `line-strong` is the
+   * structural 3px border. They are far apart on purpose — in this direction
+   * the structural border *is* the design, and a hairline trying to be both
+   * would weaken it.
    */
-  --color-ink: #18181b;
-  --color-ink-2: #3f3f46;
-  --color-muted: #6e6e77;
-  --color-muted-2: #888890;
+  --color-line: #dad4c2;
+  --color-line-strong: #000000;
+
+  /* Text, from the darkest to the most withdrawn. */
+  --color-ink: #000000;
+  --color-ink-2: #2e2c27;
+  --color-muted: #57544b;
+  --color-muted-2: #6f6b60;
 
   /*
-   * The five accents. Each has a solid and a wash.
+   * The text colour on a saturated fill, and the reason it is its own token.
    *
-   * `bronze`, `green` and `warn` are likewise darkened to reach 4.5:1 on their
-   * own wash. The washes are untouched: sharing the correction with them was
-   * measured and rejected — see `contrast.test.ts`.
+   * `ink` inverts between the palettes; the fills below do not. Text on a fill
+   * therefore cannot be `ink`, or the dark palette puts #f5f2e8 on #ffe14d at
+   * 1.30:1 — a primary button nobody can read. `on-fill` is black in both,
+   * because the colour it sits on is the same in both.
    */
-  --color-accent: #1f574d;
-  --color-accent-soft: #e8f0ed;
-  --color-accent-line: rgba(31, 87, 77, 0.18);
-  --color-bronze: #836633;
-  --color-bronze-soft: #f3ecdc;
-  --color-green: #47754f;
-  --color-green-soft: #e7efe6;
-  --color-warn: #82662a;
-  --color-warn-soft: #f6ecd1;
-  --color-danger: #a64b48;
-  --color-danger-soft: #f5e2dd;
+  --color-on-fill: #000000;
+
+  /*
+   * The fills. **Identical in the dark palette**, and restated there rather
+   * than inherited, so that a fill nobody translated is a failing test rather
+   * than a silent fallback.
+   *
+   * `bronze` is a lavender. The name is inherited from the code, the tests and
+   * the paragraph token's states, and renaming a token across the repository
+   * to match a hue is a much larger diff than living with the name. What it
+   * means — a hint, which is paid for — is unchanged.
+   */
+  --color-accent: #ffe14d;
+  --color-accent-line: #00e5ff;
+  --color-bronze: #c9a7ff;
+  --color-green: #5fe08b;
+  --color-warn: #ffb020;
+  --color-danger: #ff5c5c;
+
+  /* The washes. A tint of the ground, carrying `ink` rather than `on-fill`. */
+  --color-accent-soft: #fff6cc;
+  --color-bronze-soft: #efe6ff;
+  --color-green-soft: #dbf7e6;
+  --color-warn-soft: #ffebc7;
+  --color-danger-soft: #ffdede;
 
   --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.04), 0 1px 1px rgba(24, 24, 27, 0.03);
   --shadow-md: 0 6px 20px -8px rgba(24, 24, 27, 0.1), 0 2px 4px rgba(24, 24, 27, 0.04);
@@ -147,30 +168,37 @@
  */
 @layer base {
   .dark {
-    --color-bg: #171614;
-    --color-bg-grain: #1e1c19;
-    --color-surface: #221f1b;
-    --color-glass: rgba(34, 31, 27, 0.74);
-    --color-glass-strong: rgba(34, 31, 27, 0.86);
-    --color-line: rgba(244, 241, 234, 0.09);
-    --color-line-strong: rgba(244, 241, 234, 0.16);
+    --color-bg: #12110e;
+    --color-bg-grain: #1a1815;
+    --color-surface: #1c1a16;
+    --color-line: #3a362e;
+    --color-line-strong: #f5f2e8;
 
-    --color-ink: #f4f1ea;
-    --color-ink-2: #d6d1c7;
-    --color-muted: #a8a29a;
-    --color-muted-2: #7b756c;
+    --color-ink: #f5f2e8;
+    --color-ink-2: #d5d0c2;
+    --color-muted: #a9a395;
+    --color-muted-2: #8b8577;
 
-    --color-accent: #6fb3a4;
-    --color-accent-soft: #17302c;
-    --color-accent-line: rgba(111, 179, 164, 0.28);
-    --color-bronze: #d0aa6a;
-    --color-bronze-soft: #2e2617;
-    --color-green: #8ec095;
-    --color-green-soft: #1c2a1d;
-    --color-warn: #e0bd6f;
-    --color-warn-soft: #2f2716;
-    --color-danger: #e0908c;
-    --color-danger-soft: #33201e;
+    /*
+     * Identical to the light palette, and that is the decision rather than an
+     * oversight: a fill is the same colour on either ground, so the text on it
+     * is the same black on either ground too. `theme.test.ts` holds this list
+     * exactly — a fill that drifted, or one nobody restated, both fail.
+     */
+    --color-on-fill: #000000;
+    --color-accent: #ffe14d;
+    --color-accent-line: #00e5ff;
+    --color-bronze: #c9a7ff;
+    --color-green: #5fe08b;
+    --color-warn: #ffb020;
+    --color-danger: #ff5c5c;
+
+    /* The washes are a tint of *this* ground, so these do move. */
+    --color-accent-soft: #3a3212;
+    --color-bronze-soft: #2a2340;
+    --color-green-soft: #14301f;
+    --color-warn-soft: #3a2a0c;
+    --color-danger-soft: #3a1717;
 
     /* Elevation reads as depth rather than as haze once the ground is dark. */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 1px rgba(0, 0, 0, 0.3);

@@ -20,7 +20,12 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-import { COLOUR_TOKENS, RADIUS_TOKENS, SHADOW_TOKENS } from './tokens.js';
+import {
+  COLOUR_TOKENS,
+  RADIUS_TOKENS,
+  SHADOW_TOKENS,
+  THEME_INDEPENDENT,
+} from './tokens.js';
 
 const read = (relative: string): string =>
   readFileSync(fileURLToPath(new URL(relative, import.meta.url)), 'utf8');
@@ -93,11 +98,34 @@ describe('6.1 — the tokens', () => {
       ).toEqual([...colours].sort());
     });
 
-    it('answers differently — a token repeated is a token forgotten', () => {
+    /*
+     * This assertion used to read: *answers differently — a token repeated is a
+     * token forgotten*, with no exceptions. The brutalist direction broke it on
+     * purpose, and the fix is to state the new rule rather than to drop the old
+     * check.
+     *
+     * A fill is the same colour on either ground — a yellow button is that
+     * yellow on a dark page — and `on-fill` is black on either ground because
+     * what it sits on is. Everything else still has to move, so the protection
+     * the original assertion bought is intact: a ground or a wash nobody
+     * translated fails here exactly as it did before.
+     */
+    const independent = THEME_INDEPENDENT.map((name) => `--color-${name}`);
+
+    it('repeats the theme-independent tokens, and only those', () => {
       const unchanged = colours.filter(
         (name) => comparable(dark.get(name) ?? '') === comparable(theme.get(name) ?? ''),
       );
-      expect(unchanged).toEqual([]);
+      expect(unchanged.sort()).toEqual([...independent].sort());
+    });
+
+    // The other half of it: a fill that drifted between the palettes would pass
+    // the assertion above by simply not being in `unchanged`, and the failure
+    // would be a button that changes colour with the theme for no reason.
+    it('holds each of them to the same value in both palettes', () => {
+      for (const name of independent) {
+        expect(comparable(dark.get(name) ?? '')).toBe(comparable(theme.get(name) ?? ''));
+      }
     });
 
     // The elevations too: the light shadows are a haze that vanishes on a dark

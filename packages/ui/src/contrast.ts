@@ -65,9 +65,14 @@ export function parseColour(value: string): Rgba | null {
 /**
  * A translucent colour, flattened onto what is behind it.
  *
- * Half the palette is `rgba(...)` — the glass surfaces, every hairline, three of
- * the accent borders — and a ratio computed against a colour with an alpha
- * channel is a ratio computed against a colour nobody sees.
+ * The palette is opaque hex throughout since the brutalist direction, so this
+ * is no longer load-bearing for the theme's own colours — half of phase 6's
+ * palette was `rgba(...)`, and flattening is what made those ratios true.
+ *
+ * It stays because a caller may still hand it a translucent value: a
+ * component's own `bg-accent/7`, an overlay, a colour read back from a browser.
+ * A ratio computed against an alpha channel is a ratio computed against a
+ * colour nobody sees.
  */
 export function over(fg: Rgba, bg: Rgba): Rgba {
   if (fg.a >= 1) return fg;
@@ -124,18 +129,32 @@ export interface ContrastPair {
  * Every pair the design system actually renders.
  *
  * Written out rather than generated from the cross product: two hundred
- * combinations nobody uses would bury the fifteen that carry the game.
+ * combinations nobody uses would bury the twenty that carry the game.
+ *
+ * The accent rows follow the direction's one hard rule — **text on a saturated
+ * fill is always `on-fill`, never `ink`** — so each fill is measured with the
+ * black that actually sits on it, and each wash with the `ink` that actually
+ * sits on *it*. Reading the two groups is reading the rule.
+ *
+ * Three rows are gone since phase 6: `ink` and `muted` on `glass`, and `muted`
+ * on `glass` again. They went with the token, not because they failed.
+ * Deleting a pair whose colours fail is disarming the check; deleting one whose
+ * subject no longer exists is bookkeeping, and `plans/product/01-palette.md`
+ * draws that line in as many words.
  */
 export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   { fg: 'ink', bg: 'bg', use: 'body text on the page', needs: 'AA' },
-  { fg: 'ink', bg: 'surface', use: 'body text on a card', needs: 'AA' },
+  {
+    fg: 'ink',
+    bg: 'surface',
+    use: 'body text on a card, and the reading sheet',
+    needs: 'AA',
+  },
   { fg: 'ink', bg: 'bg-grain', use: 'body text on the deeper ground', needs: 'AA' },
-  { fg: 'ink', bg: 'glass', use: 'body text on a glass panel', needs: 'AA' },
   { fg: 'ink-2', bg: 'bg', use: 'secondary text on the page', needs: 'AA' },
   { fg: 'ink-2', bg: 'surface', use: 'secondary text on a card', needs: 'AA' },
   { fg: 'muted', bg: 'bg', use: 'labels and captions on the page', needs: 'AA' },
   { fg: 'muted', bg: 'surface', use: 'labels and captions on a card', needs: 'AA' },
-  { fg: 'muted', bg: 'glass', use: 'labels on a glass panel', needs: 'AA' },
   // The palette's own role line says "large text only", so that is what it is
   // held to. It still has to clear three.
   { fg: 'muted-2', bg: 'bg', use: 'the most withdrawn text, large only', needs: 'large' },
@@ -145,40 +164,43 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
     use: 'the most withdrawn text on a card, large only',
     needs: 'large',
   },
-  { fg: 'accent', bg: 'bg', use: 'a link or a total on the page', needs: 'AA' },
-  { fg: 'accent', bg: 'surface', use: 'a link or a total on a card', needs: 'AA' },
+
+  // The fills. Same colour in both palettes, so these five measure the same on
+  // either ground — which is the point of `on-fill` existing.
+  { fg: 'on-fill', bg: 'accent', use: 'the primary button', needs: 'AA' },
   {
-    fg: 'accent',
+    fg: 'on-fill',
+    bg: 'accent-line',
+    use: 'a focused control, and selection',
+    needs: 'AA',
+  },
+  { fg: 'on-fill', bg: 'bronze', use: 'a hint chip — what was paid for', needs: 'AA' },
+  { fg: 'on-fill', bg: 'green', use: 'the FOUND verdict, in the debrief', needs: 'AA' },
+  { fg: 'on-fill', bg: 'warn', use: 'the MISSED verdict, in the debrief', needs: 'AA' },
+  {
+    fg: 'on-fill',
+    bg: 'danger',
+    use: 'the WRONGLY MARKED verdict, and the danger button',
+    needs: 'AA',
+  },
+
+  // The washes are a tint of the ground, so they carry `ink` and they move
+  // between the palettes.
+  {
+    fg: 'ink',
     bg: 'accent-soft',
     use: 'a marked paragraph, and the accent badge',
     needs: 'AA',
   },
-  { fg: 'surface', bg: 'accent', use: 'the primary button', needs: 'AA' },
-  { fg: 'bronze', bg: 'bg', use: "a hint's price on the page", needs: 'AA' },
   {
-    fg: 'bronze',
+    fg: 'ink',
     bg: 'bronze-soft',
     use: 'a paragraph a hint was bought on, and the bronze badge',
     needs: 'AA',
   },
-  {
-    fg: 'green',
-    bg: 'green-soft',
-    use: 'the FOUND verdict, in the debrief',
-    needs: 'AA',
-  },
-  {
-    fg: 'warn',
-    bg: 'warn-soft',
-    use: 'the MISSED verdict, in the debrief',
-    needs: 'AA',
-  },
-  {
-    fg: 'danger',
-    bg: 'danger-soft',
-    use: 'the WRONGLY MARKED verdict, and the danger button',
-    needs: 'AA',
-  },
+  { fg: 'ink', bg: 'green-soft', use: 'the FOUND row of the debrief', needs: 'AA' },
+  { fg: 'ink', bg: 'warn-soft', use: 'the MISSED row of the debrief', needs: 'AA' },
+  { fg: 'ink', bg: 'danger-soft', use: 'the WRONGLY MARKED row', needs: 'AA' },
 ];
 
 export interface ContrastResult extends ContrastPair {

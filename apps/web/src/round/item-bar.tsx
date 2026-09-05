@@ -35,7 +35,7 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
         role="toolbar"
         aria-label={t('items.barAria')}
         aria-orientation="horizontal"
-        className="flex max-w-full items-center gap-2 overflow-x-auto rounded-2xl border border-line bg-glass-strong px-3 py-2 shadow-lg backdrop-blur-md"
+        className="flex max-w-full items-center gap-2 overflow-x-auto rounded-2xl border border-line bg-surface px-3 py-2 shadow-lg"
       >
         <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
           {t('items.barLabel')}
