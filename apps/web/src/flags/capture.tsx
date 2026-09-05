@@ -74,12 +74,16 @@ export function FlagCapture({
                   onClick={() => {
                     setChosen(number);
                   }}
+                  // Same edge whatever is chosen — `border-3 border-line-strong`
+                  // rather than a 1px `border` that was beige at rest and
+                  // yellow-on-yellow once picked. The wash says which one.
                   className={cn(
-                    'w-full border px-3 py-2 text-left text-[13px] leading-snug',
+                    'w-full px-3 py-2 text-left text-[13px] leading-snug',
+                    'border-3 border-line-strong',
                     'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
                     chosen === number
-                      ? 'border-accent bg-accent-soft text-ink'
-                      : 'border-line bg-surface text-ink-2 hover:border-line-strong',
+                      ? 'bg-accent-soft text-ink'
+                      : 'bg-surface text-ink-2 hover:bg-bg-grain hover:text-ink',
                   )}
                 >
                   <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">

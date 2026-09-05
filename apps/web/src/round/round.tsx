@@ -292,9 +292,14 @@ export function Round({
           to an article that is already being explained. */}
       {flags === undefined || ended ? null : (
         <>
+          {/* Not `ghost` with a shadow bolted on, which is what it was: the
+              ghost variant is transparent on both the border and the fill, so
+              the offset shadow had nothing casting it and drew a black bracket
+              floating beside the words — and, having no collapse of its own, it
+              stayed there on hover. A shadow needs an object. The default
+              variant is that object, and it owns the collapse. */}
           <Button
-            variant="ghost"
-            className="fixed right-3 bottom-20 z-30 shadow-md"
+            className="fixed right-3 bottom-20 z-30"
             onClick={() => {
               setFlagging(true);
             }}

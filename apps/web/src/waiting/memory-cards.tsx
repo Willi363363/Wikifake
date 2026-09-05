@@ -136,14 +136,19 @@ export function MemoryCards() {
                   ? t('memory.cardShowing', { number: at + 1, icon: card.icon })
                   : t('memory.cardFaceDown', { number: at + 1 })
               }
+              // One edge, three fills. The width was Tailwind's 1px and the
+              // matched card drew a green border on a green wash, so a face-up
+              // card and a face-down one differed by a hairline's hue.
               className={cn(
-                'flex size-12 items-center justify-center border text-lg transition-all',
+                'flex size-12 items-center justify-center text-lg',
+                'border-3 border-line-strong',
+                'transition-colors motion-reduce:transition-none',
                 'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
                 card.matched
-                  ? 'border-green bg-green-soft text-ink'
+                  ? 'bg-green-soft text-ink'
                   : showing
-                    ? 'border-line-strong bg-accent-soft text-ink'
-                    : 'border-line bg-surface text-transparent',
+                    ? 'bg-accent-soft text-ink'
+                    : 'bg-surface text-transparent',
               )}
             >
               {/* The name above carries the state; the glyph is decoration,

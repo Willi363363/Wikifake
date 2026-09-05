@@ -56,19 +56,39 @@ export function PlayerCursors({ cursors }: PlayerCursorsProps) {
             transitionDuration: `${String(THROTTLE_MS * 2)}ms`,
           }}
         >
-          <svg viewBox="0 0 16 16" className="size-4 shrink-0 drop-shadow-sm">
+          <svg viewBox="0 0 16 16" className="size-4 shrink-0">
             <path
               d="M2 2 L2 12 L5 9 L7 14 L9 13 L7 8.5 L11 8.5 Z"
               fill={cursor.colour}
-              stroke="white"
-              strokeWidth="1"
+              // The structural border, drawn as the arrow's outline. It was
+              // `stroke="white"`, which is a colour nobody declared and which
+              // disappears against the paper it is usually over; `line-strong`
+              // inverts with the palette the way every other border does.
+              stroke="var(--color-line-strong)"
+              strokeWidth="1.5"
               strokeLinejoin="round"
             />
           </svg>
           <span
-            className="-ml-1 translate-y-3 rounded-full px-2 py-0.5 font-mono text-[9px] font-semibold tracking-[0.08em] whitespace-nowrap text-white shadow-sm"
-            style={{ background: cursor.colour }}
+            // The name is `ink` on `surface`, with the player's colour beside
+            // it as a swatch rather than under it as a fill.
+            //
+            // It was `text-white` on `style={{ background: cursor.colour }}`,
+            // which is the direction's one hard colour rule broken in the one
+            // spelling no scanner in this repository can see — the fill is a
+            // value from `PLAYER_COLOURS`, chosen by the server. Half of those
+            // eight are light (`#f4a261` puts white at about 2:1) and half are
+            // dark (`#264653` puts black at about 2.3:1), so **no** single text
+            // colour passes on that fill. Moving the colour to a swatch is what
+            // makes the pair measurable at all, and it keeps the identity: the
+            // arrow above is still filled with it.
+            className="-ml-1 flex translate-y-3 items-center gap-1 border-3 border-line-strong bg-surface px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-[0.08em] whitespace-nowrap text-ink"
           >
+            <span
+              aria-hidden="true"
+              className="size-1.5"
+              style={{ background: cursor.colour }}
+            />
             {cursor.name}
           </span>
         </span>

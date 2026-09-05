@@ -57,6 +57,24 @@ function sourcesIn(directory: string): { path: string; text: string }[] {
 
 const SOURCES = [...sourcesIn(join(WEB, 'src')), ...sourcesIn(join(WEB, 'app'))];
 
+/**
+ * The same sources with their comments removed.
+ *
+ * The scans below name the classes they refuse, and this file is not the only
+ * place that does: the components carry a line saying what they used to be, so
+ * that the next reader learns the rule rather than rediscovering it. A scan
+ * that read those comments would fail on the explanation of its own fix.
+ */
+const CODE = SOURCES.map(({ path, text }) => ({
+  path,
+  text: text.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/(^|[^:])\/\/.*$/gm, '$1'),
+}));
+
+/** The paths where `pattern` still appears, comments not counted. */
+function offenders(pattern: RegExp): string[] {
+  return CODE.filter(({ text }) => pattern.test(text)).map(({ path }) => path);
+}
+
 describe('D — a fill is not a text colour', () => {
   it('has sources to check', () => {
     expect(SOURCES.length).toBeGreaterThan(30);
@@ -134,5 +152,99 @@ describe('D — a fill is not a text colour', () => {
       ...(/\btext-surface(?![\w-])/.test(bad) ? ['surface'] : []),
     ];
     expect(caught).toEqual(['accent', 'green', 'surface']);
+  });
+});
+
+/*
+ * The three the scan above could not see, found by looking at the screens.
+ *
+ * The sweep that wrote this file was pattern-driven, and each of these is a
+ * spelling its patterns do not reach: a colour that never names a token, a
+ * border whose width and whose hue are written on different lines, a hover
+ * that says the opposite of the direction's without naming a colour at all.
+ *
+ * `01-art-direction.md` states all three as mechanical rules, which is what
+ * makes them checkable rather than a matter of taste.
+ */
+describe('D — the grammar, where the fill scan cannot look', () => {
+  /*
+   * Paper on a fill, spelled so that no palette scan can see it.
+   *
+   * `player-cursors.tsx` drew every rival's name as `text-white` on
+   * `style={{ background: cursor.colour }}`, and the colour is a value from
+   * `PLAYER_COLOURS` — server data, eight hues, half light and half dark. No
+   * single text colour passes on all eight, so the pair was not merely
+   * unmeasured: it was unmeasurable. The colour is a swatch now and the name
+   * is `ink` on `surface`.
+   *
+   * `text-transparent` is deliberately not caught: it is not a colour, it is
+   * the memory card hiding its glyph while keeping it in the document.
+   */
+  it.each(['white', 'black'])('never writes text-%s', (word) => {
+    expect(offenders(new RegExp(String.raw`\btext-${word}(?![\w-])`))).toEqual([]);
+  });
+
+  it.each(['white', 'black'])('never fills with %s', (word) => {
+    expect(offenders(new RegExp(String.raw`\bbg-${word}(?![\w-])`))).toEqual([]);
+  });
+
+  it('never hands an SVG a colour outside the palette', () => {
+    expect(offenders(/(?:stroke|fill)="(?:white|black|#[0-9a-fA-F]{3,8})"/)).toEqual([]);
+  });
+
+  /*
+   * A colour-on-colour border.
+   *
+   * "3px solid ink. Never a hairline, never a colour-on-colour border." Six
+   * places drew `border-accent` on `bg-accent-soft`, `border-green` on
+   * `bg-green-soft` — a yellow edge round a yellow wash, at 1px, which is a
+   * state said twice and legible neither time. The edge is `line-strong`
+   * everywhere now and the state is the fill.
+   *
+   * The `/\d` form has its own scan above, and it stays there: an edge derived
+   * from a fill at 25% is a different mistake with the same cause.
+   */
+  it.each(FILLS)('never draws an edge in %s', (fill) => {
+    expect(offenders(new RegExp(String.raw`\bborder-${fill}(?![\w-])`))).toEqual([]);
+  });
+
+  /*
+   * The hover that lifts.
+   *
+   * "The shadow collapses and the element shifts 2px into it. Nothing else
+   * moves." The item bar did the reverse — rise a pixel, *gain* a `shadow-md`
+   * — which is the previous identity's lift and glow, kept because a sweep
+   * looking for colours has no reason to read a transform.
+   */
+  it('never lifts on hover', () => {
+    expect(offenders(/hover:-translate-y-/)).toEqual([]);
+  });
+
+  it('never grows a shadow on hover', () => {
+    expect(offenders(/hover:shadow-(?:sm|md|lg)(?![\w-])/)).toEqual([]);
+  });
+
+  // Guards the guard, as above: three patterns that match nothing are three
+  // tests that pass on a screen doing all three.
+  it('would notice, if there were something to notice', () => {
+    const bad =
+      'className="text-white bg-black border-accent hover:-translate-y-px hover:shadow-md" stroke="white"';
+    expect(/\btext-white(?![\w-])/.test(bad)).toBe(true);
+    expect(/\bbg-black(?![\w-])/.test(bad)).toBe(true);
+    expect(/\bborder-accent(?![\w-])/.test(bad)).toBe(true);
+    expect(/hover:-translate-y-/.test(bad)).toBe(true);
+    expect(/hover:shadow-(?:sm|md|lg)(?![\w-])/.test(bad)).toBe(true);
+    expect(/(?:stroke|fill)="(?:white|black|#[0-9a-fA-F]{3,8})"/.test(bad)).toBe(true);
+  });
+
+  // And guards the comment-stripping, which is the part that could silently
+  // turn every scan above into a scan of nothing.
+  it('strips comments without stripping code', () => {
+    const stripped = CODE.find(({ path }) =>
+      path.endsWith(join('round', 'player-cursors.tsx')),
+    );
+
+    expect(stripped?.text).not.toContain('text-white');
+    expect(stripped?.text).toContain('border-3 border-line-strong');
   });
 });

@@ -88,11 +88,15 @@ export function Intel({
             return (
               <li
                 key={number}
+                // `border-3`, not Tailwind's 1px `border`. The width and the
+                // colour were written on two lines, so `border-line-strong`
+                // read as a structural border and drew a hairline: a bought
+                // hint and an unbought one were both 1px, one beige and one
+                // black. The state is the fill; the border is always the
+                // structural one.
                 className={cn(
-                  'flex flex-col gap-2 border p-3',
-                  level > 0
-                    ? 'border-line-strong bg-bronze-soft'
-                    : 'border-line bg-bg-grain',
+                  'flex flex-col gap-2 border-3 border-line-strong p-3',
+                  level > 0 ? 'bg-bronze-soft' : 'bg-bg-grain',
                 )}
               >
                 <p className="flex items-center justify-between gap-2">

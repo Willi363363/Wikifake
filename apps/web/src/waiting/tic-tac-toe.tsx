@@ -172,13 +172,17 @@ export function TicTacToe() {
                 ? t('ttt.squareEmpty', { number: at + 1 })
                 : t('ttt.squareMarked', { number: at + 1, mark: square })
             }
+            // The structural edge on every square, and the winning line said by
+            // its fill. It was a 1px `border` — beige at rest, green on the
+            // line — so a nine-square board on a 3px page looked like a wire
+            // frame somebody forgot to finish.
             className={cn(
-              'flex size-14 items-center justify-center border text-xl transition-colors',
+              'flex size-14 items-center justify-center text-xl',
+              'border-3 border-line-strong text-ink',
+              'transition-colors motion-reduce:transition-none',
               'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
-              'disabled:cursor-default enabled:hover:bg-accent-soft enabled:hover:bg-accent-soft',
-              outcome?.line?.includes(at) === true
-                ? 'border-green bg-green-soft text-ink'
-                : 'border-line bg-surface text-ink',
+              'disabled:cursor-default enabled:hover:bg-accent-soft',
+              outcome?.line?.includes(at) === true ? 'bg-green-soft' : 'bg-surface',
             )}
           >
             {square === 'X' ? '✕' : square === 'O' ? '○' : ''}

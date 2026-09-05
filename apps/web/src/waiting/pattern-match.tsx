@@ -121,20 +121,25 @@ export function PatternMatch() {
     });
   };
 
+  /**
+   * The fill, and only the fill.
+   *
+   * Every one of these used to name a border colour as well — `border-accent`
+   * on `bg-accent`, `border-green` on `bg-green-soft` — which is the
+   * colour-on-colour border `01-art-direction.md` refuses, drawn at Tailwind's
+   * 1px on top of that. The edge is `line-strong` in every state now, declared
+   * once on the cell, and a square says what it is by what it is filled with.
+   */
   const toneOf = (at: number): string => {
-    if (phase === 'showing') {
-      return pattern.has(at) ? 'border-accent bg-accent' : 'border-line bg-surface';
-    }
+    if (phase === 'showing') return pattern.has(at) ? 'bg-accent' : 'bg-surface';
     if (phase === 'graded') {
       const mark = marks?.get(at);
-      if (mark === 'correct') return 'border-green bg-green-soft';
-      if (mark === 'wrong') return 'border-danger bg-danger-soft';
-      if (mark === 'missed') return 'border-warn bg-warn-soft';
-      return 'border-line bg-surface';
+      if (mark === 'correct') return 'bg-green-soft';
+      if (mark === 'wrong') return 'bg-danger-soft';
+      if (mark === 'missed') return 'bg-warn-soft';
+      return 'bg-surface';
     }
-    return chosen.has(at)
-      ? 'border-line-strong bg-accent-soft'
-      : 'border-line bg-surface';
+    return chosen.has(at) ? 'bg-accent-soft' : 'bg-surface';
   };
 
   return (
@@ -155,7 +160,8 @@ export function PatternMatch() {
             aria-pressed={chosen.has(at)}
             aria-label={t('pattern.square', { number: at + 1 })}
             className={cn(
-              'size-12 border transition-colors',
+              'size-12 border-3 border-line-strong',
+              'transition-colors motion-reduce:transition-none',
               'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
               'enabled:hover:bg-accent-soft',
               toneOf(at),

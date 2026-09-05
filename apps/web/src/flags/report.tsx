@@ -173,7 +173,7 @@ export function FlagReport({
             onChange={(event) => {
               setSources(event.target.value);
             }}
-            className="w-full resize-none border-3 border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus-visible:border-accent focus-visible:ring-[3px] focus-visible:ring-accent-line"
+            className="w-full resize-none border-3 border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
           />
         </div>
       </div>

@@ -172,3 +172,19 @@ that generates nothing is indistinguishable from one that generates correctly,
 in the source, in a diff and in a review. Where a class carries something
 structural — a border that is the design, a colour that is a contrast pair —
 read the built stylesheet once rather than trusting the name.
+
+## `disabled:opacity-40` is a translucency the direction otherwise forbids
+
+`buttonVariants` fades a disabled button to 40%. On the primary button that
+composites `#ffe14d` against the page and black text with it, so `Submitted` in
+the round's top bar and a not-yet-valid `Flag it` read as grey on cream —
+recognisably disabled, and only just legible.
+
+Nothing measures it: `CONTRAST_PAIRS` measures declared token pairs, and an
+opacity composite is neither of the two colours in one. WCAG 1.4.3 exempts a
+disabled control, so no audit calls it either.
+
+The answer is a disabled *style* rather than an opacity — the direction has one
+already, in that a flat fill and a collapsed shadow say "not now" without
+diluting anything. It belongs to `packages/ui`, which owns the variant and the
+gallery that pins it, so track D looked at it and left it.

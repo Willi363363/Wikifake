@@ -72,7 +72,12 @@ export function RoundTopBar({
   const pressure = pressureAt(secondsLeft);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-surface">
+    // `border-b-3 border-line-strong`, not the `border-line` hairline it was.
+    // This edge is the one that separates the loud chrome from the reading
+    // sheet below it, which makes it the most structural line on the screen —
+    // and `line` is the divider *inside* a card. Drawn at 1px in the palette's
+    // faint beige it read as an unfinished rule rather than as the HUD's floor.
+    <header className="sticky top-0 z-30 border-b-3 border-line-strong bg-surface">
       <div className="mx-auto flex max-w-4xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
         <p className="text-lg text-ink">{topic}</p>
 
