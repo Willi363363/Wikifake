@@ -6,6 +6,10 @@
 // was already in the tree as a dependency of `drizzle-kit`; it is declared now,
 // because relying on a transitive dependency is relying on someone else's
 // decision.
+// First, before anything reads `process.env`: `requireDatabaseUrl` below is
+// called at module evaluation. See `drizzle.config.ts` for the whole story.
+import '@wikifake/env/load';
+
 import { connect } from '../src/client.js';
 import { requireDatabaseUrl } from '../src/database-url.js';
 import { seed } from '../src/seed/seed.js';

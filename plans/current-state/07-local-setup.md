@@ -36,12 +36,19 @@ pnpm seed                    # optional: development data, idempotent
 The database is named `wikifake` and the role is `postgres` — that `docker run`
 creates no role of its own, which is why `.env.example` connects as `postgres`.
 
-**`.env.local` at the repository root, not `.env` in a package.** Both entry
-points load it through `packages/env/src/files.ts`, which walks up from
+**`.env.local` at the repository root, not `.env` in a package.** Every entry
+point loads it through `packages/env/src/files.ts`, which walks up from
 wherever Turborepo started the task: `.env.local` first, then `.env` as a
 fallback, and a variable already exported in the shell beats both. Nothing is
 loaded in CI or in production, where there is no file and the platform sets the
 environment itself.
+
+There are four such entry points, and each carries the import itself:
+`apps/web/next.config.ts`, `apps/realtime/src/main.ts`, and — because
+`pnpm migrate` and `pnpm seed` are commands run from `packages/db`, not from the
+root — `packages/db/drizzle.config.ts` and `packages/db/scripts/seed.ts`.
+Anything new that reads `process.env` before the loader has run is the fifth,
+and `packages/db/src/env-loading.test.ts` is the shape to copy.
 
 `.env.example` documents every variable, and **`packages/env/src/index.ts` is
 the schema of record** — a variable added to the example but not declared
