@@ -6,23 +6,18 @@
 // conditions under which it does nothing. What it cannot see is a camera being
 // held still, because jsdom has no layout and no scrolling — that half is
 // `apps/e2e/specs/landing.spec.ts`, in a browser, which is the only place the
-// claim "the scroll is never intercepted" means anything.
+// claim "the scroll is never intercepted" means anything. The stylesheets
+// themselves are `movement.test.ts`'s.
 import { cleanup, render, screen } from '@testing-library/react';
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { BEAT_FADE_EDGE } from './stage-progress.js';
 import { Stage } from './stage.js';
 import { BEAT_ATTRIBUTE, CAMERA_ATTRIBUTE, STAGE_PROGRESS } from './use-stage.js';
 
 afterEach(() => {
   cleanup();
 });
-
-const HERE = dirname(fileURLToPath(import.meta.url));
 
 function beatsOf(container: HTMLElement): HTMLElement[] {
   return [...container.querySelectorAll<HTMLElement>(`[${BEAT_ATTRIBUTE}]`)];
@@ -128,56 +123,5 @@ describe('C.2 — the stage is a document first', () => {
     );
 
     expect(view.container.querySelector(`[${CAMERA_ATTRIBUTE}]`)).not.toBeNull();
-  });
-});
-
-describe('C.2 — the width the stage engages at is written once', () => {
-  /** A stylesheet, read as text. */
-  function stylesheet(...parts: string[]): string {
-    return readFileSync(join(HERE, ...parts), 'utf8');
-  }
-
-  it('matches the theme’s own md breakpoint', () => {
-    // A media query cannot read a custom property, so the literal in
-    // `landing.css` is a copy of `--breakpoint-md`. This is what stops the copy
-    // from drifting: move the breakpoint and this fails, in the same run.
-    const theme = stylesheet(
-      '..',
-      '..',
-      '..',
-      '..',
-      'packages',
-      'ui',
-      'src',
-      'theme.css',
-    );
-    const md = /--breakpoint-md:\s*([^;]+);/.exec(theme)?.[1]?.trim();
-    expect(md).toBeDefined();
-
-    const scene = stylesheet('..', '..', 'app', 'landing.css');
-    expect(scene).toContain(`@media (min-width: ${String(md)}) and`);
-  });
-
-  it('fades a beat out where the driver stops drawing it', () => {
-    const scene = stylesheet('..', '..', 'app', 'landing.css');
-
-    // The stylesheet decides when a beat is invisible; the driver decides when
-    // it stops taking focus. Those have to be the same moment, and a media
-    // query cannot import a constant — so the number is written twice and held
-    // together here.
-    expect(scene).toContain(`+ ${String(BEAT_FADE_EDGE)}) / 0.35`);
-    expect(scene).toContain(
-      `(${String(BEAT_FADE_EDGE)} - var(--beat-progress, 0)) / 0.35`,
-    );
-  });
-
-  it('engages only when nobody asked for less motion', () => {
-    const scene = stylesheet('..', '..', 'app', 'landing.css');
-
-    // Not a fallback bolted on at the end: outside this query not one stage
-    // rule applies, so the reduced-motion path is the document that was
-    // already there.
-    expect(scene).toContain('(prefers-reduced-motion: no-preference)');
-    expect(scene).toContain('.landing-stage__camera');
   });
 });

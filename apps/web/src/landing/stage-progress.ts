@@ -61,12 +61,20 @@ export function beatProgressFor(progress: number, index: number, beats: number):
 /**
  * How far either side of its turn a beat is still drawn.
  *
- * The stylesheet fades a beat out between 0.25 and this, so the two beats of a
- * handover cross at about 0.29 opacity each rather than at 0.5 — two blocks of
- * prose at half opacity is a moment nobody can read. `stage.test.tsx` holds
- * this number and `globals.css` together, because a media query cannot import.
+ * Wide on purpose since step C.4. A beat wrapper is solid out to ±0.6 and gone
+ * by this, so at a handover — where two beats sit at ±0.5 — **both** are still
+ * fully opaque. What cuts instead is the copy inside them, on a much tighter
+ * ramp that reaches zero at exactly ±0.5.
+ *
+ * That is what makes beat 3 a collision rather than a dissolve: the article
+ * survives the handover while the words around it cut, so the false paragraph
+ * lands on the true one instead of mixing with it. Two blocks of prose at half
+ * opacity is a moment nobody can read; this arrangement never produces one.
+ *
+ * `movement.test.ts` holds this number and the scene's stylesheets together,
+ * because a media query cannot import a constant.
  */
-export const BEAT_FADE_EDGE = 0.6;
+export const BEAT_FADE_EDGE = 0.85;
 
 /**
  * The window a beat is on stage for.

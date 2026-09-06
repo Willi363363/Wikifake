@@ -1,5 +1,5 @@
 /*
- * Track C's scene — steps C.2 and C.3.
+ * Track C's stage — steps C.2 and C.3.
  *
  * Hand-written rather than utilities, because the whole of it is one mechanism:
  * a track that is as many screens tall as there are beats, a camera the browser
@@ -14,7 +14,9 @@
  *
  * The width matches `--breakpoint-md`. It is written here as a literal because a
  * media query cannot read a custom property; `stage.test.tsx` holds the two
- * together so the pair cannot drift silently.
+ * together so the pair cannot drift silently — and holds every `landing-*.css`
+ * to the same query, since the scene is split across files and a condition
+ * copied is a condition that drifts.
  */
 
 /*
@@ -52,28 +54,47 @@
     overflow-y: auto;
 
     /*
-     * The generic rule, and only the generic rule.
+     * Two opacities, and the difference between them is step C.4's whole idea.
      *
      * `--beat-progress` is 0 while a beat holds the stage, ±1 at its
-     * neighbours' turns. It is fully opaque out to ±0.25 and gone by ±0.6, so
-     * the two beats of a handover cross at about 0.29 each — two blocks of
-     * prose at half opacity is a moment nobody can read. It drifts three rems
-     * against the scroll on the way through, which is the only motion here.
+     * neighbours' turns. A beat *wrapper* is fully opaque out to ±0.6 and gone
+     * by ±0.85 — a wide plateau, so at a handover both beats are still solid.
+     * The **copy** inside is on a much tighter ramp: fully opaque to ±0.3, gone
+     * by ±0.5, which is exactly the midpoint of a handover.
      *
-     * Steps C.3 to C.5 give each beat its own choreography. This is what "on
-     * stage" means until they do, and what a beat falls back to if one of them
-     * is ever removed.
+     * So at the moment two beats change places, every word on the stage is at
+     * zero and only what has no copy ramp is left. That is what makes beat 3 a
+     * collision rather than a dissolve: the article stays put while the
+     * commentary around it cuts. Fast and hard, which is the direction's own
+     * word for motion.
+     *
+     * Custom properties inherit, so the copy ramp is computed once here and
+     * spent by whichever descendants opt into it. A child cannot be *more*
+     * opaque than its parent, which is why the plateau is on the wrapper.
      *
      * Two ramps rather than an absolute value: `abs()` is younger than the
-     * browsers this has to run on, and `clamp()` is not. 0.6 is
+     * browsers this has to run on, and `clamp()` is not. 0.85 is
      * `BEAT_FADE_EDGE` in `stage-progress.ts`, which is where the driver draws
      * the same line for `inert`; `stage.test.tsx` holds the two together.
      */
-    --beat-in: clamp(0, calc((var(--beat-progress, 0) + 0.6) / 0.35), 1);
-    --beat-out: clamp(0, calc((0.6 - var(--beat-progress, 0)) / 0.35), 1);
+    --beat-in: clamp(0, calc((var(--beat-progress, 0) + 0.85) / 0.25), 1);
+    --beat-out: clamp(0, calc((0.85 - var(--beat-progress, 0)) / 0.25), 1);
+    --copy-in: clamp(0, calc((var(--beat-progress, 0) + 0.5) / 0.2), 1);
+    --copy-out: clamp(0, calc((0.5 - var(--beat-progress, 0)) / 0.2), 1);
+    --copy-opacity: calc(var(--copy-in) * var(--copy-out));
+
     opacity: calc(var(--beat-in) * var(--beat-out));
     transform: translate3d(0, calc(clamp(-1, var(--beat-progress, 0), 1) * -3rem), 0);
     will-change: transform, opacity;
+  }
+
+  /*
+   * By default a beat *is* its copy: the whole section cuts at the handover.
+   * The article beats opt out below, because the thing they are about has to
+   * survive the cut.
+   */
+  .landing-stage__beat > * {
+    opacity: var(--copy-opacity);
   }
 
   /*
@@ -120,5 +141,17 @@
   /* Beat 2's whole business: the paragraph drifts in, calm and readable. */
   .landing-move--from-right {
     --arrive-from: 8rem;
+  }
+
+  /*
+   * Something that lands on what is already there.
+   *
+   * Two rems, and from the other side: beat 3's paragraph replaces beat 2's on
+   * the same rectangle, and a thing that arrives from the side its predecessor
+   * left towards reads as a carousel rather than as a correction. Short,
+   * because the distance is not the point — the landing is.
+   */
+  .landing-move--over {
+    --arrive-from: -2rem;
   }
 }
