@@ -1,3 +1,13 @@
+// This import comes first and has to: it fills `process.env` from the
+// workspace's `.env.local` or `.env`, and `requireDatabaseUrl` below reads
+// `DATABASE_URL` while this module is being evaluated. Without it `pnpm migrate`
+// refused to run against the very file the setup guide tells you to write.
+//
+// `main.ts` carries the same import for the same reason. Turborepo runs each
+// task from its package directory, so nothing here ever sees the repository
+// root unless the loader walks up to it.
+import '@wikifake/env/load';
+
 import { defineConfig } from 'drizzle-kit';
 
 import { requireDatabaseUrl } from './src/database-url.js';
