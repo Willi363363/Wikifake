@@ -47,12 +47,20 @@ export function Landing() {
           at `md` and up when nobody asked for less motion, and nothing at all
           otherwise — which is how this stays the document it was in C.1. */}
       <Stage>
-        {/* Beat 1 — the title, and the question. */}
+        {/* Beat 1 — the title, and the question.
+
+            Step C.3: the question travels further than everything around it and
+            the brand line travels less, so the beat arrives in three depths
+            rather than as one slab. `landing.css` carries the arithmetic; the
+            classes here say which layer a thing is on and nothing else. */}
         <section aria-labelledby="landing-question">
-          <p className="text-sm font-semibold tracking-widest uppercase text-muted">
+          <p className="landing-move landing-move--back text-sm font-semibold tracking-widest uppercase text-muted">
             {t('title')}
           </p>
-          <h1 id="landing-question" className="mt-2 text-5xl text-ink sm:text-6xl">
+          <h1
+            id="landing-question"
+            className="landing-move landing-move--fore mt-2 text-5xl text-ink sm:text-6xl"
+          >
             {t('question')}
           </h1>
           <p className="mt-5 max-w-[60ch] text-base text-ink-2">{t('description')}</p>
@@ -62,16 +70,24 @@ export function Landing() {
           <p className="mt-3 text-sm text-muted">{t('noAccount')}</p>
         </section>
 
-        {/* Beat 2 — a real article, calm and readable. */}
+        {/* Beat 2 — a real article, calm and readable.
+
+            Step C.3: the heading leads, and the paragraph drifts in from the
+            right and settles exactly on the beat's turn. It leaves straight up
+            with the rest — an element that arrived from one side and left the
+            same way would read as a carousel. */}
         <section aria-labelledby="landing-source">
-          <h2 id="landing-source" className="text-3xl text-ink">
+          <h2
+            id="landing-source"
+            className="landing-move landing-move--fore text-3xl text-ink"
+          >
             {t('beats.source.title')}
           </h2>
           <p className="mt-3 max-w-[60ch] text-base text-ink-2">
             {t('beats.source.body')}
           </p>
 
-          <figure className="mt-6">
+          <figure className="landing-move landing-move--from-right mt-6">
             {/* French in both locales, and marked as such: the game reads
               `fr.wikipedia.org`, so this is what an English player is shown
               too. Article content keeps its own language — never the
