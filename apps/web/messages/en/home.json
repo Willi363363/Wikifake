@@ -1,20 +1,30 @@
 {
   "title": "WikiFake",
+  "question": "Who is lying?",
   "description": "A Wikipedia article, a handful of facts rewritten by a model, and you. Find them alone or against other players — a free game of critical reading and fact-checking.",
   "play": "Play",
-  "steps": {
-    "pick": {
-      "title": "Pick a subject",
-      "detail": "Any Wikipedia subject. The article is fetched as it stands today."
+  "noAccount": "No account, no install. Play alone, or open a room and let other players in.",
+  "beats": {
+    "source": {
+      "title": "It starts with a real article",
+      "body": "Name a subject and WikiFake pulls its article from French Wikipedia, exactly as it stands today. Nothing is trimmed and nothing is rephrased.",
+      "caption": "From the article <source>“{topic}”</source>, unmodified."
     },
-    "read": {
-      "title": "Read it against a model",
-      "detail": "A model rewrites a few facts. Nothing marks them, and the rest of the article is untouched."
+    "collision": {
+      "title": "Then a model rewrites a few facts",
+      "body": "The sentences keep their shape and the paragraphs around them are left alone. Nothing is highlighted, and the article never says how many facts moved.",
+      "caption": "The same paragraph, once a round has been generated.",
+      "tell": "Here a single number moved: {truth} became {claim}. In a round, nobody points at it."
     },
-    "mark": {
-      "title": "Mark what is wrong",
-      "detail": "Every paragraph you flag is scored: right ones pay, wrong ones cost, and the clock pays too."
+    "score": {
+      "title": "You mark what is wrong, and the clock is watching",
+      "body": "Flag every paragraph you do not believe, then submit. Each mark is scored the moment the round ends.",
+      "outcomes": {
+        "found": "A falsified paragraph you marked",
+        "missed": "One you read straight past",
+        "wrong": "A true paragraph you marked",
+        "clock": "Each second still on the clock"
+      }
     }
-  },
-  "licence": "Articles come from Wikipedia and are used under CC BY-SA. In a round they are deliberately modified, and are not encyclopaedic content."
+  }
 }

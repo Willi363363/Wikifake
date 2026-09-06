@@ -24,19 +24,25 @@ async function frontDoorIn(locale: Locale): Promise<string> {
   );
 }
 
+// The screen these assertions read is `src/landing/` since step C.1, so the
+// sentences moved. The claim did not: one real screen, rendered from the
+// catalogue, whole, in each locale.
 describe('11.1 — the front door renders from the catalogue', () => {
   it('speaks English under the en locale', async () => {
     const html = await frontDoorIn('en');
-    expect(html).toContain('Pick a subject');
+    expect(html).toContain('Who is lying?');
+    expect(html).toContain('It starts with a real article');
     expect(html).toContain('>Play<');
   });
 
   it('speaks French under the fr locale', async () => {
     const html = await frontDoorIn('fr');
-    expect(html).toContain('Choisissez un sujet');
+    expect(html).toContain('Qui ment ?');
+    expect(html).toContain('Tout commence par un vrai article');
     expect(html).toContain('>Jouer<');
     // Whole screen, not a sprinkling: the English copy must be gone.
-    expect(html).not.toContain('Pick a subject');
+    expect(html).not.toContain('Who is lying?');
+    expect(html).not.toContain('It starts with a real article');
     expect(html).not.toContain('>Play<');
   });
 });
