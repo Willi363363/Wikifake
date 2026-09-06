@@ -16,6 +16,7 @@
 /* Track C's scene: the mechanism, then the one collision that uses it. */
 @import './landing-stage.css';
 @import './landing-article.css';
+@import './landing-scoreboard.css';
 
 @source '../app';
 @source '../src';

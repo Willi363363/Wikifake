@@ -62,3 +62,21 @@ export async function sheets(page: Page) {
     }),
   );
 }
+
+/**
+ * Which of the matching elements have finished arriving.
+ *
+ * Half opacity is the threshold rather than 1, and the ramps are 0.03 of a beat
+ * wide — about two frames — so an element is either on or off and nothing sits
+ * near the line. What this asks is "has it appeared", which is the claim a
+ * staggered assembly actually makes.
+ */
+export async function revealed(page: Page, selector: string): Promise<boolean[]> {
+  return page.evaluate(
+    (css: string) =>
+      Array.from(document.querySelectorAll(css)).map(
+        (node) => Number(getComputedStyle(node).opacity) > 0.5,
+      ),
+    selector,
+  );
+}

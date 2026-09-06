@@ -145,6 +145,35 @@ The scene's CSS is two files now — `landing-stage.css` is the mechanism,
 split the same way. `movement.test.ts` holds every `landing-*.css` to the
 identical media query, because CSS cannot hand one condition to two files.
 
+## C.5 — the scoreboard, and the way in
+
+**The scoreboard assembles: the four rows arrive one at a time, and the call to
+action arrives after them.** Each row carries its index, and
+`landing-scoreboard.css` turns that into the row's own slice of the beat. Off
+the stage the index styles nothing and the scoreboard is four rows.
+
+**They cut rather than fade.** `01-art-direction.md` forbids "fade-in-on-scroll
+as decoration" in as many words, so each ramp is 0.03 of a beat wide — about two
+frames at a normal scroll speed, which is an appearance and not a transition.
+What carries the assembly is the *order*, not the easing.
+
+**The shadow does not move, and that is the decision rather than the omission.**
+The offset shadow of this direction is a structural fact — a distance, not a
+haze — and a shadow that animates is a shadow doing decoration, which is the one
+thing the grammar says it is not. The frame is there from the first row; what
+fills it arrives.
+
+Assembly starts at −0.28 rather than at −1 so it begins only once the heading
+above it has finished arriving: `--copy-opacity` reaches 1 at −0.3, and rows
+appearing through a half-faded heading read as a page still loading.
+
+**The browser assertion is an ordering property, not four pinned counts.** The
+first version pinned `[0, 2, 3, 4]` at four scroll positions and measured
+`[0, 1, 3, 4]` — the pin was arithmetic about where the samples fell, not a
+claim about the scene. What it asserts now is that every sample is a *prefix*:
+every row that has arrived sits above every row that has not. That is what "one
+at a time, in order" means, and it holds wherever it is sampled.
+
 ## A trap in running the journeys, found the hard way
 
 `playwright.config.ts` sets `reuseExistingServer` whenever `CI` is unset, so a

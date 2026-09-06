@@ -1,0 +1,50 @@
+/*
+ * Track C's last beat — step C.5.
+ *
+ * "The scoreboard assembles, and the way in resolves under it." Assembly here
+ * means the four rows arriving one at a time and the call to action arriving
+ * after them, each on its own slice of `--beat-progress`.
+ *
+ * **They cut rather than fade.** `01-art-direction.md` forbids "fade-in-on-
+ * scroll as decoration" in as many words, so each ramp is 0.03 of a beat wide —
+ * about two frames at a normal scroll speed, which is an appearance and not a
+ * transition. What carries the assembly is the *order*, not the easing.
+ *
+ * **The shadow does not move.** The offset shadow of this direction is a
+ * structural fact — a distance, not a haze — and a shadow that animates is a
+ * shadow doing decoration, which is the one thing the grammar says it is not.
+ * The frame is there from the first row; what fills it arrives.
+ *
+ * **The media query is the same switch**, repeated rather than shared, as in the
+ * other two scene sheets. `movement.test.ts` holds all three to the identical
+ * query.
+ */
+
+@media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+  /*
+   * One row's share of the beat: 0.06 apart, 0.03 wide, the last landing just
+   * before the call to action does. The offsets start at −0.28 rather than at
+   * −1 so that assembly begins only once the heading above it has finished
+   * arriving — `--copy-opacity` reaches 1 at −0.3, and rows appearing through a
+   * half-faded heading read as a page still loading.
+   */
+  .landing-scoreboard__row {
+    --row-reveal: clamp(
+      0,
+      calc((var(--beat-progress, 0) + 0.28 - var(--row, 0) * 0.06) / 0.03),
+      1
+    );
+    opacity: var(--row-reveal);
+  }
+
+  /*
+   * The way in, last.
+   *
+   * It resolves under the scoreboard rather than with it: a call to action that
+   * arrives before the thing it is a conclusion to is a call to action nobody
+   * has been given a reason for yet.
+   */
+  .landing-way-in {
+    opacity: clamp(0, calc((var(--beat-progress, 0) + 0.04) / 0.03), 1);
+  }
+}

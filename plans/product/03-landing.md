@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 in progress — C.1 to C.4: the document, the camera, and the collision |
+| **State** | 🔶 in progress — C.1 to C.5: the four beats are on the stage |
 | **Branch** | `feat/landing-scene` |
 | **Depends on** | tracks A and B |
 | **Delivers** | the marketing route: what the game is, and a way in |
@@ -68,7 +68,7 @@ beat 3 alone, the page has done its job and the rest is atmosphere.
 | C.2 | The stage: fixed viewport, scroll-offset driver | ✅ |
 | C.3 | Beats 1 and 2 | ✅ |
 | C.4 | Beat 3 — the collision, and the mark | ✅ |
-| C.5 | Beat 4 — the scoreboard and the way in | ⬜ |
+| C.5 | Beat 4 — the scoreboard and the way in | ✅ |
 | C.6 | Reduced-motion path, checked as a document | ⬜ |
 | C.7 | Performance pass on a real mid-range device | ⬜ |
 | C.8 | Social share image, and the meta tags | ⬜ |

@@ -9,12 +9,18 @@
 // bonus reads `+0.5` in English and `+0,5` in French. `signDisplay` is what
 // puts the `+` on a gain and the locale's own minus sign on a cost, rather
 // than a `+` glued on in JSX that no translation could move.
+//
+// On the stage it assembles: each row carries its index, and `landing-scoreboard.css`
+// turns that into the row's own slice of the beat. Off the stage — a phone, a
+// viewer who asked for less motion — the index styles nothing and the four rows
+// are simply there.
 import {
   PER_FALSE_POSITIVE,
   PER_TRUE_POSITIVE,
   TIME_BONUS_PER_SECOND,
 } from '@wikifake/domain';
 import { useLocale, useTranslations } from 'next-intl';
+import type { CSSProperties } from 'react';
 
 /**
  * The four outcomes, in the order a player meets them.
@@ -37,10 +43,14 @@ export function Scoreboard() {
 
   return (
     <dl className="mt-6 border-3 border-line-strong bg-surface shadow-md">
-      {OUTCOMES.map(({ key, points: value }) => (
+      {OUTCOMES.map(({ key, points: value }, index) => (
         <div
           key={key}
-          className="flex items-baseline justify-between gap-4 border-b-3 border-line last:border-b-0 px-4 py-3"
+          // Step C.5: the row's own place in the assembly. The stylesheet turns
+          // it into a slice of the beat; the frame and its shadow are there from
+          // the first row, and what fills it arrives one line at a time.
+          style={{ '--row': index } as CSSProperties}
+          className="landing-scoreboard__row flex items-baseline justify-between gap-4 border-b-3 border-line last:border-b-0 px-4 py-3"
         >
           <dt className="text-sm text-ink">{t(key)}</dt>
           {/* Tabular figures so the column lines up: four rows of digits that
