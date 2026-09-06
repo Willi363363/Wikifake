@@ -10,7 +10,7 @@
 // nothing but the article survives the cut between them.
 import { expect, test } from '@playwright/test';
 
-import { moved, scrollTo, sheets } from './landing-stage.js';
+import { moved, revealed, scrollTo, sheets } from './landing-stage.js';
 
 test.describe('C.3 — beats 1 and 2 arrive in layers', () => {
   test('moves the question further than the brand line above it', async ({ page }) => {
@@ -107,5 +107,50 @@ test.describe('C.4 — the collision', () => {
     // A hard edge travelling left to right, finished on the beat's turn.
     await scrollTo(page, 2 / 3);
     expect(await wipe()).toBe(1);
+  });
+});
+
+test.describe('C.5 — the scoreboard assembles', () => {
+  test('brings the rows in one at a time, in order', async ({ page }) => {
+    await page.goto('/');
+
+    // Beat 4's turn is the end of the track, so its own progress runs from −1
+    // at beat 3's turn to 0 at the bottom. Sampled across the stretch its rows
+    // land in.
+    const seen: boolean[][] = [];
+    for (const at of [0.9, 0.92, 0.94, 0.96, 0.98, 1]) {
+      await scrollTo(page, at);
+      seen.push(await revealed(page, '.landing-scoreboard__row'));
+    }
+
+    // Each sample is a prefix: every row that has arrived is above every row
+    // that has not. That is "in order", and it is the assertion that survives
+    // sampling anywhere rather than at four exact points.
+    for (const rows of seen) {
+      expect(rows).toEqual([...rows].sort((a, b) => Number(b) - Number(a)));
+    }
+
+    const counts = seen.map((rows) => rows.filter(Boolean).length);
+
+    // None at the start, all four at the end, and never fewer than a moment
+    // ago. A scoreboard whose rows all carried the same index would jump from 0
+    // to 4 and pass every screenshot — so it also has to pass through the
+    // middle, which is what the last line asks.
+    expect(counts.at(0)).toBe(0);
+    expect(counts.at(-1)).toBe(4);
+    expect(counts).toEqual([...counts].sort((a, b) => a - b));
+    expect(new Set(counts).size).toBeGreaterThanOrEqual(4);
+  });
+
+  test('resolves the way in under it, last', async ({ page }) => {
+    await page.goto('/');
+
+    // Three rows in, and no call to action yet: a way in that arrives before
+    // the thing it concludes is one nobody has been given a reason for.
+    await scrollTo(page, 0.96);
+    expect(await revealed(page, '.landing-way-in')).toEqual([false]);
+
+    await scrollTo(page, 1);
+    expect(await revealed(page, '.landing-way-in')).toEqual([true]);
   });
 });

@@ -131,14 +131,19 @@ export function Landing() {
 
         {/* Beat 4 — the scoreboard, and the way in under it. */}
         <section aria-labelledby="landing-score">
-          <h2 id="landing-score" className="text-3xl text-ink">
+          <h2
+            id="landing-score"
+            className="landing-move landing-move--fore text-3xl text-ink"
+          >
             {t('beats.score.title')}
           </h2>
           <p className="mt-3 max-w-[60ch] text-base text-ink-2">
             {t('beats.score.body')}
           </p>
           <Scoreboard />
-          <div className="mt-8">
+          {/* Step C.5: last of all. A call to action that arrives before the
+              thing it concludes is one nobody has been given a reason for. */}
+          <div className="landing-way-in mt-8">
             <WayIn label={t('play')} />
           </div>
         </section>
