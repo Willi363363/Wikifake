@@ -26,6 +26,12 @@ export default {
   },
   test: {
     ...baseConfig.test,
+    // The suites read `DATABASE_URL` while they are being collected and skip
+    // themselves when it is absent, so a local run with a `.env.local` and
+    // nothing exported reported success over a hundred cases that never ran.
+    // Loaded first, here, for the same reason the four entry points load it:
+    // whatever reads `process.env` first has to find it filled.
+    setupFiles: ['@wikifake/env/load'],
     // `next-intl`'s ESM build imports `next/server` and `next/navigation`
     // without an extension, which only a bundler resolves — `next` ships no
     // `exports` map, so Node's ESM loader refuses the bare subpath. Inlined,
