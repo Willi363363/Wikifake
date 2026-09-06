@@ -13,8 +13,9 @@
  */
 @import 'tailwindcss';
 @import '@wikifake/ui/theme.css';
-/* Track C's scene, which is one mechanism and wants one file. */
-@import './landing.css';
+/* Track C's scene: the mechanism, then the one collision that uses it. */
+@import './landing-stage.css';
+@import './landing-article.css';
 
 @source '../app';
 @source '../src';

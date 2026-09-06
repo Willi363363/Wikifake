@@ -9,15 +9,9 @@
 //
 // Both are non-negotiables of `plans/product/03-landing.md`, and both are the
 // kind of thing that passes a unit suite and fails a visitor.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-/** What the driver publishes, read off the track element. */
-async function progress(page: Page): Promise<number> {
-  return page.evaluate(() => {
-    const track = document.querySelector<HTMLElement>('.landing-stage__track');
-    return Number(track?.style.getPropertyValue('--stage-progress') ?? '0');
-  });
-}
+import { stageProgress } from './landing-stage.js';
 
 test.describe('C.2 — the stage moves with the scroll, and never takes it', () => {
   test('scrolls exactly as far as it was asked to', async ({ page }) => {
@@ -40,7 +34,7 @@ test.describe('C.2 — the stage moves with the scroll, and never takes it', () 
 
   test('advances from 0 to 1 across the track', async ({ page }) => {
     await page.goto('/');
-    await expect.poll(async () => progress(page)).toBe(0);
+    await expect.poll(async () => stageProgress(page)).toBe(0);
 
     const half = await page.evaluate(() => {
       const track = document.querySelector<HTMLElement>('.landing-stage__track');
@@ -51,10 +45,10 @@ test.describe('C.2 — the stage moves with the scroll, and never takes it', () 
     await page.evaluate((to: number) => {
       window.scrollTo(0, to);
     }, half);
-    await expect.poll(async () => progress(page)).toBeGreaterThan(0.3);
+    await expect.poll(async () => stageProgress(page)).toBeGreaterThan(0.3);
 
     await page.keyboard.press('End');
-    await expect.poll(async () => progress(page)).toBe(1);
+    await expect.poll(async () => stageProgress(page)).toBe(1);
   });
 
   test('keeps the keyboard out of the beats nobody can see', async ({ page }) => {
@@ -109,71 +103,5 @@ test.describe('C.2 — with the preference for less motion', () => {
         () => document.querySelectorAll('[data-stage-beat][inert]').length,
       ),
     ).toBe(0);
-  });
-});
-
-test.describe('C.3 — beats 1 and 2 arrive in layers', () => {
-  /**
-   * Scrolls to a point in the scene, named as the scene names it.
-   *
-   * Computed from the track's own box rather than from the page height: the
-   * document has padding above the stage, so "a third of the way down the page"
-   * and "beat 2's turn" are two different places, and the first is the one that
-   * makes an assertion about the second fail by 10 pixels.
-   */
-  async function scrollTo(page: Page, progress: number): Promise<void> {
-    await page.evaluate((to: number) => {
-      const track = document.querySelector<HTMLElement>('.landing-stage__track');
-      if (track === null) return;
-      const top = track.getBoundingClientRect().top + window.scrollY;
-      const travel = track.offsetHeight - window.innerHeight;
-      window.scrollTo(0, Math.round(top + travel * to));
-    }, progress);
-    await page.waitForTimeout(120);
-  }
-
-  /** What a transform is actually applying, in pixels. */
-  async function moved(page: Page, selector: string): Promise<{ x: number; y: number }> {
-    return page.evaluate((css: string) => {
-      const node = document.querySelector(css);
-      if (node === null) return { x: Number.NaN, y: Number.NaN };
-      const matrix = new DOMMatrixReadOnly(getComputedStyle(node).transform);
-      return { x: matrix.m41, y: matrix.m42 };
-    }, selector);
-  }
-
-  test('moves the question further than the brand line above it', async ({ page }) => {
-    await page.goto('/');
-
-    // The handover, halfway between beat 1's turn and beat 2's. At rest every
-    // layer is at zero, which would make this pass on a page with no depth in
-    // it at all.
-    await scrollTo(page, 1 / 6);
-
-    const question = await moved(page, '#landing-question');
-    const brand = await moved(page, '.landing-move--back');
-
-    // Nearer the camera travels further, and against the scroll. The brand line
-    // is behind it, so it lags — the two move in opposite directions and the
-    // gap between them is the depth.
-    expect(question.y).toBeLessThan(0);
-    expect(brand.y).toBeGreaterThan(0);
-    expect(brand.y - question.y).toBeGreaterThan(24);
-  });
-
-  test('drifts the paragraph in from the right and settles it', async ({ page }) => {
-    await page.goto('/');
-
-    // Before its turn it waits to one side.
-    expect((await moved(page, '.landing-move--from-right')).x).toBeGreaterThan(100);
-
-    // On its turn it is where the document would have put it.
-    await scrollTo(page, 1 / 3);
-    expect((await moved(page, '.landing-move--from-right')).x).toBeLessThan(1);
-
-    // And it leaves straight up: something that arrived from the right and left
-    // to the right would read as a carousel.
-    await scrollTo(page, 1);
-    expect((await moved(page, '.landing-move--from-right')).x).toBe(0);
   });
 });
