@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | ⬜ not started |
+| **State** | 🔶 in progress — C.1 done: the document exists, in both locales |
 | **Branch** | `feat/landing-scene` |
 | **Depends on** | tracks A and B |
 | **Delivers** | the marketing route: what the game is, and a way in |
@@ -64,7 +64,7 @@ beat 3 alone, the page has done its job and the rest is atmosphere.
 
 | # | Step | State |
 |---|---|---|
-| C.1 | The static document — content, headings, CTA, in the catalogue | ⬜ |
+| C.1 | The static document — content, headings, CTA, in the catalogue | ✅ |
 | C.2 | The stage: fixed viewport, scroll-offset driver | ⬜ |
 | C.3 | Beats 1 and 2 | ⬜ |
 | C.4 | Beat 3 — the collision, and the mark | ⬜ |
@@ -77,6 +77,35 @@ beat 3 alone, the page has done its job and the rest is atmosphere.
 the reduced-motion path is the thing that already exists rather than the thing
 retrofitted, and it is the only ordering under which non-negotiable 2 is
 cheap.
+
+**C.1 is done**, and the front door is `apps/web/src/landing/` — one `h1` and a
+`h2` per beat, the way in twice as a link, every sentence a `home` catalogue
+entry in both locales. `landing.test.tsx` reads the markup and never a style, so
+it keeps holding when C.2 lays a camera over it.
+
+Three decisions it made, each of which C.2 to C.5 inherit:
+
+- **The demonstration quotes a real article, frozen at a revision.** Beat 3 only
+  demonstrates anything if its true half is true, so `excerpt.ts` carries an
+  extract of *Tour Eiffel* with the `oldid` it was taken from, and one number
+  rewritten. Quoting Wikipedia at all brings CC BY-SA with it: the page renders
+  the round's own `<Attribution>` rather than a second wording of a licence
+  notice, and the softer sentence the front door used to carry is gone.
+- **The extract is French in both locales.** The game reads `fr.wikipedia.org`,
+  so an English landing showing an English extract would advertise a game that
+  does not exist. What carries the demonstration for a reader of no French is
+  the tell — `beats.collision.tell` names both values through placeholders.
+- **`language.test.ts` grew a named exemption.** The scan refuses French words
+  in `apps/web` sources, and until now every article reaching a screen came from
+  a fixture or a request. `src/landing/excerpt.ts` is the first French *literal*
+  in a source file. It is exempted by path, exactly one entry, with a test
+  holding the list to being precisely the files that would fail without it —
+  an exemption nobody removes is how a scan shrinks to nothing.
+
+The scoreboard of beat 4 reads `@wikifake/domain`'s constants, formatted with
+`Intl.NumberFormat` for the interface locale — `+0.5` and `+0,5`. C2 has one
+source of truth and a landing page advertising 150 while the server paid 120 is
+exactly the lie that rule exists to prevent.
 
 ## Exit gate
 
