@@ -76,17 +76,50 @@ const SOURCES = [...sourcesIn(join(WEB, 'src')), ...sourcesIn(join(WEB, 'app'))]
   (source) => ({ ...source, text: code(source.text) }),
 );
 
+/**
+ * The files that hold `fr.wikipedia.org`'s words rather than ours.
+ *
+ * The exception this scan's own header names, arrived at last: article content
+ * is data, not interface prose, and until step C.1 all of it reached the screen
+ * through a fixture or a request. The landing quotes a real extract — that is
+ * the whole of its beat 3 — so for the first time French article text is a
+ * literal in a source file.
+ *
+ * Named rather than detected, exact rather than a floor, and each entry has to
+ * still be French for the list to be right: an exemption nobody removes is how
+ * a scan quietly shrinks to nothing.
+ */
+const ARTICLE_DATA = [join('src', 'landing', 'excerpt.ts')];
+
+/** Everything this scan is responsible for: our prose, and only ours. */
+const OURS = SOURCES.filter(({ path }) => !ARTICLE_DATA.includes(path));
+
+/** Whether `text` uses `word` as a word. */
+function uses(text: string, word: string): boolean {
+  return new RegExp(String.raw`(?<![\w-])${word}(?![\w-])`, 'i').test(text);
+}
+
 describe('8.10 — the interface is in English', () => {
   it('has sources to check', () => {
     expect(SOURCES.length).toBeGreaterThan(30);
   });
 
   it.each(FRENCH)('says no %s', (word) => {
-    const offenders = SOURCES.filter(({ text }) =>
-      new RegExp(String.raw`(?<![\w-])${word}(?![\w-])`, 'i').test(text),
-    ).map(({ path }) => path);
+    const offenders = OURS.filter(({ text }) => uses(text, word)).map(({ path }) => path);
 
     expect(offenders).toEqual([]);
+  });
+
+  // Guards the exemption. A path that stopped carrying article data, or one
+  // that never existed, leaves this scan smaller than it reads — so the list is
+  // held to being exactly the files that would fail without it.
+  it('exempts only files that really carry article data', () => {
+    const french = ARTICLE_DATA.filter((path) => {
+      const source = SOURCES.find((candidate) => candidate.path === path);
+      return source !== undefined && FRENCH.some((word) => uses(source.text, word));
+    });
+
+    expect(french).toEqual(ARTICLE_DATA);
   });
 
   // Guards the guard: a scan whose markers no longer appear anywhere, in any

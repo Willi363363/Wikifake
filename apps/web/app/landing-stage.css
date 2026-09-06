@@ -1,0 +1,157 @@
+/*
+ * Track C's stage — steps C.2 and C.3.
+ *
+ * Hand-written rather than utilities, because the whole of it is one mechanism:
+ * a track that is as many screens tall as there are beats, a camera the browser
+ * holds still, and beats that spend `--beat-progress` on `transform` and
+ * `opacity` and on nothing else. Spelling that as `md:motion-safe:` prefixes
+ * across three elements would hide the mechanism inside the markup.
+ *
+ * **The media query is the switch.** Outside it — a phone, or a viewer who asked
+ * for less motion — not one rule below applies, and what is left is the document
+ * of step C.1 in reading order. That is non-negotiable 2, and it holds before
+ * hydration and with the script disabled.
+ *
+ * The width matches `--breakpoint-md`. It is written here as a literal because a
+ * media query cannot read a custom property; `stage.test.tsx` holds the two
+ * together so the pair cannot drift silently — and holds every `landing-*.css`
+ * to the same query, since the scene is split across files and a condition
+ * copied is a condition that drifts.
+ */
+
+/*
+ * The rhythm between beats in the mode where they are simply the sections of a
+ * document — a phone, or a viewer who asked for less motion. Step C.1 carried
+ * it as a `mt-20` on three of the four sections; it belongs to the stage,
+ * because the stage is what decides whether they are stacked or in flow.
+ */
+.landing-stage__beat + .landing-stage__beat {
+  margin-top: 5rem;
+}
+
+@media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+  .landing-stage__track {
+    height: calc(var(--stage-beats) * 100dvh);
+  }
+
+  .landing-stage__camera {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .landing-stage__beat {
+    position: absolute;
+    inset: 0;
+    /* Stacked, so the document's rhythm above is meaningless here — and an
+       absolutely positioned box with a margin is a box 5rem off the mark. */
+    margin-top: 0;
+    display: flex;
+    align-items: center;
+    /* A beat taller than the camera scrolls inside itself rather than being
+       cut off. The page's own scroll is untouched — this is the beat's box. */
+    overflow-y: auto;
+
+    /*
+     * Two opacities, and the difference between them is step C.4's whole idea.
+     *
+     * `--beat-progress` is 0 while a beat holds the stage, ±1 at its
+     * neighbours' turns. A beat *wrapper* is fully opaque out to ±0.6 and gone
+     * by ±0.85 — a wide plateau, so at a handover both beats are still solid.
+     * The **copy** inside is on a much tighter ramp: fully opaque to ±0.3, gone
+     * by ±0.5, which is exactly the midpoint of a handover.
+     *
+     * So at the moment two beats change places, every word on the stage is at
+     * zero and only what has no copy ramp is left. That is what makes beat 3 a
+     * collision rather than a dissolve: the article stays put while the
+     * commentary around it cuts. Fast and hard, which is the direction's own
+     * word for motion.
+     *
+     * Custom properties inherit, so the copy ramp is computed once here and
+     * spent by whichever descendants opt into it. A child cannot be *more*
+     * opaque than its parent, which is why the plateau is on the wrapper.
+     *
+     * Two ramps rather than an absolute value: `abs()` is younger than the
+     * browsers this has to run on, and `clamp()` is not. 0.85 is
+     * `BEAT_FADE_EDGE` in `stage-progress.ts`, which is where the driver draws
+     * the same line for `inert`; `stage.test.tsx` holds the two together.
+     */
+    --beat-in: clamp(0, calc((var(--beat-progress, 0) + 0.85) / 0.25), 1);
+    --beat-out: clamp(0, calc((0.85 - var(--beat-progress, 0)) / 0.25), 1);
+    --copy-in: clamp(0, calc((var(--beat-progress, 0) + 0.5) / 0.2), 1);
+    --copy-out: clamp(0, calc((0.5 - var(--beat-progress, 0)) / 0.2), 1);
+    --copy-opacity: calc(var(--copy-in) * var(--copy-out));
+
+    opacity: calc(var(--beat-in) * var(--beat-out));
+    transform: translate3d(0, calc(clamp(-1, var(--beat-progress, 0), 1) * -3rem), 0);
+    will-change: transform, opacity;
+  }
+
+  /*
+   * By default a beat *is* its copy: the whole section cuts at the handover.
+   * The article beats opt out below, because the thing they are about has to
+   * survive the cut.
+   */
+  .landing-stage__beat > * {
+    opacity: var(--copy-opacity);
+  }
+
+  /*
+   * Step C.3 — depth, as a vocabulary rather than as four one-off rules.
+   *
+   * A beat travels three rems against the scroll. An element inside one can
+   * travel *further* or *less*, and the difference between the two is the only
+   * depth cue this direction allows itself: no blur, no scale, no shadow that
+   * grows. `--depth` is that difference, in rems, added to whatever its beat is
+   * already doing — nested transforms compose, so the arithmetic is the
+   * browser's rather than ours.
+   *
+   * `--arrive-from` is the other half: how far to one side an element waits
+   * before its beat's turn. It is clamped to the approach, so an element drifts
+   * *in* and then leaves straight up with everything else. Something that
+   * arrived from the right and departed to the right would read as a carousel.
+   *
+   * Both live in one rule because an element can only have one `transform`, and
+   * two classes each declaring one is a bug that looks like a cascade problem.
+   * C.4 and C.5 extend this; they do not start again.
+   */
+  .landing-move {
+    --arrive: clamp(0, calc(var(--beat-progress, 0) * -1), 1);
+    transform: translate3d(
+      calc(var(--arrive) * var(--arrive-from, 0rem)),
+      calc(clamp(-1, var(--beat-progress, 0), 1) * var(--depth, 0) * -1rem),
+      0
+    );
+    will-change: transform;
+  }
+
+  /* Nearer the camera: travels three rems further than its beat. The question
+     of beat 1 and the heading of beat 2 — what the eye lands on first. */
+  .landing-move--fore {
+    --depth: 3;
+  }
+
+  /* Further from it: travels half as far. The brand line above the question,
+     which is a label rather than a statement and should not lead. */
+  .landing-move--back {
+    --depth: -1.5;
+  }
+
+  /* Beat 2's whole business: the paragraph drifts in, calm and readable. */
+  .landing-move--from-right {
+    --arrive-from: 8rem;
+  }
+
+  /*
+   * Something that lands on what is already there.
+   *
+   * Two rems, and from the other side: beat 3's paragraph replaces beat 2's on
+   * the same rectangle, and a thing that arrives from the side its predecessor
+   * left towards reads as a carousel rather than as a correction. Short,
+   * because the distance is not the point — the landing is.
+   */
+  .landing-move--over {
+    --arrive-from: -2rem;
+  }
+}

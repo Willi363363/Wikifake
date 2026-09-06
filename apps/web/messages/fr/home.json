@@ -1,20 +1,30 @@
 {
   "title": "WikiFake",
-  "description": "Un article de Wikipédia, une poignée de faits réécrits par un modèle, et vous. Trouvez-les seul ou contre d'autres joueurs — un jeu gratuit de lecture critique et de vérification des faits.",
+  "question": "Qui ment ?",
+  "description": "Un article de Wikipédia, une poignée de faits réécrits par un modèle, et vous. Trouvez-les seul ou contre d’autres joueurs — un jeu gratuit de lecture critique et de vérification des faits.",
   "play": "Jouer",
-  "steps": {
-    "pick": {
-      "title": "Choisissez un sujet",
-      "detail": "N'importe quel sujet de Wikipédia. L'article est récupéré tel qu'il est aujourd'hui."
+  "noAccount": "Sans compte, sans installation. Jouez seul, ou ouvrez une salle et laissez entrer d’autres joueurs.",
+  "beats": {
+    "source": {
+      "title": "Tout commence par un vrai article",
+      "body": "Donnez un sujet et WikiFake récupère son article sur Wikipédia en français, exactement tel qu’il est aujourd’hui. Rien n’est coupé, rien n’est reformulé.",
+      "caption": "Extrait de l’article <source>« {topic} »</source>, non modifié."
     },
-    "read": {
-      "title": "Lisez-le face à un modèle",
-      "detail": "Un modèle réécrit quelques faits. Rien ne les signale, et le reste de l'article est intact."
+    "collision": {
+      "title": "Puis un modèle en réécrit quelques faits",
+      "body": "Les phrases gardent leur forme et les paragraphes voisins restent intacts. Rien n’est surligné, et l’article ne dit jamais combien de faits ont bougé.",
+      "caption": "Le même paragraphe, une fois la manche générée.",
+      "tell": "Ici, un seul nombre a bougé : {truth} est devenu {claim}. Dans une manche, personne ne vous le montre."
     },
-    "mark": {
-      "title": "Marquez ce qui est faux",
-      "detail": "Chaque paragraphe signalé compte : les bons rapportent, les mauvais coûtent, et l'horloge aussi."
+    "score": {
+      "title": "Vous marquez ce qui est faux, et le chrono vous regarde",
+      "body": "Signalez chaque paragraphe que vous ne croyez pas, puis validez. Chaque marque est comptée dès la fin de la manche.",
+      "outcomes": {
+        "found": "Un paragraphe falsifié que vous avez marqué",
+        "missed": "Un que vous avez lu sans le voir",
+        "wrong": "Un paragraphe vrai que vous avez marqué",
+        "clock": "Chaque seconde restant au chrono"
+      }
     }
-  },
-  "licence": "Les articles proviennent de Wikipédia et sont utilisés sous licence CC BY-SA. Pendant une manche, ils sont délibérément modifiés et ne constituent pas un contenu encyclopédique."
+  }
 }
