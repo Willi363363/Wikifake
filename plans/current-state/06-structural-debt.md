@@ -1,10 +1,21 @@
 # Current state — structural debt
 
-The other half of the debt register. `05-known-debt.md` holds the defects that
-have a `file:line`; here are the problems that are about the shape of the
-repository — a tool we cannot adopt yet, a convention that is ambiguous, a
-check that does not cover what it looks like it covers. Same rule: recorded
-here, fixed in the step it belongs to.
+One of three debt registers, and the one about **the shape of the repository**:
+a tool we cannot adopt yet, a convention that is ambiguous, a check that does
+not cover what it looks like it covers.
+
+| Register | What goes in it |
+|---|---|
+| `05-known-debt.md` | defects and gaps with a `file:line` |
+| this file | the shape of the repository and its code |
+| `08-toolchain-debt.md` | the commands you run, and what they do not tell you |
+
+It split on 2026-09-06, at 190 lines with two findings waiting for room. The
+axis is the one that was already there: half these entries were about code
+somebody would read, half about a command somebody would run, and the second
+half is where every new finding was landing.
+
+Same rule as the other two: recorded here, fixed in the step it belongs to.
 
 ## The packages ship TypeScript, so the app cannot use Turbopack
 
@@ -46,30 +57,6 @@ indices, sorted positions, sequential numbers)` is `C3.3`). Each needs reading.
 It also touches sheets that open pull requests have in flight, so it wants its
 own step on a quiet tree.
 
-## `pnpm e2e` and `pnpm test` share one Redis, and the second one loses
-
-Found by causing it: an e2e run followed immediately by `pnpm test` failed
-`apps/realtime/src/broadcast.test.ts` — *"timed out waiting for the lobby to hold
-ada, bob"* — and the same suite passed on its own a minute later.
-
-Both read `REDIS_URL`, and locally that is one instance. Measured since:
-`redis-cli DBSIZE` reported **36 keys** left behind after a journey run, and
-`FLUSHALL` made the same socket suite pass. The journeys leave rooms,
-subscriptions and delayed jobs; the socket suite then opens its own rooms
-against a database that is not empty. Nothing is corrupted
-and nothing is wrong with either suite — they simply were not written to run
-back to back against shared state.
-
-CI never sees it: each job brings up its own services. A developer running both
-in one sitting sees it, reads a red socket test, and goes looking in the wrong
-file — which is the whole cost, and it is a real one.
-
-The fixes are all cheap and none is obviously right: a distinct Redis database
-index per suite (`REDIS_URL` already carries one), a flush between runs, or
-prefixed keys. Choosing wants a moment's thought about which of the three the
-socket service should tolerate in production, so it is recorded rather than
-guessed at.
-
 ## The `Makefile` targets that outlived the Makefile
 
 Step 10.9 rewrote `make check` and `make hooks` as `pnpm check` and
@@ -86,35 +73,6 @@ CI run — there is no local version and no CI version drifting apart. But a
 shell string in a `scripts` block is not portable in the way the rest of the
 toolchain is, and `hooks` in particular does two things in one line. Small, and
 worth folding into `scripts/` proper the next time somebody is in there.
-
-## A pull request title becomes a commit subject, and nothing checks it
-
-Found by causing it, during the batch of 2026-08-28.
-
-GitHub builds a squash commit's subject from the pull request **title** plus
-` (#NNN)`, and `scripts/checks.sh commit-msg` refuses a subject over 72
-characters. #125's title was 82, so the commit that landed on `staging` was 89.
-The conformance job walks `git rev-list BASE..HEAD`, so the next
-`staging` → `main` promotion failed on a commit that had already been merged.
-
-**There is no clean way out once it has happened.** The commit is immutable
-without a force-push to a protected branch; a later revert does not remove it
-from the range; and weakening the check to go green is the one thing the rules
-forbid outright. It costs either an amended force-push or an administrator's
-bypass — both of which are exactly what the branch protection exists to prevent.
-
-Structural rather than a defect, because the gap is in *where* the rule is
-enforced. Every local hook and every CI job passes at the moment the mistake is
-made. The title is the one input to a commit message that nothing validates, and
-the bill arrives at a later promotion, in a pull request that did nothing wrong.
-
-**The rule to carry meanwhile:** a title must be at most 72 minus the width of
-` (#NNN)` — 65 characters in practice — whenever the merge will be a squash.
-
-**The fix, unwritten:** the conformance job already has the pull request in its
-event payload. Measuring `github.event.pull_request.title` on `opened`,
-`edited` and `reopened` would refuse it before a commit exists, which is the only
-moment it is still cheap.
 
 ## Protocol and socket sentences reach players untranslated
 
