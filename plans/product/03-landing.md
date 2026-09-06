@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 in progress — C.1 done: the document exists, in both locales |
+| **State** | 🔶 in progress — C.1 and C.2 done: the document, and the camera over it |
 | **Branch** | `feat/landing-scene` |
 | **Depends on** | tracks A and B |
 | **Delivers** | the marketing route: what the game is, and a way in |
@@ -65,7 +65,7 @@ beat 3 alone, the page has done its job and the rest is atmosphere.
 | # | Step | State |
 |---|---|---|
 | C.1 | The static document — content, headings, CTA, in the catalogue | ✅ |
-| C.2 | The stage: fixed viewport, scroll-offset driver | ⬜ |
+| C.2 | The stage: fixed viewport, scroll-offset driver | ✅ |
 | C.3 | Beats 1 and 2 | ⬜ |
 | C.4 | Beat 3 — the collision, and the mark | ⬜ |
 | C.5 | Beat 4 — the scoreboard and the way in | ⬜ |
@@ -106,6 +106,38 @@ The scoreboard of beat 4 reads `@wikifake/domain`'s constants, formatted with
 `Intl.NumberFormat` for the interface locale — `+0.5` and `+0,5`. C2 has one
 source of truth and a landing page advertising 150 while the server paid 120 is
 exactly the lie that rule exists to prevent.
+
+**C.2 is done: the camera is `position: sticky`.** Non-negotiable 1 is bought by
+using a browser feature rather than resisting one — nothing listens for a wheel
+event, the scrollbar is the real one and the right length, and `End` still goes
+to the end. The driver publishes `--stage-progress` on the track and
+`--beat-progress` on each beat; the stylesheet spends them on `transform` and
+`opacity` and on nothing else.
+
+**Three switches decide whether any of it engages, and two of them are CSS.**
+`prefers-reduced-motion: no-preference` and `md` and up live in the media query,
+so they hold before hydration; below either one, what is left is C.1's document
+in reading order rather than a frozen frame. A fixed camera on a 640px-tall
+phone is a viewport that clips the article it is trying to show, which is why
+the second switch exists. The third is JavaScript, which a stylesheet cannot
+ask about: a `<noscript>` block reverts the three rules, and it is the one
+`!important` in this repository that earns itself.
+
+**The driver never re-decides any of that.** It asks `getComputedStyle` whether
+the camera actually came out `sticky`. A breakpoint written once in CSS and
+again in JavaScript is a pair that disagrees the first time either moves.
+
+The performance budget of non-negotiable 3, decided here rather than measured
+afterwards: one read per frame and it is `scrollY`; geometry cached and
+re-measured only on `ResizeObserver`; writes are custom properties spent on
+composite-only properties; rAF-batched; and the whole thing detached by an
+`IntersectionObserver` once the stage leaves the viewport. C.7 measures it on a
+device — this is what it will be measuring.
+
+**A transparent link is still a link.** Four stacked beats means three invisible
+calls to action in the tab order, so the driver marks every beat outside
+`BEAT_FADE_EDGE` `inert`. `stage.test.tsx` holds that number and the
+stylesheet's own fade together, because a media query cannot import a constant.
 
 ## Exit gate
 

@@ -1,0 +1,162 @@
+/** @vitest-environment jsdom */
+
+// Step C.2 — the stage, as markup and as a switch.
+//
+// What a unit test can see here is the document the stage produces and the
+// conditions under which it does nothing. What it cannot see is a camera being
+// held still, because jsdom has no layout and no scrolling — that half is
+// `apps/e2e/specs/landing.spec.ts`, in a browser, which is the only place the
+// claim "the scroll is never intercepted" means anything.
+import { cleanup, render, screen } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { afterEach, describe, expect, it } from 'vitest';
+
+import { BEAT_FADE_EDGE } from './stage-progress.js';
+import { Stage } from './stage.js';
+import { BEAT_ATTRIBUTE, CAMERA_ATTRIBUTE, STAGE_PROGRESS } from './use-stage.js';
+
+afterEach(() => {
+  cleanup();
+});
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+
+function beatsOf(container: HTMLElement): HTMLElement[] {
+  return [...container.querySelectorAll<HTMLElement>(`[${BEAT_ATTRIBUTE}]`)];
+}
+
+describe('C.2 — the stage is a document first', () => {
+  it('keeps its children in order, one beat each', () => {
+    const view = render(
+      <Stage>
+        <p>first</p>
+        <p>second</p>
+        <p>third</p>
+      </Stage>,
+    );
+
+    const beats = beatsOf(view.container);
+    expect(beats.map((beat) => beat.textContent)).toEqual(['first', 'second', 'third']);
+  });
+
+  it('tells the stylesheet how many screens the track is', () => {
+    // The count belongs to the markup: adding a beat is adding a child, and the
+    // track grows by one screen without a rule moving.
+    const view = render(
+      <Stage>
+        <p>one</p>
+        <p>two</p>
+      </Stage>,
+    );
+
+    const track = view.container.firstElementChild as HTMLElement;
+    expect(track.style.getPropertyValue('--stage-beats')).toBe('2');
+  });
+
+  it('hands the document back to a browser with no script', () => {
+    // Rendered to a string, because that is what a browser with scripting off
+    // receives: it never runs React, so the client-side tree is not the thing
+    // under test here. The response is.
+    const html = renderToStaticMarkup(
+      <Stage>
+        <p>only</p>
+      </Stage>,
+    );
+
+    // Without a driver the camera would hold the first beat still and never
+    // advance it, so the `<noscript>` block reverts the three rules that would
+    // have made it a stage.
+    expect(html).toContain('<noscript>');
+    expect(html).toContain('position: static !important');
+    expect(html).toContain('height: auto !important');
+    expect(html).toContain('opacity: 1 !important');
+  });
+
+  it('leaves everything alone where the stylesheet did not engage', () => {
+    // jsdom applies no stylesheet, so the camera is `static` — the same answer
+    // a phone gives, and the same one a viewer who asked for less motion gives.
+    // The driver reads that from `getComputedStyle` and does nothing, which is
+    // why nothing here is transparent or inert.
+    const view = render(
+      <Stage>
+        <a href="/play">first</a>
+        <a href="/play">second</a>
+      </Stage>,
+    );
+
+    const track = view.container.firstElementChild as HTMLElement;
+    expect(track.style.getPropertyValue(STAGE_PROGRESS)).toBe('');
+    // `inert` reflects to an attribute, which is what a jsdom without the
+    // property still shows — and what a browser's own devtools show.
+    for (const beat of beatsOf(view.container)) {
+      expect(beat.hasAttribute('inert')).toBe(false);
+    }
+    // And both links are still reachable, which is the point of the paragraph
+    // above rather than a detail of it.
+    expect(screen.getAllByRole('link')).toHaveLength(2);
+  });
+
+  it('marks the camera where the driver can find it', () => {
+    const view = render(
+      <Stage>
+        <p>one</p>
+      </Stage>,
+    );
+
+    expect(view.container.querySelector(`[${CAMERA_ATTRIBUTE}]`)).not.toBeNull();
+  });
+});
+
+describe('C.2 — the width the stage engages at is written once', () => {
+  /** A stylesheet, read as text. */
+  function stylesheet(...parts: string[]): string {
+    return readFileSync(join(HERE, ...parts), 'utf8');
+  }
+
+  it('matches the theme’s own md breakpoint', () => {
+    // A media query cannot read a custom property, so the literal in
+    // `globals.css` is a copy of `--breakpoint-md`. This is what stops the copy
+    // from drifting: move the breakpoint and this fails, in the same run.
+    const theme = stylesheet(
+      '..',
+      '..',
+      '..',
+      '..',
+      'packages',
+      'ui',
+      'src',
+      'theme.css',
+    );
+    const md = /--breakpoint-md:\s*([^;]+);/.exec(theme)?.[1]?.trim();
+    expect(md).toBeDefined();
+
+    const globals = stylesheet('..', '..', 'app', 'globals.css');
+    expect(globals).toContain(`@media (min-width: ${String(md)}) and`);
+  });
+
+  it('fades a beat out where the driver stops drawing it', () => {
+    const globals = stylesheet('..', '..', 'app', 'globals.css');
+
+    // The stylesheet decides when a beat is invisible; the driver decides when
+    // it stops taking focus. Those have to be the same moment, and a media
+    // query cannot import a constant — so the number is written twice and held
+    // together here.
+    expect(globals).toContain(`+ ${String(BEAT_FADE_EDGE)}) / 0.35`);
+    expect(globals).toContain(
+      `(${String(BEAT_FADE_EDGE)} - var(--beat-progress, 0)) / 0.35`,
+    );
+  });
+
+  it('engages only when nobody asked for less motion', () => {
+    const globals = stylesheet('..', '..', 'app', 'globals.css');
+
+    // Not a fallback bolted on at the end: outside this query not one stage
+    // rule applies, so the reduced-motion path is the document that was
+    // already there.
+    expect(globals).toContain('(prefers-reduced-motion: no-preference)');
+    expect(globals).toContain('.landing-stage__camera');
+  });
+});

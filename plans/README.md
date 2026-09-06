@@ -29,7 +29,7 @@ are defined in `product/`, and their state is the table below.
 |---|---|---|---|
 | A | Art direction | ✅ done — palette chosen and measured | `product/01-art-direction.md` |
 | B | Design system on the new direction | ✅ done — primitives, type, motion and the gallery | `product/02-design-system.md` |
-| C | Landing — the scroll scene | 🔶 in progress — C.1: the document | `product/03-landing.md` |
+| C | Landing — the scroll scene | 🔶 in progress — C.1 and C.2 | `product/03-landing.md` |
 | D | Game surface | ✅ done — every screen on the direction, 24 journeys unchanged | `product/04-game-surface.md` |
 | E | Accounts and player statistics | ⬜ not started | `product/05-accounts.md` |
 | F | Quests | ⬜ not started | `product/06-quests.md` |
