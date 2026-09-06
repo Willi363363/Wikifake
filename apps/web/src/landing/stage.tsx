@@ -23,6 +23,7 @@
 // not own, and it is inert in every browser that runs the script.
 import { Children, useRef, type CSSProperties, type ReactNode } from 'react';
 
+import { beatProgressFor } from './stage-progress.js';
 import { BEAT_ATTRIBUTE, CAMERA_ATTRIBUTE, useStage } from './use-stage.js';
 
 /** The stylesheet reverting itself, for a browser with no script to drive it. */
@@ -49,7 +50,7 @@ export function Stage({ children }: StageProps) {
       className="landing-stage__track"
       // The count belongs to the markup, not to the stylesheet: adding a beat is
       // adding a child, and the track grows by one screen without a rule moving.
-      style={{ '--stage-beats': beats.length } as CSSProperties}
+      style={{ '--stage-beats': beats.length, '--stage-progress': 0 } as CSSProperties}
     >
       <noscript>
         {/* A module constant, with nothing of anybody's in it. */}
@@ -63,6 +64,19 @@ export function Stage({ children }: StageProps) {
             // place in the scene, and reordering them reorders the story.
             key={index}
             className="landing-stage__beat"
+            // The scene at rest, rendered rather than waited for. Without it
+            // every beat falls back to `--beat-progress: 0` until the driver's
+            // first frame — four beats stacked at full opacity, which is a
+            // visible flash on every load and the first thing a visitor sees.
+            //
+            // `inert` is deliberately *not* rendered with it: a browser running
+            // no script never reaches the driver, and beats it could not focus
+            // would be a page with three quarters of itself missing.
+            style={
+              {
+                '--beat-progress': beatProgressFor(0, index, beats.length),
+              } as CSSProperties
+            }
             {...{ [BEAT_ATTRIBUTE]: '' }}
           >
             {beat}

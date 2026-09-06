@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 in progress — C.1 and C.2 done: the document, and the camera over it |
+| **State** | 🔶 in progress — C.1 to C.3: the document, the camera, and beats 1 and 2 |
 | **Branch** | `feat/landing-scene` |
 | **Depends on** | tracks A and B |
 | **Delivers** | the marketing route: what the game is, and a way in |
@@ -66,7 +66,7 @@ beat 3 alone, the page has done its job and the rest is atmosphere.
 |---|---|---|
 | C.1 | The static document — content, headings, CTA, in the catalogue | ✅ |
 | C.2 | The stage: fixed viewport, scroll-offset driver | ✅ |
-| C.3 | Beats 1 and 2 | ⬜ |
+| C.3 | Beats 1 and 2 | ✅ |
 | C.4 | Beat 3 — the collision, and the mark | ⬜ |
 | C.5 | Beat 4 — the scoreboard and the way in | ⬜ |
 | C.6 | Reduced-motion path, checked as a document | ⬜ |
@@ -138,6 +138,38 @@ device — this is what it will be measuring.
 calls to action in the tab order, so the driver marks every beat outside
 `BEAT_FADE_EDGE` `inert`. `stage.test.tsx` holds that number and the
 stylesheet's own fade together, because a media query cannot import a constant.
+
+**C.3 gives beats 1 and 2 depth, and it is a vocabulary rather than four rules.**
+`--depth` is how many rems further — or less — an element travels than the beat
+carrying it, and `--arrive-from` is how far to one side it waits before its turn.
+Both live in one `.landing-move` rule, because an element has one `transform` and
+two classes each declaring one is a bug that reads like a cascade problem. C.4
+and C.5 extend this; they do not start again.
+
+The difference in travel is the **only** depth cue this direction allows itself:
+no blur, no scale, no shadow that grows. Beat 1 arrives in three layers — the
+question ahead, the brand line behind, everything else with the beat. Beat 2's
+paragraph drifts in from the right and settles exactly on its turn, then leaves
+straight up: something that arrived from one side and left the same way reads as
+a carousel.
+
+Two things a browser found that no render test could:
+
+- **The scene is rendered at rest, not waited for.** Until the driver's first
+  frame every beat fell back to `--beat-progress: 0` — four beats stacked at
+  full opacity, on every load, as the first thing a visitor sees. `Stage` now
+  server-renders each beat's value. It deliberately does **not** render `inert`
+  with it: a browser running no script never reaches the driver, and beats it
+  could not focus would be a page with three quarters of itself missing.
+- **A test scrolled to the wrong place and blamed the CSS.** The document has
+  padding above the stage, so "a third of the way down the page" and "beat 2's
+  turn" are ten pixels apart. `landing.spec.ts` computes its scroll positions
+  from the track's own box now, in the scene's own units.
+
+`movement.test.ts` is the other half: every `landing-` class the markup writes
+has a rule, and nothing that moves is declared outside the media query. A
+mistyped class is a silent no-op, and a rule outside the query is non-negotiable
+2 undone by a brace — neither fails a render.
 
 ## Exit gate
 

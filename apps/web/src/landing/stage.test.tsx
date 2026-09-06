@@ -87,8 +87,10 @@ describe('C.2 — the stage is a document first', () => {
       </Stage>,
     );
 
+    // The track still carries the at-rest value it was rendered with, and not
+    // the four-decimal one the driver writes: the paint never happened.
     const track = view.container.firstElementChild as HTMLElement;
-    expect(track.style.getPropertyValue(STAGE_PROGRESS)).toBe('');
+    expect(track.style.getPropertyValue(STAGE_PROGRESS)).toBe('0');
     // `inert` reflects to an attribute, which is what a jsdom without the
     // property still shows — and what a browser's own devtools show.
     for (const beat of beatsOf(view.container)) {
@@ -97,6 +99,25 @@ describe('C.2 — the stage is a document first', () => {
     // And both links are still reachable, which is the point of the paragraph
     // above rather than a detail of it.
     expect(screen.getAllByRole('link')).toHaveLength(2);
+  });
+
+  it('renders the scene at rest rather than waiting for a frame', () => {
+    const view = render(
+      <Stage>
+        <p>one</p>
+        <p>two</p>
+        <p>three</p>
+      </Stage>,
+    );
+
+    // Without this every beat falls back to `--beat-progress: 0` until the
+    // driver's first frame — three beats stacked at full opacity, which is a
+    // flash on every load and the first thing a visitor sees.
+    expect(
+      beatsOf(view.container).map((beat) =>
+        beat.style.getPropertyValue('--beat-progress'),
+      ),
+    ).toEqual(['0', '-1', '-2']);
   });
 
   it('marks the camera where the driver can find it', () => {
@@ -118,7 +139,7 @@ describe('C.2 — the width the stage engages at is written once', () => {
 
   it('matches the theme’s own md breakpoint', () => {
     // A media query cannot read a custom property, so the literal in
-    // `globals.css` is a copy of `--breakpoint-md`. This is what stops the copy
+    // `landing.css` is a copy of `--breakpoint-md`. This is what stops the copy
     // from drifting: move the breakpoint and this fails, in the same run.
     const theme = stylesheet(
       '..',
@@ -133,30 +154,30 @@ describe('C.2 — the width the stage engages at is written once', () => {
     const md = /--breakpoint-md:\s*([^;]+);/.exec(theme)?.[1]?.trim();
     expect(md).toBeDefined();
 
-    const globals = stylesheet('..', '..', 'app', 'globals.css');
-    expect(globals).toContain(`@media (min-width: ${String(md)}) and`);
+    const scene = stylesheet('..', '..', 'app', 'landing.css');
+    expect(scene).toContain(`@media (min-width: ${String(md)}) and`);
   });
 
   it('fades a beat out where the driver stops drawing it', () => {
-    const globals = stylesheet('..', '..', 'app', 'globals.css');
+    const scene = stylesheet('..', '..', 'app', 'landing.css');
 
     // The stylesheet decides when a beat is invisible; the driver decides when
     // it stops taking focus. Those have to be the same moment, and a media
     // query cannot import a constant — so the number is written twice and held
     // together here.
-    expect(globals).toContain(`+ ${String(BEAT_FADE_EDGE)}) / 0.35`);
-    expect(globals).toContain(
+    expect(scene).toContain(`+ ${String(BEAT_FADE_EDGE)}) / 0.35`);
+    expect(scene).toContain(
       `(${String(BEAT_FADE_EDGE)} - var(--beat-progress, 0)) / 0.35`,
     );
   });
 
   it('engages only when nobody asked for less motion', () => {
-    const globals = stylesheet('..', '..', 'app', 'globals.css');
+    const scene = stylesheet('..', '..', 'app', 'landing.css');
 
     // Not a fallback bolted on at the end: outside this query not one stage
     // rule applies, so the reduced-motion path is the document that was
     // already there.
-    expect(globals).toContain('(prefers-reduced-motion: no-preference)');
-    expect(globals).toContain('.landing-stage__camera');
+    expect(scene).toContain('(prefers-reduced-motion: no-preference)');
+    expect(scene).toContain('.landing-stage__camera');
   });
 });

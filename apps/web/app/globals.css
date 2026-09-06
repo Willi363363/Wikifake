@@ -13,6 +13,8 @@
  */
 @import 'tailwindcss';
 @import '@wikifake/ui/theme.css';
+/* Track C's scene, which is one mechanism and wants one file. */
+@import './landing.css';
 
 @source '../app';
 @source '../src';
@@ -30,81 +32,3 @@
  * `motion.test.ts` in `apps/web` holds this list to `MOTIONS`.
  */
 @source inline('animate-fade-in animate-stagger-in animate-slide-in-right animate-slide-up-fade animate-token-flash animate-pulse-dot animate-scan-sweep animate-frost-pulse animate-damage-pop animate-shake animate-article-spin animate-static-glitch animate-lightning-zap animate-screen-flash animate-snowfall animate-fog-drift');
-
-/*
- * Track C's stage — step C.2.
- *
- * Hand-written rather than utilities, because the whole of it is one mechanism:
- * a track that is as many screens tall as there are beats, a camera the browser
- * holds still, and beats that spend `--beat-progress` on `transform` and
- * `opacity` and on nothing else. Spelling that as `md:motion-safe:` prefixes
- * across three elements would hide the mechanism inside the markup.
- *
- * **The media query is the switch.** Outside it — a phone, or a viewer who asked
- * for less motion — not one rule below applies, and what is left is the document
- * of step C.1 in reading order. That is non-negotiable 2, and it holds before
- * hydration and with the script disabled.
- *
- * The width matches `--breakpoint-md`. It is written here as a literal because a
- * media query cannot read a custom property; `stage.test.tsx` holds the two
- * together so the pair cannot drift silently.
- */
-/*
- * The rhythm between beats in the mode where they are simply the sections of a
- * document — a phone, or a viewer who asked for less motion. Step C.1 carried
- * it as a `mt-20` on three of the four sections; it belongs to the stage,
- * because the stage is what decides whether they are stacked or in flow.
- */
-.landing-stage__beat + .landing-stage__beat {
-  margin-top: 5rem;
-}
-
-@media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
-  .landing-stage__track {
-    height: calc(var(--stage-beats) * 100dvh);
-  }
-
-  .landing-stage__camera {
-    position: sticky;
-    top: 0;
-    height: 100dvh;
-    overflow: hidden;
-  }
-
-  .landing-stage__beat {
-    position: absolute;
-    inset: 0;
-    /* Stacked, so the document's rhythm above is meaningless here — and an
-       absolutely positioned box with a margin is a box 5rem off the mark. */
-    margin-top: 0;
-    display: flex;
-    align-items: center;
-    /* A beat taller than the camera scrolls inside itself rather than being
-       cut off. The page's own scroll is untouched — this is the beat's box. */
-    overflow-y: auto;
-
-    /*
-     * The generic rule, and only the generic rule.
-     *
-     * `--beat-progress` is 0 while a beat holds the stage, ±1 at its
-     * neighbours' turns. It is fully opaque out to ±0.25 and gone by ±0.6, so
-     * the two beats of a handover cross at about 0.29 each — two blocks of
-     * prose at half opacity is a moment nobody can read. It drifts three rems
-     * against the scroll on the way through, which is the only motion here.
-     *
-     * Steps C.3 to C.5 give each beat its own choreography. This is what "on
-     * stage" means until they do, and what a beat falls back to if one of them
-     * is ever removed.
-     *
-     * Two ramps rather than an absolute value: `abs()` is younger than the
-     * browsers this has to run on, and `clamp()` is not. 0.6 is
-     * `BEAT_FADE_EDGE` in `stage-progress.ts`, which is where the driver draws
-     * the same line for `inert`; `stage.test.tsx` holds the two together.
-     */
-    --beat-in: clamp(0, calc((var(--beat-progress, 0) + 0.6) / 0.35), 1);
-    --beat-out: clamp(0, calc((0.6 - var(--beat-progress, 0)) / 0.35), 1);
-    opacity: calc(var(--beat-in) * var(--beat-out));
-    transform: translate3d(0, calc(clamp(-1, var(--beat-progress, 0), 1) * -3rem), 0);
-    will-change: transform, opacity;
-  }
-}
