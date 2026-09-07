@@ -131,9 +131,9 @@ describe('7.1 — the socket URL, with a deployment that configures one', () => 
     // configured deployment must not lose either of them.
     const socketUrl = await endpoint('wss://realtime.wikifake.example');
 
-    expect(socketUrl('https://wikifake.example', 'A1B2C3', 'Jean Dupont', 'abc-123')).toBe(
-      'wss://realtime.wikifake.example/ws/A1B2C3/Jean%20Dupont?token=abc-123',
-    );
+    expect(
+      socketUrl('https://wikifake.example', 'A1B2C3', 'Jean Dupont', 'abc-123'),
+    ).toBe('wss://realtime.wikifake.example/ws/A1B2C3/Jean%20Dupont?token=abc-123');
   });
 
   it('ignores a path the variable happens to carry', async () => {
