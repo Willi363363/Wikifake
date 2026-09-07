@@ -1,7 +1,8 @@
 # Track E — step E.1, and the variable it turns on
 
 `05-accounts.md` keeps the frame and the step table — the only place that says
-where a step stands. This is what E.1 actually consists of, because **it is a
+where a step stands — and `05-accounts-steps.md` records what the other steps
+decided. This is what E.1 actually consists of, because **it is a
 deployment task and not a development one**: the code has been ready since phase
 4, and what is missing is a pair of secrets that only a person with the Google
 console open can produce.

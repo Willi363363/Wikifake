@@ -35,7 +35,7 @@ import routesFr from '../../messages/fr/routes.json';
 import languageFr from '../../messages/fr/language.json';
 import seoFr from '../../messages/fr/seo.json';
 import type { CatalogueMessages } from './catalogue.js';
-import type { Locale } from './locales.js';
+import { TIME_ZONE, type Locale } from './locales.js';
 
 /** Statically imported: a test harness has no business being async. */
 const CATALOGUES: Record<Locale, CatalogueMessages> = {
@@ -73,7 +73,13 @@ function Catalogue({
   readonly children: ReactNode;
 }) {
   return (
-    <NextIntlClientProvider locale={locale} messages={CATALOGUES[locale]}>
+    // The same zone the request configuration declares: a suite that formatted
+    // dates in the machine's would pass on a laptop and fail in CI.
+    <NextIntlClientProvider
+      locale={locale}
+      timeZone={TIME_ZONE}
+      messages={CATALOGUES[locale]}
+    >
       {children}
     </NextIntlClientProvider>
   );

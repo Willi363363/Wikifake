@@ -18,6 +18,7 @@
 import { decode, playerName, roomCode, topicLabel } from '@wikifake/protocol';
 import { Badge, Button, cn, Input, Label, Separator } from '@wikifake/ui';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useId, useState, type FormEvent } from 'react';
 
@@ -43,7 +44,19 @@ function complaint(
   return read.ok ? null : (read.issues[0] ?? fallback);
 }
 
-export function LobbyEntry() {
+export interface LobbyEntryProps {
+  /**
+   * Whether the browser is carrying a real account, as opposed to a guest.
+   *
+   * Decided on the server — `play/page.tsx` — because a client component cannot
+   * read a session without asking for it, and a screen that flickered from
+   * "Create an account" to "Your profile" after hydration would be one that
+   * looks broken to everybody who already has one.
+   */
+  readonly signedIn?: boolean;
+}
+
+export function LobbyEntry({ signedIn = false }: LobbyEntryProps) {
   const t = useTranslations('lobby.entry');
   const router = useRouter();
   const ids = useId();
@@ -252,6 +265,15 @@ export function LobbyEntry() {
           </p>
         )}
       </div>
+
+      {/* Step E.5 — the one link to the account area, on the one screen every
+          player passes through. A profile nothing points at is a profile nobody
+          opens, and this is the screen somebody lands on after signing in. */}
+      <p className="mt-6 text-center text-sm text-muted">
+        <Link href={signedIn ? '/profile' : '/sign-in'} className="text-ink underline">
+          {t(signedIn ? 'profile' : 'account')}
+        </Link>
+      </p>
 
       <p className="mt-6 text-center">
         <Badge tone="accent">{t('serverAuthoritative')}</Badge>

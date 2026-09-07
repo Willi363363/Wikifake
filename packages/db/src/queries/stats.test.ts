@@ -194,6 +194,10 @@ describe.skipIf(url === null)('E.4 — what a player has done', () => {
       paragraphsWronglyMarked: 1,
       bestScore: 450,
       averageScore: 335,
+      // Five of the six that were there. Wrongly marked paragraphs are not in
+      // the denominator: this is "how many did they see", and what a wrong mark
+      // costs is the score.
+      accuracy: 5 / 6,
     });
     expect(recomputed).toEqual(incremental);
   });

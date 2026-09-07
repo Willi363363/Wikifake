@@ -6,6 +6,7 @@ import { hasLocale } from 'next-intl';
 import { getRequestConfig } from 'next-intl/server';
 
 import { messagesFor } from './catalogue.js';
+import { TIME_ZONE } from './locales.js';
 import { routing } from './routing.js';
 
 export default getRequestConfig(async ({ requestLocale }) => {
@@ -20,5 +21,8 @@ export default getRequestConfig(async ({ requestLocale }) => {
     ? requested
     : routing.defaultLocale;
 
-  return { locale, messages: await messagesFor(locale) };
+  // `timeZone` is not optional in practice: without it the server formats in
+  // the machine's zone and the browser in the viewer's, and a date rendered on
+  // one and hydrated on the other can differ by a day. See `TIME_ZONE`.
+  return { locale, timeZone: TIME_ZONE, messages: await messagesFor(locale) };
 });

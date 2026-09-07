@@ -59,6 +59,18 @@ export interface PlayerStats {
   readonly bestScore: number | null;
   /** Null until a round is finished — no score is not a score of zero. */
   readonly averageScore: number | null;
+  /**
+   * Found over found plus missed, as a ratio. Null before there is anything to
+   * divide.
+   *
+   * Derived here rather than stored, like `gamesAbandoned` and `averageScore`:
+   * `05-accounts.md` names all three as things a column could disagree with its
+   * own inputs about. Paragraphs wrongly marked are deliberately not in the
+   * denominator — this answers "of the falsifications that were there, how many
+   * did they see", and a player who marks nothing extra is not more accurate
+   * for it. What false positives cost is the score, and C2.1 already says so.
+   */
+  readonly accuracy: number | null;
   readonly currentStreak: number;
   readonly bestStreak: number;
   readonly firstSeen: Date;
@@ -193,6 +205,12 @@ export async function recordRoundFinished(db: Db, round: FinishedRound): Promise
     });
 }
 
+/** Found over what there was to find, or null before there was anything. */
+function accuracyOf(found: number, missed: number): number | null {
+  const total = found + missed;
+  return total === 0 ? null : found / total;
+}
+
 /** The row a profile draws, or null for a player who has never joined a round. */
 export async function selectPlayerStats(
   db: Db,
@@ -218,6 +236,7 @@ export async function selectPlayerStats(
     // the average of 150 and 155 is a score nobody scored either way.
     averageScore:
       row.gamesFinished === 0 ? null : Math.round(row.totalScore / row.gamesFinished),
+    accuracy: accuracyOf(row.falsificationsFound, row.falsificationsMissed),
     currentStreak: row.currentStreak,
     bestStreak: row.bestStreak,
     firstSeen: row.firstSeen,
