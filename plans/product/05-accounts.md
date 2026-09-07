@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | ⬜ not started |
+| **State** | 🔶 E.1 guarded and documented, awaiting credentials |
 | **Branch** | `feat/player-accounts` |
 | **Depends on** | — |
 | **Delivers** | sign-in that works in production, a profile, and per-player stats |
@@ -24,6 +24,13 @@ tables, and a guest's game already follows them into their account.
 needs `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` in the Vercel
 environment, and the redirect URI registered in the Google console. Zero lines.
 
+**E.1 is ⚠️ rather than ✅ for two reasons, both in `05-accounts-oauth.md`.** The
+credentials are a person's to create. And the step's exit line — sign in with
+Google, from a phone — needs a button, which is E.2: `better-auth`'s social flow
+is a `POST`, not a URL anybody can paste. What E.1 did ship is the guard on the
+variable those credentials depend on, `BETTER_AUTH_URL`, whose localhost default
+would otherwise send every player who signs in to their own machine, silently.
+
 ## The data we ask for, and the reason it is this little
 
 Email, password, pseudonym. Nothing else — no real name, no birth date, no
@@ -44,7 +51,7 @@ leaderboard or a shared score.
 
 | # | Step | State |
 |---|---|---|
-| E.1 | OAuth credentials in the environments, Google first | ⬜ |
+| E.1 | OAuth credentials in the environments, Google first | ⚠️ |
 | E.2 | Sign-in and sign-up screens, on the direction | ⬜ |
 | E.3 | Pseudonym: chosen, unique, and the only public identifier | ⬜ |
 | E.4 | `player_stats` — the aggregate a profile reads | ⬜ |
