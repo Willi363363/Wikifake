@@ -31,7 +31,7 @@ are defined in `product/`, and their state is the table below.
 | B | Design system on the new direction | ✅ done — primitives, type, motion and the gallery | `product/02-design-system.md` |
 | C | Landing — the scroll scene | 🔶 C.1 to C.6 and C.8 done, C.7 awaiting a device | `product/03-landing.md` |
 | D | Game surface | ✅ done — every screen on the direction, 24 journeys unchanged | `product/04-game-surface.md` |
-| E | Accounts and player statistics | ⬜ not started | `product/05-accounts.md` |
+| E | Accounts and player statistics | 🔶 E.1 guarded, awaiting OAuth credentials | `product/05-accounts.md` |
 | F | Quests | ⬜ not started | `product/06-quests.md` |
 | G | Leaderboards | ⬜ not started | `product/07-leaderboards.md` |
 | H | Coins and the shop | ⬜ not started | `product/08-economy.md` |

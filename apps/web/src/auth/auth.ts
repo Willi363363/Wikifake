@@ -19,7 +19,12 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { anonymous } from 'better-auth/plugins';
 
-import { socialProviders, type OAuthCredentials, type ProviderId } from './providers.js';
+import {
+  assertCallbackReachable,
+  socialProviders,
+  type OAuthCredentials,
+  type ProviderId,
+} from './providers.js';
 
 export interface AuthOptions {
   readonly db: Database['db'];
@@ -85,6 +90,11 @@ let instance: ReturnType<typeof createAuth> | undefined;
  * folder — from `/api/health`, say — depend on a reachable database.
  */
 export function auth(env: Env = loadEnv()) {
+  // Step E.1. Checked here rather than in `createAuth`, which takes a base URL
+  // a test chooses: this is the path that reads the *deployment's* environment,
+  // and it is the only one where "localhost on a platform" can be true.
+  assertCallbackReachable(env);
+
   instance ??= createAuth({
     db: connectFromEnv().db,
     secret: env.BETTER_AUTH_SECRET,
