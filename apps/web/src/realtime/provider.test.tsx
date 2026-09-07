@@ -45,9 +45,9 @@ function Heard({ onHeard }: { onHeard: (message: OutgoingMessage) => void }) {
   return null;
 }
 
-const mount = (children = <Status />, room: string | null = 'A1B2C3') =>
+const mount = (children = <Status />, room: string | null = 'A1B2C3', ticket = '') =>
   render(
-    <RealtimeProvider roomCode={room} playerName="ada">
+    <RealtimeProvider roomCode={room} playerName="ada" ticket={ticket}>
       {children}
     </RealtimeProvider>,
   );
@@ -68,6 +68,25 @@ describe('7.1 — the room connection', () => {
       (opened[0] as FakeSocket).accept();
     });
     expect(screen.getByText(/status:open/)).not.toBeNull();
+  });
+
+  it('carries the signed ticket it was handed', () => {
+    // Step E.3b.2 — a prop, not a fetch. Where it comes from is `RoomGate`'s
+    // business; what this owns is putting it on the socket.
+    mount(<Status />, 'A1B2C3', 'signed.ticket');
+
+    expect((opened[0] as FakeSocket).url).toContain('auth=signed.ticket');
+  });
+
+  it('opens without one, because a round with no account is still a round', () => {
+    // No ticket means the round is played unattributed, which is what every
+    // multiplayer round did before this step. Refusing to open a room because a
+    // statistics counter cannot be credited would trade a whole feature for a
+    // number.
+    mount();
+
+    expect(opened).toHaveLength(1);
+    expect((opened[0] as FakeSocket).url).not.toContain('auth=');
   });
 
   // Bug 2.1.10 — the server's own schema allows a space, and the current client

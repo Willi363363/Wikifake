@@ -56,7 +56,7 @@ function announce(state: RoomState): Outcome {
   return emit(state, { kind: 'broadcast', message: lobbyUpdate(state) });
 }
 
-function join(state: RoomState, name: string): Outcome {
+function join(state: RoomState, name: string, userId: string | null): Outcome {
   const held = playerIn(state, name);
 
   // C5.2 — a **connected** duplicate is refused without touching the player
@@ -72,6 +72,10 @@ function join(state: RoomState, name: string): Outcome {
   // colour. Whoever is entitled to reclaim it is the transport's question — the
   // rules only know that this slot is reclaimable.
   if (held !== undefined) {
+    // The account is **not** replaced. Whoever reconnects into a slot is, by
+    // D5's token, the player who left it — and a reclaim that rewrote this
+    // would be a way to move somebody else's round onto your own statistics by
+    // holding one secret rather than two.
     return announce({
       ...state,
       players: state.players.map((player) =>
@@ -82,7 +86,7 @@ function join(state: RoomState, name: string): Outcome {
 
   const next: RoomState = {
     ...state,
-    players: [...state.players, newPlayer(name, assignColour(state))],
+    players: [...state.players, newPlayer(name, assignColour(state), userId)],
   };
   return announce(next);
 }
@@ -259,7 +263,7 @@ function startGame(state: RoomState, from: string, message: IncomingMessage): Ou
 export function reduceLobby(state: RoomState, event: LobbyEvent): Outcome {
   switch (event.kind) {
     case 'join':
-      return join(state, event.player);
+      return join(state, event.player, event.userId ?? null);
     case 'leave':
       return disconnect(state, event.player);
     case 'evict':

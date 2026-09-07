@@ -67,6 +67,16 @@ export interface PlayerState {
   readonly hand: readonly ItemInstance[];
   /** Their score once they submit, absent until then. */
   readonly submission: ScoredSubmission | null;
+  /**
+   * The account this slot's rounds belong to — step E.3b.2.
+   *
+   * Set when the slot is first claimed and **not** replaced when it is
+   * reclaimed: whoever reconnects into a slot is, by D5's token, the player who
+   * left it, and a reclaim that rewrote this would be a way to move somebody
+   * else's round onto your own statistics by holding one secret rather than
+   * two.
+   */
+  readonly userId: string | null;
 }
 
 /** What a submission was worth, kept until the round ends. */
@@ -256,7 +266,11 @@ export function assignColour(state: RoomState): string {
   );
 }
 
-export function newPlayer(name: string, colour: string): PlayerState {
+export function newPlayer(
+  name: string,
+  colour: string,
+  userId: string | null = null,
+): PlayerState {
   return {
     name,
     colour,
@@ -267,6 +281,7 @@ export function newPlayer(name: string, colour: string): PlayerState {
     items: EMPTY_ITEM_STATE,
     hand: [],
     submission: null,
+    userId,
   };
 }
 
@@ -285,6 +300,10 @@ export function forNewRound(player: PlayerState): PlayerState {
   return {
     name: player.name,
     colour: player.colour,
+    // Not reset either, and for a stronger reason than the connection below:
+    // this is who the slot *is*, not what it did last round. Clearing it would
+    // make the second round of a session belong to nobody.
+    userId: player.userId,
     // Not reset: whether a socket is up is not a property of the round. A player
     // whose connection dropped in the debrief is still disconnected in the next
     // lobby, and their grace window is still running.

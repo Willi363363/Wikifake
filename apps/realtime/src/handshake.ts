@@ -30,6 +30,19 @@ export interface Credentials {
   readonly playerName: string;
   /** Empty when the client offered none, or offered something malformed. */
   readonly token: string;
+  /**
+   * Step E.3b.2 — the web application's signed statement, as offered.
+   *
+   * Carried opaquely: this file reads a URL and knows nothing about signatures.
+   * `server.ts` hands it to `@wikifake/tickets` with the secret, which is the
+   * only thing that can tell a ticket from a string.
+   *
+   * Empty when none was offered, which is a browser with no session, a fetch
+   * that failed, or a deployment where the two halves disagree. All three play
+   * the round unattributed, which is what every multiplayer round did before
+   * this step.
+   */
+  readonly ticket: string;
 }
 
 export type Handshake =
@@ -87,6 +100,15 @@ export function readHandshake(url: string): Handshake {
 
   return {
     ok: true,
-    credentials: { roomCode: room.data, playerName: name.data, token },
+    credentials: {
+      roomCode: room.data,
+      playerName: name.data,
+      token,
+      // Not validated here, and not refused for being wrong: an unreadable
+      // ticket is a round nobody gets credit for, never a socket turned away.
+      // A player kept out of a room because a statistics counter could not be
+      // credited would be the worst trade in this file.
+      ticket: asked.searchParams.get('auth') ?? '',
+    },
   };
 }

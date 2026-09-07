@@ -76,12 +76,25 @@ export interface RealtimeProviderProps {
   /** Null until the player has a room. The provider stays mounted regardless. */
   readonly roomCode: string | null;
   readonly playerName: string | null;
+  /**
+   * Step E.3b.2 — the web application's signed statement of which account this
+   * player is. Empty when there is none, which plays the round unattributed.
+   *
+   * A **prop**, and that is a decision rather than a convenience. Fetching it
+   * here would make opening a socket asynchronous, and this provider's whole
+   * value is that it takes a room and a nickname and owns a socket — the piece
+   * that says where those come from is `RoomGate`, which already waits for a
+   * nickname before letting the connection start. One more thing to wait for
+   * belongs there, beside the first.
+   */
+  readonly ticket?: string;
   readonly children: ReactNode;
 }
 
 export function RealtimeProvider({
   roomCode,
   playerName,
+  ticket = '',
   children,
 }: RealtimeProviderProps) {
   const socket = useRef<WebSocket | null>(null);
@@ -108,7 +121,7 @@ export function RealtimeProvider({
       attempts += 1;
 
       const opened = new WebSocket(
-        socketUrl(globalThis.location.origin, roomCode, playerName, token),
+        socketUrl(globalThis.location.origin, roomCode, playerName, token, ticket),
       );
       socket.current = opened;
 
@@ -168,7 +181,7 @@ export function RealtimeProvider({
       socket.current?.close(CLOSE_NORMAL);
       socket.current = null;
     };
-  }, [roomCode, playerName]);
+  }, [roomCode, playerName, ticket]);
 
   const send = useCallback((message: IncomingMessage) => {
     const open = socket.current;

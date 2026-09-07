@@ -16,7 +16,23 @@ import type { RoundRecord } from './state.js';
 
 export type RoomEvent =
   /** A player's socket opened. Transport has already validated the nickname. */
-  | { readonly kind: 'join'; readonly player: string }
+  | {
+      readonly kind: 'join';
+      readonly player: string;
+      /**
+       * The `user` row behind this player — step E.3b.2.
+       *
+       * Null when the transport could not establish one: no session, no ticket,
+       * or a ticket it could not verify. A round played by a slot with no
+       * account is written down and attributed to nobody, which is what every
+       * multiplayer round was before this step.
+       *
+       * The **rules never check it**. Whether a ticket was real is the
+       * transport's question, decided before this event exists; what reaches
+       * here is an answer.
+       */
+      readonly userId?: string | null;
+    }
   /**
    * D5 — a player's socket closed.
    *

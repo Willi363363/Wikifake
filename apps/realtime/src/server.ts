@@ -138,6 +138,11 @@ export function createService(options: ServiceOptions): Service {
         players: decided.players.map((player) => ({
           name: player.name,
           colour: player.colour,
+          // Step E.3b.2 — carried from the slot, which took it at the join.
+          // Read from the state the decision was taken against, like the
+          // players and the time limit above: the round is created for the room
+          // as it was when the topic was settled.
+          userId: player.userId,
         })),
       })
       .catch((): RoundOutcome => ({ ok: false }));
@@ -225,7 +230,7 @@ export function createService(options: ServiceOptions): Service {
       refuse(socket, handshake.code, handshake.message);
       return;
     }
-    const { roomCode, playerName, token } = handshake.credentials;
+    const { roomCode, playerName, token, ticket } = handshake.credentials;
 
     if (!(await options.roomExists(roomCode))) {
       refuse(socket, 'room_not_found', 'That room does not exist.');
@@ -346,7 +351,16 @@ export function createService(options: ServiceOptions): Service {
     // Before the join rather than after: a grace alarm ringing between the two
     // would evict the player who has just reconnected.
     await scheduler.cancel(roomCode, 'grace', playerName);
-    await enqueue({ kind: 'join', player: playerName });
+    // Step E.3b.2 — who this is, decided here and never asked again. The rules
+    // are handed an answer rather than a ticket: whether a signature was real
+    // is a transport question, and a reducer that verified one could not be
+    // replayed without the secret.
+    //
+    // After the token claim above on purpose: a socket that has not proved it
+    // may hold this nickname has no business being attributed to an account.
+    const userId = options.accountFor?.({ roomCode, playerName, ticket }) ?? null;
+
+    await enqueue({ kind: 'join', player: playerName, userId });
 
     socket.on('close', () => {
       // The registry first: a `leave` that broadcasts must not try to send to

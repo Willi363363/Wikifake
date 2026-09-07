@@ -29,12 +29,21 @@ export function socketUrl(
   roomCode: string,
   playerName: string,
   token: string,
+  ticket = '',
 ): string {
   const base = CONFIGURED === '' ? origin : CONFIGURED;
   // `ws:` for `http:`, `wss:` for `https:`. A configured URL may already say so.
   const url = new URL(base);
   url.protocol = url.protocol === 'https:' || url.protocol === 'wss:' ? 'wss:' : 'ws:';
   url.pathname = `/ws/${encodeURIComponent(roomCode)}/${encodeURIComponent(playerName)}`;
-  url.search = token === '' ? '' : `?token=${encodeURIComponent(token)}`;
+  // Step E.3b.2 — `auth` says which account this player is, signed by the web
+  // application. Both are optional and independent: `token` is D5's nickname
+  // secret, which the client owns and the server never issues, and `auth` is
+  // the server's own statement, which the client cannot forge. A socket may
+  // carry neither, either or both.
+  const query = new URLSearchParams();
+  if (token !== '') query.set('token', token);
+  if (ticket !== '') query.set('auth', ticket);
+  url.search = query.size === 0 ? '' : `?${query.toString()}`;
   return url.toString();
 }
