@@ -94,6 +94,23 @@ export function createService(options: ServiceOptions): Service {
       if (effect.kind === 'generate_article') {
         void track(produce(roomCode, effect.topic, applied.state));
       }
+
+      // Step E.3b.1 — the round, written down.
+      //
+      // Here rather than in `publish`, and the difference is the whole of why
+      // it is here: `publish` puts an effect on the channel and **every**
+      // instance holding a socket for this room receives it, so a write done
+      // there would be done once per instance. This runs on the one instance
+      // that applied the event — the same place `generate_article` is answered,
+      // for the same reason.
+      //
+      // Awaited, unlike the generation above: it is a handful of rows and
+      // nobody is reading Wikipedia. A round whose results are written a
+      // second late is a profile that disagrees with a debrief the player is
+      // looking at.
+      if (effect.kind === 'record_results') {
+        await options.recordResults(effect);
+      }
     }
   }
 
@@ -135,6 +152,8 @@ export function createService(options: ServiceOptions): Service {
             // The round starts now, not when the topic was picked: the minutes
             // spent reading Wikipedia are not minutes anybody was playing.
             startedAt: now(),
+            // Step E.3b.1 — where this round is written down.
+            record: outcome.record,
           }
         : { kind: 'article_failed' },
     );

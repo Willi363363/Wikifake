@@ -38,7 +38,7 @@ export function reduceRoom(state: RoomState, event: RoomEvent): Outcome {
       // D3 — the one way into a round. Refused anywhere else, so a late article
       // from an abandoned generation cannot restart a round that already ended.
       return state.phase === 'generating'
-        ? startRound(state, event.article, event.solution, event.startedAt)
+        ? startRound(state, event.article, event.solution, event.startedAt, event.record)
         : settle(state);
 
     case 'article_failed':

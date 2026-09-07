@@ -36,6 +36,10 @@ const READY: RoomEvent = {
   article: ARTICLE,
   solution: SOLUTION,
   startedAt: STARTED_AT,
+  // Step E.3b.1 — most of these cases are about the rules and not about where
+  // the round is written, so they start one that is written nowhere. The cases
+  // that *are* about it build their own.
+  record: null,
 };
 
 /** A room in a round, with the given players, started through the topic vote. */

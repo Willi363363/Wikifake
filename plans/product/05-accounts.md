@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 E.2, E.4 and E.5 done; E.1 awaiting credentials; E.3b found missing |
+| **State** | 🔶 E.2, E.3b.1, E.4 and E.5 done; E.1 awaiting credentials |
 | **Branch** | `feat/player-accounts` |
 | **Depends on** | — |
 | **Delivers** | sign-in that works in production, a profile, and per-player stats |
@@ -54,17 +54,19 @@ leaderboard or a shared score.
 | E.1 | OAuth credentials in the environments, Google first | ⚠️ |
 | E.2 | Sign-in and sign-up screens, on the direction | ✅ |
 | E.3 | Pseudonym: chosen, unique, and the only public identifier | ⬜ |
-| E.3b | Multiplayer results reach the database | ⬜ |
+| E.3b.1 | Multiplayer results reach the database | ✅ |
+| E.3b.2 | The socket player carries their account | ⬜ |
 | E.4 | `player_stats` — the aggregate a profile reads | ✅ |
 | E.5 | The profile screen | ✅ |
 | E.6 | Guest continuity — a guest game survives signing up | ⬜ |
 | E.7 | Export and delete my account | ⬜ |
 
-**What each step decided, and what it got wrong first**, is in two sheets.
+**What each step decided, and what it got wrong first**, is in three sheets.
 `05-accounts-oauth.md` carries E.1 — the runbook for the credentials, and the
-guard on the variable they depend on. `05-accounts-steps.md` carries the rest:
-what E.2, E.4 and E.5 decided, why E.3b exists, and what E.7 involves. The table
-above is the only place that says where a step stands.
+guard on the variable they depend on. `05-accounts-multiplayer.md` carries E.3b,
+which was found missing while E.4 was being built and turned out to be two steps.
+`05-accounts-steps.md` carries the rest: E.2, E.4, E.5, and what E.7 involves.
+The table above is the only place that says where a step stands.
 
 ## Exit gate
 

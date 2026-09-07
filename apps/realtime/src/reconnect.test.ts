@@ -102,6 +102,9 @@ describe.skipIf(url === null)(
         // 5.7 — nothing in this file is about the row: the room's own state is
         // what it watches.
         closeRoom: () => Promise.resolve(),
+        // Step E.3b.1 — required, so a deployment cannot forget it. This
+        // suite is not about what a round is written down as.
+        recordResults: () => Promise.resolve(),
         rooms: store,
         bus,
         namespace: NAMESPACE,

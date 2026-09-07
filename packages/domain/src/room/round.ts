@@ -21,10 +21,16 @@ import type {
 import { gradeAnswer } from '../grading.js';
 import { hintPenaltyFor, hintsUsedFor } from '../hints.js';
 import { emit, settle, type Reduced } from '../reducer.js';
-import { gradeSubmission, rankByScore } from '../scoring.js';
-import type { RoomEffect } from './events.js';
+import { gradeSubmission, isPerfectRound, rankByScore } from '../scoring.js';
+import type { RecordedResult, RoomEffect } from './events.js';
 import { lobbyUpdate } from './lobby.js';
-import { forNewRound, playerIn, type PlayerState, type RoomState } from './state.js';
+import {
+  forNewRound,
+  playerIn,
+  type PlayerState,
+  type RoomState,
+  type RoundRecord,
+} from './state.js';
 
 type Outcome = Reduced<RoomState, RoomEffect>;
 
@@ -54,6 +60,7 @@ export function startRound(
   article: ArticleView,
   solution: readonly FalsifiedPosition[],
   startedAt: number,
+  record: RoundRecord | null,
 ): Outcome {
   const next: RoomState = {
     ...state,
@@ -61,7 +68,7 @@ export function startRound(
     players: state.players.map(forNewRound),
     ballots: {},
     generating: null,
-    round: { article, solution, startedAt },
+    round: { article, solution, startedAt, record },
   };
 
   return emit<RoomState, RoomEffect>(
@@ -129,9 +136,53 @@ function leaderboard(state: RoomState): GameEnd['leaderboard'] {
  * `ready` is cleared so the lobby starts from a clean slate, as the current
  * server does.
  */
+/**
+ * Step E.3b.1 — what the round is written down as.
+ *
+ * One entry per player who **submitted**, and none for anybody who did not.
+ * The leaderboard shows them a zero, and that is a display rule (C2.4) rather
+ * than a result: `participant_score_with_submission` forbids a score without a
+ * submission, and writing the zero down would turn "did not answer" into
+ * "answered and scored nothing" — a different thing, and the one a profile
+ * would then count as a finished round.
+ *
+ * Empty when the round was never given rows to write to, which is what makes
+ * the effect safe to emit unconditionally: a service handed nothing writes
+ * nothing.
+ */
+function resultsOf(state: RoomState, totalFakes: number): RecordedResult[] {
+  const record = state.round?.record;
+  if (record === undefined || record === null) return [];
+
+  return state.players.flatMap((player) => {
+    const participantId = record.participants[player.name];
+    const submission = player.submission;
+    if (participantId === undefined || submission === null) return [];
+
+    return [
+      {
+        participantId,
+        marked: submission.marked,
+        score: submission.score,
+        breakdown: submission.breakdown,
+        // The rule, asked where the round is graded — the same place the solo
+        // path asks it, and the reason `@wikifake/db` never has to.
+        perfect: isPerfectRound({
+          truePositives: submission.breakdown.truePositives,
+          falsePositives: submission.breakdown.falsePositives,
+          totalFakes,
+        }),
+      },
+    ];
+  });
+}
+
 export function endRound(state: RoomState): Outcome {
   const solution = state.round?.solution;
   if (solution === undefined) return settle(state);
+
+  const gameId = state.round?.record?.gameId ?? null;
+  const results = resultsOf(state, solution.length);
 
   const next: RoomState = {
     ...state,
@@ -142,6 +193,7 @@ export function endRound(state: RoomState): Outcome {
 
   return emit<RoomState, RoomEffect>(
     next,
+    ...(gameId === null ? [] : [{ kind: 'record_results', gameId, results } as const]),
     { kind: 'cancel_timer' },
     {
       kind: 'broadcast',
@@ -189,7 +241,11 @@ export function submitAnswer(
 
   const players = state.players.map((candidate) =>
     candidate.name === from
-      ? { ...candidate, answered: true, submission: graded }
+      ? // The marks travel with the score — step E.3b.1. Graded and discarded
+        // until then, which is why no multiplayer round has ever filled the
+        // `answer` table: a debrief could say 420 and nothing could say what
+        // was marked to earn it.
+        { ...candidate, answered: true, submission: { ...graded, marked } }
       : candidate,
   );
   const next: RoomState = { ...state, players };
