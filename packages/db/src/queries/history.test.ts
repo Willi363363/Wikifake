@@ -14,6 +14,23 @@ import {
 } from '../testing/database.js';
 import type { TestDatabase } from '../testing/database.js';
 
+/**
+ * The streak rule, as production passes it.
+ *
+ * `db` may not import `@wikifake/domain` — `workspace-graph.test.ts` says data
+ * does not depend on rules — so its suites cannot either. This is
+ * `isPerfectRound` written out, and `stats.test.ts` is where the behaviour it
+ * describes is asserted.
+ */
+const perfectRound = (round: {
+  readonly truePositives: number;
+  readonly falsePositives: number;
+  readonly totalFakes: number;
+}): boolean =>
+  round.falsePositives === 0 &&
+  round.totalFakes > 0 &&
+  round.truePositives === round.totalFakes;
+
 const url = testDatabaseUrl();
 
 describe.skipIf(url === null)('a guest, and the account that comes after', () => {
@@ -112,7 +129,12 @@ describe.skipIf(url === null)('a guest, and the account that comes after', () =>
 
     expect(await selectGameHistory(store.db, 'account-1')).toEqual([]);
 
-    const moved = await attachGuestRecords(store.db, 'guest-1', 'account-1');
+    const moved = await attachGuestRecords(
+      store.db,
+      'guest-1',
+      'account-1',
+      perfectRound,
+    );
     expect(moved.participants).toBe(2);
 
     const history = await selectGameHistory(store.db, 'account-1');
@@ -141,7 +163,7 @@ describe.skipIf(url === null)('a guest, and the account that comes after', () =>
       recommendation: 'needs_more_info',
     });
 
-    await attachGuestRecords(store.db, 'guest-1', 'account-1');
+    await attachGuestRecords(store.db, 'guest-1', 'account-1', perfectRound);
 
     const [report] = await store.db.select().from(flagReport);
     expect(report?.reporterId).toBe('account-1');
@@ -157,7 +179,7 @@ describe.skipIf(url === null)('a guest, and the account that comes after', () =>
       .insert(participant)
       .values({ gameId, userId: 'guest-1', guestName: 'Élise', colour: '#ff0000' });
 
-    await attachGuestRecords(store.db, 'guest-1', 'account-1');
+    await attachGuestRecords(store.db, 'guest-1', 'account-1', perfectRound);
     await store.db.delete(user).where(eq(user.id, 'guest-1'));
 
     expect(await selectGameHistory(store.db, 'account-1')).toHaveLength(1);
@@ -178,8 +200,8 @@ describe.skipIf(url === null)('a guest, and the account that comes after', () =>
   });
 
   it('refuses to attach an account to itself', async () => {
-    await expect(attachGuestRecords(store.db, 'account-1', 'account-1')).rejects.toThrow(
-      /same user/,
-    );
+    await expect(
+      attachGuestRecords(store.db, 'account-1', 'account-1', perfectRound),
+    ).rejects.toThrow(/same user/);
   });
 });

@@ -14,6 +14,7 @@ export type { Reduced, Reducer } from './reducer.js';
 export {
   gradeSubmission,
   hintCostFor,
+  isPerfectRound,
   rankByScore,
   scoreFor,
   timeBonusFor,

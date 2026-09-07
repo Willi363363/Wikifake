@@ -113,3 +113,32 @@ export function rankByScore<T extends { readonly score: number }>(
 ): T[] {
   return [...entries].sort((a, b) => b.score - a.score);
 }
+
+/**
+ * What a round has to be to keep a streak alive — step E.4.
+ *
+ * **A perfect round: every falsification found, and nothing true marked.**
+ *
+ * The definition is a decision rather than a deduction, and it is stated here
+ * so that changing it is one predicate rather than a search. `05-accounts.md`
+ * asks for "current and best streak" and does not say a streak of what; three
+ * readings were available and this is the one the rest of the plan wants —
+ * quests (track F) and leaderboards (track G) both need a unit of *success*,
+ * and "finished a game" is not one.
+ *
+ * The second half is what keeps it honest. A player who marks every paragraph
+ * finds every falsification, so `found === total` alone rewards the one
+ * strategy the scoring exists to punish. C2.1 already takes 80 a mark for it;
+ * a streak that ignored it would be a leaderboard of people who never read.
+ */
+export function isPerfectRound(round: {
+  readonly truePositives: number;
+  readonly falsePositives: number;
+  readonly totalFakes: number;
+}): boolean {
+  return (
+    round.falsePositives === 0 &&
+    round.totalFakes > 0 &&
+    round.truePositives === round.totalFakes
+  );
+}
