@@ -72,4 +72,12 @@ export {
   usageReport,
 } from './queries/usage.js';
 export type { CallCounter, UsageReport, UsageTotals } from './queries/usage.js';
+export {
+  recomputePlayerStats,
+  recordRoundFinished,
+  recordRoundsJoined,
+  selectPlayerStats,
+  selectPlayersWithStats,
+} from './queries/stats.js';
+export type { FinishedRound, PerfectRound, PlayerStats } from './queries/stats.js';
 export { seed } from './seed/seed.js';

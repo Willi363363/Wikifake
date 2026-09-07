@@ -14,6 +14,7 @@ import {
   type Database,
 } from '@wikifake/db';
 import { connectFromEnv } from '@wikifake/db';
+import { isPerfectRound } from '@wikifake/domain';
 import { loadEnv, type Env } from '@wikifake/env';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
@@ -72,7 +73,16 @@ export function createAuth(options: AuthOptions) {
     plugins: [
       anonymous({
         onLinkAccount: async ({ anonymousUser, newUser }) => {
-          await attachGuestRecords(options.db, anonymousUser.user.id, newUser.user.id);
+          // Step E.4 — the guest's rounds bring their statistics with them, and
+          // the streak rule travels down with them. `@wikifake/db` may not ask
+          // `@wikifake/domain` whether a round was perfect — data does not
+          // depend on rules — so this layer, which may, hands the predicate in.
+          await attachGuestRecords(
+            options.db,
+            anonymousUser.user.id,
+            newUser.user.id,
+            isPerfectRound,
+          );
         },
       }),
     ],

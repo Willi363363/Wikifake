@@ -18,6 +18,7 @@ import {
   hintPenaltyFor,
   hintsUsedFor,
   ledgerFrom,
+  isPerfectRound,
 } from '@wikifake/domain';
 import {
   recordSubmission,
@@ -136,6 +137,15 @@ export async function handleSubmit(
     score: graded.score,
     ...graded.breakdown,
     at,
+    // Step E.4 — the streak rule, asked here because this is the layer allowed
+    // to know it. `workspace-graph.test.ts` keeps `@wikifake/db` away from
+    // `@wikifake/domain`: data does not depend on rules, so the rule is applied
+    // where the round is graded and the answer travels with the grade.
+    perfect: isPerfectRound({
+      truePositives: grading.found.length,
+      falsePositives: grading.wrong.length,
+      totalFakes: solution.length,
+    }),
   });
 
   // Another request graded it first. Theirs is the grading that counts.

@@ -43,6 +43,13 @@
       "when": 1787645207677,
       "tag": "0005_swift_prodigy",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788786025732,
+      "tag": "0006_oval_stepford_cuckoos",
+      "breakpoints": true
     }
   ]
 }

@@ -16,6 +16,7 @@ import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm';
 import type { Database } from '../client.js';
 import { hintPurchase, itemUse } from '../schema/audit.js';
 import { answer, game, gamePosition, participant } from '../schema/game.js';
+import { recordRoundFinished } from './stats.js';
 
 type Db = Database['db'];
 
@@ -175,6 +176,14 @@ export interface GradedSubmission {
   readonly timeBonus: number;
   /** Injected: the rules take the clock as a parameter, and so does the record. */
   readonly at: Date;
+  /**
+   * Whether this round keeps the player's streak alive — step E.4.
+   *
+   * Decided by the caller, which is the one that graded it and the one allowed
+   * to know the rules: `workspace-graph.test.ts` keeps this package away from
+   * `@wikifake/domain`, so `isPerfectRound` is asked there and answered here.
+   */
+  readonly perfect: boolean;
 }
 
 /**
@@ -236,6 +245,33 @@ export async function recordSubmission(
       .update(game)
       .set({ endedAt: submission.at })
       .where(and(eq(game.id, submission.gameId), isNull(game.endedAt)));
+
+    // Step E.4 — the aggregate a profile reads, inside the same transaction as
+    // the grading it counts. A submission that landed and a statistic that did
+    // not is a profile disagreeing with a debrief about the same round, and
+    // nothing would ever notice: both look complete on their own.
+    //
+    // Only for a participant with an account behind them. A multiplayer player
+    // has a nickname and no `userId` today, which is why these numbers are
+    // solo's — see `queries/stats.ts`.
+    const [player] = await tx
+      .select({ userId: participant.userId, totalFakes: game.totalFakes })
+      .from(participant)
+      .innerJoin(game, eq(participant.gameId, game.id))
+      .where(eq(participant.id, submission.participantId))
+      .limit(1);
+
+    if (player?.userId != null) {
+      await recordRoundFinished(tx, {
+        userId: player.userId,
+        score: submission.score,
+        truePositives: submission.truePositives,
+        falsePositives: submission.falsePositives,
+        totalFakes: player.totalFakes,
+        at: submission.at,
+        perfect: submission.perfect,
+      });
+    }
 
     return true;
   });

@@ -305,6 +305,18 @@ describe.skipIf(url === null)('a round in progress', () => {
       timeBonus: 100,
     };
 
+    /*
+     * Step E.4 — the streak rule's answer, passed in and **not stored on the
+     * participant**.
+     *
+     * It is an input to the aggregate rather than part of the breakdown, which
+     * is why it is spread at the call sites instead of living in `GRADED`: the
+     * assertion below matches the row `participant` holds, and a field that is
+     * consumed and not written would have made it fail. `db` may not ask
+     * `@wikifake/domain` whether a round was perfect, so it is told.
+     */
+    const STREAK = { perfect: false } as const;
+
     it('writes the breakdown, the marks and the end of the game at once', async () => {
       const { gameId, adaId } = await seedRound();
       const at = new Date('2026-08-25T10:00:00.000Z');
@@ -316,6 +328,7 @@ describe.skipIf(url === null)('a round in progress', () => {
           marked: [2, 4, 6, 5],
           at,
           ...GRADED,
+          ...STREAK,
         }),
       ).toBe(true);
 
@@ -344,6 +357,7 @@ describe.skipIf(url === null)('a round in progress', () => {
         marked: [2, 2, 2, 4],
         at: new Date(),
         ...GRADED,
+        ...STREAK,
       });
 
       expect(
@@ -364,6 +378,7 @@ describe.skipIf(url === null)('a round in progress', () => {
           marked: [2],
           at: new Date(),
           ...GRADED,
+          ...STREAK,
         }),
       ).toBe(true);
 
@@ -374,6 +389,7 @@ describe.skipIf(url === null)('a round in progress', () => {
           marked: [4],
           at: new Date(),
           ...GRADED,
+          ...STREAK,
           score: 1,
         }),
       ).toBe(false);
@@ -396,6 +412,7 @@ describe.skipIf(url === null)('a round in progress', () => {
         marked: [2],
         at: new Date(),
         ...GRADED,
+        ...STREAK,
       });
       expect(
         await recordSubmission(database.db, {
@@ -404,6 +421,7 @@ describe.skipIf(url === null)('a round in progress', () => {
           marked: [4],
           at: new Date(),
           ...GRADED,
+          ...STREAK,
           score: 300,
         }),
       ).toBe(true);
