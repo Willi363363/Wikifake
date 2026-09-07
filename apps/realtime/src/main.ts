@@ -29,6 +29,8 @@ import { lazyRedis } from './redis.js';
 import { createRoomStore } from './rooms/store.js';
 import { createTokenStore } from './rooms/tokens.js';
 import { createQueueScheduler } from './timers/queue.js';
+import { readTicket } from '@wikifake/tickets';
+
 import { writeResults } from './results.js';
 import { createService } from './server.js';
 
@@ -56,6 +58,15 @@ const service = createService({
   // the round is over for the players either way and the debrief is already on
   // its way over the channel, so an exception thrown back into the settle loop
   // would take a room down over a row.
+  // Step E.3b.2 — who a socket belongs to. The web application signs; this
+  // checks, with the secret both halves already load. A deployment where the
+  // two disagree attributes nothing and plays on, which is the state before
+  // this step rather than a broken one.
+  accountFor: ({ roomCode, playerName, ticket }) =>
+    ticket === ''
+      ? null
+      : (readTicket(env.BETTER_AUTH_SECRET, ticket, { roomCode, playerName }, Date.now())
+          ?.userId ?? null),
   recordResults: async (effect) => {
     try {
       await writeResults({ db, now: () => new Date() }, effect);

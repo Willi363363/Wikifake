@@ -24,6 +24,7 @@ import {
 import { flagReportRequest, flagReportResponse } from './flags.js';
 import { healthResponse, pingResponse, usageResponse } from './health.js';
 import { createRoomRequest, createRoomResponse } from './rooms.js';
+import { realtimeTicketRequest, realtimeTicketResponse } from './tickets.js';
 
 export interface Route {
   readonly method: 'GET' | 'POST';
@@ -66,6 +67,15 @@ export const ROUTES: readonly Route[] = [
     path: '/api/game/submit',
     request: submitRequest,
     response: submitResponse,
+  },
+  {
+    // Step E.3b.2. No `request`: the room and the nickname are what the ticket
+    // is *bound* to, so they are in the address rather than in a body, and
+    // nothing else is sent.
+    method: 'POST',
+    path: '/api/realtime/ticket',
+    request: realtimeTicketRequest,
+    response: realtimeTicketResponse,
   },
   {
     method: 'POST',
