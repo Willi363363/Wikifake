@@ -26,11 +26,48 @@ import { Children, useRef, type CSSProperties, type ReactNode } from 'react';
 import { beatProgressFor } from './stage-progress.js';
 import { BEAT_ATTRIBUTE, CAMERA_ATTRIBUTE, useStage } from './use-stage.js';
 
-/** The stylesheet reverting itself, for a browser with no script to drive it. */
-const WITHOUT_SCRIPT = `
+/**
+ * The stylesheet reverting itself, for a browser with no script to drive it.
+ *
+ * Step C.6 rewrote this, and what it got wrong is the more useful half. The
+ * first version reverted the three declarations that make the stage a stage —
+ * the track's height, the camera's stickiness, the beat's position — and left
+ * every ramp *inside* it running. So a browser with scripting off received beat
+ * 1 and three blank screens: the copy of beats 2 to 4, both captions, all four
+ * scoreboard rows and the second call to action were at `opacity: 0`, because
+ * their `--beat-progress` says they have not had their turn and nothing was ever
+ * going to give them one.
+ *
+ * `stage.test.tsx` passed throughout. It asserted that the block *contained*
+ * `opacity: 1 !important`, which it did, of the one element that was not the
+ * problem. That is why C.6 is a browser journey and not a fourth string match.
+ *
+ * The repair is the first line below rather than a list of the ramps: **the
+ * scene at rest is the document.** Every ramp in every one of the scene's
+ * stylesheets is a `clamp()` around `--beat-progress`, and every one of them
+ * resolves to its finished value at zero — the copy solid, the rows arrived, the
+ * mark wiped, the depth vocabulary at no offset. Pinning that one variable
+ * neutralises rules this file has never heard of, including the ones a later
+ * beat adds. An enumeration would have had to be extended by whoever wrote them,
+ * and would not have been.
+ *
+ * The rest is layout, and it is the part that has to be enumerated: a flow the
+ * scene took elements out of, and a grid it laid two of them on.
+ * `movement.test.ts` holds this block to the scene's own rules, so a new
+ * `position: absolute` or `display: grid` behind the media query fails here
+ * rather than in a browser nobody runs without JavaScript.
+ *
+ * It is the one place in this repository that earns an `!important`: it has to
+ * beat utility classes it does not own — and an inline `--beat-progress`, which
+ * a normal declaration would lose to — and it is inert in every browser that
+ * runs the script.
+ */
+export const WITHOUT_SCRIPT = `
+.landing-stage__beat { --beat-progress: 0 !important; }
 .landing-stage__track { height: auto !important; }
 .landing-stage__camera { position: static !important; height: auto !important; overflow: visible !important; }
-.landing-stage__beat { position: static !important; opacity: 1 !important; transform: none !important; }
+.landing-stage__beat { position: static !important; display: block !important; overflow: visible !important; opacity: 1 !important; transform: none !important; }
+.landing-article { display: block !important; }
 `;
 
 export interface StageProps {

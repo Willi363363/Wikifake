@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 in progress — C.1 to C.5: the four beats are on the stage |
+| **State** | 🔶 in progress — C.1 to C.6: the four beats are on the stage, and the three paths without one are documents |
 | **Branch** | `feat/landing-scene` |
 | **Depends on** | tracks A and B |
 | **Delivers** | the marketing route: what the game is, and a way in |
@@ -69,7 +69,7 @@ beat 3 alone, the page has done its job and the rest is atmosphere.
 | C.3 | Beats 1 and 2 | ✅ |
 | C.4 | Beat 3 — the collision, and the mark | ✅ |
 | C.5 | Beat 4 — the scoreboard and the way in | ✅ |
-| C.6 | Reduced-motion path, checked as a document | ⬜ |
+| C.6 | Reduced-motion path, checked as a document | ✅ |
 | C.7 | Performance pass on a real mid-range device | ⬜ |
 | C.8 | Social share image, and the meta tags | ⬜ |
 
@@ -78,9 +78,11 @@ the reduced-motion path is the thing that already exists rather than the thing
 retrofitted, and it is the only ordering under which non-negotiable 2 is
 cheap.
 
-**What each step actually decided, and what it got wrong first**, is in
-`03-landing-scene.md`. The table above is the only place that says where a step
-stands; the sheet says how it was built.
+**What each step actually decided, and what it got wrong first**, is in two
+sheets. `03-landing-scene.md` carries C.1 to C.5 — how the camera and the four
+beats were built. `03-landing-degraded.md` carries C.6 onwards — the landing as
+it reaches somebody the scene was never going to run for. The table above is the
+only place that says where a step stands; the sheets say how it was built.
 
 ## Exit gate
 
