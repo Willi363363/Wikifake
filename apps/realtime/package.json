@@ -19,6 +19,7 @@
     "@wikifake/domain": "workspace:*",
     "@wikifake/env": "workspace:*",
     "@wikifake/protocol": "workspace:*",
+    "@wikifake/tickets": "workspace:*",
     "ai": "^7.0.77",
     "bullmq": "6.1.2",
     "hono": "4.13.3",

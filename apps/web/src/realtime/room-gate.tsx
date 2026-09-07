@@ -14,6 +14,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 
 import { RealtimeProvider } from './provider.js';
+import { fetchTicket } from './ticket.js';
 
 const NICKNAME = 'wikifake.nickname';
 
@@ -54,13 +55,48 @@ export function RoomGate({ children }: { children: ReactNode }) {
   //
   // Found by the browser tests of step 9.5, on the first run. Every unit suite
   // passes the nickname in as a prop, so none of them could have seen it.
-  const [nickname, setNickname] = useState<string | null>(null);
+  //
+  // Step E.3b.2 added the second thing to resolve, and it is resolved here for
+  // the same reason as the first: the socket must not open until both are
+  // known. The identity is captured when a player **joins**, so a connection
+  // opened a moment early is a round attributed to nobody, with no second
+  // chance later in it.
+  //
+  // The two are one piece of state on purpose. Two would let the provider see a
+  // nickname and no ticket for one render, which is exactly the connection this
+  // is here to prevent.
+  const [identity, setIdentity] = useState<{
+    readonly name: string;
+    readonly ticket: string;
+  } | null>(null);
+
   useEffect(() => {
-    setNickname(readNickname());
+    const name = readNickname();
+    if (code === null || name === null) {
+      setIdentity(null);
+      return undefined;
+    }
+
+    let live = true;
+    // A failure is an empty string, never a rejection: no ticket means the
+    // round is played unattributed, which is what every multiplayer round did
+    // before this step. Refusing to open a room because a statistics counter
+    // cannot be credited would trade a whole feature for a number.
+    void fetchTicket(code, name).then((ticket) => {
+      if (live) setIdentity({ name, ticket });
+    });
+
+    return () => {
+      live = false;
+    };
   }, [code]);
 
   return (
-    <RealtimeProvider roomCode={code} playerName={nickname}>
+    <RealtimeProvider
+      roomCode={code}
+      playerName={identity?.name ?? null}
+      ticket={identity?.ticket ?? ''}
+    >
       {children}
     </RealtimeProvider>
   );

@@ -135,6 +135,16 @@ Nine routes. A `GET` takes no body.
   - `explanation` — string (min 1 char)
   - `hint` — string (min 1 char)
 
+## `POST /api/realtime/ticket`
+
+**Request**
+
+- object
+
+**Response**
+
+- `ticket` — string (min 1 char)
+
 ## `POST /api/flag-report`
 
 **Request**
