@@ -12,7 +12,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { Stage } from './stage.js';
+import { Stage, WITHOUT_SCRIPT } from './stage.js';
 import { BEAT_ATTRIBUTE, CAMERA_ATTRIBUTE, STAGE_PROGRESS } from './use-stage.js';
 
 afterEach(() => {
@@ -51,7 +51,7 @@ describe('C.2 — the stage is a document first', () => {
     expect(track.style.getPropertyValue('--stage-beats')).toBe('2');
   });
 
-  it('hands the document back to a browser with no script', () => {
+  it('serves the revert to a browser with no script', () => {
     // Rendered to a string, because that is what a browser with scripting off
     // receives: it never runs React, so the client-side tree is not the thing
     // under test here. The response is.
@@ -62,12 +62,20 @@ describe('C.2 — the stage is a document first', () => {
     );
 
     // Without a driver the camera would hold the first beat still and never
-    // advance it, so the `<noscript>` block reverts the three rules that would
-    // have made it a stage.
+    // advance it, so the `<noscript>` block hands the document back — whole,
+    // and inside a `<noscript>`, which is what makes it inert for everybody
+    // else.
     expect(html).toContain('<noscript>');
-    expect(html).toContain('position: static !important');
-    expect(html).toContain('height: auto !important');
-    expect(html).toContain('opacity: 1 !important');
+    expect(html).toContain(WITHOUT_SCRIPT.trim());
+
+    // **What it says is all this can see.** An earlier version of this test
+    // matched three declarations out of that block and passed for as long as
+    // the revert was wrong: it reverted the stage and left every ramp inside it
+    // running, so a script-less browser got beat 1 and three blank screens.
+    // Whether the block is *enough* is held in two places that can tell —
+    // `movement.test.ts`, against the scene's own rules, and
+    // `apps/e2e/specs/landing-document.spec.ts`, in a browser with scripting
+    // off. Step C.6.
   });
 
   it('leaves everything alone where the stylesheet did not engage', () => {

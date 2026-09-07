@@ -1,9 +1,11 @@
 # Track C — how the scene was built
 
-The record of steps C.1 onwards: what each one decided, and what it got wrong
+The record of steps C.1 to C.5: what each one decided, and what it got wrong
 before it was right. `03-landing.md` keeps the frame — the objective, the four
 non-negotiables, the narrative and the step table, which is the only place that
-says where a step stands.
+says where a step stands. **C.6 onwards is `03-landing-degraded.md`**, which
+this file split into when it reached the line cap: the subject changes there
+from how the camera works to what reaches somebody who never gets one.
 
 Kept because the scene is a mechanism nobody rereads. Every paragraph below is a
 thing that was measured or looked at rather than reasoned about, and each one
