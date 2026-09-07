@@ -23,7 +23,14 @@ import type { UsageContext } from './usage.js';
 let connection: ReturnType<typeof connectFromEnv> | undefined;
 let generation: RoundDependencies | undefined;
 
-function db(): SessionContext['db'] {
+/**
+ * The one connection, opened on first use.
+ *
+ * Exported since step E.5: `/profile` reads a row and needs no other
+ * collaborator, so a `profileContext()` beside the six below would be a
+ * function whose whole body is this one.
+ */
+export function db(): SessionContext['db'] {
   connection ??= connectFromEnv();
   return connection.db;
 }

@@ -23,7 +23,9 @@
       "roomNotOpened": "la salle n’a pas pu être ouverte",
       "unreadableRoom": "le serveur a ouvert une salle que nous ne pouvons pas lire",
       "unreachable": "le serveur est injoignable"
-    }
+    },
+    "account": "Créer un compte, ou se connecter",
+    "profile": "Votre profil"
   },
   "room": {
     "eyebrow": "Salle",

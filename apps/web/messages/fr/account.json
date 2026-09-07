@@ -29,5 +29,22 @@
     "signUpFailed": "Le compte n’a pas pu être créé.",
     "socialFailed": "Ce fournisseur est injoignable.",
     "unreachable": "Le serveur est injoignable. Réessayez."
+  },
+  "profile": {
+    "emailPrivate": "Connecté en tant que {email} — vous seul le voyez.",
+    "empty": "Aucune manche pour l’instant. Vos parties apparaîtront ici après la première.",
+    "playFirst": "Jouer votre première manche",
+    "gamesFinished": "Manches terminées",
+    "gamesAbandoned": "Laissées en plan",
+    "accuracy": "Falsifications trouvées",
+    "bestScore": "Meilleur score",
+    "averageScore": "Score moyen",
+    "bestStreak": "Meilleure série",
+    "breakdown": "{found} trouvées, {missed} manquées, {wrong} paragraphes vrais marqués.",
+    "onAStreak": "{count} manches parfaites d’affilée",
+    "since": "Vous jouez depuis le {date}.",
+    "play": "Jouer une manche",
+    "signOut": "Se déconnecter",
+    "signingOut": "Déconnexion…"
   }
 }

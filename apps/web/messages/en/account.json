@@ -29,5 +29,22 @@
     "signUpFailed": "The account could not be created.",
     "socialFailed": "That provider could not be reached.",
     "unreachable": "The server could not be reached. Try again."
+  },
+  "profile": {
+    "emailPrivate": "Signed in as {email} — only you see this.",
+    "empty": "No rounds yet. Your games will show up here once you have played one.",
+    "playFirst": "Play your first round",
+    "gamesFinished": "Rounds finished",
+    "gamesAbandoned": "Left unfinished",
+    "accuracy": "Falsifications found",
+    "bestScore": "Best score",
+    "averageScore": "Average score",
+    "bestStreak": "Best streak",
+    "breakdown": "{found} found, {missed} missed, {wrong} true paragraphs marked.",
+    "onAStreak": "{count} perfect rounds in a row",
+    "since": "Playing since {date}.",
+    "play": "Play a round",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…"
   }
 }
