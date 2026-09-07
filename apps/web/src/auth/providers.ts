@@ -116,3 +116,16 @@ export function assertCallbackReachable(
       `${callbackUrl(env.BETTER_AUTH_URL, providers[0] as ProviderId)}.`,
   );
 }
+
+/**
+ * The provider ids a screen may offer, and **only** the ids.
+ *
+ * Step E.2 renders a button per provider, and the page that renders it is a
+ * server component holding `Env` — which is one careless prop away from putting
+ * a client secret in the document. So the boundary is a function whose return
+ * type cannot carry one: `socialProviders` returns credentials, this returns
+ * names, and the sign-in page reads this one.
+ */
+export function offeredProviders(env: Env): ProviderId[] {
+  return Object.keys(socialProviders(env)) as ProviderId[];
+}
