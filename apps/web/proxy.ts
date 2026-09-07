@@ -14,6 +14,22 @@ import { routing } from './src/i18n/routing.js';
 const handleLocaleRouting = createIntlMiddleware(routing);
 
 /**
+ * Next's generated metadata routes, which are per-locale already.
+ *
+ * Step C.8 added `app/[locale]/opengraph-image.tsx`, so the share card lives at
+ * `/en/opengraph-image/card` and `/fr/opengraph-image/card` — and Next writes
+ * those exact URLs into the `og:image` tag, prefix and all. Under `as-needed`
+ * the proxy would redirect the English one to the unprefixed path, and a 307 is
+ * a card that some scrapers fetch and some quietly give up on. It also mangles
+ * the cache-busting query, which Next appends as a bare key.
+ *
+ * These are not pages and carry no interface prose: the locale is in the path
+ * because the *image* is translated, and there is nothing left for locale
+ * routing to decide.
+ */
+const METADATA_ROUTES = ['/opengraph-image'];
+
+/**
  * The paths locale routing must leave alone.
  *
  * The API and the probe are not pages — rewritten under `/en` they would 404.
@@ -23,6 +39,7 @@ const handleLocaleRouting = createIntlMiddleware(routing);
 export function isLocaleExempt(pathname: string): boolean {
   if (pathname === '/ping') return true;
   if (pathname.startsWith('/api/') || pathname.startsWith('/_next/')) return true;
+  if (METADATA_ROUTES.some((route) => pathname.includes(route))) return true;
   // A dot in the last segment is a file, and files are not translated.
   return pathname.slice(pathname.lastIndexOf('/') + 1).includes('.');
 }

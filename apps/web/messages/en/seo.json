@@ -1,4 +1,6 @@
 {
   "title": "WikiFake — can you spot the false facts?",
-  "description": "A Wikipedia article, a handful of facts rewritten by a model, and you. Find them alone or against other players — a free game of critical reading and fact-checking."
+  "description": "A Wikipedia article, a handful of facts rewritten by a model, and you. Find them alone or against other players — a free game of critical reading and fact-checking.",
+  "tagline": "Find the facts a model rewrote. Free, and no account.",
+  "imageAlt": "WikiFake: “Who is lying?”, over a paragraph of a French Wikipedia article with one falsified figure marked."
 }

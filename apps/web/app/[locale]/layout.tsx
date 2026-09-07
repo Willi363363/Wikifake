@@ -121,7 +121,10 @@ export async function generateMetadata({
       url: absolute(home),
       title: seo.title,
       description: seo.description,
-      images: ['/image.png'],
+      // **No `images` here, and that is step C.8's whole mechanism.** The
+      // `opengraph-image.tsx` beside this file supplies the URL, the size and
+      // the per-locale alt; an explicit entry would override it, which is how a
+      // French serif logo at 1024×1024 survived four redesigns in this slot.
       locale: OG_LOCALES[locale],
       alternateLocale: LOCALES.filter((other) => other !== locale).map(
         (other) => OG_LOCALES[other],
@@ -131,7 +134,8 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: seo.title,
       description: seo.description,
-      images: ['/image.png'],
+      // Nor here: Next fills `twitter.images` from the Open Graph ones wherever
+      // Twitter has not been given its own, so the card is stated once.
     },
   };
 }

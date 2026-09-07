@@ -103,11 +103,24 @@ describe('C6.3 — the metadata every page starts from, per locale', () => {
       const openGraph = metadata.openGraph;
       expect(openGraph).toBeDefined();
       expect(openGraph).toMatchObject({ title: seo.title, description: seo.description });
-      // `og:url` and `og:image`, the two that a link preview cannot do without.
+      // `og:url`, which a link preview cannot do without.
       expect(openGraph && 'url' in openGraph ? openGraph.url : undefined).toBeTruthy();
-      expect(openGraph && 'images' in openGraph ? openGraph.images : undefined).toEqual([
-        '/image.png',
-      ]);
+
+      /*
+       * And **no** `og:image` here, which is step C.8's mechanism rather than
+       * a gap. `app/[locale]/opengraph-image.tsx` supplies the URL, the size
+       * and the per-locale alt through Next's file convention, and an explicit
+       * entry at this level would override it — which is how a French serif
+       * logo at 1024×1024 survived four redesigns in this slot.
+       *
+       * That the tag is nevertheless emitted, and points at a 1200×630 PNG
+       * served without a redirect, is
+       * `apps/e2e/specs/landing-share-card.spec.ts`: it is a fact about a
+       * response, and this is a test of an object.
+       */
+      expect(openGraph && 'images' in openGraph ? openGraph.images : undefined).toBe(
+        undefined,
+      );
     },
   );
 

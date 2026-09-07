@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 in progress — C.1 to C.6 done; C.7 holds structurally and awaits a device |
+| **State** | 🔶 C.1 to C.6 and C.8 done; C.7 holds structurally and awaits a device |
 | **Branch** | `feat/landing-scene` |
 | **Depends on** | tracks A and B |
 | **Delivers** | the marketing route: what the game is, and a way in |
@@ -71,7 +71,7 @@ beat 3 alone, the page has done its job and the rest is atmosphere.
 | C.5 | Beat 4 — the scoreboard and the way in | ✅ |
 | C.6 | Reduced-motion path, checked as a document | ✅ |
 | C.7 | Performance pass on a real mid-range device | ⚠️ |
-| C.8 | Social share image, and the meta tags | ⬜ |
+| C.8 | Social share image, and the meta tags | ✅ |
 
 **C.1 comes first on purpose.** Building the document before the scene means
 the reduced-motion path is the thing that already exists rather than the thing
@@ -83,12 +83,13 @@ composite-only, no layout per frame — is asserted and holds; the 60fps figure
 needs a phone, and `03-landing-budget.md` carries the runbook and every number a
 laptop could produce.
 
-**What each step actually decided, and what it got wrong first**, is in three
+**What each step actually decided, and what it got wrong first**, is in four
 sheets. `03-landing-scene.md` carries C.1 to C.5 — how the camera and the four
 beats were built. `03-landing-degraded.md` carries C.6 — the landing as it
 reaches somebody the scene was never going to run for. `03-landing-budget.md`
-carries C.7 — what the scene costs, and what is left to measure. The table above
-is the only place that says where a step stands; the sheets say how it was
+carries C.7 — what the scene costs, and what is left to measure.
+`03-landing-card.md` carries C.8 — the card a shared link becomes. The table
+above is the only place that says where a step stands; the sheets say how it was
 built.
 
 ## Exit gate
