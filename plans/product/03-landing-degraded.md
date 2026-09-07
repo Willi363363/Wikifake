@@ -1,15 +1,15 @@
 # Track C — the paths where the scene does not engage
 
-The record of steps C.6 onwards: the landing as it reaches somebody the scroll
-scene was never going to run for. `03-landing.md` keeps the frame and the step
-table — the only place that says where a step stands — and
-`03-landing-scene.md` records how the scene itself was built.
+The record of step C.6: the landing as it reaches somebody the scroll scene was
+never going to run for. `03-landing.md` keeps the frame and the step table — the
+only place that says where a step stands — `03-landing-scene.md` records how the
+scene itself was built, and `03-landing-budget.md` what it costs to run.
 
-Its own sheet because that one is full: 197 lines against a 200-line cap, and
+Its own sheet because that one is full: 199 lines against a 200-line cap, and
 `../method/00-dev-cycle.md` says a phase that outgrows its file splits into
 satellite sheets rather than being squeezed into one. The cut is where the
-subject changes anyway. C.1 to C.5 are about a camera and four beats; from here
-on the subject is what happens when there is no camera.
+subject changes anyway. C.1 to C.5 are about a camera and four beats; this one
+is about what happens when there is no camera.
 
 ## C.6 — three switches, one document
 
@@ -105,10 +105,8 @@ test can see, and it now says so.
 ## Found on the way, not fixed here
 
 **`margin-top: 0` on a stacked beat never applies.**
-`landing-stage.css` sets it inside the media query, with the comment "an
-absolutely positioned box with a margin is a box 5rem off the mark" — which is
-right about the consequence and wrong about the fix. The rhythm above it is
-`.landing-stage__beat + .landing-stage__beat`, two classes against one, and a
+`landing-stage.css` sets it inside the media query, and the rhythm above it is
+`.landing-stage__beat + .landing-stage__beat` — two classes against one, and a
 media query adds no specificity. Measured in Chromium at 1280 wide:
 
 ```
@@ -123,12 +121,12 @@ sheets on the same rectangle — never saw it. Beat 1 is the one that differs: i
 content is centred in a box 80px taller, so the question sits about 40 pixels
 above where every heading after it sits. Cosmetic, and real.
 
-It belongs in `../current-state/06-structural-debt.md`, beside `border-l-3` and
-`disabled:opacity-40` — the same family, a rule that reads correctly and does
-nothing. It is written here instead because that file is at 190 lines against
-the 200 cap and this entry does not fit in ten, and because
-`HANDOVER.md` was explicit that **the next finding needs the split, not a
-squeeze**. Splitting a debt register is a step of its own; it is not C.6.
+**It is filed in `../current-state/06-structural-debt.md`**, beside `border-l-3`
+and `disabled:opacity-40` — the same family, a rule that reads correctly and
+does nothing. It was written here first, when that register was at 190 lines
+against the 200 cap and the handover was explicit that the next finding needed
+the split rather than a squeeze; #180 did the split, so the entry went where it
+belongs. The measurement stays here because this is the step that took it.
 
 ## A note for whoever runs the journeys
 

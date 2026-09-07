@@ -31,6 +31,18 @@ const config: NextConfig = {
   // half-done. Recorded in the debt register; it is its own piece of work,
   // because it changes what every package's tests actually exercise.
   experimental: { extensionAlias: { '.js': ['.ts', '.tsx', '.js'] } },
+
+  // Step C.8 — the share card's two font files.
+  //
+  // `app/[locale]/opengraph-image.tsx` reads them with `fs.readFile` and a path
+  // built at runtime, which the output tracer cannot follow: it walks imports,
+  // not `join()` calls. Without this the function deploys without its fonts and
+  // the card 500s — on a platform, not locally, which is the worst place to
+  // find it. Named here, next to the reason.
+  outputFileTracingIncludes: {
+    '/[locale]/opengraph-image': ['./src/landing/fonts/*.ttf'],
+    '/[locale]/opengraph-image/[__metadata_id__]': ['./src/landing/fonts/*.ttf'],
+  },
   transpilePackages: [
     '@wikifake/article',
     '@wikifake/db',

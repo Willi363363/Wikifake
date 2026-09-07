@@ -146,3 +146,18 @@ The answer is a disabled *style* rather than an opacity — the direction has on
 already, in that a flat fill and a collapsed shadow say "not now" without
 diluting anything. It belongs to `packages/ui`, which owns the variant and the
 gallery that pins it, so track D looked at it and left it.
+
+## `margin-top: 0` on a stacked beat loses on specificity
+
+`app/landing-stage.css` sets it inside the scene's media query, with the comment
+"an absolutely positioned box with a margin is a box 5rem off the mark" — right
+about the consequence, wrong about the fix. The document rhythm above it is
+`.landing-stage__beat + .landing-stage__beat`, two classes against one, and a
+media query adds no specificity. Measured in Chromium at 1280 wide: beat 1 at
+`margin-top: 0px` and `top: 64`, beats 2 to 4 at `80px` and `top: 192`.
+
+The three that agree are why C.4's collision assertion never saw it — it
+compares beats 2 and 3. Beat 1 is the one that differs: its content is centred
+in a box 80px taller, so the landing's question sits about 40 pixels above where
+every heading after it sits. Cosmetic, and real. Same family as the two entries
+above: a rule that reads correctly, reviews correctly and does nothing.
