@@ -24,6 +24,8 @@ import type { ArticleView, FalsifiedPosition } from '@wikifake/protocol';
 export interface RoundPlayer {
   readonly name: string;
   readonly colour: string;
+  /** The account this player's round belongs to, or null — step E.3b.2. */
+  readonly userId?: string | null;
 }
 
 export interface RoundRequest {
@@ -99,10 +101,14 @@ export function createRoundSource(dependencies: GenerationDependencies): RoundSo
         timeLimit: request.timeLimit,
         fromCache,
         solution: entry.solution,
-        // A nickname, not an account: a room is played by whoever typed a name.
-        // Linking a signed-in player's rounds is `attachGuestRecords`' business.
+        // The nickname **and** the account — step E.3b.2. The name is what the
+        // room shows and what a debrief is read under; the id is what a profile
+        // counts. A guest has one too, an anonymous `user` row, which is what
+        // makes the rounds they play here follow them into an account created
+        // afterwards — exactly as solo's have since phase 4.
         players: request.players.map((player) => ({
           guestName: player.name,
+          userId: player.userId ?? null,
           colour: player.colour,
         })),
       });

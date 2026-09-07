@@ -35,18 +35,50 @@ function Probe() {
 
 let uninstall: () => void;
 
+/**
+ * Step E.3b.2 — the gate now asks the server who this player is, too.
+ *
+ * Stubbed rather than left to fail, because "no ticket" is a real path and a
+ * suite that took it by accident would be asserting the wrong one. What a
+ * ticket *is* belongs to `@wikifake/tickets`; what belongs here is that the
+ * socket waits for the answer and carries it.
+ */
+function stubTicket(ticket: string | null = 'signed.ticket'): void {
+  vi.stubGlobal('fetch', () =>
+    Promise.resolve({
+      ok: ticket !== null,
+      json: () => Promise.resolve({ ticket }),
+    } as Response),
+  );
+}
+
+/**
+ * Lets the ticket's promise settle, and React see the result.
+ *
+ * The connection is one microtask deeper than it was: the gate resolves a
+ * nickname *and* a ticket before the provider is given either.
+ */
+async function resolved(): Promise<void> {
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+}
+
 beforeEach(() => {
   uninstall = installFakeSocket();
   globalThis.sessionStorage.clear();
+  stubTicket();
   route = {};
 });
 afterEach(() => {
+  vi.unstubAllGlobals();
   cleanup();
   uninstall();
 });
 
 describe('9.5 — the gate, after a navigation', () => {
-  it('is idle before there is a room', () => {
+  it('is idle before there is a room', async () => {
     render(
       <RoomGate>
         <Probe />
@@ -60,7 +92,7 @@ describe('9.5 — the gate, after a navigation', () => {
   // that it survives the navigation from the entry screen into a room — which
   // means it mounts *before* the nickname exists. An effect that ran once would
   // never see the one the entry screen writes a moment later.
-  it('reads the nickname the entry screen wrote on its way out', () => {
+  it('reads the nickname the entry screen wrote on its way out', async () => {
     const view = render(
       <RoomGate>
         <Probe />
@@ -79,11 +111,12 @@ describe('9.5 — the gate, after a navigation', () => {
       </RoomGate>,
     );
 
+    await resolved();
     expect(screen.getByText('connecting/ada')).not.toBeNull();
     expect(opened).toHaveLength(1);
   });
 
-  it('opens the socket for the room the URL names', () => {
+  it('opens the socket for the room the URL names', async () => {
     rememberNickname('ada');
     route = { code: 'A1B2C3' };
     render(
@@ -92,10 +125,14 @@ describe('9.5 — the gate, after a navigation', () => {
       </RoomGate>,
     );
 
+    await resolved();
     expect(opened[0]?.url).toContain('/ws/A1B2C3/ada');
+    // And the statement of who they are, which is the other half of what this
+    // gate now resolves before letting a socket open.
+    expect(opened[0]?.url).toContain('auth=signed.ticket');
   });
 
-  it('follows the player from one room to another', () => {
+  it('follows the player from one room to another', async () => {
     rememberNickname('ada');
     route = { code: 'A1B2C3' };
     const view = render(
@@ -104,12 +141,18 @@ describe('9.5 — the gate, after a navigation', () => {
       </RoomGate>,
     );
 
+    await resolved();
+
     route = { code: 'Z9Y8X7' };
     view.rerender(
       <RoomGate>
         <Probe />
       </RoomGate>,
     );
+    // Resolved again, and that is the point of keying the effect on the room:
+    // a ticket is bound to the room it was minted for, so the second room needs
+    // its own. One carried across would verify nowhere.
+    await resolved();
 
     expect(opened.at(-1)?.url).toContain('/ws/Z9Y8X7/ada');
   });

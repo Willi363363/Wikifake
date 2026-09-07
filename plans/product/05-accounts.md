@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 E.2, E.3b.1, E.4 and E.5 done; E.1 awaiting credentials |
+| **State** | 🔶 E.2, E.3b, E.4 and E.5 done; E.1 awaiting credentials |
 | **Branch** | `feat/player-accounts` |
 | **Depends on** | — |
 | **Delivers** | sign-in that works in production, a profile, and per-player stats |
@@ -55,7 +55,7 @@ leaderboard or a shared score.
 | E.2 | Sign-in and sign-up screens, on the direction | ✅ |
 | E.3 | Pseudonym: chosen, unique, and the only public identifier | ⬜ |
 | E.3b.1 | Multiplayer results reach the database | ✅ |
-| E.3b.2 | The socket player carries their account | ⬜ |
+| E.3b.2 | The socket player carries their account | ✅ |
 | E.4 | `player_stats` — the aggregate a profile reads | ✅ |
 | E.5 | The profile screen | ✅ |
 | E.6 | Guest continuity — a guest game survives signing up | ⬜ |

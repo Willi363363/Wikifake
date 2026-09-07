@@ -71,22 +71,56 @@ Four decisions, each of which a guard in this repository forced or confirmed:
 for the same reason: an optional one is a deployment quietly recording nothing,
 which is the state this step exists to leave.
 
-### E.3b.2 — the player carries their account  ⬜
+### E.3b.2 — the player carries their account  ✅
 
-`createGame` still receives `guestName` and no `userId` for a room, so the rows
-are complete and **unattributed**: `player_stats` counts a multiplayer round for
-nobody. `results.test.ts` opens a round with an account directly and proves the
-rest of the wire is connected, so what is left is only how the account gets
-there.
+A browser cannot be asked who it is: one that can say so can say it is somebody
+else. So the web application — the only thing that can read a session — signs a
+short statement, the browser carries it on the socket URL, and the realtime
+service checks it with the secret both halves already load.
 
-It cannot come from the client as a claim — a browser that can say who it is can
-say it is somebody else. The shape it wants is a **short-lived ticket the web
-app signs**: `apps/web` reads the session server-side and mints one with
-`BETTER_AUTH_SECRET`, the browser carries it on the socket URL, and
-`apps/realtime` verifies it with the same secret it already has in its own
-environment. Both halves need one module, and where that module lives — a fourth
-shared package, or a server-only file in an existing one — is the decision that
-step opens with.
+**`@wikifake/tickets`, its own package, and that was the decision this step
+opened with.** It could have lived in `@wikifake/protocol`, which is where the
+shapes two sides agree on live, and the argument against it is one import: it
+needs `node:crypto`, and `protocol` is bundled into a browser. A subpath export
+would have kept it out today and been one careless import from a build failure
+naming `crypto` and nothing else. A package the browser has no reason to depend
+on cannot be imported into one by accident, and `workspace-graph.test.ts` is
+where that boundary is now visible. It depends on nothing at all.
 
-**Nothing in E.4 or E.3b.1 changes when it lands**: `createGame` already takes
-the `userId`, and the counters hang off it and `recordSubmission`.
+**What a stolen ticket is worth, stated rather than assumed.** It carries no
+session and grants no access: presenting one lets a socket say *this round is
+mine*. It is bound to a room **and** to a nickname, and that nickname is already
+defended by D5's own token — so using a stolen one means holding both secrets
+and joining the same room under the same name, at which point the theft has
+bought the ability to play a round on somebody's statistics. Ten minutes on top
+of that, because there is no reason for it not to be.
+
+**Every failure is the same answer: no ticket, round unattributed.** A bad
+signature, a stale one, a fetch that failed, a deployment whose halves disagree
+— all of them play the round exactly as every multiplayer round played before
+E.3b. A player kept out of a room because a statistics counter could not be
+credited would be the worst trade in the step.
+
+**The ticket route creates a guest**, through the same `identify` the solo route
+uses, and that is not a convenience: 4.3's whole design is that a guest holds a
+real anonymous `user` row so their rounds follow them into an account created
+later. A room player never given one is a round that can never be attached.
+Multiplayer catching up with solo, five phases later.
+
+**It is resolved in `RoomGate`, not in the provider**, and the first attempt had
+it the other way. Fetching inside `RealtimeProvider` made opening a socket
+asynchronous and broke **95 tests** across every suite that mounts it — a cost
+paid for ever, in every future test, for a fetch that belongs one level up. The
+gate already waits for a nickname before letting a connection start; one more
+thing to wait for belongs beside the first, and the two are one piece of state
+so the provider can never see a nickname without its ticket.
+
+**The account is not replaced on a reclaim.** Whoever reconnects into a slot is,
+by D5's token, the player who left it — and a reclaim that rewrote it would be a
+way to move somebody else's round onto your own statistics by holding one secret
+rather than two. It survives `forNewRound` for a simpler reason: it is who the
+slot *is*, not what it did last round.
+
+**The rules never check a signature.** `join` carries a `userId` that the
+transport has already decided; a reducer that verified a ticket could not be
+replayed without the secret, and `purity.test.ts` would be right to say so.

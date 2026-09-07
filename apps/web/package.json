@@ -19,6 +19,7 @@
     "@wikifake/domain": "workspace:*",
     "@wikifake/env": "workspace:*",
     "@wikifake/protocol": "workspace:*",
+    "@wikifake/tickets": "workspace:*",
     "@wikifake/ui": "workspace:*",
     "better-auth": "^1.7.1",
     "next": "^16.3.2",

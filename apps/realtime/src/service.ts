@@ -56,6 +56,24 @@ export interface ServiceOptions {
    */
   recordResults(effect: RecordResults): Promise<void>;
   /**
+   * Step E.3b.2 — which account a socket belongs to, or null.
+   *
+   * Injected like every other decision this transport does not make itself. It
+   * is handed what the client offered and answers with a `user` id or nothing;
+   * `main.ts` supplies `@wikifake/tickets`' verifier with the deployment's own
+   * secret, and a test supplies whatever it wants to prove.
+   *
+   * **Optional**, unlike `recordResults` — and the difference is the point. A
+   * deployment with no verifier attributes nothing, which is exactly the state
+   * before this step and a game that still works. A deployment with no
+   * `recordResults` loses rounds.
+   */
+  accountFor?: (credentials: {
+    readonly roomCode: string;
+    readonly playerName: string;
+    readonly ticket: string;
+  }) => string | null;
+  /**
    * Where the room's state lives. Redis, since 5.2 — never this process.
    *
    * Injected for the same reason as everything else here: a transport that
