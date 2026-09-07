@@ -195,6 +195,79 @@ describe('a browser with no script is handed the document back', () => {
   });
 });
 
+/** Every declaration of the scene, as a property and a value. */
+const DECLARATIONS = RULES.flatMap(({ body }) =>
+  body
+    .split(';')
+    .map((piece) => piece.trim())
+    .filter((piece) => piece.includes(':'))
+    .map((piece) => ({
+      property: piece.slice(0, piece.indexOf(':')).trim(),
+      value: piece.slice(piece.indexOf(':') + 1).trim(),
+    })),
+);
+
+describe('C.7 — the scroll offset is spent on composite-only properties', () => {
+  /*
+   * Non-negotiable 3, at the level a stylesheet can answer it.
+   *
+   * `apps/e2e/specs/landing-performance.spec.ts` measures the consequence —
+   * eight times the frames must not be eight times the layouts — and it is the
+   * stronger evidence. This is the cheaper half: it fails in the unit suite, in
+   * milliseconds, and it names the property rather than a counter.
+   *
+   * The chain matters. Nothing spends `--beat-progress` directly on anything
+   * visible; it becomes `--beat-in`, which becomes `--copy-opacity`, which a
+   * child spends. So the set below is grown to a fixpoint, and what is then
+   * checked is every *real* property that reads anything derived from the
+   * scroll offset.
+   */
+  const derived = new Set(['--beat-progress']);
+  const reads = (value: string): boolean =>
+    [...derived].some((name) => value.includes(`var(${name}`));
+
+  for (let pass = 0; pass < DECLARATIONS.length; pass += 1) {
+    const before = derived.size;
+    for (const { property, value } of DECLARATIONS) {
+      if (property.startsWith('--') && reads(value)) derived.add(property);
+    }
+    if (derived.size === before) break;
+  }
+
+  /** The only two a browser can animate without laying out or painting. */
+  const COMPOSITE = ['opacity', 'transform'];
+
+  const spent = DECLARATIONS.filter(
+    ({ property, value }) => !property.startsWith('--') && reads(value),
+  );
+
+  it('follows the offset through the properties derived from it', () => {
+    // `--copy-opacity` is three links down the chain. A scan that stopped at
+    // the first would check `.landing-stage__beat` and nothing else.
+    expect(derived.size).toBeGreaterThan(4);
+    expect(derived).toContain('--copy-opacity');
+  });
+
+  it('found the properties that spend it', () => {
+    expect(spent.length).toBeGreaterThan(6);
+  });
+
+  it.each(spent.map(({ property }) => property))('%s is composite-only', (property) => {
+    // A `top`, a `height`, a `margin` or a `filter` computed from the scroll
+    // offset is a layout or a paint on every frame of the traverse, on every
+    // device. This is where that arrives, and it arrives as a property name.
+    expect(COMPOSITE).toContain(property);
+  });
+
+  // Guards the guard: a chain that resolved to nothing would leave `spent`
+  // empty and pass the assertion above by having nothing to check.
+  it('would notice, if there were something to notice', () => {
+    expect(spent.map(({ property }) => property)).toContain('opacity');
+    expect(spent.map(({ property }) => property)).toContain('transform');
+    expect(COMPOSITE).not.toContain('height');
+  });
+});
+
 describe('the stylesheet stops drawing a beat where the driver stops counting it', () => {
   it('fades out at BEAT_FADE_EDGE', () => {
     // The stylesheet decides when a beat is invisible; the driver decides when
