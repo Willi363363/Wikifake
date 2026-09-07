@@ -173,25 +173,3 @@ first version pinned `[0, 2, 3, 4]` at four scroll positions and measured
 claim about the scene. What it asserts now is that every sample is a *prefix*:
 every row that has arrived sits above every row that has not. That is what "one
 at a time, in order" means, and it holds wherever it is sampled.
-
-## A trap in running the journeys, found the hard way
-
-`playwright.config.ts` sets `reuseExistingServer` whenever `CI` is unset, so a
-web server already listening on 3100 is **used as-is** — the config's build and
-its whole environment block are skipped, silently.
-
-Probing the scene by hand means starting that server by hand, and a
-hand-started one is missing whatever the config would have set. Here it was
-`NEXT_PUBLIC_REALTIME_URL`: the two multiplayer journeys failed on
-*"Players (2) not found"*, which reads as a socket regression and is a page that
-was never told where the socket is. Both passed the moment the stray server was
-stopped.
-
-**Stop any hand-started server before `pnpm e2e`.** A green run against the
-wrong server is the more expensive half of this — it is the direction the same
-mistake fails in when the missing variable happens not to matter.
-
-This belongs in `plans/current-state/06-structural-debt.md` with the other
-"found by causing it" entries. It is here because that file is at 190 lines and
-the last handover was explicit that the next finding needs the split, not a
-squeeze — and splitting a debt register is not this step.
