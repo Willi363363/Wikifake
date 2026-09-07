@@ -60,6 +60,9 @@ describe.skipIf(url === null)('5.8 — a topic becomes a round', () => {
       origins: createOriginPolicy(['https://wikifake.example']),
       roomExists: () => Promise.resolve(true),
       closeRoom: () => Promise.resolve(),
+      // Step E.3b.1 — required, so a deployment cannot forget it. This
+      // suite is not about what a round is written down as.
+      recordResults: () => Promise.resolve(),
       rooms: store,
       bus,
       namespace: NAMESPACE,

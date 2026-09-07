@@ -9,7 +9,10 @@ import type {
   IncomingMessage,
   ItemInstance,
   OutgoingMessage,
+  ScoreBreakdown,
 } from '@wikifake/protocol';
+
+import type { RoundRecord } from './state.js';
 
 export type RoomEvent =
   /** A player's socket opened. Transport has already validated the nickname. */
@@ -76,6 +79,14 @@ export type RoomEvent =
       readonly solution: readonly FalsifiedPosition[];
       /** When the round begins, in milliseconds since the epoch. */
       readonly startedAt: number;
+      /**
+       * The rows `createGame` opened for this round — step E.3b.1.
+       *
+       * It ran before this event was raised, so the ids exist by the time the
+       * round starts; carrying them here is what lets `endRound` say where the
+       * results go without the service reading the room back.
+       */
+      readonly record: RoundRecord | null;
     }
   /**
    * The article could not be produced. The next candidate is tried, and the
@@ -126,4 +137,42 @@ export type RoomEffect =
    */
   | { readonly kind: 'arm_timer'; readonly seconds: number }
   /** The round ended another way. Drop the pending timer. */
-  | { readonly kind: 'cancel_timer' };
+  | { readonly kind: 'cancel_timer' }
+  /**
+   * Write down what the round came to — step E.3b.1.
+   *
+   * Emitted by `endRound` and by nothing else, so a round is recorded exactly
+   * where it is decided to be over. The service turns it into one
+   * `recordSubmission` per player who submitted.
+   *
+   * Carried as an effect rather than done by the reducer for the reason every
+   * other side effect is: the rules are pure, and a reducer that opened a
+   * transaction could not be replayed, tested without a database, or run twice
+   * against the same state to see whether it agrees with itself.
+   *
+   * **No timestamp.** `purity.test.ts` holds these rules to reading no clock,
+   * and it is right to: the rules decide *what* a round came to, and *when it
+   * was written down* is the writer's own instant — which is exactly how the
+   * solo path already stamps it, from `submitContext`'s injected `now`.
+   *
+   * A player who never submitted is **absent** rather than present with a zero.
+   * `participant_score_with_submission` forbids a score without a submission,
+   * and the leaderboard's zero is a display rule (C2.4) rather than a result:
+   * writing it down would turn "did not answer" into "answered and scored
+   * nothing", which is a different thing and the one the profile would count.
+   */
+  | {
+      readonly kind: 'record_results';
+      readonly gameId: string;
+      readonly results: readonly RecordedResult[];
+    };
+
+/** One player's round, in the terms `recordSubmission` writes. */
+export interface RecordedResult {
+  readonly participantId: string;
+  readonly marked: readonly number[];
+  readonly score: number;
+  readonly breakdown: ScoreBreakdown;
+  /** Whether it keeps a streak alive — `isPerfectRound`, asked here. */
+  readonly perfect: boolean;
+}

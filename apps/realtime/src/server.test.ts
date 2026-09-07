@@ -97,6 +97,9 @@ describe('5.1 — the transport', () => {
       // 5.7 — nothing in this file is about the row: the room's own state is
       // what it watches.
       closeRoom: () => Promise.resolve(),
+      // Step E.3b.1 — required, so a deployment cannot forget it. This
+      // suite is not about what a round is written down as.
+      recordResults: () => Promise.resolve(),
       rooms,
       // The transport's suite is about what a socket may send, not about
       // crossing instances: a bus that stays in the process keeps these tests

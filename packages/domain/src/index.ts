@@ -94,7 +94,8 @@ export type {
   RoomOptions,
   RoomPhase,
   RoomState,
+  RoundRecord,
   RoundState,
   ScoredSubmission,
 } from './room/state.js';
-export type { RoomEffect, RoomEvent } from './room/events.js';
+export type { RecordedResult, RoomEffect, RoomEvent } from './room/events.js';

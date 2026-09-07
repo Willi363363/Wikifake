@@ -29,6 +29,7 @@ import { lazyRedis } from './redis.js';
 import { createRoomStore } from './rooms/store.js';
 import { createTokenStore } from './rooms/tokens.js';
 import { createQueueScheduler } from './timers/queue.js';
+import { writeResults } from './results.js';
 import { createService } from './server.js';
 
 const PORT = 8080;
@@ -50,6 +51,17 @@ const service = createService({
   // taken for ever and a stranger can open a socket on a room nobody is in.
   closeRoom: async (roomCode) => {
     await deleteRoom(db, roomCode);
+  },
+  // Step E.3b.1 — the round, written down. Failures are logged and swallowed:
+  // the round is over for the players either way and the debrief is already on
+  // its way over the channel, so an exception thrown back into the settle loop
+  // would take a room down over a row.
+  recordResults: async (effect) => {
+    try {
+      await writeResults({ db, now: () => new Date() }, effect);
+    } catch (cause) {
+      logger.error({ err: cause, gameId: effect.gameId }, 'round not recorded');
+    }
   },
   // Postgres says whether a room was ever opened; Redis holds what is happening
   // in it. The two answer different questions and neither is the other's cache.
