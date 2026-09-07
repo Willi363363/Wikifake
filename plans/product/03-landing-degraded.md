@@ -1,15 +1,15 @@
 # Track C — the paths where the scene does not engage
 
-The record of steps C.6 onwards: the landing as it reaches somebody the scroll
-scene was never going to run for. `03-landing.md` keeps the frame and the step
-table — the only place that says where a step stands — and
-`03-landing-scene.md` records how the scene itself was built.
+The record of step C.6: the landing as it reaches somebody the scroll scene was
+never going to run for. `03-landing.md` keeps the frame and the step table — the
+only place that says where a step stands — `03-landing-scene.md` records how the
+scene itself was built, and `03-landing-budget.md` what it costs to run.
 
-Its own sheet because that one is full: 197 lines against a 200-line cap, and
+Its own sheet because that one is full: 199 lines against a 200-line cap, and
 `../method/00-dev-cycle.md` says a phase that outgrows its file splits into
 satellite sheets rather than being squeezed into one. The cut is where the
-subject changes anyway. C.1 to C.5 are about a camera and four beats; from here
-on the subject is what happens when there is no camera.
+subject changes anyway. C.1 to C.5 are about a camera and four beats; this one
+is about what happens when there is no camera.
 
 ## C.6 — three switches, one document
 
