@@ -58,3 +58,24 @@ export const TRUE_PARAGRAPH = `${EXCERPT.before}${EXCERPT.truth}${EXCERPT.after}
 
 /** The same extract with its one fact rewritten, as a round would serve it. */
 export const FALSE_PARAGRAPH = `${EXCERPT.before}${EXCERPT.claim}${EXCERPT.after}`;
+
+/*
+ * The same extract, shortened for the share card — step C.8.
+ *
+ * **Derived rather than retyped**, and that is the whole point: a card is
+ * 1200×630 and the paragraph above is four lines in it, so it has to be cut —
+ * and a cut quotation typed out a second time is a quotation that drifts from
+ * the revision it claims to come from. `excerpt.test.ts` holds both of these to
+ * being the text above with something removed and nothing added.
+ *
+ * Two cuts, each for a reason a reader can check:
+ *
+ * - the **pronunciation gloss**, which is authentically Wikipedia's and is
+ *   clutter at a glance;
+ * - everything after the first clause of the tail, because the tower's street
+ *   address is not what the card is demonstrating.
+ */
+export const SHARE_BEFORE = EXCERPT.before.replace(/\s*\[[^\]]+\]/, '');
+
+/** The tail to its first clause boundary, with the cut marked as a cut. */
+export const SHARE_AFTER = `${EXCERPT.after.slice(0, EXCERPT.after.indexOf(','))}…`;

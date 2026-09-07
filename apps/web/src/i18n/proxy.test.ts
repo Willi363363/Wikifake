@@ -204,3 +204,34 @@ describe('11.4 — the paths that are not pages are left alone', () => {
     expect(isLocaleExempt(path)).toBe(false);
   });
 });
+
+describe('C.8 — the generated share card keeps its locale prefix', () => {
+  /*
+   * The exemption above is about paths with no language. This one is the
+   * opposite case: `app/[locale]/opengraph-image.tsx` produces a *translated*
+   * image, Next writes its prefixed URL straight into the `og:image` tag, and
+   * `/en/...` is exactly the shape the rule above this one redirects.
+   *
+   * A 307 there is a card some scrapers fetch and some quietly give up on —
+   * and the redirect mangles the cache-busting query Next appends as a bare
+   * key. There is nothing left for locale routing to decide: the locale is in
+   * the path because the image is translated.
+   */
+  it.each(['/en/opengraph-image/card', '/fr/opengraph-image/card'])(
+    'leaves %s untouched',
+    (path) => {
+      expect(isLocaleExempt(path)).toBe(true);
+      const response = proxy(request(path, { cookie: 'NEXT_LOCALE=fr' }));
+      expect(redirectedTo(response)).toBeNull();
+      expect(rewrittenTo(response)).toBeNull();
+    },
+  );
+
+  // Guards the guard: an exemption spelled as a prefix rather than as a
+  // segment would exempt half the site, and one spelled too narrowly would
+  // stop matching the day Next changes the id it appends.
+  it('exempts the image and not the pages around it', () => {
+    expect(isLocaleExempt('/en/play')).toBe(false);
+    expect(isLocaleExempt('/fr')).toBe(false);
+  });
+});
