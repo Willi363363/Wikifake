@@ -1,136 +1,102 @@
-# Session handover — 2026-09-06
+# Session handover — 2026-09-06, evening
 
 > Written in English, like everything else in this repository (`CLAUDE.md`).
 >
-> Replaces the handover of 2026-08-30, which described the rewrite's last loose
-> ends. Those are still open and are restated below; everything else in it is
-> now history.
+> Replaces the handover written earlier the same day, which closed track D.
+> Everything it listed as outstanding is restated below.
 
 ## Context
 
-The rewrite was finished; the game was not. This session planned the product
-effort, and delivered the first two tracks of it: an art direction and the
-design system that carries it. It also fixed `pnpm dev`, which had never worked.
+Track C — the landing and its scroll scene. Five of its eight steps shipped this
+session, and the debt register was split a third way to make room for what
+building them turned up.
 
 ## State at the pause
 
-- Working tree clean. `main` and `staging` are the only remote branches.
-- **`plans/product/`** is new: ten tracks, one file each, plus what was
-  deliberately deferred and why. `plans/README.md` carries their state.
-- **Tracks A, B and D are done.** C and E to J are not started.
-- Thirteen pull requests, #158 to #170.
+- **`main`:** `0679acf` — the env loader reaching the db commands (#179). It does
+  **not** carry track C: #179 promoted `staging` at `cfb9b8c`, before #178.
+- **`staging`:** `d44d914` — track C's C.1 to C.5.
+- **Two branches pushed, neither merged.** See "Where things stand" below.
+- **`plans/README.md` carries the state of every track.** Nothing else does.
 
-## What went out
+## What shipped
 
-**The art direction.** Playful neo-brutalism, chosen by the owner from four
-proposals: flat saturated fills, 3px structural borders, hard offset shadows,
-square corners, Archivo throughout, JetBrains Mono where a room code is typed.
+**Track C, steps C.1 to C.5** — five pull requests, #172 to #176, promoted to
+`staging` as #178. The front door is `apps/web/src/landing/`: a document first,
+and a scroll scene laid over it.
 
-**Its one important decision is the reading-surface exemption.** The grammar
-applies to the chassis and never to the article being judged. A paragraph in a
-3px box with a yellow fill is a paragraph nobody reads carefully, and reading
-carefully is the game. `ReadingSheet` enforces it by construction: it accepts no
-prop for a border, a fill, a shadow or a tone, and a test holds it to that by
-prefix. The text is calm; the act of marking it is loud.
+- **C.1** — the document. Headings, copy and the way in as plain HTML in both
+  locales, before any camera existed. The demonstration quotes a real *Tour
+  Eiffel* extract frozen at its `oldid`, which brought a real CC BY-SA
+  obligation: the page renders the round's own `<Attribution>`, and the softer
+  licence sentence the front door used to carry is **gone** rather than kept
+  beside it.
+- **C.2** — the stage. `position: sticky`, so nothing listens for a wheel event.
+  Two of the three switches are CSS and hold before hydration; the third is a
+  `<noscript>` block.
+- **C.3** — depth as a vocabulary: `--depth`, `--arrive-from`, one `transform`.
+- **C.4** — the collision. Beats 2 and 3 come out of one component with three
+  fixed rows, so the false paragraph lands on the rectangle the true one held.
+- **C.5** — the scoreboard assembles, one row at a time, the way in last.
 
-**The palette was measured before it was written** — forty pairs, both palettes,
-tightest margin ×1.54, recorded in `plans/product/01-palette.md`. Phase 6 had
-shipped a palette that looked right and failed seven pairs; measuring first cost
-an hour, and repairing after had cost a session.
+**How each step was built, and what it got wrong first**, is in
+`plans/product/03-landing-scene.md`. That file is the point of reading before
+touching the scene.
 
-## The finding this session turned on
+## Where things stand
 
-Making the accents *fills* silently broke every place still using them as
-*text*. Measured with the audit's own functions, in the light palette:
+Two branches are pushed and neither is merged.
+
+**#180 — `docs/debt-registers` to `staging`. Green, waiting on the `revu`
+label.** Splits `06-structural-debt.md` a third way into `08-toolchain-debt.md`:
+the shape of the repository stays, the commands you run move. Two entries move
+unchanged, and the two findings that had nowhere to go are filed with them. All
+four register files are under the cap.
+
+**`fix/test-env-loading` — WIP, seven tests red, no pull request.** This is the
+one thing genuinely unfinished, and it is the next session's first job.
+
+`apps/web`, `packages/db` and `apps/realtime` now declare
+`setupFiles: ['@wikifake/env/load']`, so `pnpm test` reads `.env.local` like the
+four entry points do. Measured with nothing exported:
 
 ```
-danger on bg           2.95   every error message
-warn   on surface      1.83   the clock, at its most urgent
-bronze on surface      2.01   what a hint costs
-accent on accent-soft  1.20   a paragraph the player designated
+before   db  11 passed |  92 skipped     web  942 passed | 101 skipped
+after    db 103 passed                   web 1036 passed |   7 failed
 ```
 
-Each had been **correct** while the accents were dark. All of them pass in the
-dark palette, which is why nobody saw it: the failure was invisible to anybody
-working in dark mode.
+`packages/db` is whole. **Nobody has read the seven yet** — the session was
+stopped at that line. They are in suites that have never run outside CI on this
+machine, so a real defect and a fixture that only ever saw CI's database are
+both live hypotheses. Read them before assuming either:
 
-Thirty-two came out of a pattern sweep. Four more only a browser found,
-including a rival player's name written in white on a colour the *server*
-chooses — eight hues, half light and half dark, so **no** text colour passes on
-it. That pair was not unmeasured, it was unmeasurable; the colour is a swatch
-beside the name now.
+```bash
+pnpm --filter @wikifake/web test 2>&1 | grep -A8 'FAIL '
+```
 
-**Why the audit could not see any of it:** `CONTRAST_PAIRS` measures the pairs
-the *design system* declares. These were pairs the *screens* invented, in
-`apps/web`, out of its reach. `apps/web/src/fills.test.ts` is that gap closed.
+## Outstanding, inherited and still open
 
-## What the tests learned
-
-Every finding left a scan behind rather than a fix alone:
-
-- `fills.test.ts` — no fill as a text colour, no `text-white`/`text-black`, no
-  colour-on-colour edge, no hover lift, no hover shadow. With a test for its own
-  comment-stripping, because a scan of nothing passes everything.
-- `global-error.palette.test.ts` — the crash page's hardcoded hexes held to the
-  theme. It wore phase 6's palette through the entire change, because no scanner
-  in this repository sees a hex inside a `style={{ }}` object.
-
-**Two assertions were rewritten rather than deleted** when the direction
-invalidated them, and both got stronger. `theme.test.ts` said every colour must
-differ between the palettes; the fills break that deliberately, so it now names
-which repeat and holds them *identical* — catching a fill that drifted, which
-the original could not. `contrast.test.ts` pinned seven ratios; it pins forty.
-
-## `pnpm dev` works now
-
-It had never loaded an environment: nothing read the root `.env`, and Turbo's
-strict mode stripped what survived. `.env.local` is read first, `.env` still
-accepted, and a variable already exported always wins — which is what keeps CI
-and production untouched. `#168`.
-
-## Read this before trusting a green
-
-- **The suites skip ~250 cases without Postgres and Redis, and still report
-  success.** Read the `skipped` count; a real run says `0 skipped`.
-- **Turborepo replays greens it never ran.** `pnpm exec turbo run <task> --force`.
-- **`border-l-3` emits no CSS rule at all**, while `border-3`, `border-r-3`,
-  `border-t-3` and `border-b-3` all resolve. Measured on all four sides.
-  `06-structural-debt.md` carries it. Read the built stylesheet rather than
-  trusting a class name.
-- **Applying `revu` right after opening a pull request cancels the in-flight
-  conformance run**, and the `labeled` run that replaces it skips those jobs —
-  so they read `skipping` and the pull request looks green. It bit twice this
-  session. Wait for the checks, *then* label.
-
-## Outstanding
-
-Inherited from the last handover, still open:
-
-- **Step 10.10's dry run** — Resume the suspended Render service, read
-  `/api/health`, write the commit into `phase-10-rollback.md`, Suspend.
+- **Track C's last three steps.** C.6 is the audit of the reduced-motion path
+  rather than its construction; **C.7 needs a real mid-range Android**, so it
+  needs a person; C.8 is a social share image.
+- **Step 10.10's dry run** — resume the suspended Render service, read
+  `/api/health`, write the commit into `phase-10-rollback.md`, suspend.
 - **Move the domain**, runbook step 5. The public domain still points at Render.
 - **A rollback must recreate `DEPLOY_URL`.**
 - **The Google AI key from the 2026-08-27 transcript**, if never regenerated.
-
-New:
-
-- **The `rules.yml` concurrency bug** above. Fixing it means editing
-  `.github/workflows/`, and the `gh` token has no `workflow` scope.
-- **Chat rail covers a card border at 360px** — placement, its own step.
-- **`disabled:opacity-40`** is the one translucency the direction forbids, and
-  it belongs to `packages/ui`.
-- **Both debt registers are near the 200-line cap** (198 and 190). The next
-  finding needs a split, not a squeeze.
+- **The `rules.yml` concurrency defect.** Applying `revu` replaces the
+  already-passing conformance and secret-scan contexts with `skipping`. Fixing
+  it means editing `.github/workflows/`, and `gh` has no `workflow` scope.
+- **Chat rail covers a card border at 360 px**; **`disabled:opacity-40`** is the
+  one translucency the direction forbids.
 
 ## Next steps, in order
 
-1. **Track C — the landing.** It is the only track B unblocked that is not done,
-   and `03-landing.md`'s four non-negotiables are the whole of it: native
-   scroll, a real page underneath, a performance budget decided first, and
-   content that is HTML.
-2. **Track E — accounts.** Google sign-in is already wired and waiting on two
-   environment variables; the work is the profile and the statistics.
-3. The tracks after that are E's dependents: F, G, H, I.
+1. **Read the seven failures on `fix/test-env-loading`**, decide what they are,
+   and finish or revert that branch. It is red on a branch nobody has reviewed.
+2. **Merge #180** if the split reads right — it is green and documentation only.
+3. **Track C.6**, the reduced-motion audit. Most of it exists already: the path
+   was built first, on purpose, and `landing.spec.ts` asserts it in a browser.
 
 ## Commands to resume
 
@@ -139,22 +105,38 @@ export PATH="$HOME/.nvm/versions/node/v22.23.2/bin:$PATH"   # nvm use is a no-op
 pnpm install && pnpm hooks
 
 docker start wf-pg wf-redis
-cp .env.example .env.local        # then fill it in
-pnpm migrate
+cp .env.example .env.local        # then fill in the Google key
+pnpm migrate                      # works with nothing exported, since #177
 
 pnpm dev                          # both services, no flags
-pnpm test && pnpm typecheck       # read the skipped count
-pnpm e2e                          # 24 browser journeys
+pnpm test                         # read the skipped count
+pnpm e2e                          # 35 browser journeys
 ```
 
 Read first, in this order:
 
 ```
-plans/README.md                     # where the project stands
-plans/product/00-overview.md        # the effort under way, and its rules
-plans/product/01-art-direction.md   # the direction, and what it costs
-plans/current-state/06-structural-debt.md
+plans/README.md                        # where every track stands
+plans/product/03-landing-scene.md      # how the scene was built, and its traps
+plans/current-state/08-toolchain-debt.md
+plans/current-state/07-local-setup.md
 ```
+
+## Technical notes
+
+- **`pnpm test` still needs `DATABASE_URL` and `REDIS_URL` exported on
+  `staging`.** The fix is on `fix/test-env-loading` and is not merged. Read the
+  `skipped` count until it is: a real run says `0 skipped`.
+- **`pnpm e2e` leaves ~40 keys in Redis and the next `pnpm test` fails
+  `broadcast.test.ts` on them.** `redis-cli FLUSHALL` between the two.
+- **`reuseExistingServer` reuses a server you started by hand**, skipping the
+  config's build and its whole `env` block with no line saying so. Stop any
+  hand-started server before `pnpm e2e`. Both of these are in
+  `08-toolchain-debt.md`, on branch `docs/debt-registers`.
+- **A pull request title becomes a squash commit's subject** plus ` (#NNN)`.
+  Keep titles at 65 characters or fewer.
+- **`.env.local` is gitignored and is not committed.** The one in this worktree
+  carries a placeholder Google key, so nothing here can generate a round.
 
 ---
 *Written by Claude Code, from a session that measured before it wrote.*
