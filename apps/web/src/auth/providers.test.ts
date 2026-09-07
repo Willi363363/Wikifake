@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { assertCallbackReachable, callbackUrl, socialProviders } from './providers.js';
+import {
+  assertCallbackReachable,
+  callbackUrl,
+  offeredProviders,
+  socialProviders,
+} from './providers.js';
 import type { Env } from '@wikifake/env';
 
 /** Only the fields `socialProviders` reads; the rest of `Env` is irrelevant here. */
@@ -153,5 +158,38 @@ describe('E.1 — a deployment that offers OAuth from an address nobody can reac
         },
       ),
     ).toThrow(/BETTER_AUTH_URL/);
+  });
+});
+
+describe('E.2 — what a screen is allowed to know', () => {
+  const both = {
+    GOOGLE_OAUTH_CLIENT_ID: 'g-id',
+    GOOGLE_OAUTH_CLIENT_SECRET: 'g-sec',
+    GITHUB_OAUTH_CLIENT_ID: 'h-id',
+    GITHUB_OAUTH_CLIENT_SECRET: 'h-sec',
+  };
+
+  it('lists the offered providers by name', () => {
+    expect(offeredProviders(env(both)).sort()).toEqual(['github', 'google']);
+    expect(offeredProviders(env({}))).toEqual([]);
+  });
+
+  /*
+   * The assertion this function exists for.
+   *
+   * The sign-in page is a server component and it holds `Env`. Anything it
+   * hands a client component is serialised into the document, so a secret that
+   * reaches it is a secret published to every visitor. `socialProviders`
+   * returns credentials by design; this returns names.
+   */
+  it('carries no secret out with them', () => {
+    const serialised = JSON.stringify(offeredProviders(env(both)));
+
+    expect(serialised).not.toContain('g-sec');
+    expect(serialised).not.toContain('h-sec');
+    expect(serialised).not.toContain('g-id');
+    // Guards the guard: those strings are exactly what `socialProviders` does
+    // return, so a scan that could not see them would pass on anything.
+    expect(JSON.stringify(socialProviders(env(both)))).toContain('g-sec');
   });
 });

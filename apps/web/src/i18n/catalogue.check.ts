@@ -13,6 +13,7 @@
 // `ZONES` in `catalogue.ts` grows.
 import type { CatalogueMessages } from './catalogue.js';
 
+import type frAccount from '../../messages/fr/account.json';
 import type frErrors from '../../messages/fr/errors.json';
 import type frHome from '../../messages/fr/home.json';
 import type frLanguage from '../../messages/fr/language.json';
@@ -37,6 +38,7 @@ type Covers<Candidate extends Reference, Reference> = Candidate;
  * one (a key only French has refuses too). The error names the zone.
  */
 export type FrenchCarriesEveryEnglishKey = [
+  Covers<typeof frAccount, ShapeOf<CatalogueMessages['account']>>,
   Covers<typeof frErrors, ShapeOf<CatalogueMessages['errors']>>,
   Covers<typeof frHome, ShapeOf<CatalogueMessages['home']>>,
   Covers<typeof frLanguage, ShapeOf<CatalogueMessages['language']>>,
@@ -49,6 +51,7 @@ export type FrenchCarriesEveryEnglishKey = [
 ];
 
 export type FrenchAddsNoKeyOfItsOwn = [
+  Covers<ShapeOf<CatalogueMessages['account']>, ShapeOf<typeof frAccount>>,
   Covers<ShapeOf<CatalogueMessages['errors']>, ShapeOf<typeof frErrors>>,
   Covers<ShapeOf<CatalogueMessages['home']>, ShapeOf<typeof frHome>>,
   Covers<ShapeOf<CatalogueMessages['language']>, ShapeOf<typeof frLanguage>>,

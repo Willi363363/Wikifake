@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 E.1 guarded and documented, awaiting credentials |
+| **State** | 🔶 E.2 and E.4 done; E.1 awaiting credentials; E.3b found missing |
 | **Branch** | `feat/player-accounts` |
 | **Depends on** | — |
 | **Delivers** | sign-in that works in production, a profile, and per-player stats |
@@ -52,13 +52,48 @@ leaderboard or a shared score.
 | # | Step | State |
 |---|---|---|
 | E.1 | OAuth credentials in the environments, Google first | ⚠️ |
-| E.2 | Sign-in and sign-up screens, on the direction | ⬜ |
+| E.2 | Sign-in and sign-up screens, on the direction | ✅ |
 | E.3 | Pseudonym: chosen, unique, and the only public identifier | ⬜ |
 | E.3b | Multiplayer results reach the database | ⬜ |
 | E.4 | `player_stats` — the aggregate a profile reads | ✅ |
 | E.5 | The profile screen | ⬜ |
 | E.6 | Guest continuity — a guest game survives signing up | ⬜ |
 | E.7 | Export and delete my account | ⬜ |
+
+### E.2 — what the screens decided
+
+**One component, two modes.** Sign-in and sign-up differ by one field, one call
+and the link at the bottom, so `credentials-form.tsx` and `account-screen.tsx`
+are each rendered twice. Two files would drift the first time somebody fixed a
+label on one of them, and nobody opens both at once — the same argument track C
+made for `ArticleBeat`, and the same answer.
+
+**The server's sentences are the good ones.** What the screen checks is what a
+player can fix before a round trip: an empty address, a password under Better
+Auth's own eight-character floor, and a pseudonym `playerName` would refuse —
+the protocol's decoder, so an account cannot be created under a name its owner
+could never play a room as. Everything else is Better Auth's message shown
+verbatim, because a client that invented "that email is taken" would be
+guessing at a race it cannot see. The one sentence the screen writes for itself
+is *unreachable*: a refusal and a dead connection are different things, and
+telling somebody on a train that their password is wrong is a lie.
+
+**The providers cross as names, never as credentials.** The pages are server
+components holding `Env`, and anything handed to a client component is
+serialised into the document. `offeredProviders` exists so that the value
+crossing that boundary has a type that cannot carry a secret, and
+`providers.test.ts` asserts both halves — the names come out, and the secrets
+`socialProviders` really does return do not.
+
+**No `baseURL` on the client**, deliberately: it defaults to the page's own
+origin, and the social flow is started with a *path*. An absolute URL is how a
+preview deployment bounces a player into production, authenticates them there,
+and looks like a button that does nothing.
+
+Both screens carry a way past themselves — *play without an account* — because
+one of this effort's three conditions for "done" is a first-time visitor who
+plays without signing up, and a sign-in page with no exit is how that quietly
+stops being true. Both are `noindex`: a sign-in form is not content.
 
 ### E.3b — the step this list did not have, and why it needs one
 

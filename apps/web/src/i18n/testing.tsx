@@ -27,6 +27,8 @@ import errorsFr from '../../messages/fr/errors.json';
 import homeFr from '../../messages/fr/home.json';
 import roundFr from '../../messages/fr/round.json';
 import waitingFr from '../../messages/fr/waiting.json';
+import accountEn from '../../messages/en/account.json';
+import accountFr from '../../messages/fr/account.json';
 import lobbyFr from '../../messages/fr/lobby.json';
 import smallFr from '../../messages/fr/small.json';
 import routesFr from '../../messages/fr/routes.json';
@@ -39,6 +41,7 @@ import type { Locale } from './locales.js';
 const CATALOGUES: Record<Locale, CatalogueMessages> = {
   en: {
     home: homeEn,
+    account: accountEn,
     errors: errorsEn,
     round: roundEn,
     waiting: waitingEn,
@@ -50,6 +53,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
   },
   fr: {
     home: homeFr,
+    account: accountFr,
     errors: errorsFr,
     round: roundFr,
     waiting: waitingFr,
