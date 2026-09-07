@@ -1,0 +1,33 @@
+{
+  "signInTitle": "Sign in",
+  "signInLead": "Your games, your streak, and the score you are trying to beat.",
+  "signInSubmit": "Sign in",
+  "signInBusy": "Signing in…",
+  "signInPrompt": "Already have an account?",
+  "signInLink": "Sign in",
+  "signUpTitle": "Create an account",
+  "signUpLead": "An email, a password, and the name other players will see. Nothing else.",
+  "signUpSubmit": "Create the account",
+  "signUpBusy": "Creating…",
+  "signUpPrompt": "No account yet?",
+  "signUpLink": "Create one",
+  "emailLabel": "Email",
+  "passwordLabel": "Password",
+  "pseudonymLabel": "Pseudonym",
+  "pseudonymHint": "This is what other players see. Your email never appears in a room.",
+  "orContinueWith": "or continue with",
+  "playAsGuest": "Play without an account",
+  "providers": {
+    "google": "Continue with Google",
+    "github": "Continue with GitHub"
+  },
+  "errors": {
+    "emailRequired": "An email address is needed to sign in.",
+    "passwordShort": "A password is at least {count} characters.",
+    "pseudonym": "That pseudonym is not allowed.",
+    "signInFailed": "That email and password do not match an account.",
+    "signUpFailed": "The account could not be created.",
+    "socialFailed": "That provider could not be reached.",
+    "unreachable": "The server could not be reached. Try again."
+  }
+}

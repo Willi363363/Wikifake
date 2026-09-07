@@ -1,0 +1,33 @@
+{
+  "signInTitle": "Se connecter",
+  "signInLead": "Vos parties, votre série, et le score que vous essayez de battre.",
+  "signInSubmit": "Se connecter",
+  "signInBusy": "Connexion…",
+  "signInPrompt": "Vous avez déjà un compte ?",
+  "signInLink": "Se connecter",
+  "signUpTitle": "Créer un compte",
+  "signUpLead": "Un e-mail, un mot de passe, et le nom que les autres joueurs verront. Rien d’autre.",
+  "signUpSubmit": "Créer le compte",
+  "signUpBusy": "Création…",
+  "signUpPrompt": "Pas encore de compte ?",
+  "signUpLink": "En créer un",
+  "emailLabel": "E-mail",
+  "passwordLabel": "Mot de passe",
+  "pseudonymLabel": "Pseudonyme",
+  "pseudonymHint": "C’est ce que les autres joueurs voient. Votre e-mail n’apparaît jamais dans un salon.",
+  "orContinueWith": "ou continuer avec",
+  "playAsGuest": "Jouer sans compte",
+  "providers": {
+    "google": "Continuer avec Google",
+    "github": "Continuer avec GitHub"
+  },
+  "errors": {
+    "emailRequired": "Une adresse e-mail est nécessaire pour se connecter.",
+    "passwordShort": "Un mot de passe fait au moins {count} caractères.",
+    "pseudonym": "Ce pseudonyme n’est pas autorisé.",
+    "signInFailed": "Cet e-mail et ce mot de passe ne correspondent à aucun compte.",
+    "signUpFailed": "Le compte n’a pas pu être créé.",
+    "socialFailed": "Ce fournisseur est injoignable.",
+    "unreachable": "Le serveur est injoignable. Réessayez."
+  }
+}
