@@ -105,10 +105,8 @@ test can see, and it now says so.
 ## Found on the way, not fixed here
 
 **`margin-top: 0` on a stacked beat never applies.**
-`landing-stage.css` sets it inside the media query, with the comment "an
-absolutely positioned box with a margin is a box 5rem off the mark" — which is
-right about the consequence and wrong about the fix. The rhythm above it is
-`.landing-stage__beat + .landing-stage__beat`, two classes against one, and a
+`landing-stage.css` sets it inside the media query, and the rhythm above it is
+`.landing-stage__beat + .landing-stage__beat` — two classes against one, and a
 media query adds no specificity. Measured in Chromium at 1280 wide:
 
 ```
@@ -123,12 +121,12 @@ sheets on the same rectangle — never saw it. Beat 1 is the one that differs: i
 content is centred in a box 80px taller, so the question sits about 40 pixels
 above where every heading after it sits. Cosmetic, and real.
 
-It belongs in `../current-state/06-structural-debt.md`, beside `border-l-3` and
-`disabled:opacity-40` — the same family, a rule that reads correctly and does
-nothing. It is written here instead because that file is at 190 lines against
-the 200 cap and this entry does not fit in ten, and because
-`HANDOVER.md` was explicit that **the next finding needs the split, not a
-squeeze**. Splitting a debt register is a step of its own; it is not C.6.
+**It is filed in `../current-state/06-structural-debt.md`**, beside `border-l-3`
+and `disabled:opacity-40` — the same family, a rule that reads correctly and
+does nothing. It was written here first, when that register was at 190 lines
+against the 200 cap and the handover was explicit that the next finding needed
+the split rather than a squeeze; #180 did the split, so the entry went where it
+belongs. The measurement stays here because this is the step that took it.
 
 ## A note for whoever runs the journeys
 
