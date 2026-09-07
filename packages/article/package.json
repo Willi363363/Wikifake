@@ -24,6 +24,7 @@
     "@vitest/coverage-v8": "^3.2.4",
     "@wikifake/config": "workspace:*",
     "@wikifake/domain": "workspace:*",
+    "@wikifake/env": "workspace:*",
     "eslint": "^9.39.0",
     "redis": "^6.2.1",
     "typescript": "^5.9.3",

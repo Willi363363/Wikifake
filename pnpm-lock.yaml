@@ -260,6 +260,9 @@ importers:
       '@wikifake/domain':
         specifier: workspace:*
         version: link:../domain
+      '@wikifake/env':
+        specifier: workspace:*
+        version: link:../env
       eslint:
         specifier: ^9.39.0
         version: 9.39.5(jiti@2.7.0)(supports-color@8.1.1)
