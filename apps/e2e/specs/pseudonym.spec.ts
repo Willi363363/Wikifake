@@ -16,12 +16,20 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { fill, signUp, someone, type Someone } from './accounts.js';
 
 /**
- * The screen's own alert, as opposed to Next's route announcer.
+ * The form's own alert, as opposed to Next's route announcer.
  *
- * Both carry `role="alert"`; only one of them ever has anything to say.
+ * Next mounts a `NEXT-ROUTE-ANNOUNCER` with `role="alert"` after every
+ * client-side navigation, and this screen is only ever reached by one — so a
+ * bare `getByRole('alert')` matches a page with nothing wrong with it.
+ *
+ * Scoped to the `form`, which the announcer sits outside of. Filtering by
+ * *having text* was the first attempt and it is racy rather than wrong: the
+ * announcer is empty for an instant and then holds the page title, so the same
+ * assertion passed locally and failed in CI. Where an element **is** does not
+ * depend on when it is looked at.
  */
 function said(page: Page): Locator {
-  return page.getByRole('alert').filter({ hasText: /\S/ });
+  return page.locator('form').getByRole('alert');
 }
 
 /**
@@ -66,13 +74,7 @@ test.describe('E.3.2 — the name is claimed, and claimed once', () => {
       await expect(other.getByLabel('Pseudonym', { exact: true })).toHaveValue(
         second.pseudonym,
       );
-      // Arriving here is not an error state, so nothing is announced.
-      //
-      // Filtered by *having text*, and that is not belt-and-braces: Next mounts
-      // a `NEXT-ROUTE-ANNOUNCER` with `role="alert"` after every client-side
-      // navigation, and this screen is only ever reached by one. A bare
-      // `getByRole('alert')` counts the announcer and fails on a page with
-      // nothing wrong with it — which is exactly how this line first failed.
+      // Arriving here is not an error state: the form says nothing yet.
       await expect(said(other)).toHaveCount(0);
 
       // Trying the taken name again is refused here too, with the server's own
