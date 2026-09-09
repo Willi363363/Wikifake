@@ -24,6 +24,7 @@ import { pseudonymKey } from '@wikifake/protocol';
 
 import type { Database } from '../client.js';
 import { profile } from '../schema/profile.js';
+import { SQLSTATE, sqlstate } from '../sqlstate.js';
 
 /**
  * A connection **or** a transaction.
@@ -34,9 +35,6 @@ import { profile } from '../schema/profile.js';
  */
 type Tx = Parameters<Parameters<Database['db']['transaction']>[0]>[0];
 type Db = Database['db'] | Tx;
-
-/** Postgres says "that value is already there" with this SQLSTATE. */
-const UNIQUE_VIOLATION = '23505';
 
 /** The pseudonym an account holds, as stored and as compared. */
 export interface Pseudonym {
@@ -56,24 +54,6 @@ export interface Pseudonym {
 export type Claim =
   | { readonly ok: true; readonly pseudonym: Pseudonym }
   | { readonly ok: false; readonly reason: 'taken' };
-
-/**
- * The SQLSTATE a failure carries, or undefined when it carries none.
- *
- * Walked down the `cause` chain rather than read off the top error: drizzle
- * wraps the driver's error in its own, and a future version may wrap it again.
- * `testing/database.ts` walks the same chain for the same reason.
- */
-function sqlstate(error: unknown): string | undefined {
-  let current: unknown = error;
-  while (typeof current === 'object' && current !== null) {
-    if ('code' in current && typeof (current as { code: unknown }).code === 'string') {
-      return (current as { code: string }).code;
-    }
-    current = (current as { cause?: unknown }).cause;
-  }
-  return undefined;
-}
 
 /**
  * Gives an account the pseudonym it asked for, if nobody else holds it.
@@ -103,7 +83,7 @@ export async function claimPseudonym(
   try {
     await db.insert(profile).values({ userId, ...pseudonym });
   } catch (error) {
-    if (sqlstate(error) !== UNIQUE_VIOLATION) throw error;
+    if (sqlstate(error) !== SQLSTATE.uniqueViolation) throw error;
     return { ok: false, reason: 'taken' };
   }
 
