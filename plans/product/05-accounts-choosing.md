@@ -105,6 +105,16 @@ The three copies are now one `specs/accounts.ts`, using the whole stamp in both
 fields: the clock separates accounts a second apart and the random suffix
 separates two in the same millisecond, and neither alone is enough.
 
+**A second trap, and it took two goes.** Next mounts a `NEXT-ROUTE-ANNOUNCER`
+with `role="alert"` after every client-side navigation, and `/choose-a-name` is
+only ever reached by one — so `expect(getByRole('alert')).toHaveCount(0)` fails
+on a page with nothing wrong with it. The first fix filtered by *having text*,
+which passed locally and failed in CI: the announcer is empty for an instant and
+then holds the page title, so which of the two a run sees depends on how fast
+the machine is. The assertion is now scoped to the `form`, which the announcer
+sits outside of — **where an element is does not depend on when it is looked
+at**, and an absence assertion has no business depending on timing.
+
 ## E.3.3 — it is the only public identifier  ⬜
 
 **What we do.** A signed-in player stops typing a nickname per room: the lobby
