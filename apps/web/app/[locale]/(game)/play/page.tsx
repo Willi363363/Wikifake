@@ -10,14 +10,20 @@
 // over the network and the link would flicker from "Create an account" to
 // "Your profile" after hydration. An **anonymous** session is a guest, and a
 // guest is offered the account rather than the profile they do not have.
-import { headers } from 'next/headers';
-
-import { auth } from '../../../../src/auth/auth.js';
+//
+// Step E.3.2 — and it is the gate. This is the one screen every player passes
+// through and where signing in lands, so an account that has never chosen a
+// pseudonym is caught here rather than at the moment it would have mattered,
+// which is halfway into a room. A guest and a stranger go straight through:
+// playing without an account is a condition of done, not a degraded mode.
+import { requirePseudonym } from '../../../../src/account/gate.js';
 import { LobbyEntry } from '../../../../src/lobby/entry.js';
 
-export default async function PlayPage() {
-  const session = await auth().api.getSession({ headers: await headers() });
-  const signedIn = session !== null && session.user.isAnonymous !== true;
+/** Never prerendered: it reads a cookie and answers differently per player. */
+export const dynamic = 'force-dynamic';
 
-  return <LobbyEntry signedIn={signedIn} />;
+export default async function PlayPage() {
+  const viewer = await requirePseudonym();
+
+  return <LobbyEntry signedIn={viewer.kind === 'account'} />;
 }

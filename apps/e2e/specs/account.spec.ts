@@ -16,21 +16,9 @@
 // registered redirect URI — step E.1, and a person. What this suite can hold is
 // that no button is offered when nothing is configured, which is the state
 // every run of it is in.
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-/** A fresh address per run: the database is not truncated between them. */
-function someone(): { email: string; password: string; pseudonym: string } {
-  const stamp = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  return {
-    email: `ada-${stamp}@example.test`,
-    password: 'a-password-of-real-length',
-    pseudonym: `Ada${stamp.slice(0, 6)}`,
-  };
-}
-
-async function fill(page: Page, label: string, value: string): Promise<void> {
-  await page.getByLabel(label, { exact: true }).fill(value);
-}
+import { fill, someone } from './accounts.js';
 
 test.describe('E.2 — an account, end to end', () => {
   test('is created, and survives being come back to', async ({ page, browser }) => {

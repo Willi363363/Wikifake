@@ -21,6 +21,7 @@ import {
   submitRequest,
   submitResponse,
 } from './game.js';
+import { claimPseudonymRequest, claimPseudonymResponse } from './account.js';
 import { flagReportRequest, flagReportResponse } from './flags.js';
 import { healthResponse, pingResponse, usageResponse } from './health.js';
 import { createRoomRequest, createRoomResponse } from './rooms.js';
@@ -76,6 +77,15 @@ export const ROUTES: readonly Route[] = [
     path: '/api/realtime/ticket',
     request: realtimeTicketRequest,
     response: realtimeTicketResponse,
+  },
+  {
+    // Step E.3.2. A body rather than a query parameter: the pseudonym is what
+    // the request sends, not what it is bound to, and a name in a URL is a name
+    // in an access log.
+    method: 'POST',
+    path: '/api/account/pseudonym',
+    request: claimPseudonymRequest,
+    response: claimPseudonymResponse,
   },
   {
     method: 'POST',

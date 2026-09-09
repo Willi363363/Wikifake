@@ -11,6 +11,10 @@
   "signUpBusy": "Creating…",
   "signUpPrompt": "No account yet?",
   "signUpLink": "Create one",
+  "chooseTitle": "Choose your name",
+  "chooseLead": "One thing left: the name other players will see. It has to be yours alone.",
+  "chooseSubmit": "Take this name",
+  "chooseBusy": "Claiming…",
   "emailLabel": "Email",
   "passwordLabel": "Password",
   "pseudonymLabel": "Pseudonym",
@@ -28,7 +32,8 @@
     "signInFailed": "That email and password do not match an account.",
     "signUpFailed": "The account could not be created.",
     "socialFailed": "That provider could not be reached.",
-    "unreachable": "The server could not be reached. Try again."
+    "unreachable": "The server could not be reached. Try again.",
+    "pseudonymFailed": "That pseudonym could not be claimed."
   },
   "profile": {
     "emailPrivate": "Signed in as {email} — only you see this.",

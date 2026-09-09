@@ -4,7 +4,11 @@ The record of **E.3**, which the list carried as one line — *pseudonym: chosen
 unique, and the only public identifier* — and which is three.
 
 `05-accounts.md` keeps the step table: the only place that says where a step
-stands.
+stands. This sheet carries the re-cut and **E.3.1**, the data rule;
+`05-accounts-choosing.md` carries **E.3.2 and E.3.3**, which are how an account
+comes to have a pseudonym and where it is then shown. Two sheets because one
+reached the line cap, and the seam is the natural one: what the rule *is*, and
+who is held to it.
 
 ## Why it is three steps
 
@@ -154,24 +158,3 @@ the path that feeds it.
 means a second claim for an account that already has one comes back `taken`. A
 player changing their pseudonym is a decision about who keeps a leaderboard
 entry, and this step does not take it.
-
-## E.3.2 — every account chooses one  ⬜
-
-**What we do.** A `profile` row is what makes a pseudonym chosen, so its absence
-is what marks an account that has not chosen. Sign-up claims one and shows the
-refusal when it is taken; an account with a session and no row — every account
-that arrived through Google — is sent to a screen that asks for one.
-
-**Done when** an account cannot reach the game without a pseudonym, whichever
-way it was created, and a taken one is refused with a sentence rather than a
-stack trace.
-
-## E.3.3 — it is the only public identifier  ⬜
-
-**What we do.** A signed-in player stops typing a nickname per room: the lobby
-offers their pseudonym, and `/api/realtime/ticket` mints for it. A guest keeps
-typing one, because a guest has no pseudonym to offer.
-
-**Done when** a room, a leaderboard and a shared score show a signed-in player's
-pseudonym and nothing else, and two players in one room cannot be shown the same
-name.

@@ -11,6 +11,10 @@
   "signUpBusy": "Création…",
   "signUpPrompt": "Pas encore de compte ?",
   "signUpLink": "En créer un",
+  "chooseTitle": "Choisissez votre nom",
+  "chooseLead": "Il ne manque qu’une chose : le nom que les autres joueurs verront. Il doit n’être qu’à vous.",
+  "chooseSubmit": "Prendre ce nom",
+  "chooseBusy": "Réservation…",
   "emailLabel": "E-mail",
   "passwordLabel": "Mot de passe",
   "pseudonymLabel": "Pseudonyme",
@@ -28,7 +32,8 @@
     "signInFailed": "Cet e-mail et ce mot de passe ne correspondent à aucun compte.",
     "signUpFailed": "Le compte n’a pas pu être créé.",
     "socialFailed": "Ce fournisseur est injoignable.",
-    "unreachable": "Le serveur est injoignable. Réessayez."
+    "unreachable": "Le serveur est injoignable. Réessayez.",
+    "pseudonymFailed": "Ce pseudonyme n’a pas pu être réservé."
   },
   "profile": {
     "emailPrivate": "Connecté en tant que {email} — vous seul le voyez.",

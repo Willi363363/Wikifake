@@ -32,6 +32,10 @@ const STATUS: Readonly<Partial<Record<ErrorCode, number>>> = {
   hints_blocked: 403,
   /** C5.6 — too many rooms are open. Temporary, hence 503 and not 429. */
   room_capacity_reached: 503,
+  /** E.3.2 — a pseudonym another account holds. A conflict, and a lasting one. */
+  pseudonym_taken: 409,
+  /** E.3.2 — a pseudonym the protocol's own schema refuses. The caller can fix it. */
+  invalid_name: BAD_REQUEST,
 };
 
 export function statusFor(code: ErrorCode): number {

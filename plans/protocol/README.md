@@ -37,6 +37,7 @@ rather than on prose (C5.1).
 - `invalid_target`
 - `out_of_phase`
 - `item_not_held`
+- `pseudonym_taken`
 
 ## Item identifiers
 

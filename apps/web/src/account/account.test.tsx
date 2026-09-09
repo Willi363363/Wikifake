@@ -24,6 +24,9 @@ const signUpEmail = vi.fn();
 const signInEmail = vi.fn();
 const signInSocial = vi.fn();
 const push = vi.fn();
+const refresh = vi.fn();
+/** Step E.3.2 — sign-up claims the pseudonym over HTTP once the account exists. */
+const claimed = vi.fn();
 
 vi.mock('./client.js', async () => {
   const actual = await vi.importActual<typeof Client>('./client.js');
@@ -41,7 +44,12 @@ vi.mock('./client.js', async () => {
   };
 });
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push, refresh }) }));
+
+// The claim is the real `fetch` call `pseudonym-form.ts` makes; what is stubbed
+// is the network under it, so the request this screen sends is asserted rather
+// than assumed. `claim.test.ts` drives the handler on the other end for real.
+vi.stubGlobal('fetch', (...args: unknown[]) => claimed(...args));
 
 const { AccountScreen } = await import('./account-screen.js');
 
@@ -49,6 +57,11 @@ beforeEach(() => {
   signUpEmail.mockResolvedValue({ data: {}, error: null });
   signInEmail.mockResolvedValue({ data: {}, error: null });
   signInSocial.mockResolvedValue({ data: {}, error: null });
+  claimed.mockResolvedValue(
+    new Response(JSON.stringify({ pseudonym: 'Ada' }), {
+      headers: { 'content-type': 'application/json' },
+    }),
+  );
 });
 
 afterEach(() => {
@@ -187,6 +200,85 @@ describe('E.2 — creating an account', () => {
 
     expect((await screen.findByRole('alert')).textContent).toContain('at least 8');
     expect(signUpEmail).not.toHaveBeenCalled();
+  });
+});
+
+describe('E.3.2 — the account claims the pseudonym it was created with', () => {
+  /** Fills the three fields and submits. */
+  async function createAccount(pseudonym = 'Ada'): Promise<void> {
+    const user = userEvent.setup();
+    show('signUp');
+
+    await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+    await user.type(screen.getByLabelText('Pseudonym'), pseudonym);
+    await user.type(screen.getByLabelText('Password'), 'a-real-password');
+    await user.click(screen.getByRole('button', { name: 'Create the account' }));
+  }
+
+  it('claims the name the moment the account exists', async () => {
+    await createAccount('  Ada  ');
+
+    // The trimmed name, and the same one it handed Better Auth: two calls that
+    // disagreed would give an account a pseudonym its owner never typed.
+    expect(claimed).toHaveBeenCalledWith('/api/account/pseudonym', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ pseudonym: 'Ada' }),
+    });
+    expect(push).toHaveBeenCalledWith('/play');
+  });
+
+  it('claims nothing when signing in', async () => {
+    const user = userEvent.setup();
+    show('signIn');
+
+    await user.type(screen.getByLabelText('Email'), 'ada@example.com');
+    await user.type(screen.getByLabelText('Password'), 'a-real-password');
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    // Signing in is returning to a pseudonym, not taking one.
+    expect(claimed).not.toHaveBeenCalled();
+  });
+
+  it('sends a refused name to the screen that asks for another', async () => {
+    claimed.mockResolvedValue(
+      new Response(JSON.stringify({ code: 'pseudonym_taken', message: 'Taken.' }), {
+        status: 409,
+        headers: { 'content-type': 'application/json' },
+      }),
+    );
+
+    await createAccount('Ada');
+
+    // Not an error on this form: the account exists and there is a session, so
+    // this screen can no longer do anything about it. The name travels, so the
+    // next screen opens filled in rather than empty.
+    expect(push).toHaveBeenCalledWith('/choose-a-name?attempted=Ada');
+    expect(push).not.toHaveBeenCalledWith('/play');
+  });
+
+  it('sends them there too when the claim never arrives', async () => {
+    claimed.mockRejectedValue(new Error('offline'));
+
+    await createAccount('Ada');
+
+    // The account was created — the failure is after it — so the unreachable
+    // sentence would be a lie about what happened. Same destination, and the
+    // gate on `/play` would have sent them there anyway.
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'could not be reached',
+    );
+    expect(push).not.toHaveBeenCalledWith('/play');
+  });
+
+  it('does not claim when the account was not created', async () => {
+    signUpEmail.mockResolvedValue({ error: { message: 'User already exists' } });
+
+    await createAccount('Ada');
+
+    // A claim with no account behind it would spend a pseudonym on whoever is
+    // signed in already — or on nobody.
+    expect(claimed).not.toHaveBeenCalled();
   });
 });
 
