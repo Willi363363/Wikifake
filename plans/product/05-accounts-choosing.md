@@ -105,15 +105,24 @@ The three copies are now one `specs/accounts.ts`, using the whole stamp in both
 fields: the clock separates accounts a second apart and the random suffix
 separates two in the same millisecond, and neither alone is enough.
 
-**A second trap, and it took two goes.** Next mounts a `NEXT-ROUTE-ANNOUNCER`
-with `role="alert"` after every client-side navigation, and `/choose-a-name` is
-only ever reached by one — so `expect(getByRole('alert')).toHaveCount(0)` fails
-on a page with nothing wrong with it. The first fix filtered by *having text*,
-which passed locally and failed in CI: the announcer is empty for an instant and
-then holds the page title, so which of the two a run sees depends on how fast
-the machine is. The assertion is now scoped to the `form`, which the announcer
-sits outside of — **where an element is does not depend on when it is looked
-at**, and an absence assertion has no business depending on timing.
+**A second trap, and it took three goes across two steps.** Next mounts a
+`NEXT-ROUTE-ANNOUNCER` with `role="alert"` after every client-side navigation,
+so a bare `getByRole('alert')` matches on a page with nothing wrong with it —
+and matches *twice* on a page that does, which is a strict-mode violation rather
+than an assertion.
+
+The first fix filtered by *having text*. That is racy rather than wrong: the
+announcer is empty for an instant and then holds the page title, so the same
+assertion passed locally and failed in CI. Scoping to the `form` — which the
+announcer sits outside of — fixed `pseudonym.spec.ts`, and then **E.7's CI run
+hit the identical failure in `account.spec.ts`**, a spec neither step had
+touched: it had been one client-side navigation away from two alerts all along.
+
+So `said(page)` lives in `specs/accounts.ts` and every alert assertion in the
+suite goes through it. This is a property of the framework rather than of a
+screen, and a helper each spec has to remember is a helper the next spec will
+not. **Where an element is does not depend on when it is looked at**, which is
+the whole reason scoping beats filtering.
 
 ## E.3.3 — it is the only public identifier  ✅
 

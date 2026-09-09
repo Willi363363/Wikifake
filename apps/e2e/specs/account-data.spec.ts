@@ -13,7 +13,7 @@
 // abort.
 import { expect, test } from '@playwright/test';
 
-import { fill, signUp, someone } from './accounts.js';
+import { fill, said, signUp, someone } from './accounts.js';
 
 test.describe('E.7 — your data, and its way out', () => {
   test('is exported as a file the browser saves', async ({ page }) => {
@@ -78,7 +78,7 @@ test.describe('E.7 — your data, and its way out', () => {
       await fill(returning, 'Password', ada.password);
       await returning.getByRole('button', { name: 'Sign in' }).click();
 
-      await expect(returning.locator('form').getByRole('alert')).toBeVisible();
+      await expect(said(returning)).toBeVisible();
       await expect(returning).toHaveURL(/\/sign-in$/);
     } finally {
       await second.close();
