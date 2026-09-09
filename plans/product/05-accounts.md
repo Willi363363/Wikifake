@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 E.2, E.3.1, E.3.2, E.3b, E.4 and E.5 done; E.1 awaiting credentials |
+| **State** | 🔶 E.1 awaiting credentials; E.6 and E.7 left |
 | **Branch** | `feat/player-accounts` |
 | **Depends on** | — |
 | **Delivers** | sign-in that works in production, a profile, and per-player stats |
@@ -55,7 +55,7 @@ leaderboard or a shared score.
 | E.2 | Sign-in and sign-up screens, on the direction | ✅ |
 | E.3.1 | The pseudonym is a row of its own, and no two accounts share one | ✅ |
 | E.3.2 | Every account chooses one, including one that arrived through Google | ✅ |
-| E.3.3 | It is the only public identifier: a room shows it and nothing else | ⬜ |
+| E.3.3 | It is the only public identifier: a room shows it and nothing else | ✅ |
 | E.3b.1 | Multiplayer results reach the database | ✅ |
 | E.3b.2 | The socket player carries their account | ✅ |
 | E.4 | `player_stats` — the aggregate a profile reads | ✅ |

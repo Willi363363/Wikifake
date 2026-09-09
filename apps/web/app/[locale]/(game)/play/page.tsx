@@ -16,6 +16,10 @@
 // pseudonym is caught here rather than at the moment it would have mattered,
 // which is halfway into a room. A guest and a stranger go straight through:
 // playing without an account is a condition of done, not a degraded mode.
+//
+// Step E.3.3 — the pseudonym travels down with it, so the screen tells a
+// signed-in player what they will be called instead of asking. The guarantee
+// itself is the ticket route's; this is what keeps the screen honest about it.
 import { requirePseudonym } from '../../../../src/account/gate.js';
 import { LobbyEntry } from '../../../../src/lobby/entry.js';
 
@@ -25,5 +29,10 @@ export const dynamic = 'force-dynamic';
 export default async function PlayPage() {
   const viewer = await requirePseudonym();
 
-  return <LobbyEntry signedIn={viewer.kind === 'account'} />;
+  return (
+    <LobbyEntry
+      signedIn={viewer.kind === 'account'}
+      {...(viewer.pseudonym === undefined ? {} : { pseudonym: viewer.pseudonym })}
+    />
+  );
 }

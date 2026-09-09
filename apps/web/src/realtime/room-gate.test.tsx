@@ -42,14 +42,19 @@ let uninstall: () => void;
  * suite that took it by accident would be asserting the wrong one. What a
  * ticket *is* belongs to `@wikifake/tickets`; what belongs here is that the
  * socket waits for the answer and carries it.
+ *
+ * Step E.3.3 — and the answer carries a **name**, which the gate must use in
+ * place of the one in `sessionStorage`. It defaults to what the browser asked
+ * for, so every case written before this step still describes itself.
  */
-function stubTicket(ticket: string | null = 'signed.ticket'): void {
-  vi.stubGlobal('fetch', () =>
-    Promise.resolve({
+function stubTicket(ticket: string | null = 'signed.ticket', playerName?: string): void {
+  vi.stubGlobal('fetch', (url: string) => {
+    const asked = new URL(url, 'http://localhost').searchParams.get('name') ?? '';
+    return Promise.resolve({
       ok: ticket !== null,
-      json: () => Promise.resolve({ ticket }),
-    } as Response),
-  );
+      json: () => Promise.resolve({ ticket, playerName: playerName ?? asked }),
+    } as Response);
+  });
 }
 
 /**
@@ -130,6 +135,41 @@ describe('9.5 — the gate, after a navigation', () => {
     // And the statement of who they are, which is the other half of what this
     // gate now resolves before letting a socket open.
     expect(opened[0]?.url).toContain('auth=signed.ticket');
+  });
+
+  // Step E.3.3 — the server's name wins over the one in `sessionStorage`.
+  it('opens the socket under the name the server answered with', async () => {
+    // What a player typed as a guest, still in this tab after they signed up.
+    rememberNickname('ada');
+    // What the account is actually called. The ticket route substitutes it.
+    stubTicket('signed.ticket', 'AdaLovelace');
+    route = { code: 'A1B2C3' };
+    render(
+      <RoomGate>
+        <Probe />
+      </RoomGate>,
+    );
+
+    await resolved();
+    expect(opened[0]?.url).toContain('/ws/A1B2C3/AdaLovelace');
+    // And the provider agrees, so the chat knows which lines are its own.
+    expect(screen.getByText(/AdaLovelace/)).not.toBeNull();
+  });
+
+  // A ticket that never arrived must not also cost the player their name.
+  it('falls back to the stored nickname when there is no ticket', async () => {
+    rememberNickname('ada');
+    stubTicket(null);
+    route = { code: 'A1B2C3' };
+    render(
+      <RoomGate>
+        <Probe />
+      </RoomGate>,
+    );
+
+    await resolved();
+    expect(opened[0]?.url).toContain('/ws/A1B2C3/ada');
+    expect(opened[0]?.url).not.toContain('auth=');
   });
 
   it('follows the player from one room to another', async () => {

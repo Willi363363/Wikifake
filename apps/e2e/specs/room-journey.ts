@@ -13,6 +13,20 @@ export async function arrive(context: BrowserContext): Promise<Page> {
 }
 
 /**
+ * Types a nickname, unless the screen is not asking for one.
+ *
+ * Step E.3.3 — a signed-in player is told their name instead of asked for it,
+ * so the field is absent for them. Skipping rather than branching at every call
+ * site: whether this journey's player happens to have an account is not what
+ * any of these helpers is about, and a guest and an account walk the same
+ * screens either way.
+ */
+async function nameYourself(page: Page, nickname: string): Promise<void> {
+  const field = page.getByLabel('Nickname');
+  if ((await field.count()) > 0) await field.fill(nickname);
+}
+
+/**
  * Opens a room, and hands back its code.
  *
  * From the URL rather than from the heading: the entry screen has an `<h1>` too,
@@ -20,7 +34,7 @@ export async function arrive(context: BrowserContext): Promise<Page> {
  */
 export async function host(page: Page, nickname: string): Promise<string> {
   await page.getByRole('tab', { name: 'Host' }).click();
-  await page.getByLabel('Nickname').fill(nickname);
+  await nameYourself(page, nickname);
   await page.getByRole('button', { name: 'Open a room' }).click();
 
   await page.waitForURL(/\/room\/[A-Z0-9]{6}$/, { timeout: 20_000 });
@@ -32,7 +46,7 @@ export async function host(page: Page, nickname: string): Promise<string> {
 export async function join(page: Page, code: string, nickname: string): Promise<void> {
   await page.getByRole('tab', { name: 'Join' }).click();
   await page.getByLabel('Room code').fill(code);
-  await page.getByLabel('Nickname').fill(nickname);
+  await nameYourself(page, nickname);
   await page.getByRole('button', { name: 'Join' }).click();
   await page.waitForURL(new RegExp(`/room/${code}$`), { timeout: 20_000 });
 }
