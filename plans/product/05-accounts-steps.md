@@ -124,8 +124,7 @@ decision is made on the server so it does not flicker after hydration.
 
 ## E.7 — Export and delete
 
-Built here rather than deferred, because it is an hour's work while the schema
-is small and a week's work once quests, coins and leaderboards reference a
-player. Delete removes the account and anonymises what must be kept for the
-game's integrity — a finished room keeps its scores, attributed to a deleted
-player.
+Its own sheet, `05-accounts-erasure.md`: the intent fitted in a paragraph and
+what building it found did not. In short — built now because it is an hour's
+work while the schema is small and a week's once quests, coins and leaderboards
+reference a player, and because `delete from "user"` turned out to abort.

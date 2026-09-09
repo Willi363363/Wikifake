@@ -66,7 +66,7 @@ export function serverPage(): string {
 export function restPage(): string {
   return page(
     'REST — routes and payloads',
-    ['Ten routes. A `GET` takes no body.'],
+    ['Twelve routes. A `GET` takes no body.'],
     ROUTES.flatMap((route) => [
       `## \`${route.method} ${route.path}\``,
       '',

@@ -20,6 +20,7 @@ import { Separator } from '@wikifake/ui';
 import { useFormatter, useTranslations } from 'next-intl';
 import Link from 'next/link';
 
+import { AccountData } from './account-data.js';
 import { SignOutButton } from './sign-out-button.js';
 
 export interface ProfileProps {
@@ -117,6 +118,11 @@ export function Profile({ pseudonym, email, stats }: ProfileProps) {
           </p>
         </>
       )}
+
+      {/* Step E.7 — the two rights, on the one screen that is theirs. A
+          settings page for two controls would be a screen nobody visits and a
+          right nobody knows they have. */}
+      <AccountData pseudonym={pseudonym} />
 
       <Separator className="my-8" />
 
