@@ -14,7 +14,8 @@
 // being assumed from a happy path.
 import { cleanup, screen } from '@testing-library/react';
 import type { PlayerStats } from '@wikifake/db';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { render, renderIn } from '../i18n/testing.js';
 import { Profile } from './profile.js';
@@ -47,8 +48,8 @@ const PLAYED: PlayerStats = {
   lastSeen: new Date('2026-09-01T10:00:00.000Z'),
 };
 
-function show(stats: PlayerStats | null) {
-  return render(<Profile pseudonym="Ada" email="ada@example.test" stats={stats} />);
+function show(stats: PlayerStats | null, pseudonym = 'Ada') {
+  return render(<Profile pseudonym={pseudonym} email="ada@example.test" stats={stats} />);
 }
 
 describe('E.5 — a player who has played', () => {
@@ -133,5 +134,111 @@ describe('E.5 — in French', () => {
     // a French percentage carries a non-breaking space before the sign.
     expect(screen.getByText(/80\s%/)).toBeDefined();
     expect(screen.getByText(/3 manches parfaites/)).toBeDefined();
+  });
+});
+
+// Step E.7 — the two rights, and the asymmetry between them.
+//
+// `data.test.ts` proves who the routes let in and `packages/db`'s
+// `account.test.ts` proves what they do to rows. What belongs here is the part
+// that is only a screen's: that one of these can be done twice with no
+// consequence and the other cannot be undone at all, and that the screen says
+// so before it does it.
+describe('E.7 — your data', () => {
+  const deleted = vi.fn();
+
+  beforeEach(() => {
+    deleted.mockResolvedValue(new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', (...args: unknown[]) => deleted(...args));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+  });
+
+  it('offers the export as a download, not as a script', async () => {
+    show(PLAYED, 'AdaLovelace');
+
+    // The browser knows how to save a file, and the route answers with
+    // `content-disposition`. A script that built a blob would be a second
+    // implementation of downloading.
+    const link = screen.getByRole('link', { name: 'Download my data' });
+    expect(link.getAttribute('href')).toBe('/api/account/export');
+    expect(link.hasAttribute('download')).toBe(true);
+  });
+
+  it('says what deleting costs before offering to do it', async () => {
+    show(PLAYED, 'AdaLovelace');
+
+    expect(screen.getByText(/cannot be undone/)).toBeDefined();
+    // And what survives, which is the half a player would not guess: their
+    // scores stay in the games other people played.
+    expect(screen.getByText(/stay in the games you played them in/)).toBeDefined();
+  });
+
+  it('asks for the pseudonym before it will delete anything', async () => {
+    const user = userEvent.setup();
+    show(PLAYED, 'AdaLovelace');
+
+    await user.click(screen.getByRole('button', { name: 'Delete my account' }));
+
+    const confirm = screen.getByRole('button', { name: 'Delete it' });
+    // Armed by typing their own name, which a mis-click does not do.
+    expect(confirm.hasAttribute('disabled')).toBe(true);
+    expect(deleted).not.toHaveBeenCalled();
+  });
+
+  it('refuses a near miss', async () => {
+    const user = userEvent.setup();
+    show(PLAYED, 'AdaLovelace');
+
+    await user.click(screen.getByRole('button', { name: 'Delete my account' }));
+    // Not case-folded: this is a deliberate act, not a login, and the moment's
+    // pause is the feature.
+    await user.type(screen.getByLabelText('Type AdaLovelace to confirm'), 'adalovelace');
+
+    expect(
+      screen.getByRole('button', { name: 'Delete it' }).hasAttribute('disabled'),
+    ).toBe(true);
+  });
+
+  it('deletes once the name matches, and leaves', async () => {
+    const user = userEvent.setup();
+    show(PLAYED, 'AdaLovelace');
+
+    await user.click(screen.getByRole('button', { name: 'Delete my account' }));
+    await user.type(screen.getByLabelText('Type AdaLovelace to confirm'), 'AdaLovelace');
+    await user.click(screen.getByRole('button', { name: 'Delete it' }));
+
+    expect(deleted).toHaveBeenCalledWith('/api/account/delete', { method: 'POST' });
+  });
+
+  it('lets a player back out', async () => {
+    const user = userEvent.setup();
+    show(PLAYED, 'AdaLovelace');
+
+    await user.click(screen.getByRole('button', { name: 'Delete my account' }));
+    await user.click(screen.getByRole('button', { name: 'Keep my account' }));
+
+    expect(screen.queryByRole('button', { name: 'Delete it' })).toBeNull();
+    expect(deleted).not.toHaveBeenCalled();
+  });
+
+  it('says nothing changed when the delete fails', async () => {
+    deleted.mockResolvedValue(new Response('nope', { status: 500 }));
+    const user = userEvent.setup();
+    show(PLAYED, 'AdaLovelace');
+
+    await user.click(screen.getByRole('button', { name: 'Delete my account' }));
+    await user.type(screen.getByLabelText('Type AdaLovelace to confirm'), 'AdaLovelace');
+    await user.click(screen.getByRole('button', { name: 'Delete it' }));
+
+    // The sentence matters more here than anywhere else on the site: a player
+    // who is told nothing after asking to be deleted does not know whether they
+    // have been.
+    expect((await screen.findByRole('alert')).textContent).toContain(
+      'Nothing has changed',
+    );
   });
 });

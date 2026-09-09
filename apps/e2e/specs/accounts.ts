@@ -14,7 +14,7 @@
 //
 // The email never had the bug — it used the whole stamp — which is why nothing
 // noticed for four steps.
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 
 export interface Someone {
   readonly email: string;
@@ -61,4 +61,25 @@ export async function signUp(page: Page, who: Someone): Promise<void> {
   await fill(page, 'Pseudonym', who.pseudonym);
   await fill(page, 'Password', who.password);
   await page.getByRole('button', { name: 'Create the account' }).click();
+}
+
+/**
+ * A screen's own alert, as opposed to Next's route announcer.
+ *
+ * **Both carry `role="alert"`**, and the announcer is mounted after every
+ * client-side navigation — so a bare `getByRole('alert')` matches on a page with
+ * nothing wrong with it, and matches *twice* on one that does have something
+ * wrong, which is a strict-mode violation rather than an assertion.
+ *
+ * Scoped to the `form`, which the announcer sits outside of. Filtering by having
+ * text was the first attempt and it is racy rather than wrong: the announcer is
+ * empty for an instant and then holds the page title, so the same assertion
+ * passes on a fast machine and fails on a loaded one. Where an element **is**
+ * does not depend on when it is looked at.
+ *
+ * Here rather than in one spec because it cost two CI runs in two different
+ * files: this is a property of the framework, not of a screen.
+ */
+export function said(page: Page): Locator {
+  return page.locator('form').getByRole('alert');
 }

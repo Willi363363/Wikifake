@@ -18,7 +18,7 @@
 // every run of it is in.
 import { expect, test } from '@playwright/test';
 
-import { fill, someone } from './accounts.js';
+import { fill, said, someone } from './accounts.js';
 
 test.describe('E.2 — an account, end to end', () => {
   test('is created, and survives being come back to', async ({ page, browser }) => {
@@ -71,7 +71,7 @@ test.describe('E.2 — an account, end to end', () => {
     await page.getByRole('button', { name: 'Sign in' }).click();
 
     // Announced, not merely displayed — and the page has not moved.
-    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(said(page)).toBeVisible();
     await expect(page).toHaveURL(/\/sign-in$/);
   });
 
@@ -91,7 +91,7 @@ test.describe('E.2 — an account, end to end', () => {
         // Better Auth's own sentence, shown verbatim. What is asserted is that
         // the screen shows *something* and stays put: pinning the library's
         // wording here would be pinning a string this repository does not own.
-        await expect(page.getByRole('alert')).toBeVisible();
+        await expect(said(page)).toBeVisible();
         await expect(page).toHaveURL(/\/sign-up$/);
       }
     }

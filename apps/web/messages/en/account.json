@@ -51,5 +51,17 @@
     "play": "Play a round",
     "signOut": "Sign out",
     "signingOut": "Signing out…"
+  },
+  "data": {
+    "title": "Your data",
+    "exportLead": "Everything this game holds about you, as a file. Your games, your figures, your reports.",
+    "exportLink": "Download my data",
+    "deleteLead": "Deleting your account cannot be undone. Rounds you finished stay in the games you played them in, with nothing linking them back to you.",
+    "deleteStart": "Delete my account",
+    "confirmLabel": "Type {pseudonym} to confirm",
+    "deleteConfirm": "Delete it",
+    "deleteBusy": "Deleting…",
+    "cancel": "Keep my account",
+    "deleteFailed": "The account could not be deleted. Nothing has changed."
   }
 }

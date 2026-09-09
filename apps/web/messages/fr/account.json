@@ -51,5 +51,17 @@
     "play": "Jouer une manche",
     "signOut": "Se déconnecter",
     "signingOut": "Déconnexion…"
+  },
+  "data": {
+    "title": "Vos données",
+    "exportLead": "Tout ce que ce jeu conserve sur vous, dans un fichier. Vos parties, vos chiffres, vos signalements.",
+    "exportLink": "Télécharger mes données",
+    "deleteLead": "La suppression de votre compte est définitive. Les manches terminées restent dans les parties où vous les avez jouées, sans plus rien qui y mène.",
+    "deleteStart": "Supprimer mon compte",
+    "confirmLabel": "Tapez {pseudonym} pour confirmer",
+    "deleteConfirm": "Supprimer",
+    "deleteBusy": "Suppression…",
+    "cancel": "Garder mon compte",
+    "deleteFailed": "Le compte n’a pas pu être supprimé. Rien n’a changé."
   }
 }

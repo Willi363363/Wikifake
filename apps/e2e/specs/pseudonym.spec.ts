@@ -11,26 +11,9 @@
 // suite can hold is the state every account arrives from Google in: signed in,
 // with no pseudonym. Signing up and losing the claim reaches that state without
 // a console, which is why the two paths were deliberately made the same path.
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-import { fill, signUp, someone, type Someone } from './accounts.js';
-
-/**
- * The form's own alert, as opposed to Next's route announcer.
- *
- * Next mounts a `NEXT-ROUTE-ANNOUNCER` with `role="alert"` after every
- * client-side navigation, and this screen is only ever reached by one — so a
- * bare `getByRole('alert')` matches a page with nothing wrong with it.
- *
- * Scoped to the `form`, which the announcer sits outside of. Filtering by
- * *having text* was the first attempt and it is racy rather than wrong: the
- * announcer is empty for an instant and then holds the page title, so the same
- * assertion passed locally and failed in CI. Where an element **is** does not
- * depend on when it is looked at.
- */
-function said(page: Page): Locator {
-  return page.locator('form').getByRole('alert');
-}
+import { fill, said, signUp, someone, type Someone } from './accounts.js';
 
 /**
  * Two accounts that want the same name, and that is the subject.

@@ -21,7 +21,13 @@ import {
   submitRequest,
   submitResponse,
 } from './game.js';
-import { claimPseudonymRequest, claimPseudonymResponse } from './account.js';
+import {
+  claimPseudonymRequest,
+  claimPseudonymResponse,
+  deleteAccountRequest,
+  deleteAccountResponse,
+  exportAccountResponse,
+} from './account.js';
 import { flagReportRequest, flagReportResponse } from './flags.js';
 import { healthResponse, pingResponse, usageResponse } from './health.js';
 import { createRoomRequest, createRoomResponse } from './rooms.js';
@@ -86,6 +92,22 @@ export const ROUTES: readonly Route[] = [
     path: '/api/account/pseudonym',
     request: claimPseudonymRequest,
     response: claimPseudonymResponse,
+  },
+  {
+    // Step E.7. No `request`: a `GET` has no body, and the account is the
+    // session's rather than a parameter — there is nothing to ask about.
+    method: 'GET',
+    path: '/api/account/export',
+    response: exportAccountResponse,
+  },
+  {
+    // Step E.7. `POST` and not `DELETE`: this is the one irreversible thing a
+    // player can do here, and a method a prefetcher might reach for is the
+    // wrong one to hang it on.
+    method: 'POST',
+    path: '/api/account/delete',
+    request: deleteAccountRequest,
+    response: deleteAccountResponse,
   },
   {
     method: 'POST',
