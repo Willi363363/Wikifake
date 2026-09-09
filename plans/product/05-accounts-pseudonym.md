@@ -44,6 +44,41 @@ chosen one.
 and until this step nothing but the seed had ever written a row. A refusal from
 here is a sentence a player can act on.
 
+### Better Auth's `username` plugin, and why it was not taken
+
+**It exists, it does most of this, and it was found late** — after the schema
+was written, by reading `node_modules` for something else. Recorded rather than
+quietly not mentioned, because "we did not know" and "we decided" are different
+answers and only one of them is reviewable.
+
+`better-auth`'s `username` plugin adds `user.username` — unique, normalised by a
+function you supply — and `user.displayUsername` beside it, which is the same
+shape as `display_name_key` and `display_name`. `usernameNormalization` would
+take `pseudonymKey` unchanged. It is a real alternative, and the argument this
+sheet makes above about `user.name` does not apply to it: the plugin declares
+those columns itself, so the adapter and the schema agree by construction rather
+than by our care.
+
+Three reasons it is still not what this step wants:
+
+- **It brings a sign-in surface nobody asked for.** `/sign-in/username` becomes
+  a route the moment the plugin is registered, and an account is then reachable
+  by a name other players can see. That widens what a leaked pseudonym is worth,
+  for a feature track E does not list.
+- **It puts the pseudonym back on Better Auth's table**, and couples a migration
+  we own to a schema a third party versions. Phase 2 kept `profile` separate for
+  that reason; a plugin's columns are safer than ours would be, but they are
+  still theirs.
+- **It does not solve the step that made E.3 hard.** An account created through
+  Google arrives with no username under the plugin exactly as it arrives with no
+  profile row without it. E.3.2 is needed either way, and it is the larger half.
+
+The trade is roughly a hundred and thirty lines of ours against a dependency on
+a plugin's schema and an endpoint we would have to disable. If E.3.2 finds that
+it wants the plugin's sign-up wiring badly enough, the migration back is one
+table and one backfill — which is worth saying now, while the table has no rows
+in it.
+
 ### The fold is a stored column, because SQL cannot be trusted with it
 
 A `unique index on lower(display_name)` looks equivalent and is not.
