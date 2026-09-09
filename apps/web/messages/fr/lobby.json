@@ -9,6 +9,7 @@
       "join": "Rejoindre"
     },
     "nicknameLabel": "Pseudo",
+    "playingAs": "Vous jouez sous le nom <name></name>.",
     "topicLabel": "Sujet Wikipédia",
     "topicPlaceholder": "Chat",
     "playSolo": "Jouer en solo",

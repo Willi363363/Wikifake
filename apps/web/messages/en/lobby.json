@@ -9,6 +9,7 @@
       "join": "Join"
     },
     "nicknameLabel": "Nickname",
+    "playingAs": "Playing as <name></name>.",
     "topicLabel": "Wikipedia topic",
     "topicPlaceholder": "Chat",
     "playSolo": "Play solo",

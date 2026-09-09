@@ -115,12 +115,63 @@ the machine is. The assertion is now scoped to the `form`, which the announcer
 sits outside of — **where an element is does not depend on when it is looked
 at**, and an absence assertion has no business depending on timing.
 
-## E.3.3 — it is the only public identifier  ⬜
+## E.3.3 — it is the only public identifier  ✅
 
-**What we do.** A signed-in player stops typing a nickname per room: the lobby
-offers their pseudonym, and `/api/realtime/ticket` mints for it. A guest keeps
-typing one, because a guest has no pseudonym to offer.
+**Done when** a room shows a signed-in player their pseudonym and nothing else,
+and a guest can still choose a name.
 
-**Done when** a room, a leaderboard and a shared score show a signed-in player's
-pseudonym and nothing else, and two players in one room cannot be shown the same
-name.
+### The ticket route answers with a name, rather than accepting one
+
+The guarantee had to be the server's. A lobby that stops offering a field is a
+courtesy; a room that cannot be joined under any other name is a rule, and only
+one of the two survives a client that ignores the screen.
+
+`/api/realtime/ticket` already knew who was asking — it reads the session to
+sign a ticket — so it is the one place that can decide. Its answer grew a second
+field: the request says *I would like to join as this*, the response says *you
+are joining as this*, and for an account with a pseudonym those differ. The gate
+uses what came back.
+
+**Two fields rather than one, and they are one decision.** A socket opened under
+the requested name carrying a ticket minted for the substituted one verifies as
+neither — the ticket is *bound* to a nickname, which is E.3b.2's whole design.
+`ticket-handler.test.ts` asserts that pairing directly: a ticket read back
+against the requested name comes out null.
+
+### Substituted, not refused — and that is the decision the step turned on
+
+The obvious design refuses a mismatch. It is wrong, and the reason is a case the
+design does not suggest: **the common mismatch is a `sessionStorage` nickname
+left over from playing as a guest before signing up.** Refusing would
+un-attribute rounds for exactly the players who have just created an account,
+and would do it silently, because E.3b.2's rule is that a ticket failure costs
+attribution rather than the room.
+
+Answering with the right name fixes the browser instead of punishing it, and
+leaves no mismatch to refuse. The e2e journey is written around that case
+precisely because nobody would have derived it from the rule.
+
+### One query answers both questions
+
+A guest and an account-with-no-pseudonym are handled by the same line, because
+`selectPseudonym` returning null *is* the answer to both: there is no name to
+substitute, so the requested one stands. E.3.2's gate should have stopped an
+account with no pseudonym long before a room, and the ticket route is
+deliberately not a second place to enforce a screen's redirect.
+
+### What a guest can still do, and why that is not a hole
+
+**A guest can type a nickname that somebody's pseudonym also is.** Not checked,
+deliberately: C5.2 already stops two players in one room sharing a name, and a
+room marks nobody as signed-in — so a name in a room is a name, not a claim to
+be an account. The day a room shows an account badge, this becomes
+impersonation and the check has to arrive with the badge. Recorded here so that
+day starts from a decision rather than a discovery.
+
+### What it cost the suite that was already there
+
+`room-journey.ts`'s `host` and `join` filled a Nickname field unconditionally,
+and `multiplayer-profile.spec.ts` drives them with a signed-in account. They now
+skip the field when the screen is not offering one — tolerated rather than
+branched at the call site, because whether a journey's player happens to hold an
+account is not what any of those helpers is about.

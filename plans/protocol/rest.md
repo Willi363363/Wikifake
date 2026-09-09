@@ -144,6 +144,7 @@ Ten routes. A `GET` takes no body.
 **Response**
 
 - `ticket` — string (min 1 char)
+- `playerName` — string (1–24 chars, matching `^[\p{L}\p{N}_\-. ]+$`)
 
 ## `POST /api/account/pseudonym`
 

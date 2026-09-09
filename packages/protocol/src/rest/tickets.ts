@@ -8,7 +8,17 @@
 // that is what a ticket being *bound* means: they are what it is minted for, so
 // they belong in the address of the thing rather than inside it. There is no
 // request schema for the same reason — nothing is sent.
+//
+// **Step E.3.3 — the answer carries a nickname too, and it is not always the
+// one that was asked for.** The request says *I would like to join as this*;
+// the response says *you are joining as this*. For a signed-in account the
+// server substitutes their pseudonym, because that is the only name a room may
+// show them under. Two fields rather than one because the caller has to use
+// what came back: a socket opened under the requested name with a ticket minted
+// for another would verify against neither.
 import { z } from 'zod';
+
+import { playerName } from '../primitives.js';
 
 /**
  * No body, stated rather than omitted.
@@ -36,5 +46,14 @@ export type RealtimeTicketRequest = z.infer<typeof realtimeTicketRequest>;
  */
 export const realtimeTicketResponse = z.object({
   ticket: z.string().min(1),
+  /**
+   * The nickname the ticket was minted for, and the one the socket must carry.
+   *
+   * `playerName` and not a bare string: the server chose it, so it is held to
+   * the same schema the handshake will hold it to. A pseudonym that could not
+   * be a room nickname is a bug E.3.2 already prevents, and this is where it
+   * would be caught if it ever stopped being prevented.
+   */
+  playerName,
 });
 export type RealtimeTicketResponse = z.infer<typeof realtimeTicketResponse>;
