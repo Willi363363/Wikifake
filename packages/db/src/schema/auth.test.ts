@@ -59,7 +59,9 @@ describe.skipIf(url === null)('the auth tables', () => {
 
   it('inserts a profile and reads it back with the user', async () => {
     await database.db.insert(user).values(ada);
-    await database.db.insert(profile).values({ userId: ada.id, displayName: 'ada' });
+    await database.db
+      .insert(profile)
+      .values({ userId: ada.id, displayName: 'ada', displayNameKey: 'ada' });
 
     const [row] = await database.db
       .select({
@@ -75,9 +77,12 @@ describe.skipIf(url === null)('the auth tables', () => {
 
   it('keeps preferences as an object, not a string', async () => {
     await database.db.insert(user).values(ada);
-    await database.db
-      .insert(profile)
-      .values({ userId: ada.id, displayName: 'ada', preferences: { sound: false } });
+    await database.db.insert(profile).values({
+      userId: ada.id,
+      displayName: 'ada',
+      displayNameKey: 'ada',
+      preferences: { sound: false },
+    });
 
     const [row] = await database.db.select().from(profile);
     expect(row?.preferences).toEqual({ sound: false });
@@ -85,7 +90,9 @@ describe.skipIf(url === null)('the auth tables', () => {
 
   it('gives a profile no user to hang off', async () => {
     const code = await rejectionCode(
-      database.db.insert(profile).values({ userId: 'nobody', displayName: 'ghost' }),
+      database.db
+        .insert(profile)
+        .values({ userId: 'nobody', displayName: 'ghost', displayNameKey: 'ghost' }),
     );
     expect(code).toBe(SQLSTATE.foreignKeyViolation);
   });
@@ -94,7 +101,9 @@ describe.skipIf(url === null)('the auth tables', () => {
   // sessions, its provider links and its profile with it.
   it('takes everything with a deleted account', async () => {
     await database.db.insert(user).values(ada);
-    await database.db.insert(profile).values({ userId: ada.id, displayName: 'ada' });
+    await database.db
+      .insert(profile)
+      .values({ userId: ada.id, displayName: 'ada', displayNameKey: 'ada' });
     await database.db.insert(session).values({
       id: 'session_1',
       userId: ada.id,

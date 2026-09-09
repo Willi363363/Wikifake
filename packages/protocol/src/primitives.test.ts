@@ -10,6 +10,7 @@ import {
   paragraphIndex,
   playerColour,
   playerName,
+  pseudonymKey,
   roomCode,
   timeLimitSeconds,
   topicLabel,
@@ -168,5 +169,65 @@ describe('topicLabel', () => {
 
   it('drops a blank vote', () => {
     expect(topicLabel.safeParse('   ').success).toBe(false);
+  });
+});
+
+describe('pseudonymKey (E.3.1)', () => {
+  // The point of the function: names that read as one name key as one key.
+  it.each([
+    ['ada', 'ada'],
+    ['Ada', 'ada'],
+    ['ADA', 'ada'],
+    ['  ada  ', 'ada'],
+    ['Ada  Lovelace', 'ada lovelace'],
+    ['Ada Lovelace', 'ada lovelace'],
+  ])('folds %s to %s', (given, expected) => {
+    expect(pseudonymKey(given)).toBe(expected);
+  });
+
+  // Not `toLocaleLowerCase`. Under a Turkish locale that maps `I` to `ı`, and
+  // the same pseudonym would then key differently depending on the machine.
+  it('folds case the same way whatever the runtime locale', () => {
+    expect(pseudonymKey('ISTANBUL')).toBe('istanbul');
+  });
+
+  // The fold Postgres would not do for us under a `C` collation, which is the
+  // whole argument for the key being a stored column rather than an index
+  // expression.
+  it('folds accented capitals, which is what SQL could not be trusted to', () => {
+    expect(pseudonymKey('ÉLISE')).toBe(pseudonymKey('élise'));
+    expect(pseudonymKey('ÉLISE')).toBe('élise');
+  });
+
+  // `é` as one code point and as `e` plus a combining acute are one glyph on
+  // screen, so they are one pseudonym.
+  it('folds the two encodings of the same letter together', () => {
+    const composed = 'élise';
+    const decomposed = 'e\u0301lise';
+    expect(composed).not.toBe(decomposed);
+    expect(pseudonymKey(composed)).toBe(pseudonymKey(decomposed));
+  });
+
+  // Names that genuinely differ still do. A key that collapsed these would
+  // refuse pseudonyms nobody would confuse.
+  it.each([
+    ['jean-luc', 'jean_luc'],
+    ['dr.no', 'drno'],
+    ['élise', 'elise'],
+    ['日本', '日夲'],
+  ])('keeps %s and %s apart', (left, right) => {
+    expect(pseudonymKey(left)).not.toBe(pseudonymKey(right));
+  });
+
+  // Total, deliberately: it is defined on `string`, so a value that never
+  // passed `playerName` gets a key rather than an exception.
+  it('answers for a string the schema would refuse', () => {
+    expect(pseudonymKey('   ')).toBe('');
+  });
+
+  // Idempotent, which is what makes it safe to key a value that is already one.
+  it('leaves a key it already produced alone', () => {
+    const once = pseudonymKey('Ada  Lovelace');
+    expect(pseudonymKey(once)).toBe(once);
   });
 });

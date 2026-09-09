@@ -10,6 +10,11 @@ import { fileURLToPath } from 'node:url';
 
 import { connect, type Database } from '../client.js';
 import { room } from '../schema/game.js';
+import { sqlstate } from '../sqlstate.js';
+
+// Re-exported rather than declared: the suites have always imported them from
+// here, and the definitions now sit beside the production code that shares them.
+export { rejectionCode, SQLSTATE } from '../sqlstate.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../migrations', import.meta.url));
 
@@ -35,43 +40,6 @@ export interface TestDatabase {
   readonly db: Database['db'];
   readonly truncate: () => Promise<void>;
   readonly close: () => Promise<void>;
-}
-
-/**
- * Postgres error classes, by SQLSTATE.
- *
- * Asserted on rather than the message: `postgres.js` reports "Failed query: …"
- * and keeps the class in a property, so matching the text would pass for any
- * failure at all — including a typo in the query.
- */
-export const SQLSTATE = {
-  uniqueViolation: '23505',
-  foreignKeyViolation: '23503',
-  notNullViolation: '23502',
-  checkViolation: '23514',
-} as const;
-
-/**
- * The SQLSTATE a query failed with, or null if it succeeded.
- *
- * Drizzle wraps the driver's error in its own, so the class sits one or more
- * `cause` links down. Walking the chain rather than reading the top error is
- * what makes this survive a Drizzle upgrade that adds another wrapper.
- */
-export async function rejectionCode(work: Promise<unknown>): Promise<string | null> {
-  try {
-    await work;
-    return null;
-  } catch (error) {
-    let current: unknown = error;
-    while (typeof current === 'object' && current !== null) {
-      if ('code' in current && typeof (current as { code: unknown }).code === 'string') {
-        return (current as { code: string }).code;
-      }
-      current = (current as { cause?: unknown }).cause;
-    }
-    return `no SQLSTATE in: ${String(error)}`;
-  }
 }
 
 /** Opens a connection, applies every migration, and hands back a clean database. */
@@ -127,17 +95,6 @@ export function scratchDatabaseUrlOrNull(suffix: string): string | null {
     );
   }
   return null;
-}
-
-function sqlstate(error: unknown): string | undefined {
-  let current: unknown = error;
-  while (typeof current === 'object' && current !== null) {
-    if ('code' in current && typeof (current as { code: unknown }).code === 'string') {
-      return (current as { code: string }).code;
-    }
-    current = (current as { cause?: unknown }).cause;
-  }
-  return undefined;
 }
 
 /** Creates the database if it is not there yet. Idempotent, and concurrent-safe. */

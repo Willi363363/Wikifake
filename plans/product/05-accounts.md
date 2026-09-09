@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 E.2, E.3b, E.4 and E.5 done; E.1 awaiting credentials |
+| **State** | 🔶 E.2, E.3.1, E.3b, E.4 and E.5 done; E.1 awaiting credentials |
 | **Branch** | `feat/player-accounts` |
 | **Depends on** | — |
 | **Delivers** | sign-in that works in production, a profile, and per-player stats |
@@ -53,7 +53,9 @@ leaderboard or a shared score.
 |---|---|---|
 | E.1 | OAuth credentials in the environments, Google first | ⚠️ |
 | E.2 | Sign-in and sign-up screens, on the direction | ✅ |
-| E.3 | Pseudonym: chosen, unique, and the only public identifier | ⬜ |
+| E.3.1 | The pseudonym is a row of its own, and no two accounts share one | ✅ |
+| E.3.2 | Every account chooses one, including one that arrived through Google | ⬜ |
+| E.3.3 | It is the only public identifier: a room shows it and nothing else | ⬜ |
 | E.3b.1 | Multiplayer results reach the database | ✅ |
 | E.3b.2 | The socket player carries their account | ✅ |
 | E.4 | `player_stats` — the aggregate a profile reads | ✅ |
@@ -61,12 +63,19 @@ leaderboard or a shared score.
 | E.6 | Guest continuity — a guest game survives signing up | ⬜ |
 | E.7 | Export and delete my account | ⬜ |
 
-**What each step decided, and what it got wrong first**, is in three sheets.
+**E.3 was one line hiding three steps**, and the re-cut is
+`05-accounts-pseudonym.md` — the second of `../method/00-dev-cycle.md`'s three
+overflow cases, the same one E.3b hit. "Chosen, unique, and the only public
+identifier" is a *data* rule, a *sign-up* rule and a *room* rule, each with its
+own exit condition and none of which fits in a branch with the other two.
+
+**What each step decided, and what it got wrong first**, is in four sheets.
 `05-accounts-oauth.md` carries E.1 — the runbook for the credentials, and the
 guard on the variable they depend on. `05-accounts-multiplayer.md` carries E.3b,
 which was found missing while E.4 was being built and turned out to be two steps.
-`05-accounts-steps.md` carries the rest: E.2, E.4, E.5, and what E.7 involves.
-The table above is the only place that says where a step stands.
+`05-accounts-pseudonym.md` carries E.3. `05-accounts-steps.md` carries the rest:
+E.2, E.4, E.5, and what E.7 involves. The table above is the only place that says
+where a step stands.
 
 ## Exit gate
 

@@ -67,6 +67,37 @@ export const playerName = z
   );
 export type PlayerName = z.infer<typeof playerName>;
 
+/**
+ * E.3.1 — the form two pseudonyms are compared in.
+ *
+ * `Ada`, `ada` and `Ada  Lovelace` are not three players to anybody reading a
+ * leaderboard, so they are not three pseudonyms either. What is *stored* keeps
+ * the capitals their owner typed; what uniqueness is decided on is this.
+ *
+ * Three foldings, and each one answers a way two names can look identical:
+ *
+ *   - **NFC**, because `é` has two encodings and a screen shows one glyph for
+ *     both. Applied first: case folding a decomposed string leaves it
+ *     decomposed, and the two would still key differently.
+ *   - **Whitespace runs collapse**, because HTML collapses them too — a room
+ *     renders `John  Doe` and `John Doe` as the same six letters and a space.
+ *   - **Lower case**, with `toLowerCase` rather than `toLocaleLowerCase`: the
+ *     locale-aware one maps `I` to `ı` in Turkish, so the same pseudonym would
+ *     key differently depending on the machine that happened to run it.
+ *
+ * **Here, and not in SQL.** A `unique index on lower(display_name)` would look
+ * equivalent and is not: Postgres folds case through the database's collation,
+ * and under `C` that is ASCII only — `ÉLISE` and `élise` would key apart in the
+ * index while this function said they were one name. One rule, in the language
+ * that has the whole Unicode table.
+ *
+ * Defined on `string` rather than on `PlayerName`, so that it is total: a value
+ * that never passed the schema still gets a key rather than an exception.
+ */
+export function pseudonymKey(value: string): string {
+  return value.normalize('NFC').trim().replace(/\s+/gu, ' ').toLowerCase();
+}
+
 /** C5.6 — a room code: six upper-case letters or digits. */
 export const roomCode = z
   .string()
