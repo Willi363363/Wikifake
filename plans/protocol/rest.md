@@ -3,7 +3,7 @@
 
 # REST — routes and payloads
 
-Nine routes. A `GET` takes no body.
+Ten routes. A `GET` takes no body.
 
 ## `GET /ping`
 
@@ -144,6 +144,16 @@ Nine routes. A `GET` takes no body.
 **Response**
 
 - `ticket` — string (min 1 char)
+
+## `POST /api/account/pseudonym`
+
+**Request**
+
+- `pseudonym` — string (1–24 chars, matching `^[\p{L}\p{N}_\-. ]+$`)
+
+**Response**
+
+- `pseudonym` — string (1–24 chars, matching `^[\p{L}\p{N}_\-. ]+$`)
 
 ## `POST /api/flag-report`
 

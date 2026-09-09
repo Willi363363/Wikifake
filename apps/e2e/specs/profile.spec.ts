@@ -13,17 +13,9 @@
 // So this plays a round. Once.
 import { expect, test, type Page } from '@playwright/test';
 
-/** A fresh address per run: the database is not truncated between them. */
-function someone(): { email: string; password: string; pseudonym: string } {
-  const stamp = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  return {
-    email: `ada-${stamp}@example.test`,
-    password: 'a-password-of-real-length',
-    pseudonym: `Ada${stamp.slice(0, 6)}`,
-  };
-}
+import { someone, type Someone } from './accounts.js';
 
-async function signUp(page: Page, who: ReturnType<typeof someone>): Promise<void> {
+async function signUp(page: Page, who: Someone): Promise<void> {
   await page.goto('/sign-up');
   await page.getByLabel('Email', { exact: true }).fill(who.email);
   await page.getByLabel('Pseudonym', { exact: true }).fill(who.pseudonym);

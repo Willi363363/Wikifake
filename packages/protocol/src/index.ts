@@ -21,6 +21,7 @@ export * from './rest/routes.js';
 
 export * as clientMessages from './ws/incoming.js';
 export * as serverMessages from './ws/outgoing.js';
+export * as accountApi from './rest/account.js';
 export * as gameApi from './rest/game.js';
 export * as healthApi from './rest/health.js';
 export * as roomsApi from './rest/rooms.js';

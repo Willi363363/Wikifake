@@ -15,9 +15,16 @@
 //
 // The pseudonym is validated against `playerName` from `@wikifake/protocol`,
 // which is the schema the socket refuses a room nickname with. One rule, so an
-// account cannot be created under a name its owner can never play as. **What
-// this step does not do is make it unique** — that is E.3, together with the
-// decision that it is the only public identifier.
+// account cannot be created under a name its owner can never play as.
+//
+// **Step E.3.2 — and the account is created before the pseudonym is claimed.**
+// The two cannot be one statement: Better Auth owns the first and the row that
+// holds the second needs the account's id. So the order is deliberate, and so
+// is what happens when the claim is refused — the account exists, the player is
+// signed in, and sending them back to a sign-up form would tell them their own
+// address is taken. They go to `/choose-a-name` instead, with the name they
+// tried, which is the screen every Google account lands on anyway. The
+// unpleasant path and the ordinary path are the same path, so it is walked.
 import { decode, playerName } from '@wikifake/protocol';
 import { Button, Input, Label } from '@wikifake/ui';
 import { useTranslations } from 'next-intl';
@@ -25,6 +32,7 @@ import { useRouter } from 'next/navigation';
 import { useId, useState, type FormEvent } from 'react';
 
 import { authClient, failureOf } from './client.js';
+import { claim } from './claim-request.js';
 
 export type CredentialsMode = 'signIn' | 'signUp';
 
@@ -90,6 +98,19 @@ export function CredentialsForm({ mode, next = '/play' }: CredentialsFormProps) 
         setError(failureOf(answer.error, t(`errors.${mode}Failed`)));
         return;
       }
+
+      if (mode === 'signUp') {
+        const taken = await claim(name);
+        if (!taken.ok) {
+          // Not an error shown here: there is a session now, and this form can
+          // no longer do anything about it. `router.refresh()` so the screen
+          // being navigated to is rendered for the account that now exists.
+          router.push(`/choose-a-name?attempted=${encodeURIComponent(name)}`);
+          router.refresh();
+          return;
+        }
+      }
+
       router.push(next);
     } catch {
       // The request never arrived. Distinct from a refusal, and the only case

@@ -65,6 +65,15 @@ export const ERROR_CODES = [
    * gets no correction.
    */
   'item_not_held',
+  /**
+   * E.3.2 — another account already holds that pseudonym. REST: 409.
+   *
+   * Distinct from `name_taken`, which is C5.2's: *somebody in this room is
+   * called that, right now*. This one is permanent and account-wide, and a
+   * client that could not tell them apart would offer "try again in a moment"
+   * for a name nobody is ever giving back.
+   */
+  'pseudonym_taken',
 ] as const;
 
 export const errorCode = z.enum(ERROR_CODES);

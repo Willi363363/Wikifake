@@ -14,6 +14,7 @@
 import { expect, test } from '@playwright/test';
 
 import { arrive, everyoneSees, host, join, playARound } from './room-journey.js';
+import { someone } from './accounts.js';
 import type { Page } from '@playwright/test';
 
 /**
@@ -39,19 +40,9 @@ async function everyoneSubmits(pages: readonly Page[]): Promise<void> {
   }
 }
 
-/** A fresh address per run: the database is not truncated between them. */
-function someone(): { email: string; password: string; pseudonym: string } {
-  const stamp = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-  return {
-    email: `room-${stamp}@example.test`,
-    password: 'a-password-of-real-length',
-    pseudonym: `Ada${stamp.slice(0, 6)}`,
-  };
-}
-
 test.describe('E.3b.2 — a room round counts for the player who played it', () => {
   test('shows on the profile of a signed-in host', async ({ browser }) => {
-    const ada = someone();
+    const ada = someone('room');
     const hostContext = await browser.newContext();
     const guestContext = await browser.newContext();
 
@@ -108,7 +99,7 @@ test.describe('E.3b.2 — a room round counts for the player who played it', () 
      * is checked here is the visible end of that: the round they played as a
      * guest is on the profile of the account they create afterwards.
      */
-    const bob = someone();
+    const bob = someone('room');
     const hostContext = await browser.newContext();
     const guestContext = await browser.newContext();
 
