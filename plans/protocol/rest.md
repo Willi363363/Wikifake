@@ -1,10 +1,11 @@
 <!-- Generated from the Zod schemas in packages/protocol. Do not edit. -->
 <!-- Regenerate with: pnpm --filter @wikifake/protocol docs -->
 
-# REST — routes and payloads
+# REST — the round
 
-14 routes, the ones a player's browser calls. A `GET`
-takes no body. The probes and the cron are in `rest-operations.md`.
+7 routes a browser calls while a round is being
+played. A `GET` takes no body. The account and the shop are in
+`rest-account.md`; the probes and the cron in `rest-operations.md`.
 
 ## `POST /api/multiplayer/create`
 
@@ -101,33 +102,6 @@ takes no body. The probes and the cron are in `rest-operations.md`.
 - `ticket` — string (min 1 char)
 - `playerName` — string (1–24 chars, matching `^[\p{L}\p{N}_\-. ]+$`)
 
-## `POST /api/account/pseudonym`
-
-**Request**
-
-- `pseudonym` — string (1–24 chars, matching `^[\p{L}\p{N}_\-. ]+$`)
-
-**Response**
-
-- `pseudonym` — string (1–24 chars, matching `^[\p{L}\p{N}_\-. ]+$`)
-
-## `GET /api/account/export`
-
-**Response**
-
-- object
-
-## `POST /api/account/delete`
-
-**Request**
-
-- object
-
-**Response**
-
-- `participants` — integer (≥ 0)
-- `reports` — integer (≥ 0)
-
 ## `POST /api/flag-report`
 
 **Request**
@@ -152,47 +126,3 @@ takes no body. The probes and the cron are in `rest-operations.md`.
   - `reasoning` — string (min 1 char)
   - `sourcesFound` — array of string (min 1 char)
   - `recommendation` — `"approve_for_review"` | `"needs_more_info"` | `"reject"`
-
-## `POST /api/account/region`
-
-**Request**
-
-- `region` — `"europe"` | `"americas"` | `"other"`
-
-**Response**
-
-- `region` — `"europe"` | `"americas"` | `"other"`
-
-## `GET /api/account/cosmetics`
-
-**Response**
-
-- `marker` — string | null
-- `markStyle` — string | null
-- `frame` — string | null
-- `owned` — array of string
-
-## `POST /api/account/cosmetics`
-
-**Request**
-
-- one of 2 shapes
-
-**Response**
-
-- `marker` — string | null
-- `markStyle` — string | null
-- `frame` — string | null
-
-## `POST /api/quests/claim`
-
-**Request**
-
-- `questId` — string (matching `^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$`)
-
-**Response**
-
-- `questId` — string (matching `^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$`)
-- `ruleId` — string (min 1 char)
-- `reward` — integer
-- `claimedAt` — string (matching `^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$`)
