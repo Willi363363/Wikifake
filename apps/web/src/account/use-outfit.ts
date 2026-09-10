@@ -21,6 +21,17 @@
 // A guest gets `{ marker: null, markStyle: null }` from the endpoint rather than
 // a refusal, so there is no signed-out branch here: wearing nothing is what
 // every screen falls back to anyway.
+//
+// **The signal is checked once the response arrives, not only passed to
+// `fetch`.**
+// Aborting is necessary and not sufficient, which CI found rather than a
+// review: `fetch` honours a signal, but the gap between a response resolving
+// and this function acting on it does not — so a round left in that gap set
+// state on a component that had gone. In a browser that is a wasted render; in
+// a test it is work that outlives the environment, and Vitest reported
+// `ReferenceError: window is not defined` as an unhandled error while every
+// one of its 1,530 cases passed. A suite that is green and a job that fails is
+// the worst way to be told.
 import { accountApi, decode } from '@wikifake/protocol';
 import { useEffect, useState } from 'react';
 
@@ -38,14 +49,19 @@ export function useOutfit(when: boolean): WornMarks {
   useEffect(() => {
     if (!when) return;
 
-    // Aborted on unmount, so a round left before the answer arrives does not
-    // set state on a component that has gone.
     const stop = new AbortController();
 
     void (async () => {
       try {
         const answer = await fetch('/api/account/cosmetics', { signal: stop.signal });
-        if (!answer.ok) return;
+        // **One guard, and it is here rather than beside `setWorn`.** Reading
+        // the body is the first work after the response arrives, so stopping
+        // before it stops everything that follows. A second check further down
+        // was written and then removed: `setWorn` on an unmounted component is
+        // a no-op in React 18, so that guard could not be observed by any test
+        // — and an unobservable guard is decoration, which I.1 learned about a
+        // different one.
+        if (stop.signal.aborted || !answer.ok) return;
 
         const said = decode(accountApi.readCosmeticsResponse, await answer.json());
         // A body that cannot be read leaves the default in place. Nothing here
