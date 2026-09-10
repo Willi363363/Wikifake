@@ -14,6 +14,8 @@ import { getTranslations } from 'next-intl/server';
 
 import { HealthSection } from '../../../src/admin/health-screen.js';
 import { readHealth } from '../../../src/admin/health.js';
+import { ActivationSection } from '../../../src/admin/activation-screen.js';
+import { readActivation } from '../../../src/admin/activation.js';
 import { PlayersSection } from '../../../src/admin/players-screen.js';
 import { readPlayers } from '../../../src/admin/players.js';
 import { requireAdmin } from '../../../src/admin/gate.js';
@@ -32,6 +34,7 @@ export default async function AdminPage() {
   // clock is allowed to come from, which is the split every feature in this
   // repository makes.
   const players = await readPlayers({ db: db() }, Date.now());
+  const activation = await readActivation({ db: db() });
   const health = await readHealth({
     db: db(),
     // Read here rather than inside: a route is where a real environment is
@@ -47,11 +50,12 @@ export default async function AdminPage() {
 
       <HealthSection health={health} />
       <PlayersSection players={players} />
+      <ActivationSection activation={activation} />
 
       {/* The sections still to come, listed rather than left blank so that the
           order the track chose is visible before it is built. */}
       <ul className="mt-8 space-y-2">
-        {(['activation', 'games', 'cost', 'content'] as const).map((section) => (
+        {(['games', 'cost', 'content'] as const).map((section) => (
           <li
             key={section}
             className="border-3 border-line-strong bg-surface px-3 py-2 shadow-md"

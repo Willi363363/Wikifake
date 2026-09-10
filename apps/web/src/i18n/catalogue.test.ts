@@ -88,9 +88,13 @@ describe('11.6 — French is translated, not copied', () => {
   // list is exact, not a lower bound: an entry that stops being identical is
   // removed, and a new identical message is either translated or defended here.
   const IDENTICAL_ON_PURPOSE = [
-    // I.1 and I.2 — two words French spells the same. `Activation` is the term
-    // of art the track is named around, and `Service` is the column heading.
-    // Every other admin string is translated.
+    // The admin panel's four. `Activation` is the term of art the track is
+    // named around and French spells it the same, `Service` is a column
+    // heading, and `noWhole` is an em dash — a symbol, which is the same in
+    // every language. Every other admin string is translated.
+    'admin.activation.activation',
+    'admin.activation.noWhole',
+    'admin.activation.title',
     'admin.health.columns.service',
     'admin.sections.activation',
     'home.title',

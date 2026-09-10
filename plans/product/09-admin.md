@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 I.1 to I.3 — the role, health, and players |
+| **State** | 🔶 I.1 to I.4 — the role, health, players, activation |
 | **Branch** | `feat/admin-panel` |
 | **Depends on** | track E |
 | **Delivers** | a read-only view of the application's health |
@@ -66,7 +66,7 @@ is money, this panel gets a section; not before.
 | I.1 | An admin role, and a route only it reaches | ✅ |
 | I.2 | Health section, from the existing probes | ✅ |
 | I.3 | Players and activity | ✅ |
-| I.4 | Activation and return | ⬜ |
+| I.4 | Activation and return | ✅ |
 | I.5 | Games, and the abandon rate | ⬜ |
 | I.6 | Cost, from `llm_call` | ⬜ |
 | I.7 | Content and cache | ⬜ |
@@ -88,6 +88,13 @@ anywhere that writes it, and an empty table as the safe default.
 value rather than an exception, and the figure the section is really for — do
 the two services agree about what is deployed, with *unknown* kept distinct from
 *disagreeing*.
+
+### I.4 — Activation
+
+**Built, and in `09-admin-activation.md`**: one query for a four-step funnel
+whose nesting is asserted, *coming back* as a later day rather than a second
+round, and `null` kept distinct from nought per cent — a panel reading 0% the
+day before launch would report a failure that has not happened.
 
 ### I.3 — Players
 

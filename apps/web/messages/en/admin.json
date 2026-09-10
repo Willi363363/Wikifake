@@ -56,5 +56,27 @@
       "started": "Started",
       "lastSeen": "Last seen"
     }
+  },
+  "activation": {
+    "title": "Activation",
+    "noWhole": "—",
+    "activation": "Activation",
+    "activationWhy": "Of the accounts created, the share that finished a round.",
+    "returnRate": "Came back",
+    "returnWhy": "Of those who finished a round, the share active on a later day.",
+    "ofPrevious": "{name}of the step above: ",
+    "steps": {
+      "created": "Accounts created",
+      "started": "Started a round",
+      "finished": "Finished a round",
+      "returned": "Came back another day"
+    },
+    "why": {
+      "created": "Signed up. Guests are not counted — they are not accounts.",
+      "started": "Pressed play at least once. Anybody missing here signed up and never began.",
+      "finished": "Submitted at least one round. The gap above is rounds abandoned partway.",
+      "returned": "Was active on a later day than their first. Two rounds in one sitting is not coming back."
+    },
+    "caveat": "\"Came back\" is a later day of activity, not a cohort curve: a return the next day and a return six months on look the same here, because nothing records per-day history."
   }
 }
