@@ -112,6 +112,14 @@ export const ERROR_CODES = [
    * spending, and this keeps them that way by construction.
    */
   'coins_not_accepted',
+  /**
+   * H.6 — the cosmetic asked for is not this player's to wear.
+   *
+   * **One code for unknown and unowned both.** Telling them apart would answer
+   * *does this cosmetic exist* to somebody who has not got it, which enumerates
+   * the catalogue — including whatever a launch has not announced yet.
+   */
+  'cosmetic_not_owned',
 ] as const;
 
 export const errorCode = z.enum(ERROR_CODES);

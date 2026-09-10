@@ -139,6 +139,18 @@ export interface BoardRow {
   readonly displayName: string;
   readonly score: number;
   readonly finishedAt: Date;
+  /**
+   * H.6 — the frame this player is wearing, or null for the design system's own.
+   *
+   * On the board's own row rather than fetched per player, because the join to
+   * `profile` is already there: a board that read fifty frames separately would
+   * be fifty queries for a column the row it already has could carry.
+   *
+   * Only the frame. A marker draws a player's own marks, and G.5's boards show
+   * no marks; a mark style is seen by the player alone. Carrying either here
+   * would be a column nothing reads.
+   */
+  readonly frame: string | null;
 }
 
 /**
@@ -188,6 +200,7 @@ function bestPerPlayer(db: Db, query: Omit<BoardQuery, 'limit'>) {
       displayName: profile.displayName,
       score: leaderboardEntry.score,
       finishedAt: leaderboardEntry.finishedAt,
+      frame: profile.wornFrame,
     })
     .from(leaderboardEntry)
     .innerJoin(profile, eq(profile.userId, leaderboardEntry.userId))
@@ -221,6 +234,7 @@ export function boardQuery(db: Db, query: BoardQuery) {
       displayName: best.displayName,
       score: best.score,
       finishedAt: best.finishedAt,
+      frame: best.frame,
     })
     .from(best)
     .orderBy(desc(best.score), asc(best.finishedAt), asc(best.userId))

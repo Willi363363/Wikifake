@@ -31,6 +31,19 @@ export type {
   Rgba,
 } from './contrast.js';
 
+export {
+  frameFor,
+  isVisibleDecoration,
+  markStyleFor,
+  markerColourFor,
+  DECORATION_GROUNDS,
+  DEFAULT_MARK_STYLE,
+  FRAMES,
+  MARKER_COLOURS,
+  MARK_STYLES,
+  NON_TEXT_CONTRAST,
+} from './cosmetic/appearance.js';
+
 export { cn } from './cn.js';
 
 export { Button } from './primitives/button.js';

@@ -158,6 +158,26 @@ export const coinMovement = pgTable(
      */
     index('coin_movement_balance_idx').on(table.userId, table.seq.desc()),
     /**
+     * H.6's ownership read: does this player own this cosmetic.
+     *
+     * **The index that makes deriving ownership from the ledger affordable**,
+     * which is what H.6 chose over a `cosmetic_ownership` table: owning a
+     * cosmetic is having a `cosmetic_purchase` movement for it, so there is no
+     * second place that can disagree about what somebody owns, and *why* they
+     * own it is answerable from the same rows as where their coins went.
+     *
+     * Partial, on `source`, and that is what makes it small: a purchase is a
+     * handful of rows in a ledger that grows by two coins every round, so an
+     * index over every movement would be almost entirely rows this query never
+     * wants. `reference` is the cosmetic's identifier — the same column a quest
+     * reward puts a rule id in, which is why the predicate is needed to tell
+     * them apart. `cosmetics.test.ts` drops the index and watches the plan turn
+     * into a scan, rather than asserting the shape and hoping.
+     */
+    index('coin_movement_owned_idx')
+      .on(table.userId, table.reference)
+      .where(sql`${table.source} = 'cosmetic_purchase'`),
+    /**
      * A movement of nothing is not a movement.
      *
      * There is deliberately **no check that the balance stays positive.** That

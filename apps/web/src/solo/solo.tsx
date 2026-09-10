@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
 import { startRound, submitRound, unlockHint } from './api.js';
+import { useOutfit } from '../account/use-outfit.js';
 import { GenerationScreen } from '../lobby/generation.js';
 import { useCaptures } from '../flags/flags.js';
 import { useHints } from '../round/hints.js';
@@ -59,6 +60,10 @@ export function SoloGame({ topic }: SoloGameProps) {
   // hints. `''` before there is a round, which never has any.
   const hints = useHints(round?.sessionId ?? '');
   const flags = useCaptures(round?.sessionId ?? '');
+  // H.6 — read once, and only once there is a round to draw. `solo.test.tsx`
+  // asserts that a topic the route would refuse asks the server for nothing,
+  // and a fetch on mount broke it.
+  const worn = useOutfit(round !== null);
 
   useEffect(() => {
     if (valid === null || asked.current) return;
@@ -170,6 +175,15 @@ export function SoloGame({ topic }: SoloGameProps) {
     <Round
       article={round}
       timeLimit={round.timeLimit}
+      // H.6 — the player's own marks, in the colour they bought.
+      //
+      // **Solo and not a room**, which is the decision of H.6 and is expressed
+      // by which of the two callers passes this: `assignColour` hands out a
+      // distinct colour per arrival so that two players in a room can be told
+      // apart, and a bought colour cannot be allowed to break that. `room.tsx`
+      // passes nothing, so there is no setting to get wrong.
+      marker={worn.marker}
+      markStyle={worn.markStyle}
       submitted={result !== null}
       busy={busy}
       refusal={refusal}

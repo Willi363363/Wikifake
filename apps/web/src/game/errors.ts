@@ -46,6 +46,8 @@ const STATUS: Readonly<Partial<Record<ErrorCode, number>>> = {
   insufficient_coins: 402,
   /** H.4 — coins offered in a room, where the score is what a hint costs. */
   coins_not_accepted: 409,
+  /** H.6 — not yours to wear. 403 rather than 404: the refusal is about you. */
+  cosmetic_not_owned: 403,
 };
 
 export function statusFor(code: ErrorCode): number {

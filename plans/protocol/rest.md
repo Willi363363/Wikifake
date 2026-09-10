@@ -3,7 +3,7 @@
 
 # REST — routes and payloads
 
-12 routes, the ones a player's browser calls. A `GET`
+14 routes, the ones a player's browser calls. A `GET`
 takes no body. The probes and the cron are in `rest-operations.md`.
 
 ## `POST /api/multiplayer/create`
@@ -162,6 +162,27 @@ takes no body. The probes and the cron are in `rest-operations.md`.
 **Response**
 
 - `region` — `"europe"` | `"americas"` | `"other"`
+
+## `GET /api/account/cosmetics`
+
+**Response**
+
+- `marker` — string | null
+- `markStyle` — string | null
+- `frame` — string | null
+- `owned` — array of string
+
+## `POST /api/account/cosmetics`
+
+**Request**
+
+- one of 2 shapes
+
+**Response**
+
+- `marker` — string | null
+- `markStyle` — string | null
+- `frame` — string | null
 
 ## `POST /api/quests/claim`
 

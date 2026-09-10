@@ -86,6 +86,35 @@ export const profile = pgTable(
       sql`coalesce("chosen_region", "derived_region", 'other')`,
     ),
     /**
+     * H.6 — what the player is wearing, one column per cosmetic slot.
+     *
+     * **Columns and not a `preferences` key**, by that column's own rule: `jsonb`
+     * is for preferences nothing queries or joins on, and a board that draws
+     * fifty pseudonyms reads the frame of every one of them in the same query.
+     *
+     * Three columns rather than one, because a slot is not a list: one value per
+     * slot is what makes "which frame won" a question with no answer needed.
+     * `@wikifake/domain`'s `Outfit` is the same shape, and `outfitFrom` is what
+     * turns these three strings into it.
+     *
+     * `text` and nullable, and both halves are deliberate. **Nullable, because
+     * null is the design system's own choice** — not "no cosmetic", but the
+     * thing every player starts with, which is why H.5 refused a free catalogue
+     * entry. **`text`, for the reason `quest_assignment.rule_id` is `text`**: an
+     * enum would make retiring a cosmetic a migration, so a stored value may
+     * outlive its definition and `outfitFrom` reads one that has as the default.
+     *
+     * No foreign key, because there is nothing to point at: **ownership is
+     * derived from the ledger** — owning a cosmetic is having a
+     * `cosmetic_purchase` movement for it — so the check that a player owns what
+     * they are wearing is made in `queries/cosmetics.ts`, where the answer is
+     * known, rather than by a constraint that would need a table H.6 decided not
+     * to build.
+     */
+    wornMarker: text('worn_marker'),
+    wornMarkStyle: text('worn_mark_style'),
+    wornFrame: text('worn_frame'),
+    /**
      * Everything else a player toggles — sound, reduced motion, and whatever
      * phase 6 adds.
      *

@@ -211,3 +211,89 @@ describe('6.4 — the paragraph token', () => {
     });
   });
 });
+
+describe('H.6 — a worn cosmetic changes the decoration and nothing else', () => {
+  const decoration = () =>
+    document.querySelector('[data-state="selected"] > span[aria-hidden="true"]');
+
+  it('draws the default bar when nothing is worn', () => {
+    render(<ParagraphToken state="selected">un paragraphe</ParagraphToken>);
+
+    const bar = decoration();
+    expect(bar?.className).toContain('bg-accent');
+    expect(bar?.getAttribute('style')).toBeNull();
+  });
+
+  it('colours the bar with a worn marker, as a style not a class', () => {
+    // A bought hex is not a role, and Tailwind cannot emit a utility for a value
+    // it has never seen. So the colour is inline — and `bg-accent` has to be
+    // gone, or the class would win over nothing and the two would fight.
+    render(
+      <ParagraphToken state="selected" marker="MARKER_VIOLET">
+        un paragraphe
+      </ParagraphToken>,
+    );
+
+    const bar = decoration();
+    expect(bar?.getAttribute('style')).toContain('rgb(157, 90, 224)');
+    expect(bar?.className).not.toContain('bg-accent');
+  });
+
+  it('rearranges the bar for a worn mark style', () => {
+    render(
+      <ParagraphToken state="selected" markStyle="MARK_STYLE_BRACKET">
+        un paragraphe
+      </ParagraphToken>,
+    );
+
+    expect(decoration()?.className).toContain('border-x-3');
+  });
+
+  it('leaves the prose and its wash exactly as they were', () => {
+    // The rule that makes selling colours safe. `bg-accent-soft` with `ink` on
+    // it is a pair in `CONTRAST_PAIRS` at 19.31:1, and a cosmetic may not reach
+    // it — so the token's own classes must be identical either way.
+    render(
+      <ParagraphToken
+        state="selected"
+        marker="MARKER_CRIMSON"
+        markStyle="MARK_STYLE_CORNER"
+      >
+        un paragraphe
+      </ParagraphToken>,
+    );
+    const dressed = document.querySelector('[data-state="selected"]')?.className;
+    document.body.innerHTML = '';
+
+    render(<ParagraphToken state="selected">un paragraphe</ParagraphToken>);
+    const bare = document.querySelector('[data-state="selected"]')?.className;
+
+    expect(dressed).toBe(bare);
+  });
+
+  it('draws the default for a retired identifier rather than nothing', () => {
+    render(
+      <ParagraphToken
+        state="selected"
+        marker="MARKER_TURQUOISE"
+        markStyle="MARK_STYLE_SPIRAL"
+      >
+        un paragraphe
+      </ParagraphToken>,
+    );
+
+    const bar = decoration();
+    expect(bar?.className).toContain('bg-accent');
+    expect(bar?.className).toContain('-bottom-0.5');
+  });
+
+  it('does not decorate an unmarked paragraph, whatever is worn', () => {
+    render(
+      <ParagraphToken state="idle" marker="MARKER_VIOLET">
+        un paragraphe
+      </ParagraphToken>,
+    );
+
+    expect(decoration()).toBeNull();
+  });
+});
