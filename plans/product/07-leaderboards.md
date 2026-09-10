@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 G.1 to G.4 — the data and the queries; screens left |
+| **State** | 🔶 G.1 to G.5 — the board reads; threshold and own rank left |
 | **Branch** | `feat/leaderboards` |
 | **Depends on** | track E |
 | **Delivers** | a world ranking and a regional one |
@@ -57,14 +57,20 @@ Recorded in `11-deferred.md` rather than built.
 | G.2 | `leaderboard_entry`, written when a round finishes | ✅ |
 | G.3 | Periods: daily, weekly, all-time | ✅ |
 | G.4 | Queries and their indexes, checked on seeded volume | ✅ |
-| G.5 | The board screen, world and regional | ⬜ |
+| G.5 | The board screen, world and regional | ✅ |
 | G.6 | Participant threshold and the empty state | ⬜ |
 | G.7 | Your own rank, and the rows around it | ⬜ |
 
-**What each step decided** is in two sheets: `07-leaderboards-steps.md` carries
-G.1 and G.2 — the region, and the entries a board may rank — and
+**What each step decided** is in three sheets: `07-leaderboards-steps.md`
+carries G.1 and G.2 — the region, and the entries a board may rank —
 `07-leaderboards-queries.md` carries G.3 and G.4, how a board is windowed and
-asked for. The table above is the only place that says where a step stands.
+asked for, and `07-leaderboards-screen.md` carries G.5. The table above is the
+only place that says where a step stands.
+
+**The boards rank room rounds only.** The track offered "separately from
+multiplayer, or not at all" and the owner chose the second: a solo topic is one
+the player picked. G.5's sheet has the argument, and it is reversible without a
+migration.
 
 **G.1 stores three regions rather than six continents**, which narrows what this
 frame says above. The reason is the frame's own privacy argument, and it is in
