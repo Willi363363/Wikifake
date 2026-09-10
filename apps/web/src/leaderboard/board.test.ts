@@ -270,7 +270,7 @@ describe.skipIf(url === null)('G.5 — the board a screen is handed', () => {
     expect(board.players).toBe(BOARD_MIN_PLAYERS);
   });
 
-  it('counts players and not scores', async () => {
+  it('counts players and not scores, and shows each one once', async () => {
     // G.6's threshold reads this, and a board that opened at three *scores*
     // would open when one player had played three rounds.
     await addPlayer('ada', 'Ada');
@@ -286,9 +286,14 @@ describe.skipIf(url === null)('G.5 — the board a screen is handed', () => {
     await openTheBoard();
     const board = await readBoard(context(), 'daily', null, THURSDAY);
 
-    // Five entries for one player, and one player counted.
+    // Five entries for one player, one player counted — and **one row**, which
+    // is what G.7 changed. This case asserted five rows until then, which is
+    // the defect it was quietly documenting: a player with five good rounds
+    // took five of the fifty places, and "your own rank" had no meaning.
     expect(board.players).toBe(1 + BOARD_MIN_PLAYERS);
-    expect(board.rows.filter((row) => row.displayName === 'Ada')).toHaveLength(5);
+    expect(board.rows.filter((row) => row.displayName === 'Ada')).toHaveLength(1);
+    // And it is their best.
+    expect(board.rows.find((row) => row.displayName === 'Ada')?.score).toBe(104);
   });
 });
 

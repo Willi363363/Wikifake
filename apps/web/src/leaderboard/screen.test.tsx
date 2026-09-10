@@ -31,6 +31,9 @@ function board(over: Partial<BoardView> = {}): BoardView {
     // every case above it is about a board that has rows to show.
     players: BOARD_MIN_PLAYERS,
     open: true,
+    // Nobody asking, by default: G.7's own-rank block is its own describe.
+    own: null,
+    around: [],
     rows: [
       { userId: 'u1', displayName: 'Ada', score: 900, finishedAt: AT },
       { userId: 'u2', displayName: 'Bob', score: 640, finishedAt: AT },
@@ -247,5 +250,115 @@ describe('G.6 — a board with too few players', () => {
 
     expect(screen.getByText(/Ce classement ouvre dès que 10 joueurs/)).not.toBeNull();
     expect(screen.getByText('4 joueurs pour l’instant')).not.toBeNull();
+  });
+});
+
+describe('G.7 — where the viewer stands', () => {
+  const rows = [
+    { userId: 'u1', displayName: 'Ada', score: 900, finishedAt: AT },
+    { userId: 'u2', displayName: 'Bob', score: 640, finishedAt: AT },
+  ];
+
+  it('marks the viewer’s own row when they are on the page', () => {
+    // Announced and not only coloured: `aria-current` is how a screen reader
+    // learns which row is yours, and the wash is for everybody else.
+    render(
+      <BoardScreen
+        board={board({
+          rows,
+          own: { userId: 'u2', rank: 2, score: 640, finishedAt: AT },
+        })}
+      />,
+    );
+
+    const marked = screen
+      .getAllByRole('row')
+      .filter((row) => row.getAttribute('aria-current') === 'true');
+
+    expect(marked).toHaveLength(1);
+    expect(marked[0]?.textContent).toContain('Bob');
+  });
+
+  it('says nothing twice when the viewer is already on the page', () => {
+    // `around` is empty for a player inside the page, so there is no second
+    // block. A screen repeating their row would say the same thing twice.
+    render(
+      <BoardScreen
+        board={board({
+          rows,
+          own: { userId: 'u2', rank: 2, score: 640, finishedAt: AT },
+          around: [],
+        })}
+      />,
+    );
+
+    expect(screen.queryByText(/Your rank/)).toBeNull();
+    expect(screen.getAllByRole('table')).toHaveLength(1);
+  });
+
+  it('shows a block with the neighbours when the viewer is off the page', () => {
+    render(
+      <BoardScreen
+        board={board({
+          rows,
+          own: { userId: 'me', rank: 137, score: 90, finishedAt: AT },
+          around: [
+            { userId: 'x', displayName: 'Above', score: 95, finishedAt: AT },
+            { userId: 'me', displayName: 'Me', score: 90, finishedAt: AT },
+            { userId: 'y', displayName: 'Below', score: 85, finishedAt: AT },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText('Your rank: 137')).not.toBeNull();
+    // The ranks either side are counted from the viewer's, not from one.
+    const block = screen.getAllByRole('table')[1] as HTMLElement;
+    const numbers = [...block.querySelectorAll('td:first-child')].map(
+      (cell) => cell.textContent,
+    );
+    expect(numbers).toEqual(['136', '137', '138']);
+  });
+
+  it('marks the viewer inside that block too', () => {
+    render(
+      <BoardScreen
+        board={board({
+          rows,
+          own: { userId: 'me', rank: 137, score: 90, finishedAt: AT },
+          around: [
+            { userId: 'x', displayName: 'Above', score: 95, finishedAt: AT },
+            { userId: 'me', displayName: 'Me', score: 90, finishedAt: AT },
+          ],
+        })}
+      />,
+    );
+
+    const marked = screen
+      .getAllByRole('row')
+      .filter((row) => row.getAttribute('aria-current') === 'true');
+    expect(marked).toHaveLength(1);
+    expect(marked[0]?.textContent).toContain('Me');
+  });
+
+  it('says nothing about a rank on a closed board', () => {
+    // The trap G.6 flagged for this step: a rank on a closed board would leak
+    // the ranking the threshold exists to hide, and to exactly the player most
+    // likely to share it. `readBoard` returns `own: null` there, and this is the
+    // screen agreeing.
+    render(
+      <BoardScreen board={board({ players: 4, open: false, rows: [], own: null })} />,
+    );
+
+    expect(screen.queryByText(/Your rank/)).toBeNull();
+  });
+
+  it('says nothing about a rank to somebody who is not on the board', () => {
+    render(<BoardScreen board={board({ rows, own: null, around: [] })} />);
+
+    expect(screen.queryByText(/Your rank/)).toBeNull();
+    expect(
+      screen.getAllByRole('row').filter((row) => row.getAttribute('aria-current')),
+    ).toEqual([]);
   });
 });

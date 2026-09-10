@@ -112,6 +112,12 @@ export {
   recordEligibleScore,
   selectBoard,
   selectEligibleScores,
+  selectOwnRank,
 } from './queries/leaderboard.js';
-export type { BoardQuery, BoardRow, EligibleScore } from './queries/leaderboard.js';
+export type {
+  BoardQuery,
+  BoardRow,
+  EligibleScore,
+  OwnRank,
+} from './queries/leaderboard.js';
 export { seed } from './seed/seed.js';

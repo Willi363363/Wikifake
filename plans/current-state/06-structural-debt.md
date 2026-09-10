@@ -189,11 +189,12 @@ aside in a step about a debrief.
 
 Measured in G.4 at fifty thousand entries: the daily, weekly and regional
 boards answer in 2–3 ms with their range pushed into an index; the all-time
-board takes 18 ms, scanning 25,000 rows and sorting them.
+board takes **45 ms**, reading every entry in the mode.
 
-**The join is the cause, not the index.** A board shows a pseudonym, so it joins
-`profile`, and a hash join loses the order an index could have delivered — so
-the sort is fed the whole mode. Its cost grows with the game's history where
-every other board's grows with its period. Fine here; seconds at a hundred times
-it. The two ways out, the numbers, and why forcing a nested loop measures
-nothing are in `../product/07-leaderboards-queries.md`.
+**The scan is the cause — not the index, and since G.7 not the sort either.** A
+board is one row per player now, so `distinct on` reduces twenty-five thousand
+entries to two thousand before the ordering; but every entry is still read to
+find each player's best, and deduplicating costs more than sorting did (45 ms
+against 18 ms). Its cost grows with the game's history where every other
+board's grows with its period. Fine here; seconds at a hundred times it. The
+ways out and the numbers are in `../product/07-leaderboards-queries.md`.
