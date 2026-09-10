@@ -25,3 +25,4 @@ export {
 export { llmCall, llmCallKind } from './usage.js';
 export { questAssignment, questPeriodEnum } from './quests.js';
 export { leaderboardEntry } from './leaderboard.js';
+export { coinMovement, coinSourceEnum } from './coins.js';
