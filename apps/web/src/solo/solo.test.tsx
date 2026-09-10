@@ -63,6 +63,15 @@ const RESULT = {
   ],
 };
 
+/**
+ * H.6 — the outfit the round draws the player's own marks with.
+ *
+ * Served by default and never asked about below: wearing nothing is what every
+ * one of these cases means, and a stub that made each of them say so would be a
+ * line repeated twenty times to assert nothing.
+ */
+const NO_COSMETICS = { marker: null, markStyle: null, frame: null, owned: [] };
+
 /** What each route answers, in the order the journey calls them. */
 function serve(
   answers: Partial<Record<'start' | 'submit' | 'hint', () => Promise<unknown>>>,
@@ -70,6 +79,14 @@ function serve(
   vi.stubGlobal(
     'fetch',
     vi.fn((path: string) => {
+      if (path.endsWith('/account/cosmetics')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve(NO_COSMETICS),
+        }) as unknown as Promise<Response>;
+      }
+
       const which = path.endsWith('/start')
         ? 'start'
         : path.endsWith('/hint')
@@ -162,7 +179,12 @@ describe('7.8 — the wait', () => {
     await settle();
     // Once, whatever React does with mounting: a second call is a second model
     // call and a second bill for a round nobody played.
-    expect(vi.mocked(fetch)).toHaveBeenCalledTimes(1);
+    // The route, not every request: H.6 added the outfit read, and a count of
+    // all of them was only ever a proxy for what this case is about.
+    expect(
+      vi.mocked(fetch).mock.calls.filter(([path]) => String(path).endsWith('/start'))
+        .length,
+    ).toBe(1);
     expect(JSON.parse(String(vi.mocked(fetch).mock.calls[0]?.[1]?.body))).toEqual({
       topic: 'Chat',
     });
@@ -248,7 +270,12 @@ describe('7.8 — the score', () => {
     await settleDebrief();
 
     // C3.3 — the number the player clicked is the number the server grades.
-    expect(JSON.parse(String(vi.mocked(fetch).mock.calls[1]?.[1]?.body))).toEqual({
+    // The submit call by path rather than by position: H.6's outfit read sits
+    // between the two, and an index was only ever standing in for "the submit".
+    const submitted = vi
+      .mocked(fetch)
+      .mock.calls.find(([path]) => String(path).endsWith('/submit'));
+    expect(JSON.parse(String(submitted?.[1]?.body))).toEqual({
       sessionId: ROUND.sessionId,
       marked: [1, 3],
     });
@@ -353,6 +380,13 @@ describe('7.8 — the score', () => {
             ok: true,
             status: 200,
             json: () => Promise.resolve(ROUND),
+          }) as unknown as Promise<Response>;
+        }
+        if (String(path).endsWith('/account/cosmetics')) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: () => Promise.resolve(NO_COSMETICS),
           }) as unknown as Promise<Response>;
         }
         attempt += 1;

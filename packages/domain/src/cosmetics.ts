@@ -18,7 +18,10 @@
 // mentions this file. A cosmetic cannot tilt a round it is structurally unable
 // to reach.
 //
-// H.6 owns ownership and wearing one. This step owns what there is to own.
+// H.5 owned what there is to own. **H.6 added the wearing rules below**, which
+// are the same file's business for the same reason: what may be worn in a slot
+// is a fact about the catalogue, and a screen deciding it would be a second
+// place that can disagree with this one.
 
 /**
  * Where a cosmetic applies, and the reason the list is closed.
@@ -160,4 +163,96 @@ export function cosmeticsInSlot(slot: CosmeticSlot): readonly Cosmetic[] {
   return COSMETIC_IDS.map((id) => COSMETIC_CATALOGUE[id]).filter(
     (cosmetic) => cosmetic.slot === slot,
   );
+}
+
+/**
+ * What a player is wearing — one slot at a time, or nothing.
+ *
+ * **Null is not "no cosmetic". Null is the design system's own choice**, which
+ * is what every player starts with and what a screen falls back to. That is why
+ * H.5 refused a free catalogue entry: a default that were an item could be
+ * bought, sold, retired and lost, and then a player could be wearing nothing at
+ * all.
+ *
+ * One per slot, which is what makes an outfit a record rather than a list. A
+ * list would allow two frames, and nothing downstream could say which won.
+ */
+export type Outfit = Readonly<Record<CosmeticSlot, CosmeticId | null>>;
+
+export const EMPTY_OUTFIT: Outfit = {
+  marker: null,
+  markStyle: null,
+  frame: null,
+};
+
+/**
+ * Whether this player may wear this, given what they own — step H.6.
+ *
+ * A rule and not a database constraint, deliberately. Ownership is **derived
+ * from the ledger** (the decision of H.6: owning a cosmetic is having a
+ * `cosmetic_purchase` movement for it), so there is no `cosmetic_ownership` row
+ * for a foreign key to point at. The check is therefore made where the answer is
+ * known, once, and `queries/cosmetics.ts` is the only caller.
+ *
+ * **A retired identifier cannot be worn**, even by somebody who owns it. Not to
+ * take anything away: `cosmeticById` still returns the purchase's own history,
+ * and `outfitFrom` keeps reading a retired value as the default rather than as
+ * an error. It is that wearing is a *new* choice, and a new choice is made from
+ * what exists now.
+ */
+export function canWear(owned: readonly string[], id: string): boolean {
+  return cosmeticById(id) !== null && owned.includes(id);
+}
+
+/**
+ * The outfit with this item in its own slot.
+ *
+ * The slot comes from the catalogue rather than from the caller, which is the
+ * point of doing this here: a handler that took both would be a handler that
+ * can put a frame in the marker slot. Nothing outside this function ever needs
+ * to name the slot a cosmetic goes in.
+ *
+ * Unknown identifiers are refused rather than ignored — `canWear` is what a
+ * caller checks first, and this is what makes forgetting to a type error rather
+ * than a silent write.
+ */
+export function wear(outfit: Outfit, id: CosmeticId): Outfit {
+  return { ...outfit, [COSMETIC_CATALOGUE[id].slot]: id };
+}
+
+/** The outfit with this slot back to the design system's choice. */
+export function takeOff(outfit: Outfit, slot: CosmeticSlot): Outfit {
+  return { ...outfit, [slot]: null };
+}
+
+/**
+ * The outfit three stored strings add up to — step H.6.
+ *
+ * The columns are `text` and nullable, so each one can be null, a live
+ * identifier, a **retired** identifier, or something in the wrong slot. All
+ * three of the last cases read as the default here rather than as an error, for
+ * the reason `cosmeticById` returns null: a retirement must not be an outage on
+ * the profile of everybody who was wearing one.
+ *
+ * The wrong-slot case is the one worth spelling out. Nothing writes a frame into
+ * the marker column — `wear` makes it impossible — but the columns outlive the
+ * code that wrote them, and a screen asking "what is in the marker slot" should
+ * get a marker or nothing, never a frame it will try to draw as a colour.
+ */
+export function outfitFrom(worn: {
+  readonly marker?: string | null;
+  readonly markStyle?: string | null;
+  readonly frame?: string | null;
+}): Outfit {
+  const inSlot = (value: string | null | undefined, slot: CosmeticSlot) => {
+    if (value === null || value === undefined) return null;
+    const cosmetic = cosmeticById(value);
+    return cosmetic !== null && cosmetic.slot === slot ? cosmetic.id : null;
+  };
+
+  return {
+    marker: inSlot(worn.marker, 'marker'),
+    markStyle: inSlot(worn.markStyle, 'markStyle'),
+    frame: inSlot(worn.frame, 'frame'),
+  };
 }

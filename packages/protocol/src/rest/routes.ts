@@ -29,6 +29,9 @@ import {
   deleteAccountRequest,
   deleteAccountResponse,
   exportAccountResponse,
+  readCosmeticsResponse,
+  wearCosmeticRequest,
+  wearCosmeticResponse,
 } from './account.js';
 import { flagReportRequest, flagReportResponse } from './flags.js';
 import { healthResponse, pingResponse, usageResponse } from './health.js';
@@ -124,6 +127,20 @@ export const ROUTES: readonly Route[] = [
     path: '/api/account/region',
     request: chooseRegionRequest,
     response: chooseRegionResponse,
+  },
+  {
+    // Step H.6. What the player is wearing and what they own. No `request`:
+    // a `GET` has no body and the account is the session's.
+    method: 'GET',
+    path: '/api/account/cosmetics',
+    response: readCosmeticsResponse,
+  },
+  {
+    // Step H.6. What the player is wearing, one slot at a time.
+    method: 'POST',
+    path: '/api/account/cosmetics',
+    request: wearCosmeticRequest,
+    response: wearCosmeticResponse,
   },
   {
     // Step F.6. The one thing a player does to a quest.

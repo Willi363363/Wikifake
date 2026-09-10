@@ -35,9 +35,9 @@ function board(over: Partial<BoardView> = {}): BoardView {
     own: null,
     around: [],
     rows: [
-      { userId: 'u1', displayName: 'Ada', score: 900, finishedAt: AT },
-      { userId: 'u2', displayName: 'Bob', score: 640, finishedAt: AT },
-      { userId: 'u3', displayName: 'Cléo', score: 120, finishedAt: AT },
+      { userId: 'u1', displayName: 'Ada', score: 900, finishedAt: AT, frame: null },
+      { userId: 'u2', displayName: 'Bob', score: 640, finishedAt: AT, frame: null },
+      { userId: 'u3', displayName: 'Cléo', score: 120, finishedAt: AT, frame: null },
     ],
     ...over,
   };
@@ -255,8 +255,8 @@ describe('G.6 — a board with too few players', () => {
 
 describe('G.7 — where the viewer stands', () => {
   const rows = [
-    { userId: 'u1', displayName: 'Ada', score: 900, finishedAt: AT },
-    { userId: 'u2', displayName: 'Bob', score: 640, finishedAt: AT },
+    { userId: 'u1', displayName: 'Ada', score: 900, finishedAt: AT, frame: null },
+    { userId: 'u2', displayName: 'Bob', score: 640, finishedAt: AT, frame: null },
   ];
 
   it('marks the viewer’s own row when they are on the page', () => {
@@ -303,9 +303,9 @@ describe('G.7 — where the viewer stands', () => {
           rows,
           own: { userId: 'me', rank: 137, score: 90, finishedAt: AT },
           around: [
-            { userId: 'x', displayName: 'Above', score: 95, finishedAt: AT },
-            { userId: 'me', displayName: 'Me', score: 90, finishedAt: AT },
-            { userId: 'y', displayName: 'Below', score: 85, finishedAt: AT },
+            { userId: 'x', displayName: 'Above', score: 95, finishedAt: AT, frame: null },
+            { userId: 'me', displayName: 'Me', score: 90, finishedAt: AT, frame: null },
+            { userId: 'y', displayName: 'Below', score: 85, finishedAt: AT, frame: null },
           ],
         })}
       />,
@@ -327,8 +327,8 @@ describe('G.7 — where the viewer stands', () => {
           rows,
           own: { userId: 'me', rank: 137, score: 90, finishedAt: AT },
           around: [
-            { userId: 'x', displayName: 'Above', score: 95, finishedAt: AT },
-            { userId: 'me', displayName: 'Me', score: 90, finishedAt: AT },
+            { userId: 'x', displayName: 'Above', score: 95, finishedAt: AT, frame: null },
+            { userId: 'me', displayName: 'Me', score: 90, finishedAt: AT, frame: null },
           ],
         })}
       />,
@@ -360,5 +360,83 @@ describe('G.7 — where the viewer stands', () => {
     expect(
       screen.getAllByRole('row').filter((row) => row.getAttribute('aria-current')),
     ).toEqual([]);
+  });
+});
+
+describe('H.6 — the frame a player is wearing', () => {
+  it('draws nothing round a pseudonym when nothing is worn', () => {
+    render(<BoardScreen board={board()} />);
+
+    const name = screen.getByText('Ada');
+    expect(name.className).toBe('');
+  });
+
+  it('frames the pseudonym of a player wearing one', () => {
+    render(
+      <BoardScreen
+        board={board({
+          rows: [
+            {
+              userId: 'u1',
+              displayName: 'Ada',
+              score: 900,
+              finishedAt: AT,
+              frame: 'FRAME_DOUBLE',
+            },
+            { userId: 'u2', displayName: 'Bob', score: 640, finishedAt: AT, frame: null },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText('Ada').className).toContain('border-double');
+    // And only that player's. A frame is worn, not a property of the table.
+    expect(screen.getByText('Bob').className).toBe('');
+  });
+
+  it('draws the plain pseudonym for a retired frame', () => {
+    // `frameFor` gives '' for an identifier the design system no longer draws,
+    // which is `cosmeticById`'s rule arriving at the screen: a retirement must
+    // not be an outage on the board of everybody who was wearing one.
+    render(
+      <BoardScreen
+        board={board({
+          rows: [
+            {
+              userId: 'u1',
+              displayName: 'Ada',
+              score: 900,
+              finishedAt: AT,
+              frame: 'FRAME_GILDED',
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText('Ada').className).toBe('');
+  });
+
+  it('frames a row in the own-rank block too', () => {
+    // Step G.7's block shows the same players, so it shows the same frames — a
+    // player off the page should not lose the thing they bought.
+    render(
+      <BoardScreen
+        board={board({
+          own: { userId: 'u9', rank: 90, score: 40, finishedAt: AT },
+          around: [
+            {
+              userId: 'u9',
+              displayName: 'Zoe',
+              score: 40,
+              finishedAt: AT,
+              frame: 'FRAME_NOTCHED',
+            },
+          ],
+        })}
+      />,
+    );
+
+    expect(screen.getByText('Zoe').className).toContain('border-3');
   });
 });

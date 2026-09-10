@@ -134,4 +134,17 @@ export type {
   MovementOutcome,
   RecordedMovement,
 } from './queries/coins.js';
+export {
+  ownsCosmetic,
+  purchaseCosmetic,
+  selectOwnedCosmetics,
+  selectWorn,
+  setWornCosmetic,
+} from './queries/cosmetics.js';
+export type {
+  CosmeticPurchase,
+  PurchaseOutcome,
+  WornCosmetics,
+  WornSlot,
+} from './queries/cosmetics.js';
 export { seed } from './seed/seed.js';

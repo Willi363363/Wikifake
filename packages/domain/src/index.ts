@@ -75,15 +75,20 @@ export {
   REVEAL_COINS,
 } from './coins.js';
 export {
+  canWear,
   cosmeticById,
   cosmeticsInSlot,
   isCosmeticId,
+  outfitFrom,
+  takeOff,
+  wear,
   CHEAPEST_COSMETIC_COINS,
   COSMETIC_CATALOGUE,
   COSMETIC_IDS,
   COSMETIC_SLOTS,
+  EMPTY_OUTFIT,
 } from './cosmetics.js';
-export type { Cosmetic, CosmeticId, CosmeticSlot } from './cosmetics.js';
+export type { Cosmetic, CosmeticId, CosmeticSlot, Outfit } from './cosmetics.js';
 
 export { asRegion, effectiveRegion, regionForCountry } from './regions.js';
 export type { PlayerRegion } from './regions.js';

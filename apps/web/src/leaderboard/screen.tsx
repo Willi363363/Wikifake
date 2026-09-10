@@ -11,6 +11,8 @@
 // promise: the email appears in no room, no leaderboard and no shared score.
 import { BOARD_PERIOD_IDS, REGION_IDS, type RegionId } from '@wikifake/protocol';
 
+import { frameFor } from '@wikifake/ui';
+
 import { AROUND_OWN_RANK, BOARD_MIN_PLAYERS } from './board.js';
 import { useFormatter, useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -193,7 +195,14 @@ export function BoardScreen({ board }: BoardScreenProps) {
                   <td className="px-3 py-2 font-mono tabular-nums text-muted">
                     {index + 1}
                   </td>
-                  <td className="px-3 py-2 text-ink">{row.displayName}</td>
+                  {/* H.6 — the frame the player is wearing, round the pseudonym
+                      and nothing else. A border treatment and not a colour:
+                      forty-nine bought colours on one table is a table nobody
+                      can read, and `frameFor` gives '' for a retired
+                      identifier so a retirement draws the plain name. */}
+                  <td className="px-3 py-2 text-ink">
+                    <span className={frameFor(row.frame)}>{row.displayName}</span>
+                  </td>
                   <td className="px-3 py-2 text-right font-mono tabular-nums text-ink">
                     {format.number(row.score)}
                   </td>
@@ -227,7 +236,9 @@ export function BoardScreen({ board }: BoardScreenProps) {
                   <td className="px-3 py-2 font-mono tabular-nums text-muted">
                     {(board.own?.rank ?? 1) - AROUND_OWN_RANK + index}
                   </td>
-                  <td className="px-3 py-2 text-ink">{row.displayName}</td>
+                  <td className="px-3 py-2 text-ink">
+                    <span className={frameFor(row.frame)}>{row.displayName}</span>
+                  </td>
                   <td className="px-3 py-2 text-right font-mono tabular-nums text-ink">
                     {format.number(row.score)}
                   </td>

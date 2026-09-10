@@ -67,6 +67,21 @@ export interface ArticleCardProps {
   readonly verdicts: ReadonlyMap<number, Verdict>;
   /** True once the round is out of the player's hands. */
   readonly locked: boolean;
+  /**
+   * H.6 — the cosmetics the player is wearing, which draw their own marks.
+   *
+   * Optional, and absent is the design system's own choice. Two strings rather
+   * than an `Outfit`, because that is what `ParagraphToken` takes: the design
+   * system depends on no `@wikifake` package, so unpacking the outfit is the
+   * application's job and this is where it happens.
+   *
+   * **Only the player's own marks.** A marker is not sent to a room — the
+   * decision of H.6 — because `assignColour` hands out a distinct colour per
+   * arrival so that two players can be told apart, and a bought colour cannot
+   * be allowed to break that. In a room the game picks; alone, the player does.
+   */
+  readonly marker?: string | null | undefined;
+  readonly markStyle?: string | null | undefined;
   onToggle(paragraph: number): void;
 }
 
@@ -86,6 +101,8 @@ export function ArticleCard({
   distortions,
   verdicts,
   locked,
+  marker,
+  markStyle,
   onToggle,
 }: ArticleCardProps) {
   const t = useTranslations('round');
@@ -135,6 +152,8 @@ export function ArticleCard({
           return (
             <ParagraphToken
               key={paragraph}
+              marker={marker}
+              markStyle={markStyle}
               state={tokenStateFor({
                 marked: marked.includes(paragraph),
                 hinted: hinted.has(paragraph),

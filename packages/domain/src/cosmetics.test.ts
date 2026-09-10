@@ -13,9 +13,14 @@ import {
   COSMETIC_CATALOGUE,
   COSMETIC_IDS,
   COSMETIC_SLOTS,
+  canWear,
   cosmeticById,
   cosmeticsInSlot,
   isCosmeticId,
+  outfitFrom,
+  takeOff,
+  wear,
+  EMPTY_OUTFIT,
 } from './cosmetics.js';
 import { COINS_PER_PERFECT_ROUND, COINS_PER_ROUND } from './coins.js';
 import { QUEST_CATALOGUE, QUEST_RULE_IDS } from './quests.js';
@@ -112,6 +117,93 @@ describe('H.5 — reading an identifier back', () => {
       'MARK_STYLE_BRACKET',
       'MARK_STYLE_CORNER',
     ]);
+  });
+});
+
+describe('H.6 — what may be worn', () => {
+  it('accepts an owned identifier and refuses one merely known', () => {
+    expect(canWear(['MARKER_CRIMSON'], 'MARKER_CRIMSON')).toBe(true);
+    expect(canWear([], 'MARKER_CRIMSON')).toBe(false);
+  });
+
+  it('refuses a retired identifier even to somebody who owns it', () => {
+    // Wearing is a new choice, and a new choice is made from what exists now.
+    // Nothing is taken away: the purchase is still in the ledger, and
+    // `outfitFrom` reads a retired value as the default rather than as an error.
+    expect(canWear(['MARKER_TURQUOISE'], 'MARKER_TURQUOISE')).toBe(false);
+  });
+
+  it('puts an item in its own slot, whatever the caller thinks', () => {
+    // The slot comes from the catalogue, which is the point of doing this here:
+    // a handler taking both could put a frame in the marker slot.
+    expect(wear(EMPTY_OUTFIT, 'FRAME_DOUBLE')).toEqual({
+      marker: null,
+      markStyle: null,
+      frame: 'FRAME_DOUBLE',
+    });
+  });
+
+  it('replaces within a slot rather than accumulating', () => {
+    const worn = wear(wear(EMPTY_OUTFIT, 'MARKER_CRIMSON'), 'MARKER_AMBER');
+    expect(worn.marker).toBe('MARKER_AMBER');
+    // And leaves the other slots exactly as they were.
+    expect(worn.markStyle).toBeNull();
+    expect(worn.frame).toBeNull();
+  });
+
+  it('takes a slot back to the default without touching the others', () => {
+    const dressed = wear(wear(EMPTY_OUTFIT, 'MARKER_CRIMSON'), 'FRAME_DOUBLE');
+    expect(takeOff(dressed, 'frame')).toEqual({
+      marker: 'MARKER_CRIMSON',
+      markStyle: null,
+      frame: null,
+    });
+  });
+
+  it('does not mutate the outfit it is given', () => {
+    const before = { ...EMPTY_OUTFIT };
+    wear(EMPTY_OUTFIT, 'MARKER_CRIMSON');
+    expect(EMPTY_OUTFIT).toEqual(before);
+  });
+});
+
+describe('H.6 — reading three stored strings as an outfit', () => {
+  it('reads a live identifier in its own slot', () => {
+    expect(
+      outfitFrom({
+        marker: 'MARKER_VIOLET',
+        markStyle: 'MARK_STYLE_BRACKET',
+        frame: 'FRAME_NOTCHED',
+      }),
+    ).toEqual({
+      marker: 'MARKER_VIOLET',
+      markStyle: 'MARK_STYLE_BRACKET',
+      frame: 'FRAME_NOTCHED',
+    });
+  });
+
+  it('reads null, undefined and a retired identifier all as the default', () => {
+    // The columns outlive the code that wrote them. A retirement must not be an
+    // outage on the profile of everybody who was wearing one.
+    expect(outfitFrom({})).toEqual(EMPTY_OUTFIT);
+    expect(outfitFrom({ marker: null })).toEqual(EMPTY_OUTFIT);
+    expect(outfitFrom({ marker: 'MARKER_TURQUOISE' })).toEqual(EMPTY_OUTFIT);
+  });
+
+  it('refuses a value in the wrong slot rather than drawing it there', () => {
+    // Nothing writes this — `wear` makes it impossible — but a column outlives
+    // its writer, and a screen asking what is in the marker slot must get a
+    // marker or nothing, never a frame it will try to draw as a colour.
+    expect(outfitFrom({ marker: 'FRAME_DOUBLE' }).marker).toBeNull();
+    expect(outfitFrom({ frame: 'MARKER_CRIMSON' }).frame).toBeNull();
+  });
+
+  it('keeps the slots it can read when another is unreadable', () => {
+    expect(outfitFrom({ marker: 'MARKER_AMBER', frame: 'MARKER_AMBER' })).toEqual({
+      marker: 'MARKER_AMBER',
+      markStyle: null,
+      frame: null,
+    });
   });
 });
 
