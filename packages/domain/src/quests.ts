@@ -18,13 +18,20 @@
 // `mode` and `total_fakes`. A rule that counted anything else would be a
 // promise F.4 could not keep.
 //
-// Two things the schema cannot answer, so that a later step starts from a
-// decision rather than a discovery. **Items used are not recorded** —
-// `participant.score_stolen` is what was done *to* a player, not what they
-// cast — so "use three items" is not a rule this catalogue may express until a
-// round writes down what was cast. And **a streak has no time dimension**:
-// `player_stats` holds the current and best streak as running totals with no
-// date on them, so "a streak of three today" is not answerable either.
+// One thing the schema cannot answer, and one this comment got wrong about it.
+//
+// **A streak has no time dimension.** `player_stats` holds the current and the
+// best streak as running totals with no date on them, so "a streak of three
+// today" is not answerable and no rule below asks for it.
+//
+// **Items used *are* recorded, and F.1 said they were not.** `audit.ts`'s
+// `item_use` has carried `caster_id`, `item_id` and `used_at` since phase 2, and
+// a join through `participant` reaches the player — so "cast three items this
+// week" is a rule this catalogue may express after all. What misled F.1 was
+// `participant.score_stolen`, which is indeed what was done *to* a player; the
+// caster's side is one table over. Found while F.3 was reading the schema next
+// door. No rule uses it yet, and the correction is here so that the next one
+// may.
 
 /** The two periods a set is drawn for. Monthly only if it is free — track F. */
 export type QuestPeriod = 'daily' | 'weekly';

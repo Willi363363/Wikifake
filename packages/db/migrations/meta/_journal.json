@@ -57,6 +57,13 @@
       "when": 1788965287993,
       "tag": "0007_small_raider",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1789035841491,
+      "tag": "0008_plain_marvel_zombies",
+      "breakpoints": true
     }
   ]
 }
