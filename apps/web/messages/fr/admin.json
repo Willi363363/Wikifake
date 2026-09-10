@@ -98,5 +98,29 @@
       "rate": "Taux"
     },
     "caveat": "Seules les manches terminées comptent dans le taux : une place dans une manche en cours n'a rien abandonné. Et il ne peut pas être ventilé par écran — saisir un thème, voter et attendre la génération ne laissent aucune ligne, d'où la ventilation par mode."
+  },
+  "cost": {
+    "title": "Coût",
+    "noRate": "—",
+    "noRateWhy": "Aucun tarif par jeton n'est configuré : cette section indique des jetons plutôt que de l'argent. Renseignez MODEL_INPUT_COST_PER_MTOK et MODEL_OUTPUT_COST_PER_MTOK pour les valoriser — un tarif inscrit dans le dépôt vieillirait sans le dire.",
+    "rateSet": "Valorisé au tarif configuré par million de jetons.",
+    "spend": "Dépense totale",
+    "perGame": "Par manche générée",
+    "perPlayer": "Par joueur",
+    "tokensPerGame": "Jetons par manche",
+    "calls": "{count, plural, one {# appel} other {# appels}}",
+    "generated": "{count, plural, one {# générée} other {# générées}}",
+    "failed": "{count, plural, one {# appel a échoué et a coûté des jetons} other {# appels ont échoué et ont coûté des jetons}}",
+    "withoutTokens": "{count, plural, one {# appel n'a rapporté aucun décompte de jetons} other {# appels n'ont rapporté aucun décompte de jetons}} — les totaux ci-dessus ne les comptent pas.",
+    "byKind": "Par type",
+    "perDay": "Par jour, 30 derniers jours",
+    "nothing": "Aucun appel au modèle enregistré.",
+    "columns": {
+      "kind": "Type",
+      "calls": "Appels",
+      "failed": "Échecs",
+      "input": "Entrée",
+      "output": "Sortie"
+    }
   }
 }

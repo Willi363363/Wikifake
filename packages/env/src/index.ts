@@ -133,6 +133,31 @@ const schema = z.object({
    * rather than a misconfigured one. Present only on Vercel and the socket host.
    */
   SENTRY_DSN: z.url().optional(),
+
+  /**
+   * What a million tokens costs, for the admin panel's spend figures — I.6.
+   *
+   * **Optional, and absent by default, because a rate hard-coded here would be
+   * wrong within a quarter and silently so.** Model prices change, `MODEL_NAME`
+   * is itself configurable, and this repository has a standing objection to
+   * numbers written by hand that go stale without saying — the same argument
+   * `docs/pages.ts` makes about counts in prose.
+   *
+   * So `llm_call` records tokens, which are a measurement, and money is a
+   * multiplication a deployment opts into. With neither set the panel reports
+   * tokens and says why; with both, it also reports a cost.
+   *
+   * **Not a price in currency in track H's sense.** H.8's sweep forbids the
+   * vocabulary of *selling* — providers, checkouts, invoices, a price on a
+   * thing a player buys. This is what the game pays a supplier, which is the
+   * opposite direction, and no player ever sees it.
+   *
+   * The unit is *per million tokens*, because that is how every provider
+   * publishes it: a per-token figure would be six leading zeros in an
+   * environment variable, and a typo in one of them is a cost report off by ten.
+   */
+  MODEL_INPUT_COST_PER_MTOK: z.coerce.number().nonnegative().optional(),
+  MODEL_OUTPUT_COST_PER_MTOK: z.coerce.number().nonnegative().optional(),
 });
 
 export type Env = z.infer<typeof schema>;

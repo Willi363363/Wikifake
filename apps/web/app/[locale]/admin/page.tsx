@@ -16,6 +16,8 @@ import { HealthSection } from '../../../src/admin/health-screen.js';
 import { readHealth } from '../../../src/admin/health.js';
 import { ActivationSection } from '../../../src/admin/activation-screen.js';
 import { readActivation } from '../../../src/admin/activation.js';
+import { CostSection } from '../../../src/admin/cost-screen.js';
+import { rateFrom, readCost } from '../../../src/admin/cost.js';
 import { GamesSection } from '../../../src/admin/games-screen.js';
 import { readGames } from '../../../src/admin/games.js';
 import { PlayersSection } from '../../../src/admin/players-screen.js';
@@ -38,6 +40,16 @@ export default async function AdminPage() {
   const players = await readPlayers({ db: db() }, Date.now());
   const activation = await readActivation({ db: db() });
   const games = await readGames({ db: db() });
+  const cost = await readCost(
+    {
+      db: db(),
+      // Read here rather than inside: a route is where a real environment is
+      // allowed to come from.
+      inputCostPerMTok: rateFrom(process.env['MODEL_INPUT_COST_PER_MTOK']),
+      outputCostPerMTok: rateFrom(process.env['MODEL_OUTPUT_COST_PER_MTOK']),
+    },
+    Date.now(),
+  );
   const health = await readHealth({
     db: db(),
     // Read here rather than inside: a route is where a real environment is
@@ -55,11 +67,12 @@ export default async function AdminPage() {
       <PlayersSection players={players} />
       <ActivationSection activation={activation} />
       <GamesSection games={games} />
+      <CostSection cost={cost} />
 
       {/* The sections still to come, listed rather than left blank so that the
           order the track chose is visible before it is built. */}
       <ul className="mt-8 space-y-2">
-        {(['cost', 'content'] as const).map((section) => (
+        {(['content'] as const).map((section) => (
           <li
             key={section}
             className="border-3 border-line-strong bg-surface px-3 py-2 shadow-md"

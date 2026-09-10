@@ -98,5 +98,29 @@
       "rate": "Rate"
     },
     "caveat": "Only rounds that have ended count towards the rate: a seat in a round still running has not abandoned anything. And it cannot be split by screen — typing a topic, voting and waiting for generation leave no row, so the split is by mode."
+  },
+  "cost": {
+    "title": "Cost",
+    "noRate": "—",
+    "noRateWhy": "No token rate is configured, so this section reports tokens rather than money. Set MODEL_INPUT_COST_PER_MTOK and MODEL_OUTPUT_COST_PER_MTOK to price them — a rate written into the repository would go stale without saying so.",
+    "rateSet": "Priced with the configured rate per million tokens.",
+    "spend": "Total spend",
+    "perGame": "Per game generated",
+    "perPlayer": "Per player",
+    "tokensPerGame": "Tokens per game",
+    "calls": "{count, plural, one {# call} other {# calls}}",
+    "generated": "{count, plural, one {# generated} other {# generated}}",
+    "failed": "{count, plural, one {# call failed and still cost tokens} other {# calls failed and still cost tokens}}",
+    "withoutTokens": "{count, plural, one {# call reported no token count} other {# calls reported no token count}} — the totals above are missing them.",
+    "byKind": "By kind",
+    "perDay": "Per day, last 30 days",
+    "nothing": "No model calls recorded yet.",
+    "columns": {
+      "kind": "Kind",
+      "calls": "Calls",
+      "failed": "Failed",
+      "input": "Input",
+      "output": "Output"
+    }
   }
 }
