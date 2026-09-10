@@ -16,6 +16,7 @@ import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm';
 import type { Database } from '../client.js';
 import { hintPurchase, itemUse } from '../schema/audit.js';
 import { answer, game, gamePosition, participant } from '../schema/game.js';
+import { recordEligibleScore } from './leaderboard.js';
 import { recordRoundFinished } from './stats.js';
 
 type Db = Database['db'];
@@ -255,11 +256,34 @@ export async function recordSubmission(
     // has a nickname and no `userId` today, which is why these numbers are
     // solo's — see `queries/stats.ts`.
     const [player] = await tx
-      .select({ userId: participant.userId, totalFakes: game.totalFakes })
+      .select({
+        userId: participant.userId,
+        totalFakes: game.totalFakes,
+        mode: game.mode,
+      })
       .from(participant)
       .innerJoin(game, eq(participant.gameId, game.id))
       .where(eq(participant.id, submission.participantId))
       .limit(1);
+
+    // Step G.2 — the score becomes eligible to be ranked, in the same
+    // transaction as the grading that produced it. An entry without a grading
+    // is a score nobody earned; a grading without an entry is a board that
+    // silently forgets a round. Neither is possible from here.
+    //
+    // Unlike the statistics below, this is written for a **guest** too: their
+    // `userId` is null and the boards of G.4 will not show them, but the round
+    // is part of the field the other players were ranked against, and E.7 makes
+    // the same choice when it empties a deleted account's rows.
+    if (player !== undefined) {
+      await recordEligibleScore(tx, {
+        participantId: submission.participantId,
+        userId: player.userId,
+        mode: player.mode,
+        score: submission.score,
+        finishedAt: submission.at,
+      });
+    }
 
     if (player?.userId != null) {
       await recordRoundFinished(tx, {

@@ -105,4 +105,10 @@ export type {
   QuestToAssign,
   RoundInWindow,
 } from './queries/quests.js';
+export {
+  rebuildLeaderboard,
+  recordEligibleScore,
+  selectEligibleScores,
+} from './queries/leaderboard.js';
+export type { EligibleScore } from './queries/leaderboard.js';
 export { seed } from './seed/seed.js';

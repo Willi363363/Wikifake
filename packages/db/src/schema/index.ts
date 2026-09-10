@@ -24,3 +24,4 @@ export {
 } from './audit.js';
 export { llmCall, llmCallKind } from './usage.js';
 export { questAssignment, questPeriodEnum } from './quests.js';
+export { leaderboardEntry } from './leaderboard.js';
