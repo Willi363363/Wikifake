@@ -25,6 +25,24 @@ import {
 import { verdictsFor } from '../verdicts.js';
 import { render } from '../../i18n/testing.js';
 
+/*
+ * Step E.6 — a guest, for the whole of this file.
+ *
+ * The panel renders the invitation itself rather than taking it as a prop, so
+ * the only way to see that wiring from here is to answer the session question
+ * the way the browser would. Every other case in this file is indifferent to it:
+ * the invitation shows nothing for the states they would otherwise be in.
+ */
+vi.mock('../../account/client.js', () => ({
+  authClient: {
+    useSession: () => ({
+      data: { user: { id: 'guest-1', isAnonymous: true } },
+      isPending: false,
+    }),
+  },
+  failureOf: (_: unknown, fallback: string) => fallback,
+}));
+
 const BREAKDOWN: ScoreBreakdown = {
   truePositives: 2,
   falsePositives: 1,
@@ -268,6 +286,28 @@ describe('8.7 — the panel', () => {
 
     advance(durationOf() + 100);
     expect(screen.getByRole('button', { name: 'Play again' })).not.toBeNull();
+  });
+
+  /*
+   * Step E.6 — the invitation belongs to the panel.
+   *
+   * Which is the whole reason it is asserted here and not only in
+   * `keep-round.test.tsx`. Solo and a room each build their own `debrief`
+   * object, so an invitation passed in as a prop would be an invitation a third
+   * mode could ship without — and the mode that forgot it would be the one whose
+   * guests quietly lose their rounds. Rendering it inside the panel makes that
+   * unavailable, and this case is what says so.
+   *
+   * It waits for the reveal like everything else: a block that arrives after the
+   * onward button has settled is a block that moves the button under a cursor.
+   */
+  it('invites a guest to keep the round, once the reveal has landed', () => {
+    paint();
+    expect(screen.queryByRole('region', { name: 'Keep this round' })).toBeNull();
+
+    advance(durationOf() + 100);
+    expect(screen.getByRole('region', { name: 'Keep this round' })).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Keep my rounds' })).not.toBeNull();
   });
 });
 
