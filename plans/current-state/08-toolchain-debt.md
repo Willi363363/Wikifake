@@ -22,19 +22,14 @@ Found by causing it: an e2e run followed immediately by `pnpm test` failed
 `apps/realtime/src/broadcast.test.ts` — *"timed out waiting for the lobby to hold
 ada, bob"* — and the same suite passed on its own a minute later.
 
-Both read `REDIS_URL`, and locally that is one instance. Measured since:
-`redis-cli DBSIZE` reported **36 keys** left behind after a journey run, and
-`FLUSHALL` made the same socket suite pass. The journeys leave rooms,
-subscriptions and delayed jobs; the socket suite then opens its own rooms
-against a database that is not empty. Nothing is wrong with either suite — they
-were not written to run back to back against shared state. A developer running
-both in one sitting reads a red socket test and goes looking in the wrong file.
+Both read `REDIS_URL`, and locally that is one instance: `redis-cli DBSIZE`
+reported **36 keys** left behind after a journey run, and `FLUSHALL` made the
+same socket suite pass. Nothing is wrong with either suite — they were not
+written to run back to back against shared state, and a developer running both
+reads a red socket test and looks in the wrong file. CI has seen it too: run
+34475187062 failed on #205, a change touching no realtime code.
 
-**"CI never sees it" was here until F.5's pull request, where CI saw it.** Run
-34475187062 failed that exact case on #205, a change touching no realtime code
-at all, while the other `Test` job on the same commit passed.
-
-**And the cause is not a loaded runner, which is what this entry said next.**
+**The cause is not a loaded runner, which is what this entry said next.**
 Measured during G.2, on this machine:
 
 ```
@@ -76,6 +71,23 @@ candidate, since `REDIS_URL` already carries one; a flush between runs and
 prefixed keys are the others. Choosing wants a moment's thought about which the
 socket service should tolerate in production, so it stays recorded.
 
+## A green suite and a failing job: Vitest's unhandled errors
+
+**Vitest exits non-zero on an unhandled error even when every test passed.**
+Right — an error nobody caught can make a passing test meaningless — and the
+least legible way to be told, because the reflex on a red job is to look for a
+failing case and there is none. Read the `Errors` line under the `Tests` line.
+
+Found on 2026-09-11: `1530 passed`, `1 error`, `ReferenceError: window is not
+defined … caught after test environment was torn down`. The cause was H.6's
+`useOutfit` continuing after unmount — aborting a fetch is necessary and not
+sufficient, since the gap between a response resolving and the code acting on
+it honours no signal. Fixed there.
+
+**The shape is what stays recorded, not that bug**: any async work a component
+starts can outlive the environment, and it is load-dependent — the same commit
+passed locally and on a re-run.
+
 ## A pull request title becomes a commit subject, and nothing checks it
 
 Found by causing it, during the batch of 2026-08-28.
@@ -107,39 +119,27 @@ moment it is still cheap.
 
 ## `pnpm test` does not read `.env.local`, and says so by passing
 
-Found on 2026-09-06, on a worktree with a `.env.local` at its root and nothing
-exported:
+Found on 2026-09-06: a worktree with a `.env.local` and nothing exported ran
+`942 passed | 101 skipped` in web and `11 passed | 92 skipped` in db, and
+reported success. Two hundred cases did not run.
 
-```
-@wikifake/web:test:   Tests  942 passed | 101 skipped (1043)
-@wikifake/db:test:    Tests   11 passed |  92 skipped (103)
-Tasks: 9 successful, 9 total
-```
+The suites read `DATABASE_URL` at collection time and skip when it is absent,
+which is what makes a run without a database *usable* — and the same behaviour
+that makes a run without a **file** indistinguishable from a real one.
 
-Two hundred cases did not run and the command reported success. Exporting
-`DATABASE_URL` and `REDIS_URL` by hand ran all 1,043.
+**Fixed since, and kept fixed by a test.** Every vitest config whose suites read
+the environment now declares `setupFiles: ['@wikifake/env/load']`, and
+`packages/env/src/setup-files.test.ts` finds those packages by searching their
+sources rather than their dependencies — so a new one that forgets fails. It is
+a no-op in CI and in production, where there is no file and the platform sets
+the environment.
 
-**This is the defect #177 just closed, one command over.** The loader is wired
-into the four entry points that read the environment before anything else —
-`apps/web/next.config.ts`, `apps/realtime/src/main.ts`,
-`packages/db/drizzle.config.ts`, `packages/db/scripts/seed.ts`. Vitest is a
-fifth: the suites read `process.env.DATABASE_URL` at collection time and skip
-themselves when it is absent, which is the behaviour that makes a run without a
-database *usable* — and the same behaviour that makes a run without a **file**
-indistinguishable from a real one.
+The trap it leaves behind: that search reads **comments too**, so a file merely
+mentioning the environment accessor makes its package look like one that needs
+the setup file. `economy-seam.test.ts` hit it with a planted example.
 
-Neither `apps/web/vitest.config.ts` nor `packages/db/vitest.config.ts` declares
-`setupFiles`, so there is no seam where the loader could run today.
-
-**The fix is small and it is not a step of anything yet:** a setup file
-importing `@wikifake/env/load`, declared by every vitest config whose suites
-need a service. It is a no-op in CI and in production, where there is no file
-and the platform sets the environment — the same argument #168 made for the
-loader itself.
-
-**The rule to carry meanwhile:** read the `skipped` count. A real local run says
-`0 skipped`, and the handovers have said so since 2026-08-30 precisely because
-nothing enforces it.
+**The rule to carry:** read the `skipped` count. A real local run says
+`0 skipped`.
 
 ## `reuseExistingServer` reuses a server you started by hand
 
