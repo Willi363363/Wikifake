@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | ⬜ not started |
+| **State** | 🔶 G.1 done — the region, derived and overridable |
 | **Branch** | `feat/leaderboards` |
 | **Depends on** | track E |
 | **Delivers** | a world ranking and a regional one |
@@ -53,13 +53,20 @@ Recorded in `11-deferred.md` rather than built.
 
 | # | Step | State |
 |---|---|---|
-| G.1 | Region on the profile: derived, overridable | ⬜ |
+| G.1 | Region on the profile: derived, overridable | ✅ |
 | G.2 | `leaderboard_entry`, written when a round finishes | ⬜ |
 | G.3 | Periods: daily, weekly, all-time | ⬜ |
 | G.4 | Queries and their indexes, checked on seeded volume | ⬜ |
 | G.5 | The board screen, world and regional | ⬜ |
 | G.6 | Participant threshold and the empty state | ⬜ |
 | G.7 | Your own rank, and the rows around it | ⬜ |
+
+**What each step decided** is in `07-leaderboards-steps.md`. The table above is
+the only place that says where a step stands.
+
+**G.1 stores three regions rather than six continents**, which narrows what this
+frame says above. The reason is the frame's own privacy argument, and it is in
+the sheet.
 
 ### G.4 — Indexes before the screen
 

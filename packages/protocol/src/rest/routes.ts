@@ -22,6 +22,8 @@ import {
   submitResponse,
 } from './game.js';
 import {
+  chooseRegionRequest,
+  chooseRegionResponse,
   claimPseudonymRequest,
   claimPseudonymResponse,
   deleteAccountRequest,
@@ -115,6 +117,13 @@ export const ROUTES: readonly Route[] = [
     path: '/api/flag-report',
     request: flagReportRequest,
     response: flagReportResponse,
+  },
+  {
+    // Step G.1. The region a player picks, which beats the derived one.
+    method: 'POST',
+    path: '/api/account/region',
+    request: chooseRegionRequest,
+    response: chooseRegionResponse,
   },
   {
     // Step F.6. The one thing a player does to a quest.

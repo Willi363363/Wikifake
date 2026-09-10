@@ -74,6 +74,19 @@ export async function claimPseudonym(
   db: Db,
   userId: string,
   displayName: string,
+  /**
+   * G.1 — the region the request came from, written with the row.
+   *
+   * Here rather than in a second statement because this insert *is* the row's
+   * creation: a profile that existed for a moment with no region would be a
+   * profile some query could read in that moment. Optional so that every
+   * existing caller — and every test that does not care — keeps compiling, and
+   * absent means null, which `effectiveRegion` reads as `other`.
+   *
+   * It is never an update. Re-deriving on a later request would move a
+   * travelling player's board under them, and the column above says so.
+   */
+  derivedRegion?: string | null,
 ): Promise<Claim> {
   const pseudonym: Pseudonym = {
     displayName,
@@ -81,7 +94,11 @@ export async function claimPseudonym(
   };
 
   try {
-    await db.insert(profile).values({ userId, ...pseudonym });
+    await db.insert(profile).values({
+      userId,
+      ...pseudonym,
+      ...(derivedRegion === undefined || derivedRegion === null ? {} : { derivedRegion }),
+    });
   } catch (error) {
     if (sqlstate(error) !== SQLSTATE.uniqueViolation) throw error;
     return { ok: false, reason: 'taken' };
@@ -107,4 +124,52 @@ export async function selectPseudonym(db: Db, userId: string): Promise<Pseudonym
     .where(eq(profile.userId, userId));
 
   return rows[0] ?? null;
+}
+
+/**
+ * The two region columns, for whoever has to decide which board a player is on.
+ *
+ * Both raw, and the decision is `effectiveRegion`'s in `@wikifake/domain` —
+ * `db` may not import it, so this hands back what is stored and the caller
+ * applies the rule. The same arrangement `recordSubmission` has with
+ * `isPerfectRound`.
+ */
+export async function selectRegions(
+  db: Db,
+  userId: string,
+): Promise<{ derivedRegion: string | null; chosenRegion: string | null } | null> {
+  const [row] = await db
+    .select({
+      derivedRegion: profile.derivedRegion,
+      chosenRegion: profile.chosenRegion,
+    })
+    .from(profile)
+    .where(eq(profile.userId, userId));
+
+  return row ?? null;
+}
+
+/**
+ * Records the region a player picked — step G.1.
+ *
+ * An update and not an upsert: a player with no `profile` row has not chosen a
+ * pseudonym, and E.3.2's gate sends them to do that before they reach anything
+ * else. Creating a row here would create one with no pseudonym, which is the
+ * state that gate exists to end.
+ *
+ * `false` when no row was touched, which the caller turns into the same refusal
+ * it gives a guest: there is no account here to rank.
+ */
+export async function setChosenRegion(
+  db: Db,
+  userId: string,
+  region: string,
+): Promise<boolean> {
+  const updated = await db
+    .update(profile)
+    .set({ chosenRegion: region, updatedAt: new Date() })
+    .where(eq(profile.userId, userId))
+    .returning({ userId: profile.userId });
+
+  return updated.length > 0;
 }

@@ -3,7 +3,7 @@
 
 # REST — routes and payloads
 
-11 routes, the ones a player's browser calls. A `GET`
+12 routes, the ones a player's browser calls. A `GET`
 takes no body. The probes and the cron are in `rest-operations.md`.
 
 ## `POST /api/multiplayer/create`
@@ -151,6 +151,16 @@ takes no body. The probes and the cron are in `rest-operations.md`.
   - `reasoning` — string (min 1 char)
   - `sourcesFound` — array of string (min 1 char)
   - `recommendation` — `"approve_for_review"` | `"needs_more_info"` | `"reject"`
+
+## `POST /api/account/region`
+
+**Request**
+
+- `region` — `"europe"` | `"americas"` | `"other"`
+
+**Response**
+
+- `region` — `"europe"` | `"americas"` | `"other"`
 
 ## `POST /api/quests/claim`
 

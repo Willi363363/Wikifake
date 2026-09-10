@@ -62,6 +62,9 @@ export type {
   QuestTarget,
 } from './quests.js';
 
+export { asRegion, effectiveRegion, regionForCountry } from './regions.js';
+export type { PlayerRegion } from './regions.js';
+
 export { gradeAnswer, isWellFormedSolution, solutionIssues } from './grading.js';
 export type { Grading } from './grading.js';
 

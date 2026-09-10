@@ -38,6 +38,31 @@ export const profile = pgTable(
      */
     accent: text('accent').notNull().default('teal'),
     /**
+     * G.1 — where the CDN said the request came from, mapped to a region.
+     *
+     * `x-vercel-ip-country`, through `regionForCountry`, and **written once**:
+     * at the moment this row is created. Not refreshed, deliberately — a header
+     * follows the network rather than the person, so re-deriving it would move a
+     * travelling player's board under them every trip.
+     *
+     * Null on a row created before this step, which `effectiveRegion` reads as
+     * `other` rather than as an error.
+     */
+    derivedRegion: text('derived_region'),
+    /**
+     * G.1 — the region the player set for themselves, which always wins.
+     *
+     * Two columns rather than one with a flag, so each means exactly one thing:
+     * this is a choice and the one above is an inference, and no code has to ask
+     * which a single value happens to be.
+     *
+     * **A column and not a `preferences` key**, unlike every other thing a
+     * player toggles. The comment on that column says why: `jsonb` is for
+     * preferences that nothing queries or joins on, and a regional board is a
+     * `where` clause on this value.
+     */
+    chosenRegion: text('chosen_region'),
+    /**
      * Everything else a player toggles — sound, reduced motion, and whatever
      * phase 6 adds.
      *

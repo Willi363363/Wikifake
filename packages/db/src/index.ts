@@ -47,7 +47,12 @@ export type {
 } from './queries/start.js';
 export type { ConnectionOptions, Database } from './client.js';
 export { selectUserById } from './queries/users.js';
-export { claimPseudonym, selectPseudonym } from './queries/profile.js';
+export {
+  claimPseudonym,
+  selectPseudonym,
+  selectRegions,
+  setChosenRegion,
+} from './queries/profile.js';
 export { deleteAccount, exportAccount, selectParticipantsOf } from './queries/account.js';
 export type { AccountExport, Deletion } from './queries/account.js';
 export type { Claim, Pseudonym } from './queries/profile.js';
