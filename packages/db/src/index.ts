@@ -120,4 +120,16 @@ export type {
   EligibleScore,
   OwnRank,
 } from './queries/leaderboard.js';
+export {
+  movementsOf,
+  recordMovement,
+  selectMovementByKey,
+  sumBalance,
+} from './queries/coins.js';
+export type {
+  CoinMovementToRecord,
+  CoinSource,
+  MovementOutcome,
+  RecordedMovement,
+} from './queries/coins.js';
 export { seed } from './seed/seed.js';
