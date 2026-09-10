@@ -12,6 +12,8 @@
 // is a name in a file nobody meant to keep.
 import { z } from 'zod';
 
+import { regionId } from '../regions.js';
+
 import { playerName } from '../primitives.js';
 
 /**
@@ -73,3 +75,18 @@ export const deleteAccountResponse = z.object({
   reports: z.int().nonnegative(),
 });
 export type DeleteAccountResponse = z.infer<typeof deleteAccountResponse>;
+
+/**
+ * G.1 — `POST /api/account/region`: the region a player picks for themselves.
+ *
+ * The choice always wins over the derived one, so this is the only thing that
+ * writes `chosen_region`. There is no request to *clear* it: reverting to the
+ * inference is a feature nobody has asked for, and a player who wants a
+ * different board picks it.
+ */
+export const chooseRegionRequest = z.object({ region: regionId });
+export type ChooseRegionRequest = z.infer<typeof chooseRegionRequest>;
+
+/** What a player is ranked in now, echoed so a screen shows the server's answer. */
+export const chooseRegionResponse = z.object({ region: regionId });
+export type ChooseRegionResponse = z.infer<typeof chooseRegionResponse>;

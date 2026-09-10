@@ -22,6 +22,7 @@
 // `src/game/`, so a test drives the real code with its own database rather than
 // a mock of it.
 import { claimPseudonym, type Database } from '@wikifake/db';
+import { regionForCountry } from '@wikifake/domain';
 import { accountApi, decode } from '@wikifake/protocol';
 
 import type { auth } from '../auth/auth.js';
@@ -30,6 +31,7 @@ import type { auth } from '../auth/auth.js';
 // for this step would be a rename in a diff that is about something else.
 import { refuse } from '../game/errors.js';
 import { readJson } from '../game/body.js';
+import { countryOf } from './region.js';
 import { json } from '../respond.js';
 
 export interface ClaimContext {
@@ -57,7 +59,15 @@ export async function handleClaimPseudonym(
     return refuse('session_not_found', 'Sign up before choosing a pseudonym.');
   }
 
-  const claim = await claimPseudonym(context.db, session.user.id, parsed.value.pseudonym);
+  // G.1 — the row is created here, so this is where the derived region is
+  // written. Once, with the insert: a profile that existed for a moment without
+  // one would be a profile some query could read in that moment.
+  const claim = await claimPseudonym(
+    context.db,
+    session.user.id,
+    parsed.value.pseudonym,
+    regionForCountry(countryOf(request)),
+  );
 
   // Also the answer for an account that already has one: `claimPseudonym`
   // creates and never renames, so a second claim collides with the caller's own
