@@ -26,7 +26,8 @@
       "unreachable": "the server could not be reached"
     },
     "account": "Create an account, or sign in",
-    "profile": "Your profile"
+    "profile": "Your profile",
+    "leaderboard": "Leaderboards"
   },
   "room": {
     "eyebrow": "Room",

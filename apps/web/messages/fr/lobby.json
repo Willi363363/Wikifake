@@ -26,7 +26,8 @@
       "unreachable": "le serveur est injoignable"
     },
     "account": "Créer un compte, ou se connecter",
-    "profile": "Votre profil"
+    "profile": "Votre profil",
+    "leaderboard": "Classements"
   },
   "room": {
     "eyebrow": "Salle",

@@ -307,9 +307,15 @@ export function LobbyEntry({ signedIn = false, pseudonym }: LobbyEntryProps) {
       {/* Step E.5 — the one link to the account area, on the one screen every
           player passes through. A profile nothing points at is a profile nobody
           opens, and this is the screen somebody lands on after signing in. */}
-      <p className="mt-6 text-center text-sm text-muted">
+      <p className="mt-6 flex flex-wrap justify-center gap-4 text-center text-sm text-muted">
         <Link href={signedIn ? '/profile' : '/sign-in'} className="text-ink underline">
           {t(signedIn ? 'profile' : 'account')}
+        </Link>
+        {/* Step G.5 — beside the account link rather than behind it: a board is
+            the one screen this effort added that is nobody's in particular, and
+            a guest who has never signed in is exactly who it is for. */}
+        <Link href="/leaderboard" className="text-ink underline">
+          {t('leaderboard')}
         </Link>
       </p>
 

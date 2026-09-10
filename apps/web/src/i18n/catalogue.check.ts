@@ -17,6 +17,7 @@ import type frAccount from '../../messages/fr/account.json';
 import type frErrors from '../../messages/fr/errors.json';
 import type frHome from '../../messages/fr/home.json';
 import type frLanguage from '../../messages/fr/language.json';
+import type frLeaderboard from '../../messages/fr/leaderboard.json';
 import type frLobby from '../../messages/fr/lobby.json';
 import type frQuests from '../../messages/fr/quests.json';
 import type frRound from '../../messages/fr/round.json';
@@ -43,6 +44,7 @@ export type FrenchCarriesEveryEnglishKey = [
   Covers<typeof frErrors, ShapeOf<CatalogueMessages['errors']>>,
   Covers<typeof frHome, ShapeOf<CatalogueMessages['home']>>,
   Covers<typeof frLanguage, ShapeOf<CatalogueMessages['language']>>,
+  Covers<typeof frLeaderboard, ShapeOf<CatalogueMessages['leaderboard']>>,
   Covers<typeof frLobby, ShapeOf<CatalogueMessages['lobby']>>,
   Covers<typeof frQuests, ShapeOf<CatalogueMessages['quests']>>,
   Covers<typeof frRound, ShapeOf<CatalogueMessages['round']>>,
@@ -57,6 +59,7 @@ export type FrenchAddsNoKeyOfItsOwn = [
   Covers<ShapeOf<CatalogueMessages['errors']>, ShapeOf<typeof frErrors>>,
   Covers<ShapeOf<CatalogueMessages['home']>, ShapeOf<typeof frHome>>,
   Covers<ShapeOf<CatalogueMessages['language']>, ShapeOf<typeof frLanguage>>,
+  Covers<ShapeOf<CatalogueMessages['leaderboard']>, ShapeOf<typeof frLeaderboard>>,
   Covers<ShapeOf<CatalogueMessages['lobby']>, ShapeOf<typeof frLobby>>,
   Covers<ShapeOf<CatalogueMessages['quests']>, ShapeOf<typeof frQuests>>,
   Covers<ShapeOf<CatalogueMessages['round']>, ShapeOf<typeof frRound>>,

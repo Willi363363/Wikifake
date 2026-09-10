@@ -1,0 +1,26 @@
+{
+  "title": "Classements",
+  "lead": "Manches en salon uniquement. Un thème solo est un thème que vous avez choisi, donc un score solo n’est comparable à celui de personne.",
+  "periodLabel": "Période",
+  "periods": {
+    "daily": "Aujourd’hui",
+    "weekly": "Cette semaine",
+    "allTime": "Depuis toujours"
+  },
+  "regionLabel": "Région",
+  "regions": {
+    "world": "Monde",
+    "europe": "Europe",
+    "americas": "Amériques",
+    "other": "Ailleurs"
+  },
+  "columns": {
+    "rank": "#",
+    "player": "Joueur",
+    "score": "Score",
+    "when": "Quand"
+  },
+  "empty": "Aucune manche en salon sur cette période. Ouvrez un salon et ce sera la première.",
+  "play": "Ouvrir un salon",
+  "soloNote": "Vos manches solo comptent toujours pour votre profil, vos quêtes et votre série."
+}
