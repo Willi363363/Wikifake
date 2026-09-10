@@ -40,3 +40,31 @@ export const COINS_PER_PERFECT_ROUND = 3;
 export function coinsForRound(round: { readonly perfect: boolean }): number {
   return COINS_PER_ROUND + (round.perfect ? COINS_PER_PERFECT_ROUND : 0);
 }
+
+/**
+ * What a hint costs in coins — step H.4.
+ *
+ * The score prices are `HINT_COST` (50) and `REVEAL_COST` (200), and these are
+ * not a conversion of them: a score point and a coin are not the same kind of
+ * thing. What sets these numbers is **what a player earns**. A round pays two
+ * and a quest twenty to a hundred and fifty, so a hint at five is two or three
+ * rounds and a reveal at fifteen is a day's quest — expensive enough to be a
+ * decision, cheap enough to be spent.
+ *
+ * A reveal costs three times a hint, which is the ratio the score prices use.
+ * Not because the ratio must match, but because the *shape* of the choice
+ * should: a reveal is the expensive answer either way round.
+ */
+export const HINT_COINS = 5;
+export const REVEAL_COINS = 15;
+
+/**
+ * The coin price of a hint at this level.
+ *
+ * Mirrors `hintCostFor`, which does the same for score, so the two prices are
+ * decided by the same shape of function and a level added to one is a level
+ * somebody has to price in the other.
+ */
+export function hintCoinCostFor(level: 1 | 2): number {
+  return level >= 2 ? REVEAL_COINS : HINT_COINS;
+}

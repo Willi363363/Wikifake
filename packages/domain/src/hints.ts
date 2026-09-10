@@ -29,14 +29,43 @@ export type HintLedger = Readonly<Record<number, HintLevel>>;
 export const EMPTY_LEDGER: HintLedger = {};
 
 /**
- * C2.2 — the total cost of what has been unlocked.
+ * C2.2 — the total cost of what has been unlocked, **priced in score**.
  *
  * Non-cumulative: a number at level 2 costs 200, not 50 + 200. Recomputed from
  * the ledger every time rather than tracked incrementally, so there is no
  * running total to drift.
+ *
+ * This is the price of the *record*, not of what was paid, and until H.4 the two
+ * were the same number — every hint was paid for in score, and the invariant
+ * below says so. A room round is still exactly that case, which is why the
+ * realtime path computes its penalty from the ledger it holds and needs nothing
+ * new. Where a purchase might have been paid for in coins, `hintPenaltyPaid` is
+ * the one to ask.
  */
 export function hintPenaltyFor(ledger: HintLedger): number {
   return Object.values(ledger).reduce((total, level) => total + hintCostFor(level), 0);
+}
+
+/**
+ * H.4 — what the **score** actually paid, which is what the penalty is.
+ *
+ * The distinction did not exist before this step: a hint cost score, so the
+ * price of the ledger and the sum of the charges were the same number, and
+ * `hints.test.ts` holds the two to each other for every score-paid sequence.
+ * Coins broke the tie — a coin-paid level is in the ledger, so
+ * `hintPenaltyFor` prices it, and charged the score nothing, so this does not.
+ *
+ * **The definition that survives is this one**: the penalty is what was taken.
+ * Deriving it from the levels held would mean a player paid in coins *and* in
+ * score for one hint, which is the opposite of what the coins are for.
+ *
+ * It takes the charges and not the ledger because that is all it needs — a
+ * ledger cannot answer it, having thrown the amounts away by design.
+ */
+export function hintPenaltyPaid(
+  purchases: readonly { readonly charged: number }[],
+): number {
+  return purchases.reduce((total, purchase) => total + purchase.charged, 0);
 }
 
 /** One billed level, as the record of it comes back. */
@@ -88,9 +117,10 @@ export interface HintRequest {
  * rather than restated here. Restating it is how the two would drift, which is
  * the reason `protocol` exists.
  *
- * `charged` is what **this** purchase cost, and 0 when the level was already
- * held. The sum of `charged` over a session equals `hintPenalty`, and there is a
- * test for that.
+ * `charged` is what **this** purchase cost the score, and 0 when the level was
+ * already held — or, since H.4, when coins paid for it. The sum of `charged`
+ * over a session is `hintPenalty`; `hintPenaltyPaid` is that sum, and
+ * `hints.test.ts` holds it to `hintPenaltyFor` for every score-paid sequence.
  */
 export type HintPayload = protocol.gameApi.HintResponse;
 

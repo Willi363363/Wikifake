@@ -131,5 +131,5 @@ Fifteen messages. `game_end` is the only one that carries the solution
 ## `error`
 
 - `type` — `"error"`
-- `code` — `"room_not_found"` | `"invalid_name"` | `"name_taken"` | `"bad_json"` | `"not_host"` | `"hints_blocked"` | `"no_theme_submitted"` | `"topic_not_found"` | `"generation_failed"` | `"session_not_found"` | `"hint_not_found"` | `"room_capacity_reached"` | `"invalid_target"` | `"out_of_phase"` | `"item_not_held"` | `"pseudonym_taken"` | `"quest_not_found"` | `"quest_already_claimed"` | `"quest_not_complete"`
+- `code` — `"room_not_found"` | `"invalid_name"` | `"name_taken"` | `"bad_json"` | `"not_host"` | `"hints_blocked"` | `"no_theme_submitted"` | `"topic_not_found"` | `"generation_failed"` | `"session_not_found"` | `"hint_not_found"` | `"room_capacity_reached"` | `"invalid_target"` | `"out_of_phase"` | `"item_not_held"` | `"pseudonym_taken"` | `"quest_not_found"` | `"quest_already_claimed"` | `"quest_not_complete"` | `"insufficient_coins"` | `"coins_not_accepted"`
 - `message` — string (min 1 char)

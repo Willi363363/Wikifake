@@ -39,6 +39,7 @@ takes no body. The probes and the cron are in `rest-operations.md`.
 - `sessionId` — string (16–64 chars, matching `^[A-Za-z0-9_-]+$`)
 - `falseInfoNumber` — integer (≥ 1)
 - `level` — `1` | `2` — default `1`
+- `pay` — `"score"` | `"coins"` — optional
 
 **Response**
 

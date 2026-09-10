@@ -30,6 +30,7 @@ export type { HintLevel, Submission } from './scoring.js';
 export {
   grantHint,
   hintPenaltyFor,
+  hintPenaltyPaid,
   hintsUsedFor,
   ledgerFrom,
   EMPTY_LEDGER,
@@ -65,7 +66,14 @@ export type {
   QuestTarget,
 } from './quests.js';
 
-export { coinsForRound, COINS_PER_PERFECT_ROUND, COINS_PER_ROUND } from './coins.js';
+export {
+  coinsForRound,
+  hintCoinCostFor,
+  COINS_PER_PERFECT_ROUND,
+  COINS_PER_ROUND,
+  HINT_COINS,
+  REVEAL_COINS,
+} from './coins.js';
 
 export { asRegion, effectiveRegion, regionForCountry } from './regions.js';
 export type { PlayerRegion } from './regions.js';

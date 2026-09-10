@@ -95,6 +95,23 @@ export const ERROR_CODES = [
    * this one becomes claimable by playing, and that one never becomes anything.
    */
   'quest_not_complete',
+  /**
+   * H.4 — a hint asked for in coins by a player who has not got them. REST: 402.
+   *
+   * The one status code in this application that is about money, and it is
+   * about *earned* coins: nothing here takes a payment. A client shows the
+   * balance and the price rather than a retry.
+   */
+  'insufficient_coins',
+  /**
+   * H.4 — coins offered for a hint in a room. REST: 409.
+   *
+   * Solo only, and the reason is the leaderboards: a room round is ranked, and
+   * paying with coins leaves the score untouched — so a player with coins would
+   * outscore one without. G.5 kept the boards measuring play rather than
+   * spending, and this keeps them that way by construction.
+   */
+  'coins_not_accepted',
 ] as const;
 
 export const errorCode = z.enum(ERROR_CODES);
