@@ -86,3 +86,68 @@ somebody had to write.
 Three breakages, three caught: the lock removed (only the contention test), the
 key made global (five cases), and `do nothing` turned into `do update` (three,
 including the retry storm).
+
+## H.2 — balance as a derived read, and its index  ✅
+
+**Done when** a balance is one row rather than a sum, the two agree on a ledger
+of thousands, and the read is held to its index.
+
+### `created_at` cannot order a ledger, and `seq` is why
+
+**`now()` is the transaction's start time, not the clock's** — verified against
+Postgres rather than assumed — so two movements written in one transaction carry
+the *identical* `created_at`. That is the ordinary case and not a rare one: H.3
+credits a quest inside the transaction that marks it claimed, and H.4 will spend
+inside the one that bills a hint.
+
+A balance read taking "the newest row" would then be choosing between two rows
+at random, and could return the **earlier** balance. `seq`, a `bigserial`, makes
+the order total whatever the clock says. The history reads by `created_at` *and*
+`seq`, so a spend never appears above the credit that paid for it.
+
+Global rather than per player: one sequence Postgres maintains against a second
+thing to lock. The gaps a rolled-back transaction leaves do not matter, because
+nothing reads the value — only its order.
+
+### The finding: an index that could not be used
+
+The first measurement said **`balance_after` buys nothing** — summing five
+thousand movements was *faster* than reading one row, and the planner would not
+touch the index. Both were true, and the reason was not the size of the table.
+
+**`order by x desc` means `desc nulls first` in SQL.** Drizzle's `.desc()` writes
+`DESC NULLS LAST` into an index and a bare `desc` into an order by, so they do
+not match and Postgres cannot use the index for the ordering at all:
+
+```
+order by seq desc              cost 139    0.77 ms   Seq Scan + top-N sort
+order by seq desc nulls last   cost 0.35   0.08 ms   Index Scan, stops at row 1
+```
+
+Ten times faster, constant rather than linear, and chosen by the planner without
+being forced. The columns are `not null`, so the two orderings **can never differ
+in result** — only in whether an index may be used, which is exactly why nothing
+caught it.
+
+`newestFirst` in `queries/coins.ts` spells it, and the volume test asserts the
+plan so it cannot regress. The case that used to assert a sequential scan now
+asserts the index, and keeps the story: *a measurement that says an index is not
+worth using is sometimes a measurement of an index that cannot be used.*
+
+**It applies beyond this step**, and a probe proved one: giving the leaderboard's
+`score desc` the same clause took the all-time board from **45 ms to 26 ms** at
+fifty thousand entries, with all fourteen of G.4's cases still passing. Reverted
+and recorded — a performance change to a shipped step is not an aside in a step
+about a ledger. `../current-state/09-query-debt.md` carries it, and that register
+is new because the other three had all reached their cap.
+
+### Two reads, held to each other
+
+`selectBalance` takes one row; `sumBalance` adds up every movement. The sum is
+the *definition*, so if they ever disagree the fast one is wrong — and the volume
+test asserts they agree on an account with five thousand movements whose amounts
+alternate sign, because a sum that agreed with a monotonic ledger might be adding
+absolute values.
+
+A second account is seeded alongside, so "this player's balance" has something to
+be narrowed from: an index that ignored `user_id` would pass on one account.

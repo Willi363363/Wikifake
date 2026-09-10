@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 H.1 done — the ledger, with idempotency |
+| **State** | 🔶 H.1 and H.2 — the ledger and its balance |
 | **Branch** | `feat/economy` |
 | **Depends on** | tracks E and F |
 | **Delivers** | a coin ledger, a shop, and no payment |
@@ -53,7 +53,7 @@ pay-to-win — which is both a worse game and a much harder thing to sell.
 | # | Step | State |
 |---|---|---|
 | H.1 | `coin_movement` — the ledger, with idempotency | ✅ |
-| H.2 | Balance as a derived read, and its index | ⬜ |
+| H.2 | Balance as a derived read, and its index | ✅ |
 | H.3 | Earning: quest rewards, and end-of-round | ⬜ |
 | H.4 | Spending: hints, against the existing billing | ⬜ |
 | H.5 | The cosmetics catalogue, in `domain` | ⬜ |
