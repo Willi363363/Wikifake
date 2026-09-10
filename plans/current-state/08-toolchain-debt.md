@@ -35,11 +35,34 @@ goes looking in the wrong file — which is a real cost.
 
 **"CI never sees it" was here until F.5's pull request, where CI saw it.** Run
 34475187062 failed that exact case on #205, a change touching no realtime code
-at all, while the other `Test` job on the same commit passed. So leftover Redis
-state is *a* cause and not the only one: the case waits two seconds for a
-pub/sub round trip between two instances, and a loaded runner is enough. Which
-means the flake is not merely a local annoyance to tidy up — it can redden an
-unrelated pull request, and the first reader will go looking in the diff.
+at all, while the other `Test` job on the same commit passed.
+
+**And the cause is not a loaded runner, which is what this entry said next.**
+Measured during G.2, on this machine:
+
+```
+turbo run test --force                  realtime: 1 failed, 140 passed   (twice,
+                                        different victims each time)
+turbo run test --force --concurrency=1  10 tasks successful, 141 passed
+```
+
+**Three packages read `REDIS_URL` and turbo runs their suites in parallel** —
+`@wikifake/article` and `apps/web` for the article cache, `apps/realtime` for
+rooms. So a single `pnpm test` races itself: the socket suite opens rooms while
+another suite is writing and flushing the same instance. Sequentially every
+suite passes.
+
+That makes this worse than a local annoyance in two ways. **`pnpm test` is the
+command CI runs**, so any pull request can go red for it — #205 did, and the
+first reader goes looking in the diff. And a developer who reruns the failing
+package alone sees it pass, which reads as "flaky test" rather than "shared
+state".
+
+`--concurrency=1` is the diagnosis, not the fix: it makes the whole suite serial
+for a collision between three packages. The fixes listed above are still the
+candidates, and a distinct database index per package is now the obvious one —
+`REDIS_URL` already carries one, and turbo would then be free to run them at
+once.
 
 The fixes are all cheap and none is obviously right: a distinct Redis database
 index per suite (`REDIS_URL` already carries one), a flush between runs, or

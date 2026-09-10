@@ -90,3 +90,77 @@ Three breakages, and only one was a defect:
   because the two refusals are not the same claim — one says *a guest has no
   account*, the other *this account has no pseudonym* — and a test covers the
   guest path even though the second refusal is what answers it today.
+
+## G.2 — `leaderboard_entry`, written when a round finishes  ✅
+
+**Done when** a graded round is eligible to be ranked, an ungraded one is
+eligible nowhere, and the table can be rebuilt from the rounds it describes.
+
+### The table was a fork, and the owner chose it
+
+`participant` can already express everything a board shows — its own check ties
+`submitted_at` to `score`, so "finished and server-graded" is one predicate —
+and Postgres holds those queries with the right indexes. So this was put to the
+owner with the cost named: **a second write path, and a figure that can drift.**
+They chose the table, for the reason the option carried: *a row exists here if
+and only if the server graded a round*, which is the track's anti-cheat rule
+turned into a table rather than a `where` clause every future query has to
+remember.
+
+Both halves of the cost are answered rather than accepted:
+
+- **The write is inside `recordSubmission`'s transaction**, beside E.4's
+  statistics. An entry without a grading is a score nobody earned; a grading
+  without an entry is a board that silently forgets a round.
+- **`rebuildLeaderboard` derives the whole table from `participant`**, and
+  `leaderboard.test.ts` plays a mixed field through the real path and asserts the
+  rebuild is identical. That is E.4's arrangement for `player_stats`, and it
+  earned itself here too — see below.
+
+### What is denormalised, and what is deliberately not
+
+Score, mode and the finishing instant: all three are fixed once a round is over.
+**The region is not here.** It is `profile`'s, joined at query time, because G.1
+lets a player change it — a denormalised copy would mean rewriting history every
+time somebody travels.
+
+`participant_id` is the primary key rather than a surrogate id with a unique
+index beside it: a round is graded once, so a second entry for the same
+participation is not a duplicate to tidy up but a score that was never earned.
+`on conflict do nothing` therefore keeps the first, where an update would let a
+replayed request overwrite a score with one computed against a later clock.
+
+`user_id` is `set null` and not `cascade`, which is E.7's shape: deleting an
+account leaves the rounds it played coherent, and the boards of G.4 must skip a
+row with no owner rather than the row not existing.
+
+### A guest's round is eligible, and has no owner
+
+The first thing the rebuild caught. The entry was written inside the
+`userId != null` branch that `player_stats` needs — so **every guest round was
+missing**, and the two paths disagreed. A guest is part of the field the other
+players were ranked against, so the round is eligible; no board will print their
+name, which is the same thing E.7 arranges for a deleted account.
+
+### The constraint this file first carried, and removed
+
+`check('score is not null')` beside a `not null` column: a constraint no insert
+can violate, which is worse than none because it reads as a guarantee somebody
+checked. C2.3 lets a score be negative and nothing clamps it, so there is no
+range to refuse either.
+
+### What the mutation run found
+
+Three breakages, three caught: the entry written only for accounts (the guest
+case *and* the rebuild), `do nothing` turned into `do update` (the retry case),
+and the rebuild's eligibility filter dropped (the rebuild case).
+
+### And one thing the test got wrong
+
+The account-deletion case first used a raw `delete from "user"` and failed.
+**That statement aborts by design** — `participant_account_or_guest` fires on a
+solo round whose `user_id` became null and which never had a `guest_name` — and
+E.7 documented it, asserted it, and built `deleteAccount` around it. The test
+goes through that function now. The register earning itself is the point worth
+keeping: the finding was written down, and it cost one failed run rather than an
+afternoon.

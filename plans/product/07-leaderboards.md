@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 G.1 done — the region, derived and overridable |
+| **State** | 🔶 G.1 and G.2 — the region, and the eligible scores |
 | **Branch** | `feat/leaderboards` |
 | **Depends on** | track E |
 | **Delivers** | a world ranking and a regional one |
@@ -54,7 +54,7 @@ Recorded in `11-deferred.md` rather than built.
 | # | Step | State |
 |---|---|---|
 | G.1 | Region on the profile: derived, overridable | ✅ |
-| G.2 | `leaderboard_entry`, written when a round finishes | ⬜ |
+| G.2 | `leaderboard_entry`, written when a round finishes | ✅ |
 | G.3 | Periods: daily, weekly, all-time | ⬜ |
 | G.4 | Queries and their indexes, checked on seeded volume | ⬜ |
 | G.5 | The board screen, world and regional | ⬜ |
