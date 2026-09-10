@@ -30,9 +30,16 @@ against a database that is not empty. Nothing is corrupted
 and nothing is wrong with either suite — they simply were not written to run
 back to back against shared state.
 
-CI never sees it: each job brings up its own services. A developer running both
-in one sitting sees it, reads a red socket test, and goes looking in the wrong
-file — which is the whole cost, and it is a real one.
+A developer running both in one sitting sees it, reads a red socket test, and
+goes looking in the wrong file — which is a real cost.
+
+**"CI never sees it" was here until F.5's pull request, where CI saw it.** Run
+34475187062 failed that exact case on #205, a change touching no realtime code
+at all, while the other `Test` job on the same commit passed. So leftover Redis
+state is *a* cause and not the only one: the case waits two seconds for a
+pub/sub round trip between two instances, and a loaded runner is enough. Which
+means the flake is not merely a local annoyance to tidy up — it can redden an
+unrelated pull request, and the first reader will go looking in the diff.
 
 The fixes are all cheap and none is obviously right: a distinct Redis database
 index per suite (`REDIS_URL` already carries one), a flush between runs, or
