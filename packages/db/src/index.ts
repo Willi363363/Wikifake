@@ -106,9 +106,12 @@ export type {
   RoundInWindow,
 } from './queries/quests.js';
 export {
+  boardQuery,
+  countBoardPlayers,
   rebuildLeaderboard,
   recordEligibleScore,
+  selectBoard,
   selectEligibleScores,
 } from './queries/leaderboard.js';
-export type { EligibleScore } from './queries/leaderboard.js';
+export type { BoardQuery, BoardRow, EligibleScore } from './queries/leaderboard.js';
 export { seed } from './seed/seed.js';

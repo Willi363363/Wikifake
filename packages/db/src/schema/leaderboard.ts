@@ -19,6 +19,7 @@
 // player may change it — G.1 — and a denormalised copy would mean rewriting
 // history every time somebody travels. What is denormalised is only what cannot
 // change once a round is over: the score, the mode, and the instant.
+import { sql } from 'drizzle-orm';
 import { index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 
 import { user } from './auth.js';
@@ -89,6 +90,37 @@ export const leaderboardEntry = pgTable(
      * order.
      */
     index('leaderboard_mode_finished_idx').on(table.mode, table.finishedAt, table.score),
+    /**
+     * The all-time board, which the index above cannot serve.
+     *
+     * **Added by G.4 because its volume test refused the query**, which is the
+     * point of that test rather than an accident of it. With no window there is
+     * no range on `finished_at`, so an index that puts that column before
+     * `score` cannot deliver the order — and Postgres chose a sequential scan of
+     * 25,000 rows and a sort. Measured, not guessed:
+     *
+     *     Seq Scan on leaderboard_entry  (rows=24965)  ->  Sort  ->  Limit
+     *
+     * `score desc` in the index, because that is the direction every board reads.
+     * All four board columns in the order the query asks for them — including
+     * `participant_id`, the third tie-break — so the index can deliver the
+     * ordering with **no sort at all**; three of four leaves an incremental
+     * sort, which is what the volume test measures.
+     *
+     * Partial on `user_id is not null`, because every board carries that clause:
+     * a row with no owner has no name to print, and leaving those out makes the
+     * index smaller as well as exactly matched.
+     *
+     * **Whether the planner picks it depends on the table's size, and that is
+     * not this index's business.** At fifty thousand narrow rows Postgres
+     * prefers a scan and a sort, correctly — the table is eight megabytes. What
+     * the schema has to guarantee is that an index *can* serve the query's order
+     * when the table is large enough to matter, and that is what the volume test
+     * asserts, with `enable_seqscan` off to take the cost model out of it.
+     */
+    index('leaderboard_mode_score_idx')
+      .on(table.mode, table.score.desc(), table.finishedAt, table.participantId)
+      .where(sql`${table.userId} is not null`),
     /** For "your own rank, and the rows around it" — G.7. */
     index('leaderboard_user_idx').on(table.userId),
     // No check constraint here, deliberately. The one this file first carried
