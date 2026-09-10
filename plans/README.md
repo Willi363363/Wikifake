@@ -33,7 +33,7 @@ are defined in `product/`, and their state is the table below.
 | D | Game surface | ✅ done — every screen on the direction, 24 journeys unchanged | `product/04-game-surface.md` |
 | E | Accounts and player statistics | 🔶 every step built; E.1 awaiting credentials | `product/05-accounts.md` |
 | F | Quests | 🔶 all seven built; the cron awaits `CRON_SECRET` in Vercel | `product/06-quests.md` |
-| G | Leaderboards | 🔶 G.1 to G.5 — the boards read, world and regional | `product/07-leaderboards.md` |
+| G | Leaderboards | 🔶 G.1 to G.6 — only a player's own rank is left | `product/07-leaderboards.md` |
 | H | Coins and the shop | ⬜ not started | `product/08-economy.md` |
 | I | Admin panel | ⬜ not started | `product/09-admin.md` |
 | J | SEO, legal and polish | ⬜ not started | `product/10-seo-and-legal.md` |

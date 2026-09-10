@@ -84,3 +84,66 @@ query, which is also the path production takes. A better test for it.
 be defended by name**, and three of the new ones are: `#`, `Score` and `Europe`.
 The list is exact rather than a lower bound, so each had to be declared with a
 reason instead of quietly passing.
+
+## G.6 — the participant threshold and the empty state  ✅
+
+**Done when** a board with too few players says so instead of showing three
+names, and a board with none invites the first.
+
+### The rows are withheld, not hidden
+
+`readBoard` returns **no rows at all** below the threshold. That is the decision:
+a screen that chose not to render them is a promise, and a read path that never
+returns them is a fact — a later refactor of the markup cannot leak a name it
+does not have. A mutation that hid them in the screen instead turns three cases
+red, two of them in the read path.
+
+The player *count* still comes back, because the screen says it. A number is not
+a name.
+
+### Ten players, and one number
+
+The track's rule is *"a leaderboard with four entries makes a game look
+abandoned"*, so `BOARD_MIN_PLAYERS` is ten. What matters more than the number is
+that it is one number: the screen interpolates it into its promise — *"opens once
+ten players have played"* — and the read path compares against it, so the two
+cannot disagree about what opens.
+
+**Per-period thresholds were considered and refused.** A daily board needs ten
+players *that day*, which is a far higher bar than ten ever, so the all-time
+board opens first and the regional dailies open last. That is the right order —
+the board with the most players in it is the one worth showing — and the
+alternative is three numbers to tune instead of one. A closed board points at the
+all-time one for that reason.
+
+**Distinct players and not entries**, which is why `countBoardPlayers` counts
+`distinct user_id`. A board that opened at ten *scores* would open when one
+player had played ten rounds — precisely the abandoned-looking board the rule
+exists to prevent — and a case plays twenty rounds as one player to hold it.
+
+### Two closed states, because they are not the same thing to a player
+
+**Nobody has played** is an invitation: open a room and be the first.
+**Somebody has, but not enough** is a promise with a number in it — *"opens once
+ten players have played"*, *"four players so far"* — which is a great deal better
+than a bare *soon*.
+
+A closed board keeps both choosers, so it is not a dead end: a player looking at
+a closed daily board can reach the all-time one, and the region tabs go on
+working.
+
+### What the mutation run found
+
+Three breakages, three caught: the rows hidden in the screen rather than
+withheld in the read (three cases), the comparison off by one (two, including the
+one that pins `isBoardOpen` directly), and the threshold applied to the rows
+returned instead of the players counted.
+
+### What it cost the suite that was already there
+
+Every G.5 case about *which rows come back* had to get the board open first,
+because the threshold now withholds them — so `openTheBoard` adds ten filler
+players scoring 1, low enough never to displace anybody a case cares about. Two
+cases changed meaning rather than mechanics: a board of three players in `other`
+is now **closed**, and a zero-player board is closed rather than an empty table.
+Both are the read path's answer rather than the test's convenience.
