@@ -39,6 +39,9 @@ rather than on prose (C5.1).
 - `out_of_phase`
 - `item_not_held`
 - `pseudonym_taken`
+- `quest_not_found`
+- `quest_already_claimed`
+- `quest_not_complete`
 
 ## Item identifiers
 

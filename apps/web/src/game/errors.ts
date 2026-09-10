@@ -36,6 +36,12 @@ const STATUS: Readonly<Partial<Record<ErrorCode, number>>> = {
   pseudonym_taken: 409,
   /** E.3.2 — a pseudonym the protocol's own schema refuses. The caller can fix it. */
   invalid_name: BAD_REQUEST,
+  /** F.6 — not this account's quest, or nothing at all. One code for both. */
+  quest_not_found: 404,
+  /** F.6 — the reward is already taken. A conflict, and a lasting one. */
+  quest_already_claimed: 409,
+  /** F.6 — the target is not met yet. A conflict the player can resolve. */
+  quest_not_complete: 409,
 };
 
 export function statusFor(code: ErrorCode): number {

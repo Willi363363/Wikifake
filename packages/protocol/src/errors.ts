@@ -74,6 +74,27 @@ export const ERROR_CODES = [
    * for a name nobody is ever giving back.
    */
   'pseudonym_taken',
+  /**
+   * F.6 — a quest identifier that is not this account's, or is not anything.
+   *
+   * One code for both, like `session_not_found`: telling them apart would
+   * answer "does this quest exist" about somebody else's row to whoever asked.
+   */
+  'quest_not_found',
+  /**
+   * F.6 — the reward has already been taken. REST: 409.
+   *
+   * The ordinary outcome of a double-clicked button, and the one a client should
+   * treat as *success it has already had* rather than as a failure to retry.
+   */
+  'quest_already_claimed',
+  /**
+   * F.6 — the target has not been met yet. REST: 409.
+   *
+   * Distinct from the one above because the two differ in what a player can do:
+   * this one becomes claimable by playing, and that one never becomes anything.
+   */
+  'quest_not_complete',
 ] as const;
 
 export const errorCode = z.enum(ERROR_CODES);
