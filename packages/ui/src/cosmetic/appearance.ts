@@ -74,7 +74,8 @@ export const MARKER_COLOURS: Readonly<Record<string, string>> = {
 export const MARK_STYLES: Readonly<Record<string, string>> = {
   MARK_STYLE_UNDERLINE: 'inset-x-1 -bottom-0.5 h-1',
   MARK_STYLE_BRACKET: 'inset-y-1 -inset-x-0.5 w-full border-x-3 bg-transparent',
-  MARK_STYLE_CORNER: 'inset-1 border-3 [clip-path:polygon(0_0,25%_0,25%_25%,0_25%,0_75%,25%_75%,25%_100%,0_100%,100%_100%,75%_100%,75%_75%,100%_75%,100%_25%,75%_25%,75%_0,100%_0)]',
+  MARK_STYLE_CORNER:
+    'inset-1 border-3 [clip-path:polygon(0_0,25%_0,25%_25%,0_25%,0_75%,25%_75%,25%_100%,0_100%,100%_100%,75%_100%,75%_75%,100%_75%,100%_25%,75%_25%,75%_0,100%_0)]',
 };
 
 /** The default decoration, which is what `null` in the marker slot means. */
@@ -92,7 +93,8 @@ export const DEFAULT_MARK_STYLE = MARK_STYLES['MARK_STYLE_UNDERLINE'] as string;
 export const FRAMES: Readonly<Record<string, string>> = {
   FRAME_HAIRLINE: 'border border-line-strong px-1',
   FRAME_DOUBLE: 'border-3 border-double border-line-strong px-1',
-  FRAME_NOTCHED: 'border-3 border-line-strong px-1 [clip-path:polygon(6px_0,100%_0,100%_calc(100%-6px),calc(100%-6px)_100%,0_100%,0_6px)]',
+  FRAME_NOTCHED:
+    'border-3 border-line-strong px-1 [clip-path:polygon(6px_0,100%_0,100%_calc(100%-6px),calc(100%-6px)_100%,0_100%,0_6px)]',
 };
 
 /**

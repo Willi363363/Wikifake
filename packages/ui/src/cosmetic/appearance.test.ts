@@ -75,7 +75,11 @@ describe('H.6 — an identifier is drawn by one map and no other', () => {
   });
 
   it('has something for every identifier it names', () => {
-    for (const [id, value] of Object.entries({ ...MARKER_COLOURS, ...MARK_STYLES, ...FRAMES })) {
+    for (const [id, value] of Object.entries({
+      ...MARKER_COLOURS,
+      ...MARK_STYLES,
+      ...FRAMES,
+    })) {
       expect(value, `${id} maps to nothing`).not.toBe('');
     }
   });
