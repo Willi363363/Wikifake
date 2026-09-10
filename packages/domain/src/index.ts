@@ -44,6 +44,8 @@ export type {
 } from './hints.js';
 
 export { questRulesFor, QUEST_CATALOGUE, QUEST_RULES, QUEST_RULE_IDS } from './quests.js';
+export { generateQuestSet, periodIndexOf, QUESTS_PER_SET } from './quest-generator.js';
+export type { QuestAssignment } from './quest-generator.js';
 export type {
   QuestPeriod,
   QuestQualifier,
