@@ -18,6 +18,7 @@ import errorsEn from '../../messages/en/errors.json';
 import homeEn from '../../messages/en/home.json';
 import leaderboardEn from '../../messages/en/leaderboard.json';
 import questsEn from '../../messages/en/quests.json';
+import shopEn from '../../messages/en/shop.json';
 import roundEn from '../../messages/en/round.json';
 import waitingEn from '../../messages/en/waiting.json';
 import lobbyEn from '../../messages/en/lobby.json';
@@ -29,6 +30,7 @@ import errorsFr from '../../messages/fr/errors.json';
 import homeFr from '../../messages/fr/home.json';
 import leaderboardFr from '../../messages/fr/leaderboard.json';
 import questsFr from '../../messages/fr/quests.json';
+import shopFr from '../../messages/fr/shop.json';
 import roundFr from '../../messages/fr/round.json';
 import waitingFr from '../../messages/fr/waiting.json';
 import accountEn from '../../messages/en/account.json';
@@ -48,6 +50,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
     account: accountEn,
     errors: errorsEn,
     quests: questsEn,
+    shop: shopEn,
     leaderboard: leaderboardEn,
     round: roundEn,
     waiting: waitingEn,
@@ -62,6 +65,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
     account: accountFr,
     errors: errorsFr,
     quests: questsFr,
+    shop: shopFr,
     leaderboard: leaderboardFr,
     round: roundFr,
     waiting: waitingFr,

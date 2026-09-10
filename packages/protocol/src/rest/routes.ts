@@ -22,6 +22,8 @@ import {
   submitResponse,
 } from './game.js';
 import {
+  buyCosmeticRequest,
+  buyCosmeticResponse,
   chooseRegionRequest,
   chooseRegionResponse,
   claimPseudonymRequest,
@@ -141,6 +143,13 @@ export const ROUTES: readonly Route[] = [
     path: '/api/account/cosmetics',
     request: wearCosmeticRequest,
     response: wearCosmeticResponse,
+  },
+  {
+    // Step H.7. Buying one, at the catalogue's price — no price on the wire.
+    method: 'POST',
+    path: '/api/shop/buy',
+    request: buyCosmeticRequest,
+    response: buyCosmeticResponse,
   },
   {
     // Step F.6. The one thing a player does to a quest.

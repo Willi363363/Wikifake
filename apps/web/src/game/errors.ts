@@ -48,6 +48,8 @@ const STATUS: Readonly<Partial<Record<ErrorCode, number>>> = {
   coins_not_accepted: 409,
   /** H.6 — not yours to wear. 403 rather than 404: the refusal is about you. */
   cosmetic_not_owned: 403,
+  /** H.7 — nothing by that name is for sale. */
+  cosmetic_not_found: 404,
 };
 
 export function statusFor(code: ErrorCode): number {

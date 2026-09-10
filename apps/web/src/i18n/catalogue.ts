@@ -19,6 +19,7 @@ import type routes from '../../messages/en/routes.json';
 import type small from '../../messages/en/small.json';
 import type lobby from '../../messages/en/lobby.json';
 import type quests from '../../messages/en/quests.json';
+import type shop from '../../messages/en/shop.json';
 import type round from '../../messages/en/round.json';
 import type waiting from '../../messages/en/waiting.json';
 import type { Locale } from './locales.js';
@@ -29,6 +30,7 @@ export const ZONES = [
   'account',
   'errors',
   'quests',
+  'shop',
   'leaderboard',
   'round',
   'waiting',
@@ -53,6 +55,7 @@ export type CatalogueMessages = {
   account: typeof account;
   errors: typeof errors;
   quests: typeof quests;
+  shop: typeof shop;
   leaderboard: typeof leaderboard;
   round: typeof round;
   waiting: typeof waiting;

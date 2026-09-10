@@ -1,0 +1,45 @@
+{
+  "title": "Shop",
+  "lead": "Coins come from playing — a few every round, more from quests. Nothing here changes a round: what you buy is how you look.",
+  "balance": "{count, plural, one {# coin} other {# coins}}",
+  "price": "{count, plural, one {# coin} other {# coins}}",
+  "slots": {
+    "marker": "Marker",
+    "markStyle": "Mark style",
+    "frame": "Frame"
+  },
+  "slotLead": {
+    "marker": "The colour your own marks are drawn in, when you play alone. In a room the game picks, so everybody can tell you apart.",
+    "markStyle": "How a paragraph you have marked is drawn.",
+    "frame": "The border round your name on the leaderboards."
+  },
+  "buy": "Buy",
+  "buying": "Buying…",
+  "wear": "Wear",
+  "wearing": "Wearing…",
+  "worn": "Worn",
+  "takeOff": "Take off",
+  "tooDear": "Not enough coins",
+  "default": "Nothing — the plain look, which is always yours",
+  "earn": "Play a round",
+  "quests": "See your quests",
+  "names": {
+    "MARKER_CRIMSON": "Crimson",
+    "MARKER_AMBER": "Amber",
+    "MARKER_VIOLET": "Violet",
+    "MARKER_SLATE": "Slate",
+    "MARK_STYLE_UNDERLINE": "Underline",
+    "MARK_STYLE_BRACKET": "Brackets",
+    "MARK_STYLE_CORNER": "Corners",
+    "FRAME_HAIRLINE": "Hairline",
+    "FRAME_DOUBLE": "Double",
+    "FRAME_NOTCHED": "Notched"
+  },
+  "errors": {
+    "insufficient_coins": "Not enough coins for that yet.",
+    "cosmetic_not_found": "There is nothing like that for sale.",
+    "cosmetic_not_owned": "That is not yours to wear.",
+    "session_not_found": "Sign up before buying anything.",
+    "unreachable": "The server could not be reached. Try again."
+  }
+}
