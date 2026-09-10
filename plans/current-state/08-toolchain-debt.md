@@ -26,12 +26,9 @@ Both read `REDIS_URL`, and locally that is one instance. Measured since:
 `redis-cli DBSIZE` reported **36 keys** left behind after a journey run, and
 `FLUSHALL` made the same socket suite pass. The journeys leave rooms,
 subscriptions and delayed jobs; the socket suite then opens its own rooms
-against a database that is not empty. Nothing is corrupted
-and nothing is wrong with either suite — they simply were not written to run
-back to back against shared state.
-
-A developer running both in one sitting sees it, reads a red socket test, and
-goes looking in the wrong file — which is a real cost.
+against a database that is not empty. Nothing is wrong with either suite — they
+were not written to run back to back against shared state. A developer running
+both in one sitting reads a red socket test and goes looking in the wrong file.
 
 **"CI never sees it" was here until F.5's pull request, where CI saw it.** Run
 34475187062 failed that exact case on #205, a change touching no realtime code
@@ -52,23 +49,32 @@ rooms. So a single `pnpm test` races itself: the socket suite opens rooms while
 another suite is writing and flushing the same instance. Sequentially every
 suite passes.
 
-That makes this worse than a local annoyance in two ways. **`pnpm test` is the
-command CI runs**, so any pull request can go red for it — #205 did, and the
-first reader goes looking in the diff. And a developer who reruns the failing
-package alone sees it pass, which reads as "flaky test" rather than "shared
-state".
+**`pnpm test` is the command CI runs**, so any pull request can go red for it —
+#205 did. And a developer who reruns the failing package alone sees it pass,
+which reads as "flaky test" rather than "shared state".
 
-`--concurrency=1` is the diagnosis, not the fix: it makes the whole suite serial
-for a collision between three packages. The fixes listed above are still the
-candidates, and a distinct database index per package is now the obvious one —
-`REDIS_URL` already carries one, and turbo would then be free to run them at
-once.
+### There were two races here, and one of them is fixed
 
-The fixes are all cheap and none is obviously right: a distinct Redis database
-index per suite (`REDIS_URL` already carries one), a flush between runs, or
-prefixed keys. Choosing wants a moment's thought about which of the three the
-socket service should tolerate in production, so it is recorded rather than
-guessed at.
+**Within `apps/realtime`, its own files raced each other**, and that half is
+closed. `vitest.config.ts` said *"ports are picked by the OS, so files may run
+in parallel"* — true when a port was the only shared resource. Steps 5.8 and
+E.3b.1 gave two of those files one scratch database, and every file shares one
+Redis, so the suite raced itself with no other package running: forcing
+`--fileParallelism` under load reproduced `broadcast.test.ts` failing, and CI
+reproduced the database half twice on #218 — `generation.test.ts` losing the
+room its round references, and a different `results.test.ts` case each run.
+
+The fix is the line `apps/web` and `@wikifake/db` already carry:
+`fileParallelism: false`. Eight runs under the load that had produced a failure
+were green. It costs a slower realtime suite.
+
+**Across packages, one Redis is still shared**, and that half is open: turbo
+runs the three suites that read `REDIS_URL` at once, so `pnpm test` can still
+race itself however serial each suite is internally. `--concurrency=1` is the
+diagnosis, not the fix. A distinct database index per package is the obvious
+candidate, since `REDIS_URL` already carries one; a flush between runs and
+prefixed keys are the others. Choosing wants a moment's thought about which the
+socket service should tolerate in production, so it stays recorded.
 
 ## A pull request title becomes a commit subject, and nothing checks it
 
