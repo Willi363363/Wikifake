@@ -13,7 +13,11 @@
 // name.
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { sql } from 'drizzle-orm';
+
 import { movementsOf, recordMovement, sumBalance } from './coins.js';
+import { recordSubmission } from './session.js';
+import { game, participant } from '../schema/game.js';
 import { connect } from '../client.js';
 import { coinMovement } from '../schema/coins.js';
 import { user } from '../schema/auth.js';
@@ -268,5 +272,175 @@ describe.skipIf(url === null)('H.1 — the ledger under contention', () => {
     } finally {
       await Promise.all(pools.map((pool) => pool.close()));
     }
+  });
+});
+
+describe.skipIf(url === null)('H.3 — a round pays into the ledger', () => {
+  let store: TestDatabase;
+
+  beforeAll(async () => {
+    store = await openTestDatabase(url as string);
+  });
+
+  beforeEach(async () => {
+    await store.truncate();
+  });
+
+  afterAll(async () => {
+    await store.close();
+  });
+
+  const AT = new Date('2026-09-10T12:00:00.000Z');
+
+  const addUser = async (id: string): Promise<void> => {
+    await store.db
+      .insert(user)
+      .values({ id, name: id, email: `${id}@example.test`, emailVerified: false });
+  };
+
+  /** A game with one participant, ungraded. */
+  const joinGame = async (
+    owner: string | null,
+  ): Promise<{ gameId: string; participantId: string }> => {
+    const [row] = await store.db
+      .insert(game)
+      .values({
+        mode: 'solo',
+        topic: 'Chat',
+        sourceUrl: 'https://fr.wikipedia.org/wiki/Chat',
+        paragraphs: ['un paragraphe'],
+        totalFakes: 3,
+        timeLimit: 300,
+      })
+      .returning({ id: game.id });
+    const [player] = await store.db
+      .insert(participant)
+      .values({
+        gameId: (row as { id: string }).id,
+        ...(owner === null ? { guestName: 'a guest' } : { userId: owner }),
+        colour: '#1f574d',
+      })
+      .returning({ id: participant.id });
+
+    return {
+      gameId: (row as { id: string }).id,
+      participantId: (player as { id: string }).id,
+    };
+  };
+
+  const grade = (
+    ids: { gameId: string; participantId: string },
+    coins?: number,
+  ): Promise<boolean> =>
+    recordSubmission(store.db, {
+      gameId: ids.gameId,
+      participantId: ids.participantId,
+      marked: [1],
+      score: 400,
+      truePositives: 3,
+      falsePositives: 0,
+      hintsUsed: 0,
+      hintPenalty: 0,
+      scoreStolen: 0,
+      timeBonus: 0,
+      perfect: true,
+      at: AT,
+      ...(coins === undefined ? {} : { coins }),
+    });
+
+  it('credits the round in the transaction that graded it', async () => {
+    await addUser('ada');
+    const ids = await joinGame('ada');
+
+    expect(await grade(ids, 5)).toBe(true);
+
+    const ledger = await movementsOf(store.db, 'ada');
+    expect(ledger).toHaveLength(1);
+    expect(ledger[0]).toMatchObject({
+      amount: 5,
+      source: 'round_end',
+      reference: ids.gameId,
+      balanceAfter: 5,
+    });
+  });
+
+  it('pays a replayed grading once', async () => {
+    // `recordSubmission` refuses a second grading — `where submitted_at is
+    // null` — and the key is the participation, so even a caller reaching past
+    // it cannot pay twice.
+    await addUser('ada');
+    const ids = await joinGame('ada');
+    await grade(ids, 5);
+
+    await grade(ids, 5);
+
+    expect(await sumBalance(store.db, 'ada')).toBe(5);
+  });
+
+  it('pays a guest nothing', async () => {
+    /*
+     * Coins are an account feature, like quests, and the reason is the same one
+     * F.7 gave: `coin_movement` cascades on `user_id`, and the anonymous plugin
+     * deletes that row the moment a guest signs up. Crediting a guest would be
+     * crediting coins that disappear.
+     *
+     * Their *round* still follows them — E.6 moves the participant rows — so
+     * what they lose is the trickle, not the history.
+     */
+    const ids = await joinGame(null);
+
+    expect(await grade(ids, 5)).toBe(true);
+
+    const [row] = await store.db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(coinMovement);
+    expect(row?.count).toBe(0);
+  });
+
+  it('credits nothing when the round is worth nothing', async () => {
+    // Zero and absent both credit nothing, because `amount <> 0` refuses a
+    // movement of nothing and a round worth nothing is not a movement.
+    await addUser('ada');
+
+    const zero = await joinGame('ada');
+    await grade(zero, 0);
+    const absent = await joinGame('ada');
+    await grade(absent);
+
+    expect(await movementsOf(store.db, 'ada')).toEqual([]);
+    expect(await sumBalance(store.db, 'ada')).toBe(0);
+  });
+
+  it('leaves no coins behind when its transaction rolls back', async () => {
+    /*
+     * H.1 promised that `recordMovement` runs inside the caller's transaction,
+     * and this is that promise tested rather than asserted.
+     *
+     * **The first version of this case was named for a rollback and only
+     * asserted the happy path** — a test claiming more than it does, which is
+     * worse than no test. Forcing `recordSubmission` to fail *after* the credit
+     * needs a failure planted in a statement it makes later, and there is no
+     * honest way to plant one from out here. So the property is tested where it
+     * can be: a transaction that credits and then throws must leave nothing.
+     */
+    await addUser('ada');
+
+    await expect(
+      store.db.transaction(async (tx) => {
+        await recordMovement(tx, {
+          userId: 'ada',
+          amount: 5,
+          source: 'round_end',
+          idempotencyKey: 'round:rolled-back',
+        });
+        // The balance is real inside the transaction, which is what makes the
+        // assertion afterwards mean something.
+        expect(await sumBalance(tx, 'ada')).toBe(5);
+        throw new Error('the round did not finish');
+      }),
+    ).rejects.toThrow('the round did not finish');
+
+    expect(await sumBalance(store.db, 'ada')).toBe(0);
+    expect(await movementsOf(store.db, 'ada')).toEqual([]);
   });
 });

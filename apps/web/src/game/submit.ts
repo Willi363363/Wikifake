@@ -18,6 +18,7 @@ import {
   hintPenaltyFor,
   hintsUsedFor,
   ledgerFrom,
+  coinsForRound,
   isPerfectRound,
 } from '@wikifake/domain';
 import {
@@ -130,6 +131,12 @@ export async function handleSubmit(
     elapsedSeconds: elapsedSeconds(access.round.startedAt, at),
   });
 
+  const perfect = isPerfectRound({
+    truePositives: grading.found.length,
+    falsePositives: grading.wrong.length,
+    totalFakes: solution.length,
+  });
+
   const settled = await recordSubmission(context.db, {
     gameId,
     participantId,
@@ -141,11 +148,11 @@ export async function handleSubmit(
     // to know it. `workspace-graph.test.ts` keeps `@wikifake/db` away from
     // `@wikifake/domain`: data does not depend on rules, so the rule is applied
     // where the round is graded and the answer travels with the grade.
-    perfect: isPerfectRound({
-      truePositives: grading.found.length,
-      falsePositives: grading.wrong.length,
-      totalFakes: solution.length,
-    }),
+    perfect: perfect,
+    // Step H.3 — what the round pays, from the one place that decides it. The
+    // same `perfect` the streak uses, so the two cannot disagree about the
+    // round they are both describing.
+    coins: coinsForRound({ perfect }),
   });
 
   // Another request graded it first. Theirs is the grading that counts.

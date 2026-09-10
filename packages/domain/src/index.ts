@@ -65,6 +65,8 @@ export type {
   QuestTarget,
 } from './quests.js';
 
+export { coinsForRound, COINS_PER_PERFECT_ROUND, COINS_PER_ROUND } from './coins.js';
+
 export { asRegion, effectiveRegion, regionForCountry } from './regions.js';
 export type { PlayerRegion } from './regions.js';
 

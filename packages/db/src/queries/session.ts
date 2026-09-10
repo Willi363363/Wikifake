@@ -16,6 +16,7 @@ import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm';
 import type { Database } from '../client.js';
 import { hintPurchase, itemUse } from '../schema/audit.js';
 import { answer, game, gamePosition, participant } from '../schema/game.js';
+import { recordMovement } from './coins.js';
 import { recordEligibleScore } from './leaderboard.js';
 import { recordRoundFinished } from './stats.js';
 
@@ -178,6 +179,15 @@ export interface GradedSubmission {
   /** Injected: the rules take the clock as a parameter, and so does the record. */
   readonly at: Date;
   /**
+   * Step H.3 — what this round pays in coins, decided by `coinsForRound`.
+   *
+   * A number and not a rule, for the reason `perfect` is a boolean: `db` may not
+   * read `@wikifake/domain`, so the amount travels with the grade. Zero or
+   * absent credits nothing, which is what a guest's round does — coins are an
+   * account feature, like quests.
+   */
+  readonly coins?: number;
+  /**
    * Whether this round keeps the player's streak alive — step E.4.
    *
    * Decided by the caller, which is the one that graded it and the one allowed
@@ -282,6 +292,24 @@ export async function recordSubmission(
         mode: player.mode,
         score: submission.score,
         finishedAt: submission.at,
+      });
+    }
+
+    // Step H.3 — the coins this round earned, inside the transaction that
+    // graded it. A credit without a grading is a coin nobody played for; a
+    // grading without its credit is a player who is owed one and nothing that
+    // remembers. The key is the participation, so a replayed grading pays once.
+    //
+    // Accounts only, like the statistics below and like quests: a guest's
+    // `user` row is deleted the moment they sign up, and `coin_movement`
+    // cascades — so a guest's coins would be coins that disappear.
+    if (player?.userId != null && (submission.coins ?? 0) > 0) {
+      await recordMovement(tx, {
+        userId: player.userId,
+        amount: submission.coins as number,
+        source: 'round_end',
+        reference: submission.gameId,
+        idempotencyKey: `round:${submission.participantId}`,
       });
     }
 
