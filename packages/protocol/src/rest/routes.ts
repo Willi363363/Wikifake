@@ -31,7 +31,7 @@ import {
 import { flagReportRequest, flagReportResponse } from './flags.js';
 import { healthResponse, pingResponse, usageResponse } from './health.js';
 import { createRoomRequest, createRoomResponse } from './rooms.js';
-import { questCronResponse } from './quests.js';
+import { claimQuestRequest, claimQuestResponse, questCronResponse } from './quests.js';
 import { realtimeTicketRequest, realtimeTicketResponse } from './tickets.js';
 
 export interface Route {
@@ -115,6 +115,13 @@ export const ROUTES: readonly Route[] = [
     path: '/api/flag-report',
     request: flagReportRequest,
     response: flagReportResponse,
+  },
+  {
+    // Step F.6. The one thing a player does to a quest.
+    method: 'POST',
+    path: '/api/quests/claim',
+    request: claimQuestRequest,
+    response: claimQuestResponse,
   },
   {
     // Step F.5. A `GET` that writes, which is Vercel's scheduler dictating the
