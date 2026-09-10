@@ -1,0 +1,33 @@
+{
+  "title": "Quêtes",
+  "lead": "Un lot neuf chaque jour, et un chaque semaine. Rien ici n’est écrit à la main : chaque quête est une règle appliquée à ce que vous avez joué.",
+  "daily": "Aujourd’hui",
+  "weekly": "Cette semaine",
+  "progress": "{progress} sur {target}",
+  "reward": "{count, plural, one {# pièce} other {# pièces}}",
+  "claim": "Récupérer",
+  "claiming": "Récupération…",
+  "claimed": "Récupérée",
+  "locked": "Continuez à jouer",
+  "empty": "Aucune quête pour cette période. Jouez une manche et elles apparaîtront.",
+  "play": "Jouer une manche",
+  "wallet": "Les pièces sont comptées depuis aujourd’hui. Il n’y a encore rien à en faire — la boutique est en construction.",
+  "errors": {
+    "quest_not_complete": "Celle-ci n’est pas encore terminée.",
+    "quest_already_claimed": "Vous avez déjà récupéré celle-ci.",
+    "quest_not_found": "Cette quête n’est plus à vous.",
+    "unreachable": "Le serveur est injoignable. Réessayez."
+  },
+  "rules": {
+    "DAILY_FINISH_ROUNDS": "Terminer {target} manches",
+    "DAILY_FIND_FALSIFICATIONS": "Trouver {target} falsifications",
+    "DAILY_SCORE_POINTS": "Marquer {target} points",
+    "DAILY_UNAIDED_ROUND": "Terminer {target} manches sans indice",
+    "DAILY_NOTHING_WRONGLY_MARKED": "Terminer {target} manches sans marquer de vrai paragraphe",
+    "WEEKLY_FINISH_ROUNDS": "Terminer {target} manches",
+    "WEEKLY_FIND_FALSIFICATIONS": "Trouver {target} falsifications",
+    "WEEKLY_SCORE_POINTS": "Marquer {target} points",
+    "WEEKLY_PERFECT_ROUNDS": "Terminer {target} manches parfaites",
+    "WEEKLY_MULTIPLAYER_ROUNDS": "Terminer {target} manches en salon"
+  }
+}

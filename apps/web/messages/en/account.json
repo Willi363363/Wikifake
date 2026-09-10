@@ -49,6 +49,7 @@
     "onAStreak": "{count} perfect rounds in a row",
     "since": "Playing since {date}.",
     "play": "Play a round",
+    "quests": "Your quests",
     "signOut": "Sign out",
     "signingOut": "Signing out…"
   },

@@ -32,7 +32,7 @@ are defined in `product/`, and their state is the table below.
 | C | Landing — the scroll scene | 🔶 C.1 to C.6 and C.8 done, C.7 awaiting a device | `product/03-landing.md` |
 | D | Game surface | ✅ done — every screen on the direction, 24 journeys unchanged | `product/04-game-surface.md` |
 | E | Accounts and player statistics | 🔶 every step built; E.1 awaiting credentials | `product/05-accounts.md` |
-| F | Quests | 🔶 F.1 to F.6 — only the screen is left | `product/06-quests.md` |
+| F | Quests | 🔶 all seven built; the cron awaits `CRON_SECRET` in Vercel | `product/06-quests.md` |
 | G | Leaderboards | ⬜ not started | `product/07-leaderboards.md` |
 | H | Coins and the shop | ⬜ not started | `product/08-economy.md` |
 | I | Admin panel | ⬜ not started | `product/09-admin.md` |
