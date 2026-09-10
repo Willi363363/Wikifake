@@ -121,8 +121,10 @@ export type {
   OwnRank,
 } from './queries/leaderboard.js';
 export {
+  balanceQuery,
   movementsOf,
   recordMovement,
+  selectBalance,
   selectMovementByKey,
   sumBalance,
 } from './queries/coins.js';
