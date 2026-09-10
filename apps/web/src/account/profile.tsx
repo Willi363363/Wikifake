@@ -130,6 +130,13 @@ export function Profile({ pseudonym, email, stats }: ProfileProps) {
         <Link href="/play" className="text-ink underline">
           {t('play')}
         </Link>
+        {/* F.7 — a screen nothing points at is a screen nobody opens, which is
+            the argument E.5 made for this profile itself. Here rather than on
+            the entry screen: quests belong to an account, and this is the one
+            account-only screen every signed-in player already reaches. */}
+        <Link href="/quests" className="text-ink underline">
+          {t('quests')}
+        </Link>
         <SignOutButton />
       </div>
     </main>

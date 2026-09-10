@@ -1,0 +1,33 @@
+{
+  "title": "Quests",
+  "lead": "A fresh set every day, and one every week. Nothing here is written by hand — each quest is a rule applied to what you have played.",
+  "daily": "Today",
+  "weekly": "This week",
+  "progress": "{progress} of {target}",
+  "reward": "{count, plural, one {# coin} other {# coins}}",
+  "claim": "Claim",
+  "claiming": "Claiming…",
+  "claimed": "Claimed",
+  "locked": "Keep playing",
+  "empty": "No quests for this period yet. Play a round and they will appear.",
+  "play": "Play a round",
+  "wallet": "Coins are counted from today. There is nothing to spend them on yet — the shop is still being built.",
+  "errors": {
+    "quest_not_complete": "That one is not finished yet.",
+    "quest_already_claimed": "You have already claimed that one.",
+    "quest_not_found": "That quest is no longer yours to claim.",
+    "unreachable": "The server could not be reached. Try again."
+  },
+  "rules": {
+    "DAILY_FINISH_ROUNDS": "Finish {target} rounds",
+    "DAILY_FIND_FALSIFICATIONS": "Find {target} falsifications",
+    "DAILY_SCORE_POINTS": "Score {target} points",
+    "DAILY_UNAIDED_ROUND": "Finish {target} rounds without a hint",
+    "DAILY_NOTHING_WRONGLY_MARKED": "Finish {target} rounds marking nothing true",
+    "WEEKLY_FINISH_ROUNDS": "Finish {target} rounds",
+    "WEEKLY_FIND_FALSIFICATIONS": "Find {target} falsifications",
+    "WEEKLY_SCORE_POINTS": "Score {target} points",
+    "WEEKLY_PERFECT_ROUNDS": "Finish {target} perfect rounds",
+    "WEEKLY_MULTIPLAYER_ROUNDS": "Finish {target} rounds in a room"
+  }
+}

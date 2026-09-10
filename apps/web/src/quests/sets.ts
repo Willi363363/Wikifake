@@ -35,6 +35,15 @@ export interface QuestsContext {
 
 /** A quest as a screen needs it: the promise, the progress, and the reward. */
 export interface LiveQuest {
+  /**
+   * The row's own identifier — what a claim is made against.
+   *
+   * Added by F.7, which is the first thing that had to name one quest rather
+   * than list them. It is not the `(rule, period, index)` triple even though
+   * that is unique too: the claim route takes one opaque value, so a browser
+   * cannot construct a claim for a set it was never given.
+   */
+  readonly questId: string;
   readonly ruleId: QuestRuleId;
   readonly period: QuestPeriod;
   readonly periodIndex: number;
@@ -124,6 +133,7 @@ async function periodQuests(
     const progress = progressFor(rule, rounds);
     return [
       {
+        questId: row.id,
         ruleId: rule.id,
         period,
         periodIndex: row.periodIndex,
