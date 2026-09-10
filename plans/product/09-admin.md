@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 I.1 and I.2 — the role, and health |
+| **State** | 🔶 I.1 to I.3 — the role, health, and players |
 | **Branch** | `feat/admin-panel` |
 | **Depends on** | track E |
 | **Delivers** | a read-only view of the application's health |
@@ -65,7 +65,7 @@ is money, this panel gets a section; not before.
 |---|---|---|
 | I.1 | An admin role, and a route only it reaches | ✅ |
 | I.2 | Health section, from the existing probes | ✅ |
-| I.3 | Players and activity | ⬜ |
+| I.3 | Players and activity | ✅ |
 | I.4 | Activation and return | ⬜ |
 | I.5 | Games, and the abandon rate | ⬜ |
 | I.6 | Cost, from `llm_call` | ⬜ |
@@ -88,6 +88,13 @@ anywhere that writes it, and an empty table as the safe default.
 value rather than an exception, and the figure the section is really for — do
 the two services agree about what is deployed, with *unknown* kept distinct from
 *disagreeing*.
+
+### I.3 — Players
+
+**Built, and in `09-admin-players.md`**: a guest is a `user` row, so `count(*)`
+is not "signed up"; *today* is `periodWindowOf`'s day, the same one a daily
+quest uses; and two new indexes, each proved by dropping it and watching the
+plan turn into a scan.
 
 ## Exit gate
 

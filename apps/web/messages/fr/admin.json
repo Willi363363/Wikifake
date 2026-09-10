@@ -39,5 +39,22 @@
     "commitDisagree": "Les deux services tournent sur des commits différents — un déploiement est à moitié fait, ou l'un des deux a échoué.",
     "commitUnknown": "Impossible de savoir si les deux concordent : l'un est hors ligne, ou aucun n'a été déployé depuis git.",
     "model": "Modèle {model} · clé configurée : {configured}"
+  },
+  "players": {
+    "title": "Joueurs",
+    "accounts": "Comptes",
+    "guests": "{count, plural, =0 {aucun invité} one {# invité en plus} other {# invités en plus}}",
+    "everPlayed": "Ont déjà joué",
+    "ofAccounts": "sur {count, plural, one {# compte} other {# comptes}}",
+    "activeToday": "Actifs aujourd'hui",
+    "activeThisWeek": "Actifs cette semaine",
+    "mostActive": "Les plus assidus",
+    "nobody": "Personne n'a encore terminé de manche.",
+    "columns": {
+      "player": "Joueur",
+      "finished": "Terminées",
+      "started": "Commencées",
+      "lastSeen": "Vu la dernière fois"
+    }
   }
 }

@@ -39,5 +39,22 @@
     "commitDisagree": "The two services are running different commits — a deploy is half-finished, or one of them failed.",
     "commitUnknown": "Cannot tell whether the two agree: one is down, or neither was deployed from git.",
     "model": "Model {model} · key configured: {configured}"
+  },
+  "players": {
+    "title": "Players",
+    "accounts": "Accounts",
+    "guests": "{count, plural, =0 {no guests} one {# guest besides} other {# guests besides}}",
+    "everPlayed": "Ever played",
+    "ofAccounts": "of {count, plural, one {# account} other {# accounts}}",
+    "activeToday": "Active today",
+    "activeThisWeek": "Active this week",
+    "mostActive": "Most active",
+    "nobody": "Nobody has finished a round yet.",
+    "columns": {
+      "player": "Player",
+      "finished": "Finished",
+      "started": "Started",
+      "lastSeen": "Last seen"
+    }
   }
 }

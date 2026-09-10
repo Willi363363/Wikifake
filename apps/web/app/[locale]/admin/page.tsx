@@ -14,6 +14,8 @@ import { getTranslations } from 'next-intl/server';
 
 import { HealthSection } from '../../../src/admin/health-screen.js';
 import { readHealth } from '../../../src/admin/health.js';
+import { PlayersSection } from '../../../src/admin/players-screen.js';
+import { readPlayers } from '../../../src/admin/players.js';
 import { requireAdmin } from '../../../src/admin/gate.js';
 import { db } from '../../../src/game/wiring.js';
 
@@ -26,6 +28,10 @@ export const dynamic = 'force-dynamic';
 export default async function AdminPage() {
   await requireAdmin();
   const t = await getTranslations('admin');
+  // `Date.now()` here rather than inside the read path: a route is where a real
+  // clock is allowed to come from, which is the split every feature in this
+  // repository makes.
+  const players = await readPlayers({ db: db() }, Date.now());
   const health = await readHealth({
     db: db(),
     // Read here rather than inside: a route is where a real environment is
@@ -40,23 +46,22 @@ export default async function AdminPage() {
       <p className="mt-2 max-w-prose text-sm text-muted">{t('lead')}</p>
 
       <HealthSection health={health} />
+      <PlayersSection players={players} />
 
       {/* The sections still to come, listed rather than left blank so that the
           order the track chose is visible before it is built. */}
       <ul className="mt-8 space-y-2">
-        {(['players', 'activation', 'games', 'cost', 'content'] as const).map(
-          (section) => (
-            <li
-              key={section}
-              className="border-3 border-line-strong bg-surface px-3 py-2 shadow-md"
-            >
-              <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-                {t(`sections.${section}`)}
-              </span>
-              <p className="mt-1 text-sm text-ink-2">{t(`answers.${section}`)}</p>
-            </li>
-          ),
-        )}
+        {(['activation', 'games', 'cost', 'content'] as const).map((section) => (
+          <li
+            key={section}
+            className="border-3 border-line-strong bg-surface px-3 py-2 shadow-md"
+          >
+            <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
+              {t(`sections.${section}`)}
+            </span>
+            <p className="mt-1 text-sm text-ink-2">{t(`answers.${section}`)}</p>
+          </li>
+        ))}
       </ul>
 
       <p className="mt-8 text-sm text-muted">{t('readOnly')}</p>
