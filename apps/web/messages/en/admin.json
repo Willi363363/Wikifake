@@ -78,5 +78,25 @@
       "returned": "Was active on a later day than their first. Two rounds in one sitting is not coming back."
     },
     "caveat": "\"Came back\" is a later day of activity, not a cohort curve: a return the next day and a return six months on look the same here, because nothing records per-day history."
+  },
+  "games": {
+    "title": "Games",
+    "noRounds": "—",
+    "abandonRate": "Abandon rate",
+    "abandonWhy": "Of the seats in rounds that have ended, the share whose player never submitted.",
+    "modes": {
+      "solo": "Solo",
+      "multiplayer": "Rooms",
+      "all": "All"
+    },
+    "columns": {
+      "mode": "Mode",
+      "rounds": "Rounds",
+      "open": "Still open",
+      "seats": "Seats (ended)",
+      "abandoned": "Abandoned",
+      "rate": "Rate"
+    },
+    "caveat": "Only rounds that have ended count towards the rate: a seat in a round still running has not abandoned anything. And it cannot be split by screen — typing a topic, voting and waiting for generation leave no row, so the split is by mode."
   }
 }

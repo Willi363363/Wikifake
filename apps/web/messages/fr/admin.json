@@ -78,5 +78,25 @@
       "returned": "Ont été actifs un jour plus tard que le premier. Deux manches d'affilée, ce n'est pas revenir."
     },
     "caveat": "« Revenus » signifie un jour d'activité ultérieur, pas une courbe de cohorte : un retour le lendemain et un retour six mois après se ressemblent ici, faute d'historique jour par jour."
+  },
+  "games": {
+    "title": "Manches",
+    "noRounds": "—",
+    "abandonRate": "Taux d'abandon",
+    "abandonWhy": "Parmi les places dans les manches terminées, la part dont le joueur n'a jamais soumis.",
+    "modes": {
+      "solo": "Solo",
+      "multiplayer": "Salons",
+      "all": "Tout"
+    },
+    "columns": {
+      "mode": "Mode",
+      "rounds": "Manches",
+      "open": "En cours",
+      "seats": "Places (terminées)",
+      "abandoned": "Abandonnées",
+      "rate": "Taux"
+    },
+    "caveat": "Seules les manches terminées comptent dans le taux : une place dans une manche en cours n'a rien abandonné. Et il ne peut pas être ventilé par écran — saisir un thème, voter et attendre la génération ne laissent aucune ligne, d'où la ventilation par mode."
   }
 }
