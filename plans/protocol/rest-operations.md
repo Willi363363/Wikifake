@@ -5,7 +5,7 @@
 
 4 routes with no browser at the other end: the
 liveness and health probes, the spend report, and the quest cron. The
-routes a player calls are in `rest.md`.
+routes a player calls are in `rest.md` and `rest-account.md`.
 
 ## `GET /ping`
 

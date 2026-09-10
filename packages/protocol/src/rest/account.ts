@@ -150,3 +150,40 @@ export const readCosmeticsResponse = z.object({
   owned: z.array(z.string()),
 });
 export type ReadCosmeticsResponse = z.infer<typeof readCosmeticsResponse>;
+
+/**
+ * H.7 — `POST /api/shop/buy`: one cosmetic, at the catalogue's price.
+ *
+ * **No price in the request.** A client that sent one would be a client whose
+ * number the server has to either trust or ignore, and both are worse than not
+ * having it: the catalogue is the price, and `@wikifake/domain` is where it
+ * lives. This carries the identifier and nothing else.
+ *
+ * A string rather than an enum of the catalogue, for `wearCosmeticRequest`'s
+ * reason: the catalogue is meant to grow and to retire, and a wire enum would
+ * make either one a protocol version.
+ */
+export const buyCosmeticRequest = z.object({
+  cosmeticId: z.string().min(1).max(64),
+});
+export type BuyCosmeticRequest = z.infer<typeof buyCosmeticRequest>;
+
+/**
+ * What it cost, and what is left.
+ *
+ * The balance comes back because the shop shows one, and a screen that
+ * subtracted the price itself would be a second opinion about a number the
+ * ledger owns.
+ *
+ * `already` is true when the purchase had happened before — H.6's idempotency
+ * key is the cosmetic, so a second attempt spends nothing and is not an error.
+ * The screen needs to tell the two apart to say *bought* rather than *you
+ * already had that*, and `spent` is zero in the second case.
+ */
+export const buyCosmeticResponse = z.object({
+  cosmeticId: z.string(),
+  spent: z.int().nonnegative(),
+  balance: z.int(),
+  already: z.boolean(),
+});
+export type BuyCosmeticResponse = z.infer<typeof buyCosmeticResponse>;

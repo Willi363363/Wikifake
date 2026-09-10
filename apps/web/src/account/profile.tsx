@@ -137,6 +137,12 @@ export function Profile({ pseudonym, email, stats }: ProfileProps) {
         <Link href="/quests" className="text-ink underline">
           {t('quests')}
         </Link>
+        {/* H.7 — the same argument, one step on: a shop nothing points at is a
+            shop nobody opens, and this is where a player who has just claimed a
+            quest goes looking for what the coins are for. */}
+        <Link href="/shop" className="text-ink underline">
+          {t('shop')}
+        </Link>
         <SignOutButton />
       </div>
     </main>

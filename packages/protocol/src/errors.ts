@@ -120,6 +120,15 @@ export const ERROR_CODES = [
    * the catalogue — including whatever a launch has not announced yet.
    */
   'cosmetic_not_owned',
+  /**
+   * H.7 — the shop has nothing by that identifier.
+   *
+   * Distinct from `cosmetic_not_owned`, and the asymmetry is deliberate: the
+   * wear path hides whether a cosmetic exists from somebody who has not got it,
+   * because that would enumerate the catalogue. A **shop** has a public price
+   * list, so refusing to say what is in it would be secrecy about nothing.
+   */
+  'cosmetic_not_found',
 ] as const;
 
 export const errorCode = z.enum(ERROR_CODES);

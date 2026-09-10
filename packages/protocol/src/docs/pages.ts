@@ -81,6 +81,30 @@ const OPERATIONAL: readonly string[] = [
   '/api/cron/quests',
 ];
 
+/**
+ * The routes about the account rather than about the round.
+ *
+ * A **second** split, forced by the same limit: H.7 added `/api/shop/buy` and
+ * the player page reached 212 lines. `docs.test.ts` says in as many words what
+ * happens then, and the boundary is chosen on the same principle as
+ * `OPERATIONAL`'s — *is this about playing, or about the person playing* —
+ * because that is what stays true as routes are added.
+ *
+ * The shop and the quest claim are here rather than with the round for that
+ * reason: neither happens while a round is running, and both are about what an
+ * account has earned. A halving down the middle of the list would have to be
+ * redone the next time one is added.
+ */
+const ACCOUNT: readonly string[] = [
+  '/api/account/pseudonym',
+  '/api/account/export',
+  '/api/account/delete',
+  '/api/account/region',
+  '/api/account/cosmetics',
+  '/api/shop/buy',
+  '/api/quests/claim',
+];
+
 /** One section per route: its request, if it has a body, and its response. */
 function routeSections(routes: typeof ROUTES): string[] {
   return routes.flatMap((route) => [
@@ -105,15 +129,32 @@ function routeSections(routes: typeof ROUTES): string[] {
  * spelling them out is what made it easy to leave alone.
  */
 export function restPage(): string {
-  const player = ROUTES.filter((route) => !OPERATIONAL.includes(route.path));
+  const round = ROUTES.filter(
+    (route) => !OPERATIONAL.includes(route.path) && !ACCOUNT.includes(route.path),
+  );
 
   return page(
-    'REST — routes and payloads',
+    'REST — the round',
     [
-      `${String(player.length)} routes, the ones a player's browser calls. A \`GET\``,
-      'takes no body. The probes and the cron are in `rest-operations.md`.',
+      `${String(round.length)} routes a browser calls while a round is being`,
+      'played. A `GET` takes no body. The account and the shop are in',
+      '`rest-account.md`; the probes and the cron in `rest-operations.md`.',
     ],
-    routeSections(player),
+    routeSections(round),
+  );
+}
+
+export function accountPage(): string {
+  const account = ROUTES.filter((route) => ACCOUNT.includes(route.path));
+
+  return page(
+    'REST — the account',
+    [
+      `${String(account.length)} routes about the account rather than the round:`,
+      'the pseudonym, the export and the erasure, the region, the cosmetics and',
+      'the shop. The round is in `rest.md`.',
+    ],
+    routeSections(account),
   );
 }
 
@@ -125,7 +166,7 @@ export function operationsPage(): string {
     [
       `${String(operational.length)} routes with no browser at the other end: the`,
       'liveness and health probes, the spend report, and the quest cron. The',
-      'routes a player calls are in `rest.md`.',
+      'routes a player calls are in `rest.md` and `rest-account.md`.',
     ],
     routeSections(operational),
   );
@@ -148,7 +189,8 @@ export function indexPage(): string {
       '|---|---|',
       '| `websocket-client.md` | the thirteen messages a client may send |',
       '| `websocket-server.md` | the fifteen messages the server sends |',
-      '| `rest.md` | the REST routes a player calls |',
+      '| `rest.md` | the REST routes called while a round is played |',
+      '| `rest-account.md` | the account, the cosmetics and the shop |',
       '| `rest-operations.md` | the probes, and the schedules |',
       '',
       '## Error codes',
@@ -176,6 +218,7 @@ export function pages(): Readonly<Record<string, string>> {
     'protocol/websocket-client.md': clientPage(),
     'protocol/websocket-server.md': serverPage(),
     'protocol/rest.md': restPage(),
+    'protocol/rest-account.md': accountPage(),
     'protocol/rest-operations.md': operationsPage(),
   };
 }

@@ -107,6 +107,11 @@ describe('11.6 — French is translated, not copied', () => {
     'round.items.rickroll.name',
     'round.itemTarget.title',
     'routes.metadata.siteName',
+    // H.7 — two cosmetic names French spells the same way. `Double` is the same
+    // word in both, and `Violet` is the colour in both; the other eight are
+    // translated, which is what makes these two deliberate rather than missed.
+    'shop.names.FRAME_DOUBLE',
+    'shop.names.MARKER_VIOLET',
     'small.chat.tab',
     'small.solo.title',
     'waiting.dino.score',

@@ -1,0 +1,45 @@
+{
+  "title": "Boutique",
+  "lead": "Les pièces viennent du jeu — quelques-unes par manche, davantage avec les quêtes. Rien ici ne change une manche : ce que vous achetez, c'est votre allure.",
+  "balance": "{count, plural, one {# pièce} other {# pièces}}",
+  "price": "{count, plural, one {# pièce} other {# pièces}}",
+  "slots": {
+    "marker": "Marqueur",
+    "markStyle": "Style de marque",
+    "frame": "Cadre"
+  },
+  "slotLead": {
+    "marker": "La couleur de vos propres marques, quand vous jouez seul. En salon, le jeu choisit, pour que chacun vous distingue.",
+    "markStyle": "La façon dont un paragraphe que vous avez marqué est dessiné.",
+    "frame": "La bordure autour de votre nom dans les classements."
+  },
+  "buy": "Acheter",
+  "buying": "Achat…",
+  "wear": "Porter",
+  "wearing": "En cours…",
+  "worn": "Porté",
+  "takeOff": "Retirer",
+  "tooDear": "Pas assez de pièces",
+  "default": "Rien — l'allure simple, qui est toujours la vôtre",
+  "earn": "Jouer une manche",
+  "quests": "Voir vos quêtes",
+  "names": {
+    "MARKER_CRIMSON": "Cramoisi",
+    "MARKER_AMBER": "Ambre",
+    "MARKER_VIOLET": "Violet",
+    "MARKER_SLATE": "Ardoise",
+    "MARK_STYLE_UNDERLINE": "Souligné",
+    "MARK_STYLE_BRACKET": "Crochets",
+    "MARK_STYLE_CORNER": "Coins",
+    "FRAME_HAIRLINE": "Filet",
+    "FRAME_DOUBLE": "Double",
+    "FRAME_NOTCHED": "Encoché"
+  },
+  "errors": {
+    "insufficient_coins": "Pas encore assez de pièces.",
+    "cosmetic_not_found": "Rien de tel n'est en vente.",
+    "cosmetic_not_owned": "Ce n'est pas à vous de porter.",
+    "session_not_found": "Créez un compte avant d'acheter.",
+    "unreachable": "Le serveur est injoignable. Réessayez."
+  }
+}

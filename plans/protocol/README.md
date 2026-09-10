@@ -15,7 +15,8 @@ that changes without its documentation fails CI (C8.2).
 |---|---|
 | `websocket-client.md` | the thirteen messages a client may send |
 | `websocket-server.md` | the fifteen messages the server sends |
-| `rest.md` | the REST routes a player calls |
+| `rest.md` | the REST routes called while a round is played |
+| `rest-account.md` | the account, the cosmetics and the shop |
 | `rest-operations.md` | the probes, and the schedules |
 
 ## Error codes
@@ -45,6 +46,7 @@ rather than on prose (C5.1).
 - `insufficient_coins`
 - `coins_not_accepted`
 - `cosmetic_not_owned`
+- `cosmetic_not_found`
 
 ## Item identifiers
 
