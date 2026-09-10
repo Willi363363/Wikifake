@@ -18,6 +18,7 @@ import type leaderboard from '../../messages/en/leaderboard.json';
 import type routes from '../../messages/en/routes.json';
 import type small from '../../messages/en/small.json';
 import type lobby from '../../messages/en/lobby.json';
+import type admin from '../../messages/en/admin.json';
 import type quests from '../../messages/en/quests.json';
 import type shop from '../../messages/en/shop.json';
 import type round from '../../messages/en/round.json';
@@ -29,6 +30,7 @@ export const ZONES = [
   'home',
   'account',
   'errors',
+  'admin',
   'quests',
   'shop',
   'leaderboard',
@@ -54,6 +56,7 @@ export type CatalogueMessages = {
   home: typeof home;
   account: typeof account;
   errors: typeof errors;
+  admin: typeof admin;
   quests: typeof quests;
   shop: typeof shop;
   leaderboard: typeof leaderboard;

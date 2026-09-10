@@ -1,0 +1,21 @@
+{
+  "title": "Admin",
+  "lead": "Read-only. Every figure here traces to a query, and nothing on this page can change anything.",
+  "sections": {
+    "health": "Health",
+    "players": "Players",
+    "activation": "Activation",
+    "games": "Games",
+    "cost": "Cost",
+    "content": "Content"
+  },
+  "answers": {
+    "health": "Are both services up, on which commit, and how slow.",
+    "players": "Signed up, active today and this week, and the most active.",
+    "activation": "Of the accounts created, how many played a game — and how many came back after it.",
+    "games": "Started, finished, abandoned, and the abandon rate by screen.",
+    "cost": "Model spend per day, per game, and per player.",
+    "content": "Which articles are drawn, cache hit rate, generation failures."
+  },
+  "readOnly": "The sections are being built. Nothing here writes, and there is no action on this page — a panel that can act on data is a second application."
+}
