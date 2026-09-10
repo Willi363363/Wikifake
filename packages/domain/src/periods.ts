@@ -15,6 +15,7 @@
 // Nothing here reads a clock: `purity.test.ts` refuses `new Date(` in this
 // package, so a period is arithmetic on an epoch instant. That is what makes a
 // Thursday a number rather than a wait.
+import { BOARD_PERIOD_IDS, type BoardPeriodId } from '@wikifake/protocol';
 
 /** The two periods that repeat. Monthly only if it is free — track F. */
 export type CalendarPeriod = 'daily' | 'weekly';
@@ -85,13 +86,13 @@ export function periodWindowOf(
  * players build against everybody who arrives later."* The first two are the
  * answer to that, and they are the same two a quest uses.
  *
- * In `domain` and not yet in `protocol`, which is F.1's rule rather than an
- * oversight: these cross the wire when G.5 puts a period in a URL, and they can
- * be promoted then. Nothing outside this package reads them before that.
+ * **Promoted to `protocol` by G.5**, which put a period in a URL and so made it
+ * a contract. This is now the same list rather than a second copy of it: the
+ * identifiers are the wire's, and what a period *covers* is still this file's.
  */
-export const BOARD_PERIODS = ['daily', 'weekly', 'allTime'] as const;
+export const BOARD_PERIODS = BOARD_PERIOD_IDS;
 
-export type BoardPeriod = (typeof BOARD_PERIODS)[number];
+export type BoardPeriod = BoardPeriodId;
 
 /**
  * The window a board covers, or **null for all of history**.

@@ -22,6 +22,8 @@ export * from './rest/routes.js';
 export * as clientMessages from './ws/incoming.js';
 export * as serverMessages from './ws/outgoing.js';
 export * as accountApi from './rest/account.js';
+export { BOARD_PERIOD_IDS, boardPeriodId } from './boards.js';
+export type { BoardPeriodId } from './boards.js';
 export { REGION_IDS, regionId } from './regions.js';
 export type { RegionId } from './regions.js';
 export * as gameApi from './rest/game.js';

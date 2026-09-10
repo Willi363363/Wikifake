@@ -91,6 +91,10 @@ describe('11.6 — French is translated, not copied', () => {
     'home.title',
     'language.names.en',
     'language.names.fr',
+    // G.5 — a symbol, a word French spells the same, and a proper noun.
+    'leaderboard.columns.rank',
+    'leaderboard.columns.score',
+    'leaderboard.regions.europe',
     'lobby.entry.brand',
     'lobby.entry.tabs.solo',
     'lobby.entry.topicPlaceholder',

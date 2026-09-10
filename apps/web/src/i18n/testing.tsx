@@ -16,6 +16,7 @@ import type { ReactElement, ReactNode } from 'react';
 
 import errorsEn from '../../messages/en/errors.json';
 import homeEn from '../../messages/en/home.json';
+import leaderboardEn from '../../messages/en/leaderboard.json';
 import questsEn from '../../messages/en/quests.json';
 import roundEn from '../../messages/en/round.json';
 import waitingEn from '../../messages/en/waiting.json';
@@ -26,6 +27,7 @@ import languageEn from '../../messages/en/language.json';
 import seoEn from '../../messages/en/seo.json';
 import errorsFr from '../../messages/fr/errors.json';
 import homeFr from '../../messages/fr/home.json';
+import leaderboardFr from '../../messages/fr/leaderboard.json';
 import questsFr from '../../messages/fr/quests.json';
 import roundFr from '../../messages/fr/round.json';
 import waitingFr from '../../messages/fr/waiting.json';
@@ -46,6 +48,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
     account: accountEn,
     errors: errorsEn,
     quests: questsEn,
+    leaderboard: leaderboardEn,
     round: roundEn,
     waiting: waitingEn,
     lobby: lobbyEn,
@@ -59,6 +62,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
     account: accountFr,
     errors: errorsFr,
     quests: questsFr,
+    leaderboard: leaderboardFr,
     round: roundFr,
     waiting: waitingFr,
     lobby: lobbyFr,
