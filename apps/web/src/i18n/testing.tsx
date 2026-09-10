@@ -17,6 +17,7 @@ import type { ReactElement, ReactNode } from 'react';
 import errorsEn from '../../messages/en/errors.json';
 import homeEn from '../../messages/en/home.json';
 import leaderboardEn from '../../messages/en/leaderboard.json';
+import adminEn from '../../messages/en/admin.json';
 import questsEn from '../../messages/en/quests.json';
 import shopEn from '../../messages/en/shop.json';
 import roundEn from '../../messages/en/round.json';
@@ -29,6 +30,7 @@ import seoEn from '../../messages/en/seo.json';
 import errorsFr from '../../messages/fr/errors.json';
 import homeFr from '../../messages/fr/home.json';
 import leaderboardFr from '../../messages/fr/leaderboard.json';
+import adminFr from '../../messages/fr/admin.json';
 import questsFr from '../../messages/fr/quests.json';
 import shopFr from '../../messages/fr/shop.json';
 import roundFr from '../../messages/fr/round.json';
@@ -49,6 +51,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
     home: homeEn,
     account: accountEn,
     errors: errorsEn,
+    admin: adminEn,
     quests: questsEn,
     shop: shopEn,
     leaderboard: leaderboardEn,
@@ -64,6 +67,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
     home: homeFr,
     account: accountFr,
     errors: errorsFr,
+    admin: adminFr,
     quests: questsFr,
     shop: shopFr,
     leaderboard: leaderboardFr,
