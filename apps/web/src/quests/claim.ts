@@ -3,18 +3,24 @@
 // The one thing a player does to a quest, and the only place in track F where
 // getting it wrong hands somebody unlimited coins.
 //
-// **Nothing is credited, because there is no wallet.** Track H owns the
-// balance, and F.6 was re-cut to deliver the once-only marking and the
-// transaction boundary a credit will slot into. `claimQuest` already takes a
-// transaction, so when H arrives the credit goes inside the same one and
-// neither happens without the other.
+// **The reward is paid here since H.3**, and it is paid inside the transaction
+// that marks the quest claimed. F.6 was re-cut to deliver the once-only marking
+// and this boundary; H.1 built the ledger to accept a transaction; this is where
+// the two meet. A claim without its credit is a player owed coins and nothing
+// that remembers; a credit without its claim is a reward that can be taken
+// twice.
 //
 // The ordering here is read, judge, then claim — and the claim is the only step
 // that is atomic. That is deliberate and it is safe in one direction only: two
 // requests that both see *complete* race at the update, and one loses. A claim
 // refused to somebody who had earned it is recoverable by clicking again; a
 // reward paid twice is not.
-import { claimQuest, selectQuestById, selectRoundsInWindow } from '@wikifake/db';
+import {
+  claimQuest,
+  recordMovement,
+  selectQuestById,
+  selectRoundsInWindow,
+} from '@wikifake/db';
 import {
   isQuestComplete,
   periodWindowOf,
@@ -88,7 +94,33 @@ export async function handleClaimQuest(
     return refuse('quest_not_complete', 'That quest is not finished yet.');
   }
 
-  const claim = await claimQuest(context.db, session.user.id, quest.id, context.now());
+  const at = context.now();
+  /*
+   * Step H.3 — the claim and the credit, or neither.
+   *
+   * The transaction is opened here rather than inside `claimQuest`, because it
+   * is this layer that knows the reward: the amount is `QUEST_CATALOGUE`'s and
+   * `@wikifake/db` may not read it. Both writes take the same `tx`, so a
+   * rollback takes both.
+   *
+   * The idempotency key is the quest itself, which is already unique per
+   * player — so a request that arrives twice cannot double-credit whether it
+   * wins the claim race or loses it.
+   */
+  const claim = await context.db.transaction(async (tx) => {
+    const marked = await claimQuest(tx, session.user.id, quest.id, at);
+    if (!marked.ok) return marked;
+
+    await recordMovement(tx, {
+      userId: session.user.id,
+      amount: rule.reward,
+      source: 'quest_reward',
+      reference: rule.id,
+      idempotencyKey: `quest:${quest.id}`,
+    });
+
+    return marked;
+  });
   if (!claim.ok) {
     // The race, arriving. `already_claimed` is the interesting one — two
     // requests both judged the quest complete and this is the loser — and
