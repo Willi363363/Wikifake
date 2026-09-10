@@ -1,8 +1,8 @@
 // `/admin` — step I.1.
 //
-// The shell, and the gate. There is nothing to show yet: I.2 to I.7 add the
-// sections, and this step's whole content is *who gets in* — which is worth its
-// own step precisely because the sections are worthless if the answer is wrong.
+// The shell, the gate, and — since I.2 — the health section. I.3 to I.7 add the
+// rest, and each arrives as one more call between the gate and the list of what
+// is still to come.
 //
 // **No redirect anywhere in this file.** Every other gated page in this
 // application sends somebody somewhere — `/sign-in`, `/sign-up`,
@@ -12,7 +12,10 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 
+import { HealthSection } from '../../../src/admin/health-screen.js';
+import { readHealth } from '../../../src/admin/health.js';
 import { requireAdmin } from '../../../src/admin/gate.js';
+import { db } from '../../../src/game/wiring.js';
 
 /** Not content, and not a page any crawler should hold or index. */
 export const metadata: Metadata = { robots: { index: false, follow: false } };
@@ -23,17 +26,25 @@ export const dynamic = 'force-dynamic';
 export default async function AdminPage() {
   await requireAdmin();
   const t = await getTranslations('admin');
+  const health = await readHealth({
+    db: db(),
+    // Read here rather than inside: a route is where a real environment is
+    // allowed to come from, which is the same split `Date.now()` gets
+    // everywhere else in this repository.
+    realtimeUrl: process.env['NEXT_PUBLIC_REALTIME_URL'],
+  });
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 py-10">
       <h1 className="text-3xl text-ink">{t('title')}</h1>
       <p className="mt-2 max-w-prose text-sm text-muted">{t('lead')}</p>
 
-      {/* The sections arrive in I.2 to I.7. Listed rather than left blank so
-          that a first visitor sees what this page is for, and so that the
+      <HealthSection health={health} />
+
+      {/* The sections still to come, listed rather than left blank so that the
           order the track chose is visible before it is built. */}
       <ul className="mt-8 space-y-2">
-        {(['health', 'players', 'activation', 'games', 'cost', 'content'] as const).map(
+        {(['players', 'activation', 'games', 'cost', 'content'] as const).map(
           (section) => (
             <li
               key={section}

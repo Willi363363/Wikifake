@@ -46,7 +46,7 @@ export type {
   StartedGame,
 } from './queries/start.js';
 export type { ConnectionOptions, Database } from './client.js';
-export { isAdmin } from './queries/admin.js';
+export { isAdmin, pingDatabase } from './queries/admin.js';
 export { selectUserById } from './queries/users.js';
 export {
   claimPseudonym,

@@ -17,5 +17,27 @@
     "cost": "Dépense du modèle par jour, par manche et par joueur.",
     "content": "Quels articles sont tirés, taux de cache, échecs de génération."
   },
-  "readOnly": "Les sections sont en construction. Rien ici n'écrit, et aucune action n'est proposée — un panneau capable d'agir sur les données est une seconde application."
+  "readOnly": "Les sections sont en construction. Rien ici n'écrit, et aucune action n'est proposée — un panneau capable d'agir sur les données est une seconde application.",
+  "health": {
+    "title": "Santé",
+    "up": "En ligne",
+    "down": "Hors ligne",
+    "yes": "oui",
+    "no": "non",
+    "services": {
+      "web": "Application web",
+      "realtime": "Service temps réel",
+      "database": "Base de données"
+    },
+    "columns": {
+      "service": "Service",
+      "state": "État",
+      "took": "Durée",
+      "says": "Répond"
+    },
+    "commitAgree": "Les deux services tournent sur le même commit.",
+    "commitDisagree": "Les deux services tournent sur des commits différents — un déploiement est à moitié fait, ou l'un des deux a échoué.",
+    "commitUnknown": "Impossible de savoir si les deux concordent : l'un est hors ligne, ou aucun n'a été déployé depuis git.",
+    "model": "Modèle {model} · clé configurée : {configured}"
+  }
 }

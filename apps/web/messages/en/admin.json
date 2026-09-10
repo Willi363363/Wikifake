@@ -17,5 +17,27 @@
     "cost": "Model spend per day, per game, and per player.",
     "content": "Which articles are drawn, cache hit rate, generation failures."
   },
-  "readOnly": "The sections are being built. Nothing here writes, and there is no action on this page — a panel that can act on data is a second application."
+  "readOnly": "The sections are being built. Nothing here writes, and there is no action on this page — a panel that can act on data is a second application.",
+  "health": {
+    "title": "Health",
+    "up": "Up",
+    "down": "Down",
+    "yes": "yes",
+    "no": "no",
+    "services": {
+      "web": "Web app",
+      "realtime": "Realtime service",
+      "database": "Database"
+    },
+    "columns": {
+      "service": "Service",
+      "state": "State",
+      "took": "Took",
+      "says": "Says"
+    },
+    "commitAgree": "Both services are running the same commit.",
+    "commitDisagree": "The two services are running different commits — a deploy is half-finished, or one of them failed.",
+    "commitUnknown": "Cannot tell whether the two agree: one is down, or neither was deployed from git.",
+    "model": "Model {model} · key configured: {configured}"
+  }
 }
