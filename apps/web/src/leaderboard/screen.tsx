@@ -11,7 +11,7 @@
 // promise: the email appears in no room, no leaderboard and no shared score.
 import { BOARD_PERIOD_IDS, REGION_IDS, type RegionId } from '@wikifake/protocol';
 
-import { BOARD_MIN_PLAYERS } from './board.js';
+import { AROUND_OWN_RANK, BOARD_MIN_PLAYERS } from './board.js';
 import { useFormatter, useTranslations } from 'next-intl';
 import Link from 'next/link';
 
@@ -178,7 +178,15 @@ export function BoardScreen({ board }: BoardScreenProps) {
             </thead>
             <tbody>
               {board.rows.map((row, index) => (
-                <tr key={row.userId + row.finishedAt.toISOString()}>
+                <tr
+                  key={row.userId + row.finishedAt.toISOString()}
+                  // G.7 — the viewer's own row, marked where it already is.
+                  // `aria-current` rather than colour alone, so the marking is
+                  // announced and not merely seen.
+                  {...(row.userId === board.own?.userId
+                    ? { 'aria-current': 'true' as const, className: 'bg-accent-soft' }
+                    : {})}
+                >
                   {/* The rank is the row's position and not a stored number —
                       G.2 stores no rank, because a rank is only true of one
                       board at one moment. */}
@@ -191,6 +199,37 @@ export function BoardScreen({ board }: BoardScreenProps) {
                   </td>
                   <td className="px-3 py-2 text-right text-muted">
                     {format.dateTime(row.finishedAt, { dateStyle: 'short' })}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Step G.7 — where the viewer stands, when they are off the page.
+          Nothing at all when they are on it: their row is marked above, and a
+          second block repeating it would say the same thing twice. */}
+      {board.around.length === 0 ? null : (
+        <div className="mt-4 border-3 border-line-strong bg-surface shadow-md">
+          <p className="border-b-3 border-line-strong px-3 py-2 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
+            {t('yourRank', { rank: board.own?.rank ?? 0 })}
+          </p>
+          <table className="w-full text-sm">
+            <tbody>
+              {board.around.map((row, index) => (
+                <tr
+                  key={row.userId + row.finishedAt.toISOString()}
+                  {...(row.userId === board.own?.userId
+                    ? { 'aria-current': 'true' as const, className: 'bg-accent-soft' }
+                    : {})}
+                >
+                  <td className="px-3 py-2 font-mono tabular-nums text-muted">
+                    {(board.own?.rank ?? 1) - AROUND_OWN_RANK + index}
+                  </td>
+                  <td className="px-3 py-2 text-ink">{row.displayName}</td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums text-ink">
+                    {format.number(row.score)}
                   </td>
                 </tr>
               ))}

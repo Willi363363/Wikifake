@@ -15,6 +15,7 @@ import { boardPeriodId, regionId } from '@wikifake/protocol';
 import { decode } from '@wikifake/protocol';
 import { BoardScreen } from '../../../src/leaderboard/screen.js';
 import { readBoard } from '../../../src/leaderboard/board.js';
+import { readViewer } from '../../../src/account/gate.js';
 import { db } from '../../../src/game/wiring.js';
 
 /** Whether a board should be indexed is track J's call; nothing here needs it. */
@@ -34,11 +35,27 @@ export default async function LeaderboardPage({
   const period = decode(boardPeriodId, asked.period);
   const region = decode(regionId, asked.region);
 
+  /*
+   * Step G.7 — the viewer, when they are one the board could rank.
+   *
+   * `readViewer` gives three kinds, and only an **account with a pseudonym** has
+   * a rank: a stranger has no identity, and a guest has one the board's own
+   * inner join excludes — no `profile` row, so no name to print. Passing a
+   * guest's id would ask for a rank that is always null, which works and lies
+   * about why.
+   *
+   * The page is still readable by all three, which is G.5's decision. What
+   * changes with a session is only whether the board says where *you* stand.
+   */
+  const viewer = await readViewer();
+  const rankable = viewer.kind === 'account' && viewer.pseudonym !== undefined;
+
   const board = await readBoard(
     { db: db() },
     period.ok ? period.value : 'daily',
     region.ok ? region.value : null,
     Date.now(),
+    rankable ? viewer.userId : null,
   );
 
   return <BoardScreen board={board} />;

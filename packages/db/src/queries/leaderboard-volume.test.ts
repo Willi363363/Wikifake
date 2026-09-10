@@ -228,12 +228,16 @@ describe.skipIf(url === null)('G.4 — the board queries hold their plan', () =>
      * — the `limit` keeps fifty rows in memory rather than twenty-five thousand
      * — and its *input* is the whole mode.
      *
-     * **That input is the limit.** A windowed board's cost grows with its
-     * period; this one's grows with the game's whole history. At the seeded size
-     * it is about 24 ms, which is fine, and at a hundred times that it is not.
-     * The two ways out are decisions rather than tweaks — denormalise the
-     * pseudonym onto the entry so no join is needed, or keep a materialised
-     * top-N — and both belong to whoever finds this board slow.
+     * **The scan is the limit, and G.7 moved it rather than removing it.** Since
+     * a board is one row per player, the sort is fed the player count — two
+     * thousand here, not twenty-five — but every entry in the mode is still read
+     * to find each player's best. So the cost grew: about 45 ms against 18 ms
+     * before, because deduplicating twenty-five thousand rows is more work than
+     * sorting them. Both are proportional to the history.
+     *
+     * The ways out are unchanged and are decisions rather than tweaks — keep a
+     * materialised best-per-player, or denormalise the pseudonym so the join
+     * goes away — and both belong to whoever finds this board slow.
      * `06-structural-debt.md` carries it so that day starts from a measurement.
      */
     const plan = await planFor(boardQuery(store.db, allTime.query));
@@ -250,7 +254,19 @@ describe.skipIf(url === null)('G.4 — the board queries hold their plan', () =>
     // a known limit, and the person who fixes it should have to say so here.
     const sorted = /Sort {2}\(cost=[\d.]+\.\.[\d.]+ rows=(\d+)/.exec(plan)?.[1];
     expect(sorted, plan).toBeDefined();
-    expect(Number(sorted)).toBeGreaterThan(ROUNDS / 4);
+
+    // **The number this asserts changed when G.7 landed, and that is the
+    // tripwire working.** It used to be more than a quarter of the table: the
+    // board listed entries, so the sort was fed 25,000 of them. G.7 made a board
+    // one row per player, so `distinct on` reduces to 2,000 before the sort —
+    // and the assertion now says what is true, which is that the *sort* is
+    // proportional to the players and not to the history.
+    //
+    // What is still proportional to the history is the *scan*: every entry in
+    // the mode is read to find each player's best. So the limit moved rather
+    // than went away, and the note beside this file says where.
+    expect(Number(sorted)).toBeLessThan(ROUNDS / 4);
+    expect(Number(sorted)).toBeGreaterThan(0);
   });
 
   it.each(boards)('$name answers at the seeded size', async ({ name, query }) => {

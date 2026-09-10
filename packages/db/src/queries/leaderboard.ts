@@ -10,7 +10,7 @@
 // from `participant` rows, and a test asserts the two agree — the arrangement
 // E.4 used to make `player_stats` believable, and the answer to the cost the
 // owner accepted when this table was chosen over deriving.
-import { and, asc, desc, eq, gte, isNotNull, lt, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, isNotNull, lt, or, sql } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
 import { game, participant } from '../schema/game.js';
@@ -129,6 +129,8 @@ export interface BoardQuery {
   /** Null for the world board. */
   readonly region: string | null;
   readonly limit: number;
+  /** G.7 — where to start, for the rows around a player's own rank. */
+  readonly offset?: number;
 }
 
 /** One row of a board. The rank is the row's position, not a stored number. */
@@ -140,26 +142,15 @@ export interface BoardRow {
 }
 
 /**
- * The board, ordered — step G.4.
+ * The filters every board read shares — step G.4.
  *
- * **The inner join to `profile` is the filter**, and it is worth saying because
- * it does three things at once that would otherwise be three `where` clauses. A
- * board shows names, and only a `profile` row has one: so a guest — who holds a
- * `user` row and no profile — is excluded, an account that has not chosen a
- * pseudonym is excluded, and a deleted account, whose `user_id` E.7 set to null,
- * is excluded. None of them has a name to print or a rank to be given.
- *
- * **The order is total.** `score desc` is the board; `finished_at asc` breaks a
- * tie in favour of whoever got there first, which is the only tie-break a player
- * would call fair; and `participant_id` breaks the remaining one so that two
- * calls with the same data return the same order. Without the last, a board
- * would reshuffle its tied rows between page loads.
- *
- * A null window puts no clause on `finished_at` at all, which is G.3's decision
- * and what `leaderboard-volume.test.ts` measures the all-time plan on.
+ * One function so that the board, the player count and a player's own rank
+ * cannot disagree about which rows they are talking about. G.7 found that they
+ * could: three copies of the same three clauses is three places for a period to
+ * be windowed differently.
  */
-export function boardQuery(db: Db, query: BoardQuery) {
-  const conditions = [
+function boardFilters(query: Omit<BoardQuery, 'limit'>) {
+  return and(
     eq(leaderboardEntry.mode, query.mode),
     isNotNull(leaderboardEntry.userId),
     ...(query.window === null
@@ -169,10 +160,30 @@ export function boardQuery(db: Db, query: BoardQuery) {
           lt(leaderboardEntry.finishedAt, new Date(query.window.toMs)),
         ]),
     ...(query.region === null ? [] : [eq(profile.effectiveRegion, query.region)]),
-  ];
+  );
+}
 
+/**
+ * Each player's best round in the period — steps G.4 and G.7.
+ *
+ * **One row per player, and that was a defect G.7 found in G.5.** The board
+ * listed *entries*, so a player with five good rounds took five of the fifty
+ * rows — and "your own rank" has no meaning when a player has five of them. The
+ * plan asks for "a world ranking" and "your own rank", both singular.
+ *
+ * `distinct on (user_id)` with the inner order `user_id, score desc, finished_at
+ * asc` picks each player's best round, earliest if they tied with themselves.
+ * The outer order then ranks those bests.
+ *
+ * The inner join to `profile` is the filter, and it does three jobs a `where`
+ * clause would have to remember: a board shows names and only a profile row has
+ * one, so a guest, an account with no pseudonym, and a deleted account whose
+ * `user_id` E.7 set to null are all excluded. None has a name to print or a rank
+ * to be given.
+ */
+function bestPerPlayer(db: Db, query: Omit<BoardQuery, 'limit'>) {
   return db
-    .select({
+    .selectDistinctOn([leaderboardEntry.userId], {
       userId: profile.userId,
       displayName: profile.displayName,
       score: leaderboardEntry.score,
@@ -180,21 +191,41 @@ export function boardQuery(db: Db, query: BoardQuery) {
     })
     .from(leaderboardEntry)
     .innerJoin(profile, eq(profile.userId, leaderboardEntry.userId))
-    .where(and(...conditions))
+    .where(boardFilters(query))
     .orderBy(
+      asc(leaderboardEntry.userId),
       desc(leaderboardEntry.score),
       asc(leaderboardEntry.finishedAt),
-      asc(leaderboardEntry.participantId),
     )
-    .limit(query.limit);
+    .as('best');
 }
 
-/** The board, run. `boardQuery` is exported so a test can read its plan. */
-export async function selectBoard(
-  db: Db,
-  query: BoardQuery,
-): Promise<readonly BoardRow[]> {
-  return boardQuery(db, query);
+/**
+ * The board, ordered — steps G.4 and G.7.
+ *
+ * **The order is total.** `score desc` is the board; `finished_at asc` breaks a
+ * tie in favour of whoever got there first, which is the only tie-break a player
+ * would call fair; and `userId` breaks the remaining one so that two calls with
+ * the same data return the same order. Without the last, a board would reshuffle
+ * its tied rows between page loads.
+ *
+ * A null window puts no clause on `finished_at` at all, which is G.3's decision
+ * and what `leaderboard-volume.test.ts` measures the all-time plan on.
+ */
+export function boardQuery(db: Db, query: BoardQuery) {
+  const best = bestPerPlayer(db, query);
+
+  return db
+    .select({
+      userId: best.userId,
+      displayName: best.displayName,
+      score: best.score,
+      finishedAt: best.finishedAt,
+    })
+    .from(best)
+    .orderBy(desc(best.score), asc(best.finishedAt), asc(best.userId))
+    .limit(query.limit)
+    .offset(query.offset ?? 0);
 }
 
 /**
@@ -208,23 +239,85 @@ export async function countBoardPlayers(
   db: Db,
   query: Omit<BoardQuery, 'limit'>,
 ): Promise<number> {
-  const conditions = [
-    eq(leaderboardEntry.mode, query.mode),
-    isNotNull(leaderboardEntry.userId),
-    ...(query.window === null
-      ? []
-      : [
-          gte(leaderboardEntry.finishedAt, new Date(query.window.fromMs)),
-          lt(leaderboardEntry.finishedAt, new Date(query.window.toMs)),
-        ]),
-    ...(query.region === null ? [] : [eq(profile.effectiveRegion, query.region)]),
-  ];
-
   const [row] = await db
     .select({ players: sql<number>`count(distinct ${leaderboardEntry.userId})::int` })
     .from(leaderboardEntry)
     .innerJoin(profile, eq(profile.userId, leaderboardEntry.userId))
-    .where(and(...conditions));
+    .where(boardFilters(query));
 
   return row?.players ?? 0;
+}
+
+/** The board, run. `boardQuery` is exported so a test can read its plan. */
+export async function selectBoard(
+  db: Db,
+  query: BoardQuery,
+): Promise<readonly BoardRow[]> {
+  return boardQuery(db, query);
+}
+
+/** A player's own standing on a board — step G.7. */
+export interface OwnRank {
+  /**
+   * Whose standing it is.
+   *
+   * Echoed back rather than left to the caller to remember, so a screen can mark
+   * the viewer's row by comparing one object against the rows it was given. A
+   * caller holding the id separately is a caller that can pair the wrong two.
+   */
+  readonly userId: string;
+  readonly rank: number;
+  readonly score: number;
+  readonly finishedAt: Date;
+}
+
+/**
+ * Where this player stands on the board, or null if they are not on it.
+ *
+ * **Competition ranking**: one more than the number of players who did strictly
+ * better. Two players tied on a best score share a rank, which is what every
+ * scoreboard a player has ever read does and the only reading that does not have
+ * to explain itself.
+ *
+ * Null when the player has no qualifying round in the period — a different thing
+ * from a rank of zero. They are not last; they are not on this board, and the
+ * screen says so rather than showing a number.
+ *
+ * The comparison is on the player's **best** round, because that is what the
+ * board ranks since G.7, and it goes through `boardFilters` — the same clauses
+ * the board itself uses — so the two cannot disagree about which period they
+ * mean.
+ */
+export async function selectOwnRank(
+  db: Db,
+  query: Omit<BoardQuery, 'limit'>,
+  userId: string,
+): Promise<OwnRank | null> {
+  const mineQuery = bestPerPlayer(db, query);
+  const [mine] = await db
+    .select({ score: mineQuery.score, finishedAt: mineQuery.finishedAt })
+    .from(mineQuery)
+    .where(eq(mineQuery.userId, userId));
+
+  if (mine === undefined) return null;
+
+  // Strictly better: a higher best score, or the same one reached earlier —
+  // which is the board's own tie-break, so a rank agrees with the row order.
+  const others = bestPerPlayer(db, query);
+  const [ahead] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(others)
+    .where(
+      or(
+        gt(others.score, mine.score),
+        and(eq(others.score, mine.score), lt(others.finishedAt, mine.finishedAt)),
+      ),
+    );
+
+  return {
+    userId,
+    rank: (ahead?.count ?? 0) + 1,
+    score: mine.score,
+    finishedAt: mine.finishedAt,
+  };
 }

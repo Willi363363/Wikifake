@@ -15,7 +15,13 @@
 // the track asks for at this stage. And it is **reversible without a
 // migration**: G.2 writes an entry for every graded round, solo included, so
 // turning the solo board on is a parameter rather than a backfill.
-import { countBoardPlayers, selectBoard, type BoardRow } from '@wikifake/db';
+import {
+  countBoardPlayers,
+  selectBoard,
+  selectOwnRank,
+  type BoardRow,
+  type OwnRank,
+} from '@wikifake/db';
 import { boardWindowOf, type BoardPeriod } from '@wikifake/domain';
 import type { Database } from '@wikifake/db';
 import type { RegionId } from '@wikifake/protocol';
@@ -73,6 +79,19 @@ export interface BoardView {
   readonly players: number;
   /** `players >= BOARD_MIN_PLAYERS`. Decided once, here. */
   readonly open: boolean;
+  /**
+   * Where the viewer stands — step G.7. Null for four different reasons, and
+   * the screen only needs to know that it is null:
+   *
+   *   - nobody is asking (no session);
+   *   - a guest is asking, and a guest has no board identity;
+   *   - the player has no qualifying round in this period;
+   *   - **the board is closed**, and a rank would leak the ranking the
+   *     threshold exists to hide.
+   */
+  readonly own: OwnRank | null;
+  /** The rows either side of the viewer's rank, when they are off the page. */
+  readonly around: readonly BoardRow[];
 }
 
 /**
@@ -86,11 +105,22 @@ export interface BoardView {
  * it separately would be a second round trip for a number the same `where`
  * clause already describes.
  */
+/**
+ * How many rows to show either side of a player who is off the page.
+ *
+ * One, so the block is three rows: the neighbour above, the player, and the one
+ * below. Enough to see the gap to close, and short enough not to be a second
+ * board.
+ */
+export const AROUND_OWN_RANK = 1;
+
 export async function readBoard(
   context: BoardContext,
   period: BoardPeriod,
   region: RegionId | null,
   atMs: number,
+  /** The viewer, when there is one with a board identity. */
+  viewerId?: string | null,
 ): Promise<BoardView> {
   const window = boardWindowOf(period, atMs);
   const query = { mode: RANKED_MODE, window, region };
@@ -105,6 +135,32 @@ export async function readBoard(
   // handed on: below the threshold they are dropped here, so nothing
   // downstream has the option of showing them.
   const open = isBoardOpen(players);
+  if (!open) {
+    // Nothing about who is on it, including the viewer. A rank on a closed
+    // board would leak the ranking the threshold exists to hide — and it would
+    // leak it to exactly the player most likely to share it.
+    return { period, region, rows: [], players, open, own: null, around: [] };
+  }
 
-  return { period, region, rows: open ? rows : [], players, open };
+  const own =
+    viewerId === undefined || viewerId === null
+      ? null
+      : await selectOwnRank(context.db, query, viewerId);
+
+  // Only when they are off the page. A player inside the top fifty is already
+  // on it, and a second block repeating their row would be a screen saying the
+  // same thing twice.
+  const offPage = own !== null && own.rank > rows.length;
+  const around = offPage
+    ? await selectBoard(context.db, {
+        ...query,
+        limit: AROUND_OWN_RANK * 2 + 1,
+        // `offset` is zero-based, so a rank of R sits at R - 1 and a window of
+        // one either side starts at R - 2. It comes back short at the end of
+        // the board rather than padded.
+        offset: Math.max(0, own.rank - 1 - AROUND_OWN_RANK),
+      })
+    : [];
+
+  return { period, region, rows, players, open, own, around };
 }
