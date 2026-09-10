@@ -35,7 +35,7 @@ are defined in `product/`, and their state is the table below.
 | F | Quests | 🔶 all seven built; the cron awaits `CRON_SECRET` in Vercel | `product/06-quests.md` |
 | G | Leaderboards | ✅ done — world and regional, with thresholds | `product/07-leaderboards.md` |
 | H | Coins and the shop | ✅ done — the ledger, the shop, and no payment | `product/08-economy.md` |
-| I | Admin panel | 🔶 I.1 to I.4 — through the activation funnel | `product/09-admin.md` |
+| I | Admin panel | 🔶 I.1 to I.5 — cost, content and the range remain | `product/09-admin.md` |
 | J | SEO, legal and polish | ⬜ not started | `product/10-seo-and-legal.md` |
 
 What was deliberately left out of it, with the reasons, is in

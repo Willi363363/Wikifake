@@ -47,6 +47,8 @@ export type {
 } from './queries/start.js';
 export type { ConnectionOptions, Database } from './client.js';
 export { isAdmin, pingDatabase } from './queries/admin.js';
+export { countRoundsByMode, countSeatsByMode } from './queries/admin-games.js';
+export type { RoundCounts, SeatCounts } from './queries/admin-games.js';
 export {
   countAccounts,
   countActiveSince,
