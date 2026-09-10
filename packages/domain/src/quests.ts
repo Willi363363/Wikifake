@@ -33,8 +33,16 @@
 // door. No rule uses it yet, and the correction is here so that the next one
 // may.
 
-/** The two periods a set is drawn for. Monthly only if it is free — track F. */
-export type QuestPeriod = 'daily' | 'weekly';
+import type { CalendarPeriod } from './periods.js';
+
+/**
+ * The two periods a set is drawn for. Monthly only if it is free — track F.
+ *
+ * An alias rather than its own union since G.3: `CalendarPeriod` is the same
+ * pair, and two unions spelling out the same two strings are two places for a
+ * third to be added to only one of them.
+ */
+export type QuestPeriod = CalendarPeriod;
 
 /**
  * What accumulates towards the target.

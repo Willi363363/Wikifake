@@ -20,37 +20,11 @@
 import { isPerfectRound } from './scoring.js';
 import type { QuestQualifier, QuestRule } from './quests.js';
 
-const MS_PER_DAY = 86_400_000;
-
-/** Half-open: `fromMs` counts, `toMs` is the next period's first instant. */
-export interface PeriodWindow {
-  readonly fromMs: number;
-  readonly toMs: number;
-}
-
-/**
- * The instants a period covers — `periodIndexOf` run backwards.
- *
- * Half-open on purpose. A closed window has to name its last instant, and
- * whichever one it names is either a millisecond short or one long: the two
- * periods would share a boundary and a round submitted exactly on it would count
- * twice. `from <= at < to` cannot do that.
- *
- * A week's first day is `index * 7 - 3`, which is `periodIndexOf`'s `+ 3`
- * undone: epoch day 0 was a Thursday, so week 0 began three days before it.
- */
-export function periodWindowOf(
-  period: QuestRule['period'],
-  periodIndex: number,
-): PeriodWindow {
-  const firstDay = period === 'daily' ? periodIndex : periodIndex * 7 - 3;
-  const days = period === 'daily' ? 1 : 7;
-
-  return {
-    fromMs: firstDay * MS_PER_DAY,
-    toMs: (firstDay + days) * MS_PER_DAY,
-  };
-}
+// `periodWindowOf` and `PeriodWindow` used to live here. They moved to
+// `periods.ts` when G.3 needed the same calendar, and are re-exported so no
+// caller had to move with them.
+export { periodWindowOf } from './periods.js';
+export type { PeriodWindow } from './periods.js';
 
 /**
  * A finished round, as counting needs it.
