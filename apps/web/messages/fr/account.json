@@ -52,6 +52,12 @@
     "signOut": "Se déconnecter",
     "signingOut": "Déconnexion…"
   },
+  "keepRound": {
+    "aria": "Garder cette manche",
+    "title": "Cette manche n’est encore à personne.",
+    "lead": "Créez un compte et toutes les manches jouées en invité vous suivent — celle-ci comprise. Vous connecter à un compte existant fait la même chose.",
+    "cta": "Garder mes manches"
+  },
   "data": {
     "title": "Vos données",
     "exportLead": "Tout ce que ce jeu conserve sur vous, dans un fichier. Vos parties, vos chiffres, vos signalements.",

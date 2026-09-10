@@ -14,9 +14,20 @@
 // place an absolute URL belongs is the *server's* `BETTER_AUTH_URL`, which is
 // what OAuth redirect URIs are built from — and `assertCallbackReachable`
 // guards that one.
+import { anonymousClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
-export const authClient = createAuthClient();
+/**
+ * The client, and the one plugin it needs — step E.6.
+ *
+ * `anonymousClient()` is the browser half of the `anonymous()` plugin the server
+ * runs. It adds no behaviour this application calls: what it adds is
+ * `isAnonymous` on the session user, which is how a screen tells a guest from an
+ * account without asking the server a second question. Without it that field is
+ * present in the payload and absent from the type, and the only way to read it
+ * would be a cast — which is a lie whenever the server plugin is removed.
+ */
+export const authClient = createAuthClient({ plugins: [anonymousClient()] });
 
 /**
  * What a failed call gives a screen to show.

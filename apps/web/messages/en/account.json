@@ -52,6 +52,12 @@
     "signOut": "Sign out",
     "signingOut": "Signing out…"
   },
+  "keepRound": {
+    "aria": "Keep this round",
+    "title": "This round belongs to nobody yet.",
+    "lead": "Create an account and every round you have played as a guest comes with you — this one included. Sign in to one you already have and it does the same.",
+    "cta": "Keep my rounds"
+  },
   "data": {
     "title": "Your data",
     "exportLead": "Everything this game holds about you, as a file. Your games, your figures, your reports.",

@@ -19,6 +19,7 @@ import { useState } from 'react';
 
 import { AnimatedRanking, type FinalStanding } from './ranking.js';
 import { accuracyOf, gradeFor, type Stage } from './stages.js';
+import { KeepRound } from '../../account/keep-round.js';
 
 export interface DebriefProps {
   /** This player's numbers, as the server recorded them. */
@@ -147,6 +148,13 @@ export function Debrief({
               </li>
             ))}
           </ol>
+
+          {/* Step E.6 — offered to a guest and to nobody else, and it decides
+              that for itself. Rendered here rather than by the two screens that
+              build a debrief, so that a third mode cannot ship without it: a
+              guest reaches this panel from solo and from a room alike, and the
+              rounds they keep by signing up are the same rounds either way. */}
+          <KeepRound />
 
           <Button variant="primary" size="lg" className="mt-6 w-full" onClick={onOnward}>
             {onwardLabel}
