@@ -12,6 +12,7 @@
 // H.8 documents the seam a purchase would attach to rather than building it.
 import { sql } from 'drizzle-orm';
 import {
+  bigserial,
   check,
   index,
   integer,
@@ -113,17 +114,49 @@ export const coinMovement = pgTable(
     balanceAfter: integer('balance_after').notNull(),
 
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+
+    /**
+     * The order movements were written in — step H.2, and it exists because
+     * `created_at` cannot answer that question.
+     *
+     * **`now()` is the transaction's start time, not the clock's**, so two
+     * movements written in one transaction carry the *identical* `created_at` —
+     * verified against Postgres rather than assumed. H.3 will credit a quest in
+     * the transaction that marks it claimed, and H.4 will spend in the one that
+     * bills a hint, so that is the ordinary case and not a rare one.
+     *
+     * A balance read that takes "the newest row" would then be picking between
+     * two rows at random and could return the *earlier* balance. `seq` makes the
+     * order total: a sequence is handed out per insert, whatever the clock says.
+     *
+     * Global rather than per player, because a global sequence is one object
+     * Postgres maintains and a per-player counter is a second thing to lock. The
+     * gaps a rolled-back transaction leaves do not matter: nothing reads the
+     * value, only its order.
+     */
+    seq: bigserial('seq', { mode: 'number' }).notNull(),
   },
   (table) => [
     /** The idempotency the exit gate names: the same key credits once. */
     unique('coin_movement_key').on(table.userId, table.idempotencyKey),
     /**
-     * H.2's balance read, and the ledger a person scrolls.
+     * The ledger a person scrolls, newest first.
      *
-     * `created_at desc` because both want the newest first — a balance is the
-     * last row's `balance_after` and a history is read backwards.
+     * This carried the balance read as well until H.2 found that `created_at`
+     * cannot order two movements written in one transaction. It keeps the
+     * history — where a same-second tie is a cosmetic question — and the index
+     * below answers the balance.
      */
     index('coin_movement_user_idx').on(table.userId, table.createdAt.desc()),
+    /**
+     * H.2's balance read: one row, the newest this player has.
+     *
+     * `seq desc` and not `created_at desc`, for the reason on that column. The
+     * balance is then an index scan that stops at the first row — measured in
+     * `coins-volume.test.ts` on an account with thousands of movements, because
+     * a balance is read on every page that shows one.
+     */
+    index('coin_movement_balance_idx').on(table.userId, table.seq.desc()),
     /**
      * A movement of nothing is not a movement.
      *

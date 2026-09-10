@@ -184,17 +184,3 @@ mode the helper was written against.
 The fix is one line in the helper and the deletion of the local copy. It is left
 here because those two together change what five specs wait on, which is not an
 aside in a step about a debrief.
-
-## The all-time leaderboard reads the whole mode, because it needs a name
-
-Measured in G.4 at fifty thousand entries: the daily, weekly and regional
-boards answer in 2–3 ms with their range pushed into an index; the all-time
-board takes **45 ms**, reading every entry in the mode.
-
-**The scan is the cause — not the index, and since G.7 not the sort either.** A
-board is one row per player now, so `distinct on` reduces twenty-five thousand
-entries to two thousand before the ordering; but every entry is still read to
-find each player's best, and deduplicating costs more than sorting did (45 ms
-against 18 ms). Its cost grows with the game's history where every other
-board's grows with its period. Fine here; seconds at a hundred times it. The
-ways out and the numbers are in `../product/07-leaderboards-queries.md`.

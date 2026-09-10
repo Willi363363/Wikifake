@@ -179,15 +179,17 @@ not the client's to key — whoever owns the server messages must decide whether
 they become error *codes* the client translates, or stay sentences in one
 language. Until then a French interface will show them in English.
 
-## The register is three files
+## The register is four files
 
-The entries above are defects and gaps with a `file:line`. Two neighbours hold
+The entries above are defects and gaps with a `file:line`. Three neighbours hold
 the rest, because a register that reaches 200 lines stops being read:
-`06-structural-debt.md` for the shape of the repository and its code, and
-`08-toolchain-debt.md` for the commands you run and what they do not tell you.
+`06-structural-debt.md` for the shape of the repository and its code,
+`08-toolchain-debt.md` for the commands you run and what they do not tell you,
+and `09-query-debt.md` for query plans — what is slow, at what size, and what
+was measured.
 
-A finding goes in whichever of the three it belongs to. All three are the
-register.
+The fourth arrived in H.2, when the other three had all reached the cap. A
+finding goes in whichever of the four it belongs to. All four are the register.
 
 ## The chat rail sits on the room card at 360 px
 

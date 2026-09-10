@@ -13,6 +13,7 @@ This series of documents describes **what exists**, as it runs:
 - `05-known-debt.md` — the verified defects, with their references.
 - `06-structural-debt.md` — the debt that is about the shape of the repository.
 - `08-toolchain-debt.md` — the debt that is about the commands you run.
+- `09-query-debt.md` — what gets slow, at what size, and what was measured.
 - `07-local-setup.md` — from a fresh clone to a game you can play.
 
 The protocol itself is not described here: it is **generated** from the Zod
