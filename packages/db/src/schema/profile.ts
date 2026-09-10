@@ -3,7 +3,8 @@
 // Separate from `user` because that table belongs to Better Auth: adding columns
 // to it means the adapter and the migration disagree the day its core schema
 // changes. One row per account, created with it.
-import { jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
+import { index, jsonb, pgTable, text, timestamp, unique } from 'drizzle-orm/pg-core';
 
 import { user } from './auth.js';
 
@@ -63,6 +64,28 @@ export const profile = pgTable(
      */
     chosenRegion: text('chosen_region'),
     /**
+     * G.4 — the region a board actually filters on, computed by Postgres.
+     *
+     * `coalesce(chosen, derived, 'other')`, which is `effectiveRegion`'s rule in
+     * `@wikifake/domain` — and **the reason it is a generated column rather
+     * than a `coalesce` in the query** is that a regional board has to filter in
+     * SQL. There is no filtering a ranking in the application: the `limit` comes
+     * after the `where`, so a query that fetched everything and narrowed it
+     * afterwards would fetch everything.
+     *
+     * So the rule exists twice, and this is the arrangement that makes that
+     * safe. Once *here*, where the index can be on it and every query names a
+     * column rather than repeating an expression; and once in `domain`, for the
+     * code that has a row in hand. `leaderboard.test.ts` holds the two together
+     * over every combination of the two columns, which is E.4's trick again.
+     *
+     * `generated always`, so nothing can write it and it cannot disagree with
+     * its own inputs.
+     */
+    effectiveRegion: text('effective_region').generatedAlwaysAs(
+      sql`coalesce("chosen_region", "derived_region", 'other')`,
+    ),
+    /**
      * Everything else a player toggles — sound, reduced motion, and whatever
      * phase 6 adds.
      *
@@ -75,5 +98,16 @@ export const profile = pgTable(
   },
   // The constraint, not a check in the application: two sign-ups racing for the
   // same pseudonym are two transactions, and only the database sees both.
-  (table) => [unique('profile_display_name_key_key').on(table.displayNameKey)],
+  (table) => [
+    unique('profile_display_name_key_key').on(table.displayNameKey),
+    /**
+     * G.4 — what a regional board joins and filters on.
+     *
+     * The pseudonym comes along, so a board's join can be answered without
+     * going back to the heap for it. Whether that is what the planner actually
+     * chooses is measured rather than assumed — `leaderboard-volume.test.ts`
+     * reads the plan on a seeded table.
+     */
+    index('profile_region_idx').on(table.effectiveRegion, table.userId),
+  ],
 );
