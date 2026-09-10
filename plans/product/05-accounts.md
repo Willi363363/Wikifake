@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 E.6 left; E.1 awaiting credentials |
+| **State** | 🔶 every step built; E.1 awaiting credentials |
 | **Branch** | `feat/player-accounts` |
 | **Depends on** | — |
 | **Delivers** | sign-in that works in production, a profile, and per-player stats |
@@ -60,7 +60,7 @@ leaderboard or a shared score.
 | E.3b.2 | The socket player carries their account | ✅ |
 | E.4 | `player_stats` — the aggregate a profile reads | ✅ |
 | E.5 | The profile screen | ✅ |
-| E.6 | Guest continuity — a guest game survives signing up | ⬜ |
+| E.6 | Guest continuity — a guest game survives signing up | ✅ |
 | E.7 | Export and delete my account | ✅ |
 
 **E.3 was one line hiding three steps**, and the re-cut is in
@@ -69,14 +69,16 @@ overflow cases, the same one E.3b hit. "Chosen, unique, and the only public
 identifier" is a *data* rule, a *sign-up* rule and a *room* rule, each with its
 own exit condition and none of which fits in a branch with the other two.
 
-**What each step decided, and what it got wrong first**, is in six sheets.
+**What each step decided, and what it got wrong first**, is in seven sheets.
 `05-accounts-oauth.md` carries E.1 — the runbook for the credentials, and the
 guard on the variable they depend on. `05-accounts-multiplayer.md` carries E.3b,
 which was found missing while E.4 was being built and turned out to be two steps.
 `05-accounts-pseudonym.md` carries the re-cut and E.3.1, and
-`05-accounts-choosing.md` carries E.3.2 and E.3.3, and `05-accounts-erasure.md`
-carries E.7. `05-accounts-steps.md` carries the rest: E.2, E.4 and E.5. The
-table above is the only place that says where a step stands.
+`05-accounts-choosing.md` carries E.3.2 and E.3.3, `05-accounts-erasure.md`
+carries E.7, and `05-accounts-continuity.md` carries E.6 — which found that the
+linking hook fires on sign-*in* too, so the promise the invitation makes is
+wider than the step assumed. `05-accounts-steps.md` carries the rest: E.2, E.4
+and E.5. The table above is the only place that says where a step stands.
 
 ## Exit gate
 
