@@ -23,7 +23,7 @@ import {
 import { periodIndexOf } from '@wikifake/domain';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { readBoard, RANKED_MODE } from './board.js';
+import { BOARD_MIN_PLAYERS, isBoardOpen, readBoard, RANKED_MODE } from './board.js';
 import { openWebTestDatabase, webTestDatabaseUrl } from '../testing/database.js';
 import type { TestDatabase } from '@wikifake/db/testing';
 
@@ -104,6 +104,32 @@ describe.skipIf(url === null)('G.5 — the board a screen is handed', () => {
     });
   };
 
+  /**
+   * Enough players to open a board, and one of them named.
+   *
+   * G.6 withholds the rows below `BOARD_MIN_PLAYERS`, so every case about *which
+   * rows come back* has to get the board open first. The filler players score
+   * less than anybody a case cares about, so they never displace them.
+   */
+  const openTheBoard = async (
+    options: {
+      readonly mode?: 'solo' | 'multiplayer';
+      readonly atMs?: number;
+      readonly region?: string;
+    } = {},
+  ): Promise<void> => {
+    for (let index = 0; index < BOARD_MIN_PLAYERS; index += 1) {
+      const id = `filler${String(index)}`;
+      await addPlayer(id, `Filler${String(index)}`, options.region);
+      await played({
+        userId: id,
+        mode: options.mode ?? 'multiplayer',
+        score: 1,
+        atMs: (options.atMs ?? THURSDAY) + index,
+      });
+    }
+  };
+
   it('ranks room rounds', async () => {
     await addPlayer('ada', 'Ada');
     await addPlayer('bob', 'Bob');
@@ -114,11 +140,13 @@ describe.skipIf(url === null)('G.5 — the board a screen is handed', () => {
       score: 900,
       atMs: THURSDAY + 1000,
     });
+    await openTheBoard();
 
     const board = await readBoard(context(), 'daily', null, THURSDAY + 3_600_000);
 
-    expect(board.rows.map((row) => row.displayName)).toEqual(['Bob', 'Ada']);
-    expect(board.players).toBe(2);
+    expect(board.open).toBe(true);
+    expect(board.rows.slice(0, 2).map((row) => row.displayName)).toEqual(['Bob', 'Ada']);
+    expect(board.players).toBe(2 + BOARD_MIN_PLAYERS);
   });
 
   it('ranks a solo round nowhere, however big the score', async () => {
@@ -150,11 +178,15 @@ describe.skipIf(url === null)('G.5 — the board a screen is handed', () => {
       atMs: THURSDAY - 3_600_000,
     });
 
+    // Opened on the Wednesday, so both periods contain the filler rounds and
+    // the only difference left is the day the case is about.
+    await openTheBoard({ atMs: THURSDAY - 3_600_000 });
+
     const daily = await readBoard(context(), 'daily', null, THURSDAY);
     const weekly = await readBoard(context(), 'weekly', null, THURSDAY);
 
     expect(daily.rows).toEqual([]);
-    expect(weekly.rows).toHaveLength(1);
+    expect(weekly.rows).toHaveLength(1 + BOARD_MIN_PLAYERS);
     // The same calendar quests use — G.3's whole reason for the shared module.
     expect(periodIndexOf('weekly', THURSDAY - 3_600_000)).toBe(
       periodIndexOf('weekly', THURSDAY),
@@ -170,7 +202,11 @@ describe.skipIf(url === null)('G.5 — the board a screen is handed', () => {
       atMs: THURSDAY - 400 * DAY,
     });
 
-    expect((await readBoard(context(), 'allTime', null, THURSDAY)).rows).toHaveLength(1);
+    await openTheBoard({ atMs: THURSDAY - 400 * DAY });
+
+    expect((await readBoard(context(), 'allTime', null, THURSDAY)).rows).toHaveLength(
+      1 + BOARD_MIN_PLAYERS,
+    );
     expect((await readBoard(context(), 'weekly', null, THURSDAY)).rows).toEqual([]);
   });
 
@@ -182,15 +218,21 @@ describe.skipIf(url === null)('G.5 — the board a screen is handed', () => {
       await played({ userId: id, mode: 'multiplayer', score: 400, atMs: THURSDAY });
     }
 
+    // Every region needs its own ten, which is the rule doing its job: a
+    // regional board with two names is worse than a hidden one.
+    await openTheBoard({ region: 'europe' });
     const europe = await readBoard(context(), 'daily', 'europe', THURSDAY);
     const world = await readBoard(context(), 'daily', null, THURSDAY);
     // A player with no region at all is on the board for everywhere else, which
     // `effectiveRegion` decided and the generated column computes.
     const elsewhere = await readBoard(context(), 'daily', 'other', THURSDAY);
 
-    expect(europe.rows.map((row) => row.displayName)).toEqual(['Ada']);
-    expect(elsewhere.rows.map((row) => row.displayName)).toEqual(['Cleo']);
-    expect(world.rows).toHaveLength(3);
+    expect(europe.rows.map((row) => row.displayName)).toContain('Ada');
+    // Cleo is alone in `other`, so that board stays closed and hands back no
+    // rows at all — the threshold, per region.
+    expect(elsewhere.open).toBe(false);
+    expect(elsewhere.rows).toEqual([]);
+    expect(world.rows).toHaveLength(3 + BOARD_MIN_PLAYERS);
   });
 
   it('shows a chosen region over a derived one', async () => {
@@ -200,9 +242,13 @@ describe.skipIf(url === null)('G.5 — the board a screen is handed', () => {
     await setChosenRegion(store.db, 'ada', 'americas');
     await played({ userId: 'ada', mode: 'multiplayer', score: 400, atMs: THURSDAY });
 
-    expect((await readBoard(context(), 'daily', 'americas', THURSDAY)).rows).toHaveLength(
-      1,
-    );
+    await openTheBoard({ region: 'americas' });
+
+    expect(
+      (await readBoard(context(), 'daily', 'americas', THURSDAY)).rows.map(
+        (row) => row.displayName,
+      ),
+    ).toContain('Ada');
     expect((await readBoard(context(), 'daily', 'europe', THURSDAY)).rows).toEqual([]);
   });
 
@@ -217,7 +263,11 @@ describe.skipIf(url === null)('G.5 — the board a screen is handed', () => {
     });
     await played({ userId: 'nameless', mode: 'multiplayer', score: 800, atMs: THURSDAY });
 
-    expect((await readBoard(context(), 'daily', null, THURSDAY)).rows).toEqual([]);
+    await openTheBoard();
+    const board = await readBoard(context(), 'daily', null, THURSDAY);
+
+    expect(board.rows.map((row) => row.displayName)).not.toContain('x');
+    expect(board.players).toBe(BOARD_MIN_PLAYERS);
   });
 
   it('counts players and not scores', async () => {
@@ -233,9 +283,163 @@ describe.skipIf(url === null)('G.5 — the board a screen is handed', () => {
       });
     }
 
+    await openTheBoard();
     const board = await readBoard(context(), 'daily', null, THURSDAY);
 
-    expect(board.rows).toHaveLength(5);
+    // Five entries for one player, and one player counted.
+    expect(board.players).toBe(1 + BOARD_MIN_PLAYERS);
+    expect(board.rows.filter((row) => row.displayName === 'Ada')).toHaveLength(5);
+  });
+});
+
+describe.skipIf(url === null)('G.6 — the threshold, in the read path', () => {
+  let store: TestDatabase;
+
+  beforeAll(async () => {
+    store = await openWebTestDatabase();
+  });
+
+  beforeEach(async () => {
+    await store.truncate();
+  });
+
+  afterAll(async () => {
+    await store.close();
+  });
+
+  const context = () => ({ db: store.db });
+
+  /** `count` players, one round each, all inside Thursday. */
+  const playersOnTheBoard = async (count: number): Promise<void> => {
+    for (let index = 0; index < count; index += 1) {
+      const id = `p${String(index)}`;
+      await store.db
+        .insert(user)
+        .values({ id, name: id, email: `${id}@example.test`, emailVerified: false });
+      await store.db.insert(profile).values({
+        userId: id,
+        displayName: `Player${String(index)}`,
+        displayNameKey: `player${String(index)}`,
+      });
+      const [row] = await store.db
+        .insert(game)
+        .values({
+          mode: 'multiplayer',
+          topic: 'Chat',
+          sourceUrl: 'https://fr.wikipedia.org/wiki/Chat',
+          paragraphs: ['un paragraphe'],
+          totalFakes: 3,
+          timeLimit: 300,
+        })
+        .returning({ id: game.id });
+      const [player] = await store.db
+        .insert(participant)
+        .values({
+          gameId: (row as { id: string }).id,
+          userId: id,
+          colour: '#1f574d',
+        })
+        .returning({ id: participant.id });
+      await recordSubmission(store.db, {
+        gameId: (row as { id: string }).id,
+        participantId: (player as { id: string }).id,
+        marked: [1],
+        score: 100 + index,
+        truePositives: 3,
+        falsePositives: 0,
+        hintsUsed: 0,
+        hintPenalty: 0,
+        scoreStolen: 0,
+        timeBonus: 0,
+        perfect: true,
+        at: new Date(THURSDAY + index * 1000),
+      });
+    }
+  };
+
+  it('hands back no rows at all one player short', async () => {
+    /*
+     * The rule the track states — *"under it, the screen says the ranking opens
+     * soon rather than showing three names"* — held **in the read path**.
+     *
+     * Withheld rather than hidden, and that is the point: a screen that decided
+     * not to render the rows is a promise, and a read that never returns them is
+     * a fact. A later refactor of the markup cannot leak a name it does not
+     * have.
+     */
+    await playersOnTheBoard(BOARD_MIN_PLAYERS - 1);
+
+    const board = await readBoard(context(), 'daily', null, THURSDAY + 3_600_000);
+
+    expect(board.open).toBe(false);
+    expect(board.rows).toEqual([]);
+    // The count still comes back, because the screen says it: a number, not a
+    // name.
+    expect(board.players).toBe(BOARD_MIN_PLAYERS - 1);
+  });
+
+  it('opens on the player that reaches the threshold', async () => {
+    await playersOnTheBoard(BOARD_MIN_PLAYERS);
+
+    const board = await readBoard(context(), 'daily', null, THURSDAY + 3_600_000);
+
+    expect(board.open).toBe(true);
+    expect(board.rows).toHaveLength(BOARD_MIN_PLAYERS);
+  });
+
+  it('decides on players, so one player playing all day opens nothing', async () => {
+    // `countBoardPlayers` counts `distinct user_id` for exactly this: a board
+    // that opened at ten *scores* would open when one player had played ten
+    // rounds, which is the abandoned-looking board the rule exists to prevent.
+    await playersOnTheBoard(1);
+    for (let index = 0; index < 20; index += 1) {
+      const [row] = await store.db
+        .insert(game)
+        .values({
+          mode: 'multiplayer',
+          topic: 'Chat',
+          sourceUrl: 'https://fr.wikipedia.org/wiki/Chat',
+          paragraphs: ['un paragraphe'],
+          totalFakes: 3,
+          timeLimit: 300,
+        })
+        .returning({ id: game.id });
+      const [player] = await store.db
+        .insert(participant)
+        .values({
+          gameId: (row as { id: string }).id,
+          userId: 'p0',
+          colour: '#1f574d',
+        })
+        .returning({ id: participant.id });
+      await recordSubmission(store.db, {
+        gameId: (row as { id: string }).id,
+        participantId: (player as { id: string }).id,
+        marked: [1],
+        score: 500,
+        truePositives: 3,
+        falsePositives: 0,
+        hintsUsed: 0,
+        hintPenalty: 0,
+        scoreStolen: 0,
+        timeBonus: 0,
+        perfect: true,
+        at: new Date(THURSDAY + 10_000 + index * 1000),
+      });
+    }
+
+    const board = await readBoard(context(), 'daily', null, THURSDAY + 3_600_000);
+
     expect(board.players).toBe(1);
+    expect(board.open).toBe(false);
+    expect(board.rows).toEqual([]);
+  });
+
+  it('is one number, and one function that reads it', () => {
+    // The screen interpolates `BOARD_MIN_PLAYERS` into its promise and the read
+    // path compares against it, so the two cannot disagree about what opens.
+    expect(isBoardOpen(BOARD_MIN_PLAYERS - 1)).toBe(false);
+    expect(isBoardOpen(BOARD_MIN_PLAYERS)).toBe(true);
+    expect(isBoardOpen(0)).toBe(false);
   });
 });

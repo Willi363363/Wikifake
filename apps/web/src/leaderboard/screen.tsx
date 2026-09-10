@@ -10,6 +10,8 @@
 // The pseudonym is the only thing a row shows about a player, which is E.3.3's
 // promise: the email appears in no room, no leaderboard and no shared score.
 import { BOARD_PERIOD_IDS, REGION_IDS, type RegionId } from '@wikifake/protocol';
+
+import { BOARD_MIN_PLAYERS } from './board.js';
 import { useFormatter, useTranslations } from 'next-intl';
 import Link from 'next/link';
 
@@ -108,12 +110,47 @@ export function BoardScreen({ board }: BoardScreenProps) {
         />
       </div>
 
-      {board.rows.length === 0 ? (
-        // G.6 replaces this with the participant threshold: under it, a board
-        // says the ranking opens soon rather than showing three names. What is
-        // here is only the case where there is nothing at all.
+      {!board.open ? (
+        /*
+         * Step G.6 — two sentences, because the two states are not the same
+         * thing to a player.
+         *
+         * **Nobody has played** is an invitation: open a room and be the first.
+         * **Somebody has, but not enough** is a promise with a number in it —
+         * "opens once ten players have played, four so far" — which is a great
+         * deal better than a bare *soon*, and reveals a count rather than a
+         * name.
+         *
+         * The rows are not merely unrendered here: `readBoard` never handed them
+         * over. Hiding them in the markup would be a promise; not having them is
+         * a fact.
+         */
         <div className="mt-8 border-3 border-line-strong bg-surface p-6 text-center shadow-md">
-          <p className="text-base text-ink">{t('empty')}</p>
+          {board.players === 0 ? (
+            <p className="text-base text-ink">{t('empty')}</p>
+          ) : (
+            <>
+              <p className="text-base text-ink">
+                {t('opensSoon', { needed: BOARD_MIN_PLAYERS })}
+              </p>
+              <p className="mt-2 font-mono text-sm tabular-nums text-muted">
+                {t('soFar', { count: board.players })}
+              </p>
+              {/* The all-time board needs the same ten players but has every
+                  period to find them in, so it is the one that opens first. Not
+                  offered when it is the board being looked at. */}
+              {board.period === 'allTime' ? null : (
+                <p className="mt-2 text-sm text-muted">
+                  <Link
+                    href={boardHref('allTime', board.region)}
+                    className="text-ink underline"
+                  >
+                    {t('openFirst')}
+                  </Link>
+                </p>
+              )}
+            </>
+          )}
           <p className="mt-4">
             <Link href="/play" className="text-ink underline">
               {t('play')}

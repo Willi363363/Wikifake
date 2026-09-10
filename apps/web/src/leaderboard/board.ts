@@ -30,13 +30,49 @@ export const RANKED_MODE = 'multiplayer' as const;
 /** How many rows a board shows. */
 export const BOARD_SIZE = 50;
 
+/**
+ * How many distinct players a board needs before it shows anybody — step G.6.
+ *
+ * The track's rule: *"a leaderboard with four entries makes a game look
+ * abandoned… under it, the screen says the ranking opens soon rather than
+ * showing three names."* Ten is the number, and what matters more than the
+ * number is that it is one number.
+ *
+ * **Per-period thresholds were considered and refused.** A daily board needs ten
+ * players *that day*, which is a much higher bar than ten ever, so the all-time
+ * board opens first and the regional dailies open last. That is the right order
+ * — the board with the most players in it is the one worth showing — and the
+ * alternative is three numbers to tune instead of one.
+ *
+ * **Distinct players and not entries**, which is why `countBoardPlayers` counts
+ * `distinct user_id`: a board that opened at ten *scores* would open when one
+ * player had played ten rounds, and that is exactly the abandoned-looking board
+ * the rule exists to prevent.
+ */
+export const BOARD_MIN_PLAYERS = 10;
+
+/** Whether a board has enough players to be shown at all. */
+export function isBoardOpen(players: number): boolean {
+  return players >= BOARD_MIN_PLAYERS;
+}
+
 export interface BoardView {
   readonly period: BoardPeriod;
   /** Null is the world board. */
   readonly region: RegionId | null;
+  /**
+   * The rows, or **empty when the board is closed**.
+   *
+   * Withheld here rather than hidden by the screen, and that is the point of
+   * doing it in the read path: a screen that decided not to render them is a
+   * promise, and a read path that never returns them is a fact. A board below
+   * the threshold cannot leak a name through a later refactor of the markup.
+   */
   readonly rows: readonly BoardRow[];
-  /** Distinct players in the period — G.6's threshold will read this. */
+  /** Distinct players in the period, whether or not the board is open. */
   readonly players: number;
+  /** `players >= BOARD_MIN_PLAYERS`. Decided once, here. */
+  readonly open: boolean;
 }
 
 /**
@@ -64,5 +100,11 @@ export async function readBoard(
     countBoardPlayers(context.db, query),
   ]);
 
-  return { period, region, rows, players };
+  // Both are asked for either way, because the count is what decides and it
+  // comes from the same `where` clause. What changes is whether the rows are
+  // handed on: below the threshold they are dropped here, so nothing
+  // downstream has the option of showing them.
+  const open = isBoardOpen(players);
+
+  return { period, region, rows: open ? rows : [], players, open };
 }
