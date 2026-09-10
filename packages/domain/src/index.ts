@@ -43,6 +43,16 @@ export type {
   HintRequest,
 } from './hints.js';
 
+export { questRulesFor, QUEST_CATALOGUE, QUEST_RULES, QUEST_RULE_IDS } from './quests.js';
+export type {
+  QuestPeriod,
+  QuestQualifier,
+  QuestRule,
+  QuestRuleId,
+  QuestTally,
+  QuestTarget,
+} from './quests.js';
+
 export { gradeAnswer, isWellFormedSolution, solutionIssues } from './grading.js';
 export type { Grading } from './grading.js';
 
