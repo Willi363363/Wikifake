@@ -42,6 +42,10 @@ const STATUS: Readonly<Partial<Record<ErrorCode, number>>> = {
   quest_already_claimed: 409,
   /** F.6 — the target is not met yet. A conflict the player can resolve. */
   quest_not_complete: 409,
+  /** H.4 — the coins are not there. 402, the one money-shaped status here. */
+  insufficient_coins: 402,
+  /** H.4 — coins offered in a room, where the score is what a hint costs. */
+  coins_not_accepted: 409,
 };
 
 export function statusFor(code: ErrorCode): number {

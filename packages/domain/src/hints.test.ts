@@ -5,6 +5,7 @@ import {
   EMPTY_LEDGER,
   grantHint,
   hintPenaltyFor,
+  hintPenaltyPaid,
   hintsUsedFor,
   ledgerFrom,
   type HintLedger,
@@ -146,6 +147,23 @@ describe('what the client is told it paid adds up', () => {
     const summed = payloads.reduce((total, payload) => total + payload.charged, 0);
     expect(summed).toBe(hintPenaltyFor(ledger));
     expect(payloads.at(-1)?.hintPenalty).toBe(hintPenaltyFor(ledger));
+    // H.4 — the two definitions of the penalty, held to each other. Pricing the
+    // ledger and summing the charges agree on every sequence the score paid
+    // for, which is what makes swapping one for the other safe.
+    expect(hintPenaltyPaid(payloads)).toBe(hintPenaltyFor(ledger));
+  });
+
+  it('H.4 — a hint the coins paid for is held and costs the score nothing', () => {
+    // The one case where the two definitions part company, and the reason the
+    // sum is the one the server answers with. The level is owned — so
+    // `hintPenaltyFor` prices it — and the score was never touched.
+    const paid = [
+      { falseInfoNumber: 1, level: 1 as const, charged: HINT_COST },
+      { falseInfoNumber: 2, level: 2 as const, charged: 0 },
+    ];
+
+    expect(hintPenaltyPaid(paid)).toBe(HINT_COST);
+    expect(hintPenaltyFor(ledgerFrom(paid))).toBe(HINT_COST + REVEAL_COST);
   });
 });
 

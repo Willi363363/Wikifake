@@ -28,6 +28,8 @@ export interface SessionContext {
 export interface Round {
   readonly gameId: string;
   readonly participantId: string;
+  /** H.4 — solo takes coins for a hint and a room does not. */
+  readonly mode: 'solo' | 'multiplayer';
   readonly timeLimit: number;
   readonly startedAt: Date;
   /** Null while the round is still running. */
@@ -37,7 +39,18 @@ export interface Round {
 }
 
 export type RoundAccess =
-  | { readonly ok: true; readonly round: Round }
+  | {
+      readonly ok: true;
+      readonly round: Round;
+      /**
+       * H.4 — who is asking, which this function already knew.
+       *
+       * It reads the session to decide whether the caller is in the round at
+       * all, so handing the id back costs nothing and saves the one place that
+       * spends coins from reading the cookie a second time.
+       */
+      readonly userId: string;
+    }
   | { readonly ok: false; readonly code: ErrorCode; readonly message: string };
 
 /**
@@ -88,9 +101,11 @@ export async function openRound(
 
   return {
     ok: true,
+    userId: session.user.id,
     round: {
       gameId: round.id,
       participantId: player.id,
+      mode: round.mode,
       timeLimit: round.timeLimit,
       startedAt: round.startedAt,
       endedAt: round.endedAt,

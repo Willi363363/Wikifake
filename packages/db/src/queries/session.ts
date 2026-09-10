@@ -20,7 +20,17 @@ import { recordMovement } from './coins.js';
 import { recordEligibleScore } from './leaderboard.js';
 import { recordRoundFinished } from './stats.js';
 
-type Db = Database['db'];
+/**
+ * A connection **or** a transaction — widened by H.4.
+ *
+ * The same alias `queries/profile.ts` and `queries/coins.ts` declare, and for
+ * the same reason: a hint paid for in coins records the purchase and the debit
+ * in one transaction, so `recordHintPurchase` has to accept the handle that
+ * transaction hands out. Every function here already worked on either; only the
+ * type said otherwise.
+ */
+type Tx = Parameters<Parameters<Database['db']['transaction']>[0]>[0];
+type Db = Database['db'] | Tx;
 
 /**
  * The participant this account or guest plays as, in this game.
@@ -49,6 +59,10 @@ export function selectRoundStatus(db: Db, gameId: string) {
       timeLimit: game.timeLimit,
       startedAt: game.startedAt,
       endedAt: game.endedAt,
+      // H.4 — a hint may be paid for in coins in solo and not in a room, so the
+      // handler that decides needs to know which this is. Read here rather than
+      // in a second query: the round is already being fetched.
+      mode: game.mode,
     })
     .from(game)
     .where(eq(game.id, gameId));
@@ -114,6 +128,11 @@ export interface BilledHint {
   readonly falseInfoNumber: number;
   readonly level: number;
   readonly charged: number;
+  /**
+   * H.4 — which currency paid. Absent means score, as every purchase did
+   * before that step.
+   */
+  readonly paidWith?: 'score' | 'coins';
 }
 
 /**

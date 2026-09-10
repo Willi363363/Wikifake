@@ -52,10 +52,29 @@ export const startGameResponse = z.object({
 export type StartGameResponse = z.infer<typeof startGameResponse>;
 
 /** `POST /api/game/hint` — request. Billed server-side (C1.4). */
+/**
+ * H.4 — what a hint is paid with.
+ *
+ * `score` is the default and is what every client sent before this step: the
+ * hint's cost comes off the round's score, which is the mechanic C1.4 built.
+ * `coins` spends from the ledger instead and leaves the score alone — and is
+ * **accepted in solo only**, because a room round is ranked and a player with
+ * coins would score better than one without.
+ */
+export const hintPayment = z.enum(['score', 'coins']);
+export type HintPayment = z.infer<typeof hintPayment>;
+
 export const hintRequest = z.object({
   sessionId,
   falseInfoNumber,
   level: hintLevel.default(1),
+  /**
+   * Optional rather than defaulted, deliberately: a `.default()` would put `pay`
+   * into the *output* type, and every caller that builds a `HintRequest` — the
+   * solo client, four tests — would have to name a payment it does not care
+   * about. Absent means score, which is what every request meant before H.4.
+   */
+  pay: hintPayment.optional(),
 });
 export type HintRequest = z.infer<typeof hintRequest>;
 
