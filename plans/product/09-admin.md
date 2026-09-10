@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | ⬜ not started |
+| **State** | 🔶 I.1 — the role, and a route only it reaches |
 | **Branch** | `feat/admin-panel` |
 | **Depends on** | track E |
 | **Delivers** | a read-only view of the application's health |
@@ -63,7 +63,7 @@ is money, this panel gets a section; not before.
 
 | # | Step | State |
 |---|---|---|
-| I.1 | An admin role, and a route only it reaches | ⬜ |
+| I.1 | An admin role, and a route only it reaches | ✅ |
 | I.2 | Health section, from the existing probes | ⬜ |
 | I.3 | Players and activity | ⬜ |
 | I.4 | Activation and return | ⬜ |
@@ -77,6 +77,10 @@ is money, this panel gets a section; not before.
 A flag on the account, set by a migration, not by a screen. The route returns
 404 rather than 403 to anybody else — an admin route that announces itself is
 a target, and there is no reason to confirm it exists.
+
+**Built, and what it decided is in `09-admin-role.md`**: a table rather than a
+column on Better Auth's `user`, the account's own id as its primary key, no code
+anywhere that writes it, and an empty table as the safe default.
 
 ## Exit gate
 
