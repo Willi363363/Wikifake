@@ -42,6 +42,8 @@ rather than on prose (C5.1).
 - `quest_not_found`
 - `quest_already_claimed`
 - `quest_not_complete`
+- `insufficient_coins`
+- `coins_not_accepted`
 
 ## Item identifiers
 
