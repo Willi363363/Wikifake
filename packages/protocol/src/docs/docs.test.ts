@@ -21,9 +21,10 @@ const PLANS = new URL('../../../../plans/', import.meta.url).pathname;
 describe('the generated protocol documentation', () => {
   const generated = pages();
 
-  it('covers the four pages', () => {
+  it('covers the five pages', () => {
     expect(Object.keys(generated).sort()).toEqual([
       'protocol/README.md',
+      'protocol/rest-operations.md',
       'protocol/rest.md',
       'protocol/websocket-client.md',
       'protocol/websocket-server.md',

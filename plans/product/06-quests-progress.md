@@ -100,3 +100,92 @@ through:
 That last pair is why the boundary is asserted twice. `periodWindowOf` decides
 the convention and `selectRoundsInWindow` has to agree with it, and neither
 suite can see the other's half.
+
+## F.5 — the cron, and the read path that makes it optional  ✅
+
+**Done when** a scheduled run gives every recently active player their sets, a
+second run for the same day writes nothing, and a player the schedule never
+reached still has quests on the request that asks for them.
+
+### The read path is the guarantee, and it is the whole design
+
+The plan says it in one line — *the cron is an optimisation; the read path is
+the guarantee* — and building it that way round is what makes both of F.5's
+demanded properties free.
+
+`readLiveQuests` generates a missing set on the request that asks for it. So
+**"a player created at 03:00 sees quests immediately"** is not something a
+schedule has to get right, and **"the quest engine is stopped entirely and a
+full game still plays"** costs nobody a quest rather than merely not crashing.
+
+**Idempotence** then comes from F.2 and F.3 rather than from any code here:
+`generateQuestSet` is deterministic and `assignQuests` writes nothing on
+conflict, so a second run for the same day reports `assigned: 0`. That count is
+the *evidence* — a run that assigned nothing and a run that never happened look
+different in a log.
+
+### It re-reads after writing, and that is not a formality
+
+`rowsFor` writes the generated set and then **selects it back** rather than
+returning what it generated. Two requests can arrive together, or the cron can
+be running: `assignQuests` deliberately does not update on conflict, so the rows
+are the promise and the generated list is only a proposal. Returning the proposal
+would show a player a target that is not the one stored against their name — and
+a mutation doing exactly that turns the second-read case red.
+
+### The cron looks fourteen days back, and that is a decision
+
+Pre-generating for a player who has not touched the game in months writes five
+rows a day, for ever, that nobody will read. The read path covers them, so the
+cron optimises for the players who will actually look. A returning player loses
+nothing: they get their set on the request that brings them back, and a test
+asserts exactly that for a player last seen thirty days ago.
+
+**One schedule covers both periods**, which is `assignQuests` being idempotent
+rather than a coincidence: a daily run re-offers the weekly set every day, six of
+those seven writes are conflicts, and the Monday is the one that lands.
+
+### Absent secret means refused, never open
+
+`CRON_SECRET` is optional in the schema and not optional in effect: the route
+answers 503 when it is unset. A forgotten variable must not turn this into a
+public endpoint that rewrites every player's quests, and the cost of failing
+closed is a cron that logs until somebody sets it — a failure with a symptom.
+`REALTIME_ALLOWED_ORIGINS` made the same choice and the phase-9 harness caught a
+misconfiguration on its first run because of it.
+
+503 rather than 401 is deliberate too: nothing is wrong with the request, the
+deployment is not configured, and a log has to tell those apart. The token
+comparison checks length first and then every byte, so a prefix of the right
+token is refused — asserted, because `startsWith` passes every other case.
+
+### Two guards in this repository found the route before CI did
+
+**`route-parity.test.ts`** refused a handler the REST catalogue does not
+describe, which is C8.1 doing its job: no schema, no generated documentation, no
+contract. So `rest/quests.ts` exists, the route is in `ROUTES`, and the handler
+answers through `json(questCronResponse, …)` like every other one.
+
+**Then the generated `rest.md` crossed 200 lines** — and `docs.test.ts` had
+already written down what happens: *"a message added to the protocol has to fit,
+or the pages have to be split again."* So it split, on the boundary that stays
+true as routes are added — **is there a browser at the other end** — giving
+`rest-operations.md` for the probes and the cron. A split down the middle of a
+list would have to be redone every time the list grew.
+
+That split also found two stale counts, both hand-written in prose: the index
+said "the nine REST routes" while there were twelve, and the REST page said
+"Twelve routes" as the thirteenth arrived. Both are derived now, in digits
+rather than words — the house style of spelling numbers out is what made them
+easy to leave alone.
+
+### The mutation run
+
+Four breakages, four caught:
+
+- the secret check inverted, so an unset `CRON_SECRET` ran open — the 503 case;
+- `tokensMatch` reduced to `startsWith` — the prefix case;
+- the read path returning its proposal instead of re-reading — the second-read
+  case;
+- the weekly window computed as a daily one — the Wednesday-inside-this-week
+  case, which is why that case exists at all.

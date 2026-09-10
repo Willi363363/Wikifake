@@ -6,5 +6,11 @@
   "framework": "nextjs",
   "github": {
     "silent": true
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/quests",
+      "schedule": "5 0 * * *"
+    }
+  ]
 }

@@ -15,7 +15,8 @@ that changes without its documentation fails CI (C8.2).
 |---|---|
 | `websocket-client.md` | the thirteen messages a client may send |
 | `websocket-server.md` | the fifteen messages the server sends |
-| `rest.md` | the nine REST routes |
+| `rest.md` | the REST routes a player calls |
+| `rest-operations.md` | the probes, and the schedules |
 
 ## Error codes
 
