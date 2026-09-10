@@ -93,6 +93,23 @@ const schema = z.object({
   GITHUB_OAUTH_CLIENT_SECRET: z.string().min(1).optional(),
 
   /**
+   * The bearer token the quest cron must present — step F.5.
+   *
+   * Optional in the schema and **not** optional in effect: the route refuses
+   * every request when it is unset, rather than running unauthenticated. That is
+   * the same choice `REALTIME_ALLOWED_ORIGINS` makes — a misconfiguration that
+   * fails closed is one somebody notices — and it is the only safe reading for a
+   * secret, because "absent means open" turns a forgotten variable into a public
+   * endpoint that rewrites every player's quests.
+   *
+   * Optional in the *schema* because the game must stay developable without it:
+   * nothing but the cron reads it, and the read path assigns a missing set
+   * anyway, so a local checkout with no token has working quests and a dead
+   * cron. Vercel sets this itself and sends it as `Authorization: Bearer …`.
+   */
+  CRON_SECRET: z.string().min(16, 'CRON_SECRET is a token: make it long').optional(),
+
+  /**
    * How long a dropped player keeps their seat, in seconds.
    *
    * Absent, the domain's `GRACE_SECONDS` decides, and that is the contract's

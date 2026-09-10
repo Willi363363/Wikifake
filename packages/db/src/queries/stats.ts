@@ -25,7 +25,7 @@
 // E.3b in `plans/product/05-accounts.md`. Nothing here needs changing when it
 // lands: the increments hang off `createGame` and `recordSubmission`, so the
 // day multiplayer goes through them the numbers follow.
-import { asc, eq, isNotNull, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, isNotNull, sql } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
 import { game, participant } from '../schema/game.js';
@@ -371,4 +371,24 @@ export function selectPlayersWithStats(db: Db) {
     .select({ userId: playerStats.userId })
     .from(playerStats)
     .where(isNotNull(playerStats.userId));
+}
+
+/**
+ * Accounts that have played recently — step F.5.
+ *
+ * For the quest cron, and the reason it takes a cutoff rather than listing
+ * everybody is that **the cron is an optimisation and the read path is the
+ * guarantee**. A player who has not played in a month still gets their set the
+ * moment they ask; pre-generating one for them writes rows nobody reads, five a
+ * day, for ever.
+ *
+ * `lastSeen` and not `firstSeen`: E.4 named that column for track I's activation
+ * KPI, and it moves on every round started or finished, which is exactly
+ * "recently active" without a second thing to maintain.
+ */
+export function selectPlayersActiveSince(db: Db, since: Date) {
+  return db
+    .select({ userId: playerStats.userId })
+    .from(playerStats)
+    .where(and(isNotNull(playerStats.userId), gte(playerStats.lastSeen, since)));
 }

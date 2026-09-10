@@ -81,6 +81,7 @@ export {
   recordRoundFinished,
   recordRoundsJoined,
   selectPlayerStats,
+  selectPlayersActiveSince,
   selectPlayersWithStats,
 } from './queries/stats.js';
 export type { FinishedRound, PerfectRound, PlayerStats } from './queries/stats.js';
