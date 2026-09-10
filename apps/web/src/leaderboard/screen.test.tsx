@@ -12,6 +12,7 @@
 import { cleanup, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { BOARD_MIN_PLAYERS } from './board.js';
 import { BoardScreen } from './screen.js';
 import { render, renderIn } from '../i18n/testing.js';
 import type { BoardView } from './board.js';
@@ -26,7 +27,10 @@ function board(over: Partial<BoardView> = {}): BoardView {
   return {
     period: 'daily',
     region: null,
-    players: 3,
+    // Open by default, because G.6's threshold is its own describe below and
+    // every case above it is about a board that has rows to show.
+    players: BOARD_MIN_PLAYERS,
+    open: true,
     rows: [
       { userId: 'u1', displayName: 'Ada', score: 900, finishedAt: AT },
       { userId: 'u2', displayName: 'Bob', score: 640, finishedAt: AT },
@@ -127,7 +131,10 @@ describe('G.5 — choosing a board', () => {
 
 describe('G.5 — an empty board, and what it says about solo', () => {
   it('says why it is empty and offers the way to fill it', () => {
-    render(<BoardScreen board={board({ rows: [], players: 0 })} />);
+    // `open: false` because that is what `readBoard` returns for nobody at all:
+    // G.6 made zero players a *closed* board rather than an empty table, so
+    // this case now describes the state the read path actually produces.
+    render(<BoardScreen board={board({ rows: [], players: 0, open: false })} />);
 
     expect(screen.getByText(/No room rounds in this period yet/)).not.toBeNull();
     expect(screen.getByRole('link', { name: 'Open a room' })).not.toBeNull();
@@ -155,5 +162,90 @@ describe('G.5 — an empty board, and what it says about solo', () => {
     expect(screen.getByRole('heading', { name: 'Classements' })).not.toBeNull();
     expect(screen.getByRole('link', { name: 'Ailleurs' })).not.toBeNull();
     expect(screen.getByText(/Manches en salon uniquement/)).not.toBeNull();
+  });
+});
+
+describe('G.6 — a board with too few players', () => {
+  it('says nothing about who is on it', () => {
+    /*
+     * The track's rule: *"a leaderboard with four entries makes a game look
+     * abandoned… under it, the screen says the ranking opens soon rather than
+     * showing three names."*
+     *
+     * `readBoard` withholds the rows below the threshold, so this renders what
+     * a closed board actually arrives as — no rows at all — rather than a full
+     * board the screen chose to hide.
+     */
+    render(<BoardScreen board={board({ players: 4, open: false, rows: [] })} />);
+
+    expect(screen.queryByRole('table')).toBeNull();
+    expect(screen.getByText(/This ranking opens once 10 players/)).not.toBeNull();
+  });
+
+  it('says how many players there are, which is a count and not a name', () => {
+    render(<BoardScreen board={board({ players: 4, open: false, rows: [] })} />);
+
+    expect(screen.getByText('4 players so far')).not.toBeNull();
+  });
+
+  it('reads the threshold from the one place it is written', () => {
+    // The sentence interpolates `BOARD_MIN_PLAYERS`, so changing the number
+    // changes the promise. A hard-coded ten in the catalogue would be a screen
+    // promising a threshold nothing enforces.
+    render(<BoardScreen board={board({ players: 1, open: false, rows: [] })} />);
+
+    expect(
+      screen.getByText(new RegExp(`opens once ${String(BOARD_MIN_PLAYERS)} players`)),
+    ).not.toBeNull();
+    expect(screen.getByText('1 player so far')).not.toBeNull();
+  });
+
+  it('invites the first player rather than promising them a threshold', () => {
+    // Zero and "some but not enough" are different things to a player: one is
+    // an invitation, the other a promise with a number.
+    render(<BoardScreen board={board({ players: 0, open: false, rows: [] })} />);
+
+    expect(screen.getByText(/No room rounds in this period yet/)).not.toBeNull();
+    expect(screen.queryByText(/This ranking opens once/)).toBeNull();
+  });
+
+  it('points at the all-time board, which fills up first', () => {
+    // The same ten players, but every period to find them in. Not offered when
+    // it is the board being looked at.
+    render(
+      <BoardScreen
+        board={board({ period: 'daily', players: 4, open: false, rows: [] })}
+      />,
+    );
+
+    expect(
+      screen
+        .getByRole('link', { name: /The all-time board fills up first/ })
+        .getAttribute('href'),
+    ).toBe('/leaderboard?period=allTime');
+
+    cleanup();
+    render(
+      <BoardScreen
+        board={board({ period: 'allTime', players: 4, open: false, rows: [] })}
+      />,
+    );
+    expect(screen.queryByText(/The all-time board fills up first/)).toBeNull();
+  });
+
+  it('shows the choosers, so a closed board is not a dead end', () => {
+    // A player looking at a closed daily board must be able to reach the
+    // all-time one, and the region tabs go on working.
+    render(<BoardScreen board={board({ players: 4, open: false, rows: [] })} />);
+
+    expect(screen.getByRole('link', { name: 'All time' })).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Europe' })).not.toBeNull();
+  });
+
+  it('speaks French about a closed board too', () => {
+    renderIn('fr', <BoardScreen board={board({ players: 4, open: false, rows: [] })} />);
+
+    expect(screen.getByText(/Ce classement ouvre dès que 10 joueurs/)).not.toBeNull();
+    expect(screen.getByText('4 joueurs pour l’instant')).not.toBeNull();
   });
 });
