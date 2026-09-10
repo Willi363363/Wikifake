@@ -19,6 +19,11 @@ import {
   type QuestRuleId,
 } from './quests.js';
 
+// `periodIndexOf` used to live here and now lives in `periods.ts`: G.3 became
+// its second consumer, and a board's day has to be a quest's day. Re-exported
+// so that nothing which learned to import it from this module has to move.
+export { periodIndexOf } from './periods.js';
+
 /**
  * How many quests a set holds, per period.
  *
@@ -41,37 +46,10 @@ export const QUESTS_PER_SET: Readonly<Record<QuestPeriod, number>> = {
 export interface QuestAssignment {
   readonly ruleId: QuestRuleId;
   readonly period: QuestPeriod;
-  /** Which day or which week — `periodIndexOf`. */
+  /** Which day or which week — `periodIndexOf` in `periods.ts`. */
   readonly periodIndex: number;
   /** The number drawn from the rule's range, inclusive at both ends. */
   readonly target: number;
-}
-
-const MS_PER_DAY = 86_400_000;
-
-/**
- * Which day or which week an instant falls in, as an integer.
- *
- * **An index rather than a formatted date**, and the reason is this package's
- * own rule: `new Date(...)` is forbidden in `domain` — `purity.test.ts` refuses
- * it — so producing `2026-09-10` here would mean implementing civil-date
- * arithmetic to print a string that only a human reads. An integer is what F.3
- * needs anyway: `(user, period, periodIndex)` unique is what makes running the
- * cron twice write nothing the second time.
- *
- * **Days are UTC days, so a daily set turns over at midnight UTC** — 01:00 or
- * 02:00 for a French player. Deliberate, and the alternative is worse: a
- * per-player boundary means the cron cannot assign everybody at once, and a
- * per-player time zone is a preference E.5 already deferred to
- * `profile.preferences`. When that preference arrives, this is the one function
- * that has to learn about it.
- *
- * Weeks start on Monday. Epoch day 0 was a Thursday, so `+3` moves the boundary
- * back to the Monday before it — 1969-12-29, which is week 0's first day.
- */
-export function periodIndexOf(period: QuestPeriod, atMs: number): number {
-  const day = Math.floor(atMs / MS_PER_DAY);
-  return period === 'daily' ? day : Math.floor((day + 3) / 7);
 }
 
 /**

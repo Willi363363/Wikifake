@@ -44,15 +44,18 @@ export type {
 } from './hints.js';
 
 export { questRulesFor, QUEST_CATALOGUE, QUEST_RULES, QUEST_RULE_IDS } from './quests.js';
-export { generateQuestSet, periodIndexOf, QUESTS_PER_SET } from './quest-generator.js';
-export type { QuestAssignment } from './quest-generator.js';
 export {
-  isQuestComplete,
+  boardWindowOf,
+  periodIndexOf,
   periodWindowOf,
-  progressFor,
-  qualifies,
-} from './quest-progress.js';
-export type { CountableRound, PeriodWindow } from './quest-progress.js';
+  BOARD_PERIODS,
+  MS_PER_DAY,
+} from './periods.js';
+export type { BoardPeriod, CalendarPeriod, PeriodWindow } from './periods.js';
+export { generateQuestSet, QUESTS_PER_SET } from './quest-generator.js';
+export type { QuestAssignment } from './quest-generator.js';
+export { isQuestComplete, progressFor, qualifies } from './quest-progress.js';
+export type { CountableRound } from './quest-progress.js';
 export type {
   QuestPeriod,
   QuestQualifier,
