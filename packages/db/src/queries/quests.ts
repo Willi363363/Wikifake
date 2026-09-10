@@ -1,7 +1,7 @@
-// Writing a quest set down, reading it back, and the rounds it is measured
-// against — steps F.3 and F.4.
+// Writing a quest set down, reading it back, the rounds it is measured against,
+// and claiming it — steps F.3, F.4 and F.6.
 //
-// Three functions, and the first one's whole job is to be safe to call twice. F.5
+// Four functions, and the first one's whole job is to be safe to call twice. F.5
 // will call it from a cron and F.4's read path will call it for a player whose
 // set was never generated — a new account, a missed run, an outage — so "assign
 // this set" has to mean *make sure this set exists* rather than *insert these
@@ -12,7 +12,7 @@
 // `workspace-graph.test.ts` enforces it: data does not depend on rules. So the
 // caller — which may depend on both — maps one onto the other, exactly as
 // `recordSubmission` is handed `isPerfectRound` instead of reaching for it.
-import { and, asc, eq, gte, isNotNull, lt } from 'drizzle-orm';
+import { and, asc, eq, gte, isNotNull, isNull, lt } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
 import { game, participant } from '../schema/game.js';
@@ -209,4 +209,126 @@ export async function selectRoundsInWindow(
     mode: row.mode,
     at: row.at as Date,
   }));
+}
+
+/**
+ * One quest of this player's, by its identifier — step F.6.
+ *
+ * Scoped by `user_id` as well as by `id`, so a guessed identifier reads as
+ * absent rather than as somebody else's quest. The claim statement carries the
+ * same pair, which makes this read a convenience for the *sentence* — is it
+ * complete yet, has it already been taken — and never the authorisation.
+ */
+export async function selectQuestById(
+  db: Db,
+  userId: string,
+  questId: string,
+): Promise<AssignedQuest | null> {
+  const [row] = await db
+    .select({
+      id: questAssignment.id,
+      ruleId: questAssignment.ruleId,
+      period: questAssignment.period,
+      periodIndex: questAssignment.periodIndex,
+      target: questAssignment.target,
+      assignedAt: questAssignment.assignedAt,
+      claimedAt: questAssignment.claimedAt,
+    })
+    .from(questAssignment)
+    .where(and(eq(questAssignment.id, questId), eq(questAssignment.userId, userId)));
+
+  return row ?? null;
+}
+
+/**
+ * What a claim came to — step F.6.
+ *
+ * A discriminated union rather than a boolean, the same shape `claimPseudonym`
+ * uses and for the same reason: the day a claim can fail for a third reason,
+ * the callers stop compiling instead of reading `false` as "already taken".
+ */
+export type QuestClaim =
+  | { readonly ok: true; readonly quest: AssignedQuest }
+  | { readonly ok: false; readonly reason: 'already_claimed' | 'not_found' };
+
+/**
+ * Marks a quest claimed, and does it exactly once.
+ *
+ * **The guarantee is one conditional update**, not a check followed by a write:
+ *
+ *     set claimed_at = $at where id = $id and user_id = $user and claimed_at is null
+ *
+ * Two requests arriving together both match the `is null` — and only one row can
+ * be updated by both, because the second waits on the first's row lock and then
+ * re-evaluates the predicate against a `claimed_at` that is no longer null. This
+ * is where a retry would otherwise give a player unlimited coins, and it is why
+ * the plan asks for the test that proves it cannot.
+ *
+ * **No completeness check here, deliberately.** Whether a target has been met is
+ * `isQuestComplete` over `progressFor`, which lives in `@wikifake/domain` — and
+ * `db` may not import it. The caller checks, then calls this; two callers who
+ * both see *complete* race here, and one of them loses. That ordering is safe in
+ * the direction that matters: the worst outcome is a claim refused to somebody
+ * who had earned it, never a reward paid twice.
+ *
+ * **Nothing is credited**, because there is no wallet: track H owns the balance,
+ * and F.6 was re-cut to deliver the once-only marking alone. When H arrives, the
+ * credit belongs *inside* this statement's transaction — `Db` already accepts
+ * one, so a caller can wrap both and neither happens without the other.
+ *
+ * The second statement is only for the sentence. A claim that updated nothing is
+ * either somebody else's, absent, or already claimed, and telling the last apart
+ * needs a read; a race there can make the *message* stale and can never pay a
+ * reward twice, which is the only property that has to hold.
+ *
+ * The statement itself is `claimStatement`, exported so a test can read the SQL
+ * it will send. That is not decoration: a check-then-write refactor of this
+ * function passes every behavioural test in the suite — proved by mutating it —
+ * because a single-connection pool serialises the transactions that were meant
+ * to race. `game.test.ts` made the same move for C1.1 and put it best: omitting
+ * a column is something a reviewer has to notice, not joining a table is
+ * something a test can read.
+ */
+export function claimStatement(db: Db, userId: string, questId: string, at: Date) {
+  return db
+    .update(questAssignment)
+    .set({ claimedAt: at })
+    .where(
+      and(
+        eq(questAssignment.id, questId),
+        eq(questAssignment.userId, userId),
+        // The guarantee. Everything else in this module is convenience over it.
+        isNull(questAssignment.claimedAt),
+      ),
+    )
+    .returning({
+      id: questAssignment.id,
+      ruleId: questAssignment.ruleId,
+      period: questAssignment.period,
+      periodIndex: questAssignment.periodIndex,
+      target: questAssignment.target,
+      assignedAt: questAssignment.assignedAt,
+      claimedAt: questAssignment.claimedAt,
+    });
+}
+
+export async function claimQuest(
+  db: Db,
+  userId: string,
+  questId: string,
+  at: Date,
+): Promise<QuestClaim> {
+  const won = await claimStatement(db, userId, questId, at);
+
+  const [quest] = won;
+  if (quest !== undefined) return { ok: true, quest };
+
+  const [existing] = await db
+    .select({ id: questAssignment.id })
+    .from(questAssignment)
+    .where(and(eq(questAssignment.id, questId), eq(questAssignment.userId, userId)));
+
+  return existing === undefined
+    ? { ok: false, reason: 'not_found' }
+    : { ok: false, reason: 'already_claimed' };
 }

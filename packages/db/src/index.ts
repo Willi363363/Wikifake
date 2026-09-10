@@ -85,9 +85,17 @@ export {
   selectPlayersWithStats,
 } from './queries/stats.js';
 export type { FinishedRound, PerfectRound, PlayerStats } from './queries/stats.js';
-export { assignQuests, selectQuestSet, selectRoundsInWindow } from './queries/quests.js';
+export {
+  assignQuests,
+  claimQuest,
+  claimStatement,
+  selectQuestById,
+  selectQuestSet,
+  selectRoundsInWindow,
+} from './queries/quests.js';
 export type {
   AssignedQuest,
+  QuestClaim,
   QuestPeriodName,
   QuestToAssign,
   RoundInWindow,

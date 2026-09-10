@@ -21,6 +21,7 @@ import {
   selectRoundsInWindow,
   type QuestToAssign,
 } from './quests.js';
+import { connect } from '../client.js';
 import { user } from '../schema/auth.js';
 import { game, participant } from '../schema/game.js';
 import { questAssignment } from '../schema/quests.js';
@@ -134,21 +135,30 @@ describe.skipIf(url === null)('F.3 — a quest set, written down', () => {
      *
      * F.5's read path is self-healing — a player whose set was never generated
      * gets it on their next request — so the cron writing while somebody loads
-     * the screen is the ordinary case rather than the unlucky one. Both
-     * transactions are opened before either commits, which is precisely what a
-     * `select` first could not survive.
+     * the screen is the ordinary case rather than the unlucky one.
+     *
+     * **Two connections, because one does not race.** The pool is `max: 1`, so
+     * the first draft of this ran the two transactions one after the other and
+     * proved only that the second call returns 0. What makes `assignQuests`
+     * safe is `on conflict do nothing`, and this is the arrangement that can
+     * actually put it under contention.
      */
     await addUser('ada');
 
-    const [first, second] = await Promise.all([
-      store.db.transaction((tx) => assignQuests(tx, 'ada', DAILY)),
-      store.db.transaction((tx) => assignQuests(tx, 'ada', DAILY)),
-    ]);
+    const other = connect({ url: url as string, max: 1 });
+    try {
+      const [first, second] = await Promise.all([
+        store.db.transaction((tx) => assignQuests(tx, 'ada', DAILY)),
+        other.db.transaction((tx) => assignQuests(tx, 'ada', DAILY)),
+      ]);
 
-    // One of them wrote the set and the other wrote nothing. Which is not
-    // decided here, and does not matter — what matters is that it is one set.
-    expect([first, second].sort((a, b) => a - b)).toEqual([0, 3]);
-    expect(await rowCount()).toBe(3);
+      // One of them wrote the set and the other wrote nothing. Which is not
+      // decided here, and does not matter — what matters is that it is one set.
+      expect([first, second].sort((a, b) => a - b)).toEqual([0, 3]);
+      expect(await rowCount()).toBe(3);
+    } finally {
+      await other.close();
+    }
   });
 
   it('keeps a set apart from another period, another day and another player', async () => {
