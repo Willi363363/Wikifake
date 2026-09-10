@@ -184,3 +184,16 @@ mode the helper was written against.
 The fix is one line in the helper and the deletion of the local copy. It is left
 here because those two together change what five specs wait on, which is not an
 aside in a step about a debrief.
+
+## The all-time leaderboard reads the whole mode, because it needs a name
+
+Measured in G.4 at fifty thousand entries: the daily, weekly and regional
+boards answer in 2–3 ms with their range pushed into an index; the all-time
+board takes 18 ms, scanning 25,000 rows and sorting them.
+
+**The join is the cause, not the index.** A board shows a pseudonym, so it joins
+`profile`, and a hash join loses the order an index could have delivered — so
+the sort is fed the whole mode. Its cost grows with the game's history where
+every other board's grows with its period. Fine here; seconds at a hundred times
+it. The two ways out, the numbers, and why forcing a nested loop measures
+nothing are in `../product/07-leaderboards-queries.md`.

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 G.1 to G.3 — region, entries, periods |
+| **State** | 🔶 G.1 to G.4 — the data and the queries; screens left |
 | **Branch** | `feat/leaderboards` |
 | **Depends on** | track E |
 | **Delivers** | a world ranking and a regional one |
@@ -56,7 +56,7 @@ Recorded in `11-deferred.md` rather than built.
 | G.1 | Region on the profile: derived, overridable | ✅ |
 | G.2 | `leaderboard_entry`, written when a round finishes | ✅ |
 | G.3 | Periods: daily, weekly, all-time | ✅ |
-| G.4 | Queries and their indexes, checked on seeded volume | ⬜ |
+| G.4 | Queries and their indexes, checked on seeded volume | ✅ |
 | G.5 | The board screen, world and regional | ⬜ |
 | G.6 | Participant threshold and the empty state | ⬜ |
 | G.7 | Your own rank, and the rows around it | ⬜ |
