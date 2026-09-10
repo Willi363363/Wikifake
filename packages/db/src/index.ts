@@ -84,4 +84,6 @@ export {
   selectPlayersWithStats,
 } from './queries/stats.js';
 export type { FinishedRound, PerfectRound, PlayerStats } from './queries/stats.js';
+export { assignQuests, selectQuestSet } from './queries/quests.js';
+export type { AssignedQuest, QuestPeriodName, QuestToAssign } from './queries/quests.js';
 export { seed } from './seed/seed.js';
