@@ -51,9 +51,10 @@ export {
   countAccounts,
   countActiveSince,
   countEverPlayed,
+  selectFunnel,
   selectMostActive,
 } from './queries/admin-players.js';
-export type { ActivePlayer } from './queries/admin-players.js';
+export type { ActivePlayer, Funnel } from './queries/admin-players.js';
 export { selectUserById } from './queries/users.js';
 export {
   claimPseudonym,

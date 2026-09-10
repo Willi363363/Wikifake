@@ -56,5 +56,27 @@
       "started": "Commencées",
       "lastSeen": "Vu la dernière fois"
     }
+  },
+  "activation": {
+    "title": "Activation",
+    "noWhole": "—",
+    "activation": "Activation",
+    "activationWhy": "Parmi les comptes créés, la part qui a terminé une manche.",
+    "returnRate": "Revenus",
+    "returnWhy": "Parmi ceux qui ont terminé une manche, la part active un autre jour.",
+    "ofPrevious": "{name}de l'étape précédente : ",
+    "steps": {
+      "created": "Comptes créés",
+      "started": "Ont commencé une manche",
+      "finished": "Ont terminé une manche",
+      "returned": "Sont revenus un autre jour"
+    },
+    "why": {
+      "created": "Inscrits. Les invités ne comptent pas : ce ne sont pas des comptes.",
+      "started": "Ont appuyé sur jouer au moins une fois. Ceux qui manquent se sont inscrits sans jamais commencer.",
+      "finished": "Ont soumis au moins une manche. L'écart au-dessus, ce sont les manches abandonnées en route.",
+      "returned": "Ont été actifs un jour plus tard que le premier. Deux manches d'affilée, ce n'est pas revenir."
+    },
+    "caveat": "« Revenus » signifie un jour d'activité ultérieur, pas une courbe de cohorte : un retour le lendemain et un retour six mois après se ressemblent ici, faute d'historique jour par jour."
   }
 }

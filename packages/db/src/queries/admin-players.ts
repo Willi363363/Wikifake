@@ -140,3 +140,75 @@ export async function countEverPlayed(db: Db): Promise<number> {
 
   return row?.players ?? 0;
 }
+
+/**
+ * The funnel — step I.4, and the reason the panel exists.
+ *
+ * Four numbers, each a subset of the one before: **created, started, finished,
+ * returned.** The track is blunt about why — *accounts created goes up and
+ * means nothing; the ratio of people who signed up to people who played, and of
+ * people who played once to people who played twice, is the one figure that
+ * says whether the game works.*
+ *
+ * One query and not four, because they are four `count(… ) filter (where …)`
+ * over the same left join: asking separately would be four scans and, worse,
+ * four chances for the population to differ between them.
+ *
+ * **`left join`, because the funnel's first step is accounts with no stats
+ * row at all.** A player gets a `player_stats` row when their first round
+ * starts, so somebody who signed up and never pressed play has none — and an
+ * inner join would drop exactly the people the first ratio is about.
+ *
+ * **Guests are excluded.** They cannot be *created accounts*, and including
+ * them would put the whole funnel's denominator at the mercy of how many
+ * browsers opened the site.
+ */
+export interface Funnel {
+  /** Accounts, guests excluded. The denominator of everything below. */
+  readonly created: number;
+  /** …that started at least one round. */
+  readonly started: number;
+  /** …that finished at least one. */
+  readonly finished: number;
+  /**
+   * …that were active on a later **day** than their first.
+   *
+   * A day and not a round: two rounds in one sitting is not coming back, and
+   * `games_finished >= 2` would count it as though it were. `first_seen` is the
+   * row's creation and `last_seen` moves on every round, so a later date on the
+   * second is somebody who came back — which is as much as these two columns
+   * can answer, and it is the question worth asking.
+   *
+   * What it cannot say is *how much* later: a return the next day and a return
+   * six months on are the same row here. A cohort curve needs per-day history,
+   * which nothing records — noted in `09-admin-activation.md` rather than
+   * guessed at.
+   */
+  readonly returned: number;
+}
+
+export async function selectFunnel(db: Db): Promise<Funnel> {
+  const [row] = await db
+    .select({
+      created: sql<number>`count(*)::int`,
+      started: sql<number>`count(${playerStats.userId})::int`,
+      finished: sql<number>`count(*) filter (where ${playerStats.gamesFinished} >= 1)::int`,
+      // `date_trunc` in UTC, which is the day every other period in this
+      // repository is measured in — `periodIndexOf`'s decision, and a panel
+      // that used the server's local day would disagree with the leaderboard.
+      returned: sql<number>`count(*) filter (
+        where date_trunc('day', ${playerStats.lastSeen} at time zone 'UTC')
+            > date_trunc('day', ${playerStats.firstSeen} at time zone 'UTC')
+      )::int`,
+    })
+    .from(user)
+    .leftJoin(playerStats, eq(playerStats.userId, user.id))
+    .where(sql`${user.isAnonymous} is not true`);
+
+  return {
+    created: row?.created ?? 0,
+    started: row?.started ?? 0,
+    finished: row?.finished ?? 0,
+    returned: row?.returned ?? 0,
+  };
+}
