@@ -46,6 +46,13 @@ export type {
 export { questRulesFor, QUEST_CATALOGUE, QUEST_RULES, QUEST_RULE_IDS } from './quests.js';
 export { generateQuestSet, periodIndexOf, QUESTS_PER_SET } from './quest-generator.js';
 export type { QuestAssignment } from './quest-generator.js';
+export {
+  isQuestComplete,
+  periodWindowOf,
+  progressFor,
+  qualifies,
+} from './quest-progress.js';
+export type { CountableRound, PeriodWindow } from './quest-progress.js';
 export type {
   QuestPeriod,
   QuestQualifier,

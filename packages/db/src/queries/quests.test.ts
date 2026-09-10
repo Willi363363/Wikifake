@@ -15,8 +15,14 @@
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { assignQuests, selectQuestSet, type QuestToAssign } from './quests.js';
+import {
+  assignQuests,
+  selectQuestSet,
+  selectRoundsInWindow,
+  type QuestToAssign,
+} from './quests.js';
 import { user } from '../schema/auth.js';
+import { game, participant } from '../schema/game.js';
 import { questAssignment } from '../schema/quests.js';
 import { openTestDatabase, rejectionCode, testDatabaseUrl } from '../testing/database.js';
 import type { TestDatabase } from '../testing/database.js';
@@ -222,5 +228,175 @@ describe.skipIf(url === null)('F.3 — a quest set, written down', () => {
     await store.db.delete(user).where(eq(user.id, 'ada'));
 
     expect(await rowCount()).toBe(0);
+  });
+});
+
+describe.skipIf(url === null)('F.4 — the rounds a period is measured over', () => {
+  let store: TestDatabase;
+
+  beforeAll(async () => {
+    store = await openTestDatabase(url as string);
+  });
+
+  beforeEach(async () => {
+    await store.truncate();
+  });
+
+  afterAll(async () => {
+    await store.close();
+  });
+
+  const addUser = async (id: string): Promise<void> => {
+    await store.db
+      .insert(user)
+      .values({ id, name: id, email: `${id}@example.test`, emailVerified: false });
+  };
+
+  /** A game, and a participant in it, with everything the window needs. */
+  const played = async (options: {
+    readonly userId: string;
+    readonly submittedAt: Date | null;
+    readonly mode?: 'solo' | 'multiplayer';
+    readonly totalFakes?: number;
+    readonly truePositives?: number;
+    readonly falsePositives?: number;
+    readonly hintsUsed?: number;
+    readonly score?: number;
+  }): Promise<void> => {
+    const [row] = await store.db
+      .insert(game)
+      .values({
+        mode: options.mode ?? 'solo',
+        topic: 'Chat',
+        sourceUrl: 'https://fr.wikipedia.org/wiki/Chat',
+        paragraphs: ['un paragraphe'],
+        totalFakes: options.totalFakes ?? 3,
+        timeLimit: 300,
+        endedAt: options.submittedAt,
+      })
+      .returning({ id: game.id });
+    if (row === undefined) throw new Error('no game');
+
+    // The schema ties `submitted_at` and `score` together, so an unfinished
+    // round carries neither — which is exactly the row the window must skip.
+    const finished = options.submittedAt !== null;
+    await store.db.insert(participant).values({
+      gameId: row.id,
+      userId: options.userId,
+      colour: '#1f574d',
+      submittedAt: options.submittedAt,
+      score: finished ? (options.score ?? 400) : null,
+      truePositives: finished ? (options.truePositives ?? 3) : null,
+      falsePositives: finished ? (options.falsePositives ?? 0) : null,
+      hintsUsed: finished ? (options.hintsUsed ?? 0) : null,
+      hintPenalty: finished ? 0 : null,
+      scoreStolen: finished ? 0 : null,
+      timeBonus: finished ? 0 : null,
+    });
+  };
+
+  /** 2026-09-10, the day whose index is 20706. */
+  const DAY = 86_400_000;
+  const FROM = 20_706 * DAY;
+  const TO = 20_707 * DAY;
+
+  it('returns the columns a tally and a qualifier read', async () => {
+    await addUser('ada');
+    await played({
+      userId: 'ada',
+      submittedAt: new Date(FROM + 3_600_000),
+      mode: 'multiplayer',
+      totalFakes: 4,
+      truePositives: 2,
+      falsePositives: 1,
+      hintsUsed: 2,
+      score: 260,
+    });
+
+    const rounds = await selectRoundsInWindow(store.db, 'ada', FROM, TO);
+
+    expect(rounds).toHaveLength(1);
+    expect(rounds[0]).toMatchObject({
+      truePositives: 2,
+      falsePositives: 1,
+      totalFakes: 4,
+      hintsUsed: 2,
+      score: 260,
+      mode: 'multiplayer',
+    });
+  });
+
+  it('is half-open: the first instant counts and the last does not', async () => {
+    /*
+     * The boundary, from the database's side. `periodWindowOf` decides that a
+     * window is `[from, to)`; this is the half that proves the query agrees. A
+     * round submitted at exactly midnight belongs to the day starting then, and
+     * one submitted at the next midnight belongs to the day after — otherwise a
+     * round would count for two days or for neither.
+     */
+    await addUser('ada');
+    await played({ userId: 'ada', submittedAt: new Date(FROM) });
+    await played({ userId: 'ada', submittedAt: new Date(TO) });
+    await played({ userId: 'ada', submittedAt: new Date(FROM - 1) });
+
+    const rounds = await selectRoundsInWindow(store.db, 'ada', FROM, TO);
+
+    expect(rounds).toHaveLength(1);
+    expect(rounds[0]?.at.getTime()).toBe(FROM);
+  });
+
+  it('skips a round nobody submitted', async () => {
+    // A round left open is not progress. It is counted as abandoned by
+    // `player_stats` and it has no figures at all here.
+    await addUser('ada');
+    await played({ userId: 'ada', submittedAt: null });
+    await played({ userId: 'ada', submittedAt: new Date(FROM + 60_000) });
+
+    expect(await selectRoundsInWindow(store.db, 'ada', FROM, TO)).toHaveLength(1);
+  });
+
+  it('counts nobody else’s rounds', async () => {
+    await addUser('ada');
+    await addUser('bob');
+    await played({ userId: 'ada', submittedAt: new Date(FROM + 60_000) });
+    await played({ userId: 'bob', submittedAt: new Date(FROM + 60_000) });
+
+    expect(await selectRoundsInWindow(store.db, 'ada', FROM, TO)).toHaveLength(1);
+    expect(await selectRoundsInWindow(store.db, 'nobody', FROM, TO)).toEqual([]);
+  });
+
+  it('returns them oldest first', async () => {
+    await addUser('ada');
+    await played({ userId: 'ada', submittedAt: new Date(FROM + 7_200_000) });
+    await played({ userId: 'ada', submittedAt: new Date(FROM + 60_000) });
+
+    const rounds = await selectRoundsInWindow(store.db, 'ada', FROM, TO);
+
+    expect(rounds.map((one) => one.at.getTime())).toEqual([
+      FROM + 60_000,
+      FROM + 7_200_000,
+    ]);
+  });
+
+  it('has nothing to say about a day nobody played', async () => {
+    await addUser('ada');
+    await played({ userId: 'ada', submittedAt: new Date(FROM + 60_000) });
+
+    expect(await selectRoundsInWindow(store.db, 'ada', TO, TO + DAY)).toEqual([]);
+  });
+
+  it('covers a week the same way it covers a day', async () => {
+    // The query knows nothing about periods — it takes two instants — so a week
+    // is the same call with a wider window. That is why `periodWindowOf` is the
+    // only place the two periods differ.
+    await addUser('ada');
+    const monday = (2958 * 7 - 3) * DAY;
+    await played({ userId: 'ada', submittedAt: new Date(monday) });
+    await played({ userId: 'ada', submittedAt: new Date(monday + 3 * DAY) });
+    await played({ userId: 'ada', submittedAt: new Date(monday + 7 * DAY) });
+
+    const week = await selectRoundsInWindow(store.db, 'ada', monday, monday + 7 * DAY);
+
+    expect(week).toHaveLength(2);
   });
 });
