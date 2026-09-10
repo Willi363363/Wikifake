@@ -132,3 +132,33 @@ one.
 carries the commit, or the config could refuse to reuse a server whose
 `/api/health` does not report the working tree's `HEAD` — the deployment probe
 already compares exactly that, for exactly this reason.
+
+## `openTestDatabase` serialises the transactions a test meant to race
+
+`packages/db/src/testing/database.ts:49` opens the pool with `max: 1`, for a good
+reason it states: a transaction left open then hangs the test that leaked it,
+rather than failing an unrelated test later.
+
+The cost is that **two transactions started with `Promise.all` on `store.db` do
+not overlap at all** — the pool hands the connection to the second only when the
+first has finished. So a test written to prove that a write survives contention
+proves only that the same call made twice returns the right thing.
+
+Found by mutation while writing F.6. `claimQuest` is a single conditional update
+(`… where id = $1 and user_id = $2 and claimed_at is null`), and rewriting it as
+a check followed by an unconditional write — the version a retry can pay a
+reward twice — **passed the entire suite**, including two cases with
+"concurrently" in their names.
+
+Two things follow, and the second is the one to act on:
+
+- **`profile.test.ts:144` carries the same overstatement.** "Both issued before
+  either has committed, which is exactly the case a read-then-insert cannot
+  refuse" is not what that test does. E.3.1's guarantee is not in danger — the
+  claim is an insert against a unique index, and the case at line 165 holds it
+  from the schema's side — but the comment describes a race that did not happen.
+- **A test that needs real contention must open its own connection.**
+  `connect({ url, max: 1 })` a second time and let the two contend;
+  `quests.test.ts` does it that way now. And where the property is a *predicate*
+  rather than an outcome, read the SQL: `claimStatement(...).toSQL()`, the way
+  `game.test.ts` reads C1.1 off the query rather than racing for it.
