@@ -34,7 +34,7 @@ are defined in `product/`, and their state is the table below.
 | E | Accounts and player statistics | 🔶 every step built; E.1 awaiting credentials | `product/05-accounts.md` |
 | F | Quests | 🔶 all seven built; the cron awaits `CRON_SECRET` in Vercel | `product/06-quests.md` |
 | G | Leaderboards | ✅ done — world and regional, with thresholds | `product/07-leaderboards.md` |
-| H | Coins and the shop | 🔶 H.1 to H.4 — the ledger, earning, spending | `product/08-economy.md` |
+| H | Coins and the shop | 🔶 H.1 to H.5 — the ledger, earning, spending, catalogue | `product/08-economy.md` |
 | I | Admin panel | ⬜ not started | `product/09-admin.md` |
 | J | SEO, legal and polish | ⬜ not started | `product/10-seo-and-legal.md` |
 

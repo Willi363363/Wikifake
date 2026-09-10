@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 H.1 to H.4 — the ledger, earning, and spending on hints |
+| **State** | 🔶 H.1 to H.5 — the ledger, earning, spending, the catalogue |
 | **Branch** | `feat/economy` |
 | **Depends on** | tracks E and F |
 | **Delivers** | a coin ledger, a shop, and no payment |
@@ -56,14 +56,15 @@ pay-to-win — which is both a worse game and a much harder thing to sell.
 | H.2 | Balance as a derived read, and its index | ✅ |
 | H.3 | Earning: quest rewards, and end-of-round | ✅ |
 | H.4 | Spending: hints, against the existing billing | ✅ |
-| H.5 | The cosmetics catalogue, in `domain` | ⬜ |
+| H.5 | The cosmetics catalogue, in `domain` | ✅ |
 | H.6 | Ownership, and applying a cosmetic | ⬜ |
 | H.7 | The shop screen | ⬜ |
 | H.8 | The seam a purchase would attach to, documented not built | ⬜ |
 
-**What each step decided** is in three sheets: `08-economy-ledger.md` carries
-H.1 and H.2, `08-economy-earning.md` carries H.3, and `08-economy-spending.md`
-carries H.4. The table above is the only place that says where a step stands.
+**What each step decided** is in four sheets, all prefixed `08-economy-`:
+`-ledger.md` carries H.1 and H.2, `-earning.md` H.3, `-spending.md` H.4, and
+`-cosmetics.md` H.5. The table above is the only place that says where a step
+stands.
 
 ### H.8 — The seam
 

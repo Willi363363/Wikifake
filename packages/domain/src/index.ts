@@ -74,6 +74,16 @@ export {
   HINT_COINS,
   REVEAL_COINS,
 } from './coins.js';
+export {
+  cosmeticById,
+  cosmeticsInSlot,
+  isCosmeticId,
+  CHEAPEST_COSMETIC_COINS,
+  COSMETIC_CATALOGUE,
+  COSMETIC_IDS,
+  COSMETIC_SLOTS,
+} from './cosmetics.js';
+export type { Cosmetic, CosmeticId, CosmeticSlot } from './cosmetics.js';
 
 export { asRegion, effectiveRegion, regionForCountry } from './regions.js';
 export type { PlayerRegion } from './regions.js';
