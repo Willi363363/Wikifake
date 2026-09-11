@@ -235,3 +235,32 @@ describe('C.8 — the generated share card keeps its locale prefix', () => {
     expect(isLocaleExempt('/fr')).toBe(false);
   });
 });
+
+describe('J.2 — the icons have no locale to keep', () => {
+  /*
+   * The opposite case to the card, and it needs the same exemption for the
+   * opposite reason.
+   *
+   * `app/icon.tsx` and `app/apple-icon.tsx` sit at the root, because a mark
+   * carries no sentence to translate. Their URLs therefore have no locale
+   * prefix — and no file extension either, so the matcher's `.*\..*` rule does
+   * not exempt them the way it exempts `/robots.txt`. Without the entry in
+   * `METADATA_ROUTES` the proxy rewrites `/icon/192` to `/en/icon/192`, which
+   * is a 404 where a home screen expected a picture.
+   */
+  it.each(['/icon/32', '/icon/192', '/icon/512', '/apple-icon'])(
+    'leaves %s untouched',
+    (path) => {
+      expect(isLocaleExempt(path)).toBe(true);
+      const response = proxy(request(path, { cookie: 'NEXT_LOCALE=fr' }));
+      expect(redirectedTo(response)).toBeNull();
+      expect(rewrittenTo(response)).toBeNull();
+    },
+  );
+
+  // The manifest is exempt already, by the rule about files — asserted so that
+  // a change to that rule fails here rather than on somebody's home screen.
+  it('leaves the manifest alone, as a file', () => {
+    expect(isLocaleExempt('/manifest.webmanifest')).toBe(true);
+  });
+});

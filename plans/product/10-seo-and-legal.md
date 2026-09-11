@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 done — the audit re-run, and the two steps it added |
+| **State** | 🔶 J.1 and J.2 done — the audit re-run, and the icons drawn |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -60,7 +60,7 @@ better than a page-view counter.
 | # | Step | State |
 |---|---|---|
 | J.1 | Re-run the audit, and record it | ✅ |
-| J.2 | Favicon, app icons, web manifest | ⬜ |
+| J.2 | Favicon, app icons, web manifest | ✅ — `10-seo-icons.md` |
 | J.3 | Privacy policy and terms, localised | ⬜ |
 | J.4 | Cookieless analytics | ⬜ |
 | J.5 | FAQ, and the copy the landing needs | ⬜ |
@@ -84,6 +84,14 @@ no directive either way, and its own source defers that call to this track. It
 is also the only one of the ten a guest is invited to read. J.10 is the 360 px
 sweep, which names four routes while ten exist. Both are argued in
 `10-seo-audit.md`.
+
+### J.2 — the mark is a question mark, and not a letter
+
+A yellow "W" is Wikipedia's own favicon, and this game reads their encyclopaedia
+without being endorsed by them — C.8 refused the globe for the same reason. The
+landing's first line is "Who is lying?", so the question is the game. The
+drawing, the colour rule it must obey, and the defect a browser test found in it
+are in `10-seo-icons.md`.
 
 ### J.7 — In CI, or it will not be run
 
