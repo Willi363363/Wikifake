@@ -16,6 +16,8 @@ import { HealthSection } from '../../../src/admin/health-screen.js';
 import { readHealth } from '../../../src/admin/health.js';
 import { ActivationSection } from '../../../src/admin/activation-screen.js';
 import { readActivation } from '../../../src/admin/activation.js';
+import { ContentSection } from '../../../src/admin/content-screen.js';
+import { readContent } from '../../../src/admin/content.js';
 import { CostSection } from '../../../src/admin/cost-screen.js';
 import { rateFrom, readCost } from '../../../src/admin/cost.js';
 import { GamesSection } from '../../../src/admin/games-screen.js';
@@ -50,6 +52,7 @@ export default async function AdminPage() {
     },
     Date.now(),
   );
+  const content = await readContent({ db: db() });
   const health = await readHealth({
     db: db(),
     // Read here rather than inside: a route is where a real environment is
@@ -68,22 +71,7 @@ export default async function AdminPage() {
       <ActivationSection activation={activation} />
       <GamesSection games={games} />
       <CostSection cost={cost} />
-
-      {/* The sections still to come, listed rather than left blank so that the
-          order the track chose is visible before it is built. */}
-      <ul className="mt-8 space-y-2">
-        {(['content'] as const).map((section) => (
-          <li
-            key={section}
-            className="border-3 border-line-strong bg-surface px-3 py-2 shadow-md"
-          >
-            <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-              {t(`sections.${section}`)}
-            </span>
-            <p className="mt-1 text-sm text-ink-2">{t(`answers.${section}`)}</p>
-          </li>
-        ))}
-      </ul>
+      <ContentSection content={content} />
 
       <p className="mt-8 text-sm text-muted">{t('readOnly')}</p>
     </main>
