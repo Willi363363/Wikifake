@@ -30,14 +30,18 @@ doubled.
 | Accessibility | 🔶 | contrast audit, reduced motion, `fills.test.ts` — nothing on the screens E to I added |
 | Performance budget | 🔶 | the landing has one, in CI; no other page does — **J.8** |
 | `alt` text pass | 🔶 | no `<img>` and no `next/image` anywhere; one `<svg>` unlabelled — **J.6** |
-| Favicon and app icons | ❌ | **J.2** — there is no `apps/web/public/` at all |
-| Web manifest | ❌ | **J.2** |
+| Favicon and app icons | ✅ | `app/icon.tsx`, `app/apple-icon.tsx`; `icons.spec.ts` — J.2 |
+| Web manifest | ✅ | `app/manifest.ts`; `manifest.test.ts`, `icons.spec.ts` — J.2 |
 | Privacy policy | ❌ | **J.3** |
 | Terms | ❌ | **J.3** |
 | Cookie consent | ❌ | and still not needed — see below |
 | Analytics | ❌ | **J.4** |
 | FAQ | ❌ | **J.5** |
 | Broken-link check | ❌ | **J.7** — nothing in `.github/workflows/` |
+
+**Two rows moved the day after the audit**, and they are ticked above rather
+than left for a reader to reconcile: J.2 drew the icons and wrote the manifest,
+and `10-seo-icons.md` records what that cost.
 
 ## The three rows that changed state without anybody touching them
 

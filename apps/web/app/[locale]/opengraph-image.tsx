@@ -16,13 +16,11 @@
 //
 // The card itself is `src/landing/share-card.tsx`. This file is the plumbing:
 // which locale, which words, which fonts.
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
-
 import { ImageResponse } from 'next/og';
 
 import { hasLocale } from 'next-intl';
 
+import { archivo } from '../../src/brand/fonts.js';
 import { messagesFor } from '../../src/i18n/catalogue.js';
 import { DEFAULT_LOCALE, LOCALES, type Locale } from '../../src/i18n/locales.js';
 import { CARD_SIZE, ShareCard } from '../../src/landing/share-card.js';
@@ -72,46 +70,11 @@ async function localeFrom(params: Promise<{ locale: string }>): Promise<Locale> 
   return hasLocale(LOCALES, locale) ? locale : DEFAULT_LOCALE;
 }
 
-/**
- * The two weights, read from the repository rather than fetched.
- *
- * `next/font/google` downloads Archivo at build time for the *pages*, and there
- * is no supported way to reach those files from here — so the card would have
- * been drawn in the one face `next/og` bundles, which is a regular-weight Geist.
- * On a direction whose first rule is "a very bold grotesque", that is not a
- * near miss.
- *
- * Committed instead, under the SIL Open Font License that `fonts/LICENSE.txt`
- * carries: 220kB for both weights, against the 630kB PNG this step deletes.
- * Fetching them from Google at request time would put a third party between a
- * shared link and its card, on a path with no fallback.
- *
- * **Read from disk, not fetched, and the documented way round is the one that
- * does not work here.** Next's own example is
- * `fetch(new URL('./font.ttf', import.meta.url))`; webpack rewrites that
- * expression into the *asset* URL it emitted — `/_next/static/media/…` — and a
- * server-side `fetch` of a path with no origin throws `ERR_INVALID_URL`. The
- * build succeeds and the route 500s, which is a link with no card and no
- * failing test unless somebody fetches the image. This one does.
- *
- * `process.cwd()` is the application directory under `next start` and under a
- * traced deployment alike; `next.config.ts` names these two files in
- * `outputFileTracingIncludes` so the tracer, which cannot see through a runtime
- * `join`, ships them with the function.
+/*
+ * The face is loaded by `src/brand/fonts.ts`, which says why it is read off
+ * disk rather than fetched and why it is committed rather than downloaded. It
+ * moved there in step J.2, when the icons became its second and third reader.
  */
-const FONTS = join(process.cwd(), 'src', 'landing', 'fonts');
-
-async function archivo(): Promise<{ name: string; data: Buffer; weight: 400 | 800 }[]> {
-  const [regular, extraBold] = await Promise.all([
-    readFile(join(FONTS, 'archivo-400.ttf')),
-    readFile(join(FONTS, 'archivo-800.ttf')),
-  ]);
-
-  return [
-    { name: 'Archivo', data: regular, weight: 400 },
-    { name: 'Archivo', data: extraBold, weight: 800 },
-  ];
-}
 
 export default async function OpenGraphImage({
   params,
@@ -123,6 +86,6 @@ export default async function OpenGraphImage({
 
   return new ImageResponse(<ShareCard question={home.question} tagline={seo.tagline} />, {
     ...size,
-    fonts: await archivo(),
+    fonts: [...(await archivo([400, 800]))],
   });
 }

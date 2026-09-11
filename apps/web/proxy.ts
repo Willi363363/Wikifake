@@ -26,8 +26,14 @@ const handleLocaleRouting = createIntlMiddleware(routing);
  * These are not pages and carry no interface prose: the locale is in the path
  * because the *image* is translated, and there is nothing left for locale
  * routing to decide.
+ *
+ * Step J.2 added two more, and they are the opposite case — `/icon/192` and
+ * `/apple-icon` sit at the root because a mark carries no sentence. They have
+ * no file extension either, so the matcher below does not exempt them and the
+ * proxy would rewrite `/icon/192` to `/en/icon/192`, which is a 404 where a
+ * home screen expects a picture.
  */
-const METADATA_ROUTES = ['/opengraph-image'];
+const METADATA_ROUTES = ['/opengraph-image', '/icon', '/apple-icon'];
 
 /**
  * The paths locale routing must leave alone.
