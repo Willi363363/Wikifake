@@ -50,14 +50,14 @@ refusing a game that works.
 1. **Google Cloud console → APIs & Services → Credentials → Create credentials →
    OAuth client ID**, application type *Web application*.
 2. **Authorised redirect URIs.** One per origin that will serve the flow, in the
-   shape `<BETTER_AUTH_URL>/api/auth/callback/google`. For production that is
-   the public domain — the one runbook step 5 of `../rewrite/phase-10-cutover.md`
-   is still to move. Add `http://localhost:3000/api/auth/callback/google` too, so
-   the flow can be exercised on a laptop.
-3. **OAuth consent screen.** External, and it stays in *Testing* until the game
-   is public: in testing mode only the accounts listed on that screen can sign
-   in, which is what you want while E.2's screens are being built. Publishing it
-   is track J's, with the privacy policy that Google asks for.
+   shape `<BETTER_AUTH_URL>/api/auth/callback/google` — today
+   `https://wikifake.vercel.app/…`, and the public domain when there is one.
+   Add `http://localhost:3000/api/auth/callback/google` too, so the flow can be
+   exercised on a laptop.
+3. **OAuth consent screen.** External, and **published** — it was, on
+   2026-09-11, with the privacy policy and terms Google asks for and track J
+   shipped. *Testing* is the mode for a console open while E.2's screens are
+   being built, and the section below says what it costs to stay there.
 4. **Vercel → Settings → Environment Variables**, Production:
    - `GOOGLE_OAUTH_CLIENT_ID`
    - `GOOGLE_OAUTH_CLIENT_SECRET`
@@ -80,12 +80,33 @@ preview that inherits production's value will authenticate against production's
 origin and set the cookie there, which looks like "sign-in silently does
 nothing".
 
-## Why E.1 cannot be closed by credentials alone
+## Closed on 2026-09-11
 
-Its exit line is *"sign in with Google in production, from a phone"*, and there
-is **no sign-in screen yet** — E.2 builds it. `better-auth`'s social flow is a
-`POST` to `/api/auth/sign-in/social`, not a URL anybody can paste in a browser,
-so until E.2 the only way to exercise the credentials is `curl`.
+Its exit line — *"sign in with Google in production, from a phone"* — was met.
+What actually ran, in the order it ran, because the order is what the next
+person needs:
 
-That is why the table marks E.1 ⚠️ rather than ✅: the code side is done and
-guarded, the credentials are yours, and the demonstration waits for a button.
+1. The client was created with **two** redirect URIs: production and localhost.
+   No preview host: Google matches exactly and Vercel generates a new one per
+   deployment.
+2. The consent screen was published rather than left in *Testing*. Testing caps
+   sign-in at a hundred listed accounts **and expires sessions after seven
+   days** — players logged out every week, for no visible reason. Publishing was
+   instant because the scopes are `openid`, `email` and `profile`, all
+   non-sensitive; Google's review is for the sensitive ones.
+3. Five variables, one redeploy: the two Google halves, `BETTER_AUTH_URL`,
+   `NEXT_PUBLIC_SITE_URL` — inlined at build, so it needs the redeploy and not
+   just the save — and `CRON_SECRET`, which is track F's and was in the same
+   screen.
+4. Probed from outside afterwards: `/sign-in` serves the button, and it is
+   rendered from `offeredProviders(loadEnv())`, so the page proves the runtime
+   reads the credentials rather than proving a string exists in a catalogue.
+
+**Against `wikifake.vercel.app`, because no domain is bought.** The day one is:
+add `https://<domain>/api/auth/callback/google` to the console, and change
+`BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL` to it. `HANDOVER.md` keeps that
+list beside the four other gestures a domain costs.
+
+E.2 had shipped the button by then, which is what made the demonstration
+possible at all: `better-auth`'s social flow is a `POST` to
+`/api/auth/sign-in/social`, not a URL anybody can paste in a browser.

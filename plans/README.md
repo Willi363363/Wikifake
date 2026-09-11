@@ -31,7 +31,7 @@ are defined in `product/`, and their state is the table below.
 | B | Design system on the new direction | ✅ done — primitives, type, motion and the gallery | `product/02-design-system.md` |
 | C | Landing — the scroll scene | 🔶 C.1 to C.6 and C.8 done, C.7 awaiting a device | `product/03-landing.md` |
 | D | Game surface | ✅ done — every screen on the direction, 24 journeys unchanged | `product/04-game-surface.md` |
-| E | Accounts and player statistics | 🔶 every step built; E.1 awaiting credentials | `product/05-accounts.md` |
+| E | Accounts and player statistics | ✅ done — Google sign-in works in production | `product/05-accounts.md` |
 | F | Quests | 🔶 all seven built; the cron awaits `CRON_SECRET` in Vercel | `product/06-quests.md` |
 | G | Leaderboards | ✅ done — world and regional, with thresholds | `product/07-leaderboards.md` |
 | H | Coins and the shop | ✅ done — the ledger, the shop, and no payment | `product/08-economy.md` |
