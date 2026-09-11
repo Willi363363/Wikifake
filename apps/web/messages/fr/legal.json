@@ -93,5 +93,56 @@
         "body": "Le droit français s’applique. Écrivez à <contact>{address}</contact> pour tout ce qui concerne cette page ou la précédente ; si cela reste sans suite, une réclamation portant sur vos données se dépose auprès de la CNIL."
       }
     }
+  },
+  "faq": {
+    "title": "Questions fréquentes",
+    "updated": "Dernière mise à jour le 11 septembre 2026",
+    "intro": "Ce qu’est le jeu, ce qu’il fait de ce que vous tapez, et ce qu’il ne faut surtout pas croire. Si quelque chose ici contredit un écran, c’est l’écran qui a raison et cette page qui a vieilli.",
+    "sections": {
+      "what": {
+        "heading": "Qu’est-ce que WikiFake ?",
+        "body": "Un jeu de lecture critique. Vous nommez un sujet, le site va chercher l’article correspondant sur Wikipédia en français, un modèle de langue en réécrit quelques faits, et vous devez les retrouver avant la fin du chronomètre."
+      },
+      "trust": {
+        "heading": "Puis-je croire ce que je lis dans une manche ?",
+        "body": "Non, et c’est la réponse qui mérite d’être lue deux fois. Tout article affiché dans une manche a été altéré exprès, et rien à l’écran ne dit où. Ne le citez pas, ne le répétez pas, et n’en retenez ni une date ni un chiffre. L’article d’origine est à un lien de chaque manche, dans la source qu’elle crédite."
+      },
+      "free": {
+        "heading": "Est-ce gratuit, et faut-il un compte ?",
+        "body": "Gratuit, sans publicité et sans rien à acheter. Le compte est facultatif : on peut jouer seul ou en salon sans en avoir un. S’inscrire, c’est ce qui fait suivre les statistiques, les quêtes, les classements et les pièces d’une session à l’autre — et les manches jouées en invité vous accompagnent."
+      },
+      "articles": {
+        "heading": "D’où viennent les articles ?",
+        "body": "De Wikipédia en français, dans l’état où ils sont le jour où vous jouez. Rien n’est coupé ni reformulé avant que le modèle ne les voie. Chaque manche crédite l’article et ses contributeurs et renvoie vers la licence : le texte est le leur, et nos modifications sont publiées aux mêmes conditions."
+      },
+      "errors": {
+        "heading": "Qui écrit les faux faits ?",
+        "body": "Un modèle de langue, à qui l’on demande de changer des faits en laissant intactes les phrases autour. Il déplace des dates, des nombres, des noms, des lieux — le genre de chose qui se lit parfaitement et qui est simplement faux. Rien n’est surligné, et l’article ne dit jamais combien de faits ont bougé."
+      },
+      "scoring": {
+        "heading": "Comment une manche est-elle comptée ?",
+        "body": "Vous marquez chaque paragraphe auquel vous ne croyez pas, puis vous validez. Un paragraphe falsifié que vous avez attrapé rapporte, un paragraphe marqué pour rien coûte, et ce qui reste au chronomètre vaut aussi quelque chose. Les chiffres exacts sont sur la page d’accueil, où ils sont lus dans les mêmes règles que celles avec lesquelles le serveur corrige."
+      },
+      "friends": {
+        "heading": "Peut-on jouer à plusieurs ?",
+        "body": "Oui. Ouvrez un salon et partagez son code : tout le monde joue le même article en même temps, voit les autres le marquer, et peut dépenser un objet pour leur compliquer la soirée. Le débrief final montre ce que chacun a trouvé et laissé passer."
+      },
+      "coins": {
+        "heading": "À quoi servent les pièces ?",
+        "body": "À acheter un indice pendant une manche, et des cosmétiques dans la boutique. Elles se gagnent en jouant et en réclamant des quêtes. Elles ne s’achètent pas avec de l’argent, ne se revendent pas, et ne valent rien en dehors du jeu."
+      },
+      "french": {
+        "heading": "Pourquoi les articles sont-ils en français si l’interface ne l’est pas ?",
+        "body": "Parce que le jeu lit Wikipédia en français, et qu’un article falsifié ne se lit utilement que dans la langue où il a été écrit. L’interface est en anglais et en français ; les articles sont français quelle que soit celle que vous avez choisie."
+      },
+      "realerror": {
+        "heading": "J’ai trouvé une vraie erreur — dans Wikipédia même.",
+        "body": "Signalez-la depuis la manche. Choisissez le paragraphe, ajoutez une note si vous en avez une, et le signalement est rédigé à la fin de la manche. Il est vérifié, et ceux qui tiennent sont conservés. C’est autre chose que les erreurs plantées par le jeu, et le jeu fait la différence."
+      },
+      "data": {
+        "heading": "Que gardez-vous sur moi ?",
+        "body": "Peu de choses, et la page de confidentialité les énumère au lieu de les résumer. En bref : un invité est un enregistrement temporaire sans adresse e-mail ; un compte contient une adresse, un pseudonyme et ce que vous avez joué ; rien n’est vendu et il n’y a pas de publicité. Vous pouvez télécharger une copie ou supprimer le compte depuis votre profil."
+      }
+    }
   }
 }

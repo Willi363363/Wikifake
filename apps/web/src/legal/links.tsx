@@ -18,6 +18,9 @@ export function LegalLinks() {
 
   return (
     <nav aria-label={t('nav')} className="flex items-center gap-3 text-xs text-muted">
+      <Link className="underline-offset-4 hover:underline" href="/faq">
+        {t('faq.title')}
+      </Link>
       <Link className="underline-offset-4 hover:underline" href="/privacy">
         {t('privacy.title')}
       </Link>

@@ -93,5 +93,56 @@
         "body": "French law applies. Write to <contact>{address}</contact> about anything on this page or the last one; if that goes nowhere, a complaint about your data goes to the CNIL."
       }
     }
+  },
+  "faq": {
+    "title": "Questions",
+    "updated": "Last updated 11 September 2026",
+    "intro": "What the game is, what it does with what you type, and what you should not believe. If something here contradicts a screen, the screen is right and this page is out of date.",
+    "sections": {
+      "what": {
+        "heading": "What is WikiFake?",
+        "body": "A game of critical reading. You name a subject, the site fetches that article from French Wikipedia, a language model rewrites a handful of its facts, and you have to find them before the clock runs out."
+      },
+      "trust": {
+        "heading": "Can I trust what I read in a round?",
+        "body": "No, and this is the one answer worth reading twice. Every article you see in a round has been altered on purpose, and nothing on the screen says which parts. Do not cite it, do not repeat it, and do not carry a date or a figure away from it. The unmodified article is one link away from every round, at the source it credits."
+      },
+      "free": {
+        "heading": "Is it free, and do I need an account?",
+        "body": "Free, with no advertising and nothing to buy. An account is optional: you can play alone or in a room without one. Signing up is what makes statistics, quests, leaderboards and coins follow you from one session to the next — and the rounds you played as a guest come with you."
+      },
+      "articles": {
+        "heading": "Where do the articles come from?",
+        "body": "From French Wikipedia, as it stands the day you play. Nothing is trimmed and nothing is rephrased before the model sees it. Each round credits the article and its contributors, and links the licence — the text is theirs, and our modifications are published under the same terms."
+      },
+      "errors": {
+        "heading": "Who writes the false facts?",
+        "body": "A language model, asked to change facts while leaving the sentences around them intact. It changes dates, numbers, names and places — the kind of thing that reads perfectly and is simply not true. Nothing is highlighted, and the article never says how many were moved."
+      },
+      "scoring": {
+        "heading": "How is a round scored?",
+        "body": "You mark every paragraph you do not believe, then submit. A falsified paragraph you caught earns points, one you marked for nothing costs them, and what is left on the clock is worth something too. The exact figures are on the front page, where they are read from the same rules the server grades with."
+      },
+      "friends": {
+        "heading": "Can I play with other people?",
+        "body": "Yes. Open a room and share its code; everybody plays the same article at the same time, sees the others marking it, and can spend an item to make their evening harder. The debrief at the end shows what everybody found and missed."
+      },
+      "coins": {
+        "heading": "What are coins for?",
+        "body": "Buying a hint during a round, and buying cosmetics in the shop. They are earned by playing and by claiming quests. They cannot be bought with money, they cannot be sold, and they are worth nothing outside the game."
+      },
+      "french": {
+        "heading": "Why are the articles French when the interface is not?",
+        "body": "Because the game reads French Wikipedia, and a falsified article is only worth reading in the language it was written in. The interface is English and French; the articles are French whichever one you picked."
+      },
+      "realerror": {
+        "heading": "I found a real error — in Wikipedia itself.",
+        "body": "Report it from the round. Pick the paragraph, add a note if you have one, and the report is written up when the round ends. It is checked, and the ones that hold up are kept. That is a different thing from the errors the game planted, and the game knows the difference."
+      },
+      "data": {
+        "heading": "What do you keep about me?",
+        "body": "Little, and the privacy page lists all of it rather than summarising it. The short version: a guest is a temporary record with no email address in it; an account holds an email, a pseudonym and what you have played; nothing is sold and there is no advertising. You can download a copy or delete the account from your profile."
+      }
+    }
   }
 }
