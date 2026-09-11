@@ -22,7 +22,8 @@
     "commitAgree": "Les deux services tournent sur le même commit.",
     "commitDisagree": "Les deux services tournent sur des commits différents — un déploiement est à moitié fait, ou l'un des deux a échoué.",
     "commitUnknown": "Impossible de savoir si les deux concordent : l'un est hors ligne, ou aucun n'a été déployé depuis git.",
-    "model": "Modèle {model} · clé configurée : {configured}"
+    "model": "Modèle {model} · clé configurée : {configured}",
+    "live": "En direct, quelle que soit la période : une sonde n'a pas d'historique."
   },
   "players": {
     "title": "Joueurs",
@@ -39,7 +40,10 @@
       "finished": "Terminées",
       "started": "Commencées",
       "lastSeen": "Vu la dernière fois"
-    }
+    },
+    "activeInRange": "Actifs sur la période",
+    "thisWeek": "{count} cette semaine",
+    "allTimeList": "Tout compris : les manches terminées sont un total cumulé sans date."
   },
   "activation": {
     "title": "Activation",
@@ -61,7 +65,8 @@
       "finished": "Ont soumis au moins une manche. L'écart au-dessus, ce sont les manches abandonnées en route.",
       "returned": "Ont été actifs un jour plus tard que le premier. Deux manches d'affilée, ce n'est pas revenir."
     },
-    "caveat": "« Revenus » signifie un jour d'activité ultérieur, pas une courbe de cohorte : un retour le lendemain et un retour six mois après se ressemblent ici, faute d'historique jour par jour."
+    "caveat": "« Revenus » signifie un jour d'activité ultérieur, pas une courbe de cohorte : un retour le lendemain et un retour six mois après se ressemblent ici, faute d'historique jour par jour.",
+    "cohort": "La période choisit qui s'est inscrit, pas quand ils ont joué — c'est ce qu'un taux d'activation a toujours voulu dire."
   },
   "games": {
     "title": "Manches",
@@ -125,5 +130,21 @@
       "games": "Manches",
       "cached": "Depuis le cache"
     }
+  },
+  "range": {
+    "label": "Période",
+    "presets": {
+      "7d": "7 jours",
+      "30d": "30 jours",
+      "90d": "90 jours",
+      "all": "Tout",
+      "custom": "Sur mesure"
+    },
+    "covering": "Du {from} au {to}, inclus.",
+    "coveringAll": "Tout depuis la première manche.",
+    "whatItMoves": "Elle agit sur les sections joueurs, activation, manches, coût et contenu. La santé est une sonde en direct, et la liste des plus assidus vient de totaux cumulés sans date — les deux le disent là où ils apparaissent.",
+    "allTime": "Tout compris, quelle que soit la période : ce sont des totaux cumulés sans date.",
+    "live": "En direct, quelle que soit la période.",
+    "cohort": "La période choisit qui s'est inscrit, pas quand ils ont joué."
   }
 }

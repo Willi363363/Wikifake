@@ -14,6 +14,7 @@ import {
 } from '@wikifake/db';
 
 import { shareOf } from './activation.js';
+import { windowOf, type Range } from './range.js';
 
 export interface ContentContext {
   readonly db: Database['db'];
@@ -42,13 +43,17 @@ export interface ContentView {
   readonly topicFailureRate: number | null;
 }
 
-export async function readContent(context: ContentContext): Promise<ContentView> {
+export async function readContent(
+  context: ContentContext,
+  range: Range,
+): Promise<ContentView> {
+  const window = windowOf(range);
   const [cache, distinctTopics, topics, failures, generated] = await Promise.all([
-    countCacheHits(context.db),
-    countDistinctTopics(context.db),
-    selectTopTopics(context.db, TOP_TOPICS),
-    countGenerationFailures(context.db),
-    countGenerated(context.db),
+    countCacheHits(context.db, window),
+    countDistinctTopics(context.db, window),
+    selectTopTopics(context.db, window, TOP_TOPICS),
+    countGenerationFailures(context.db, window),
+    countGenerated(context.db, window),
   ]);
 
   return {

@@ -12,6 +12,8 @@
 import { selectFunnel, type Funnel } from '@wikifake/db';
 import type { Database } from '@wikifake/db';
 
+import { windowOf, type Range } from './range.js';
+
 export interface ActivationContext {
   readonly db: Database['db'];
 }
@@ -68,8 +70,9 @@ export interface ActivationView {
  */
 export async function readActivation(
   context: ActivationContext,
+  range: Range,
 ): Promise<ActivationView> {
-  const counts: Funnel = await selectFunnel(context.db);
+  const counts: Funnel = await selectFunnel(context.db, windowOf(range));
 
   const order: readonly Step['name'][] = ['created', 'started', 'finished', 'returned'];
   const funnel = order.map((name, at) => {

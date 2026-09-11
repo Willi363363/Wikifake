@@ -17,6 +17,8 @@ import { readHealth } from '../../../src/admin/health.js';
 import { ActivationSection } from '../../../src/admin/activation-screen.js';
 import { readActivation } from '../../../src/admin/activation.js';
 import { ContentSection } from '../../../src/admin/content-screen.js';
+import { RangeChooser } from '../../../src/admin/range-chooser.js';
+import { rangeFrom } from '../../../src/admin/range.js';
 import { readContent } from '../../../src/admin/content.js';
 import { CostSection } from '../../../src/admin/cost-screen.js';
 import { rateFrom, readCost } from '../../../src/admin/cost.js';
@@ -33,15 +35,26 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 /** Never prerendered: it reads a cookie and answers differently per request. */
 export const dynamic = 'force-dynamic';
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams,
+}: {
+  readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   await requireAdmin();
   const t = await getTranslations('admin');
+
+  // I.8 — the range comes from the address, so it is bookmarkable and
+  // shareable. An array is what Next gives for a repeated parameter; the first
+  // wins, and anything unrecognised falls back to the default rather than
+  // refusing: a panel is not a form.
+  const asked = (await searchParams)['range'];
+  const range = rangeFrom(Array.isArray(asked) ? asked[0] : asked, Date.now());
   // `Date.now()` here rather than inside the read path: a route is where a real
   // clock is allowed to come from, which is the split every feature in this
   // repository makes.
-  const players = await readPlayers({ db: db() }, Date.now());
-  const activation = await readActivation({ db: db() });
-  const games = await readGames({ db: db() });
+  const players = await readPlayers({ db: db() }, range, Date.now());
+  const activation = await readActivation({ db: db() }, range);
+  const games = await readGames({ db: db() }, range);
   const cost = await readCost(
     {
       db: db(),
@@ -50,9 +63,9 @@ export default async function AdminPage() {
       inputCostPerMTok: rateFrom(process.env['MODEL_INPUT_COST_PER_MTOK']),
       outputCostPerMTok: rateFrom(process.env['MODEL_OUTPUT_COST_PER_MTOK']),
     },
-    Date.now(),
+    range,
   );
-  const content = await readContent({ db: db() });
+  const content = await readContent({ db: db() }, range);
   const health = await readHealth({
     db: db(),
     // Read here rather than inside: a route is where a real environment is
@@ -65,6 +78,8 @@ export default async function AdminPage() {
     <main className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 py-10">
       <h1 className="text-3xl text-ink">{t('title')}</h1>
       <p className="mt-2 max-w-prose text-sm text-muted">{t('lead')}</p>
+
+      <RangeChooser range={range} />
 
       <HealthSection health={health} />
       <PlayersSection players={players} />

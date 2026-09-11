@@ -28,6 +28,7 @@ function view(over: Partial<PlayersView> = {}): PlayersView {
     everPlayed: 71,
     activeToday: 9,
     activeThisWeek: 34,
+    activeInRange: 51,
     mostActive: [
       {
         userId: 'u1',
@@ -71,12 +72,24 @@ describe('I.3 — the figures, and what each is beside', () => {
     expect(screen.getByText('no guests')).not.toBeNull();
   });
 
-  it('shows today and this week', () => {
+  it('shows today, and the range, with this week beside it', () => {
+    // I.8 — *seen since* is a range on `last_seen`, so this figure moves with
+    // the chooser. This week stays beside it as the fixed comparison.
     render(<PlayersSection players={view()} />);
 
     expect(screen.getByText('Active today')).not.toBeNull();
     expect(screen.getByText('9')).not.toBeNull();
-    expect(screen.getByText('34')).not.toBeNull();
+    expect(screen.getByText('Active in range')).not.toBeNull();
+    expect(screen.getByText('51')).not.toBeNull();
+    expect(screen.getByText('34 this week')).not.toBeNull();
+  });
+
+  it('says the most-active list cannot honour the range', () => {
+    // `games_finished` is a running total with no date on it, so a list that
+    // looked ranged would be a list that lied.
+    render(<PlayersSection players={view()} />);
+
+    expect(screen.getByText(/running total with no date on it/)).not.toBeNull();
   });
 });
 

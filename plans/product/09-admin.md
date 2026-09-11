@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 I.1 to I.7 — every section; the date range remains |
+| **State** | ✅ I.1 to I.8 — a read-only panel, with a range across it |
 | **Branch** | `feat/admin-panel` |
 | **Depends on** | track E |
 | **Delivers** | a read-only view of the application's health |
@@ -70,7 +70,7 @@ is money, this panel gets a section; not before.
 | I.5 | Games, and the abandon rate | ✅ |
 | I.6 | Cost, from `llm_call` | ✅ |
 | I.7 | Content and cache | ✅ |
-| I.8 | A date range, applied across every section | ⬜ |
+| I.8 | A date range, applied across every section | ✅ |
 
 ### I.1 — The role
 
@@ -88,6 +88,14 @@ anywhere that writes it, and an empty table as the safe default.
 value rather than an exception, and the figure the section is really for — do
 the two services agree about what is deployed, with *unknown* kept distinct from
 *disagreeing*.
+
+### I.8 — The range
+
+**Built, and in `09-admin-range.md`**: the panel reads events, cohorts and
+running totals, and only the first two can be ranged — so the most-active list
+and the health probes say they are not, and the chooser names which sections it
+moves. A range that silently left a third of the screen alone would be a range
+that lied.
 
 ### I.7 — Content
 
@@ -126,8 +134,19 @@ plan turn into a scan.
 
 ## Exit gate
 
-- Every figure traces to a query somebody can read, with no in-memory maths
-  that a second implementation could disagree with.
-- A non-admin gets a 404, signed in or not.
-- The panel loads in under a second on the current data volume.
-- No write, no mutation, no destructive action anywhere in the diff.
+All four hold, and each names what holds it:
+
+- **Every figure traces to a query somebody can read.** Counts are
+  `count(…) filter (where …)`; the only arithmetic in TypeScript is `shareOf`,
+  one division with one implementation, and `spendOf`, which multiplies tokens
+  by a configured rate.
+- **A non-admin gets a 404, signed in or not.** `requireAdmin` answers the same
+  404 to no session, a guest, an account without the grant and a cookie that is
+  not one — and a test reads every route file to check it is called, and that
+  none of them redirects.
+- **The panel loads in under a second on the current data volume.** The two
+  reads that touch every account are index-served, each proved by dropping the
+  index and watching the plan turn into a scan on five thousand rows.
+- **No write, no mutation, no destructive action anywhere in the diff.** A
+  sweep reads every source under `src/admin/` for `.insert(`, `.update(`,
+  `.delete(` and a `POST`, and fails on any of them.

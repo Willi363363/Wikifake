@@ -11,13 +11,34 @@
 // The denominator is the decision. A seat in a round that is **still running**
 // has not abandoned anything — it is a game in progress — so it is excluded,
 // and counting it would make the rate rise every time somebody presses play.
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
 import { game, participant } from '../schema/game.js';
 
 type Tx = Parameters<Parameters<Database['db']['transaction']>[0]>[0];
 type Db = Database['db'] | Tx;
+
+/**
+ * A half-open window, or **null for everything** — step I.8.
+ *
+ * Null and not a window from zero to the end of time, which is G.3's
+ * distinction: a query given an artificial range puts a clause on a timestamp
+ * and scans to prove every row qualifies, and a query given none does not.
+ */
+export interface Window {
+  readonly fromMs: number;
+  readonly toMs: number;
+}
+
+/** When a round started, within the window. Undefined when there is none. */
+function startedWithin(window: Window | null): SQL | undefined {
+  if (window === null) return undefined;
+  return and(
+    gte(game.startedAt, new Date(window.fromMs)),
+    lt(game.startedAt, new Date(window.toMs)),
+  );
+}
 
 /** One mode's rounds. `mode` is `game.mode`: solo or multiplayer. */
 export interface RoundCounts {
@@ -38,7 +59,10 @@ export interface RoundCounts {
  * than assumed in `admin-games.test.ts`, and at the volume this game will see
  * it is a scan of a table with one row per round played.
  */
-export async function countRoundsByMode(db: Db): Promise<readonly RoundCounts[]> {
+export async function countRoundsByMode(
+  db: Db,
+  window: Window | null,
+): Promise<readonly RoundCounts[]> {
   return db
     .select({
       mode: game.mode,
@@ -47,6 +71,7 @@ export async function countRoundsByMode(db: Db): Promise<readonly RoundCounts[]>
       open: sql<number>`count(*) filter (where ${game.endedAt} is null)::int`,
     })
     .from(game)
+    .where(startedWithin(window))
     .groupBy(game.mode)
     .orderBy(game.mode);
 }
@@ -72,16 +97,24 @@ export interface SeatCounts {
  * One row per seat, so a five-player room contributes five: the question is how
  * many *people* left, not how many rooms had somebody leave.
  */
-export async function countSeatsByMode(db: Db): Promise<readonly SeatCounts[]> {
-  return db
-    .select({
-      mode: game.mode,
-      seats: sql<number>`count(*)::int`,
-      submitted: sql<number>`count(*) filter (where ${participant.submittedAt} is not null)::int`,
-    })
-    .from(participant)
-    .innerJoin(game, eq(game.id, participant.gameId))
-    .where(sql`${game.endedAt} is not null`)
-    .groupBy(game.mode)
-    .orderBy(game.mode);
+export async function countSeatsByMode(
+  db: Db,
+  window: Window | null,
+): Promise<readonly SeatCounts[]> {
+  return (
+    db
+      .select({
+        mode: game.mode,
+        seats: sql<number>`count(*)::int`,
+        submitted: sql<number>`count(*) filter (where ${participant.submittedAt} is not null)::int`,
+      })
+      .from(participant)
+      .innerJoin(game, eq(game.id, participant.gameId))
+      // The round's own start decides whether it is in the window, not the
+      // seat's: a seat has no timestamp of its own until it is submitted, and
+      // using that one would drop exactly the abandoned seats being counted.
+      .where(and(sql`${game.endedAt} is not null`, startedWithin(window)))
+      .groupBy(game.mode)
+      .orderBy(game.mode)
+  );
 }

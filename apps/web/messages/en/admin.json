@@ -22,7 +22,8 @@
     "commitAgree": "Both services are running the same commit.",
     "commitDisagree": "The two services are running different commits — a deploy is half-finished, or one of them failed.",
     "commitUnknown": "Cannot tell whether the two agree: one is down, or neither was deployed from git.",
-    "model": "Model {model} · key configured: {configured}"
+    "model": "Model {model} · key configured: {configured}",
+    "live": "Live, whatever the range: a probe has no history."
   },
   "players": {
     "title": "Players",
@@ -39,7 +40,10 @@
       "finished": "Finished",
       "started": "Started",
       "lastSeen": "Last seen"
-    }
+    },
+    "activeInRange": "Active in range",
+    "thisWeek": "{count} this week",
+    "allTimeList": "All-time: rounds finished is a running total with no date on it."
   },
   "activation": {
     "title": "Activation",
@@ -61,7 +65,8 @@
       "finished": "Submitted at least one round. The gap above is rounds abandoned partway.",
       "returned": "Was active on a later day than their first. Two rounds in one sitting is not coming back."
     },
-    "caveat": "\"Came back\" is a later day of activity, not a cohort curve: a return the next day and a return six months on look the same here, because nothing records per-day history."
+    "caveat": "\"Came back\" is a later day of activity, not a cohort curve: a return the next day and a return six months on look the same here, because nothing records per-day history.",
+    "cohort": "The range picks who signed up, not when they played — which is what an activation figure has always meant."
   },
   "games": {
     "title": "Games",
@@ -125,5 +130,21 @@
       "games": "Rounds",
       "cached": "From cache"
     }
+  },
+  "range": {
+    "label": "Range",
+    "presets": {
+      "7d": "7 days",
+      "30d": "30 days",
+      "90d": "90 days",
+      "all": "All time",
+      "custom": "Custom"
+    },
+    "covering": "{from} to {to}, inclusive.",
+    "coveringAll": "Everything since the first round.",
+    "whatItMoves": "It moves the players, activation, games, cost and content sections. Health is a live probe, and the most active list is built from running totals with no date on them — both say so where they appear.",
+    "allTime": "All-time, whatever the range: these are running totals with no date on them.",
+    "live": "Live, whatever the range.",
+    "cohort": "The range picks who signed up, not when they played."
   }
 }

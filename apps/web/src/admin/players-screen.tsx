@@ -53,6 +53,7 @@ export function PlayersSection({ players }: PlayersSectionProps) {
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {/* Accounts and guests apart, because a guest is a `user` row too and a
             panel that added them together would report sign-ups that are not. */}
+        {/* I.8 — a cohort: accounts *created* in the range. */}
         <Figure
           label={t('accounts')}
           value={n(players.accounts)}
@@ -64,12 +65,21 @@ export function PlayersSection({ players }: PlayersSectionProps) {
           beside={t('ofAccounts', { count: players.accounts })}
         />
         <Figure label={t('activeToday')} value={n(players.activeToday)} />
-        <Figure label={t('activeThisWeek')} value={n(players.activeThisWeek)} />
+        {/* I.8 — *seen since* is a range on `last_seen`, the one dated column
+            `player_stats` has, so this figure does move with the range. */}
+        <Figure
+          label={t('activeInRange')}
+          value={n(players.activeInRange)}
+          beside={t('thisWeek', { count: players.activeThisWeek })}
+        />
       </div>
 
       <h3 className="mt-6 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
         {t('mostActive')}
       </h3>
+      {/* I.8 — `games_finished` is a running total with no date on it, so this
+          list cannot honour a range. It says so rather than looking ranged. */}
+      <p className="mt-1 text-xs text-muted">{t('allTimeList')}</p>
 
       {players.mostActive.length === 0 ? (
         <p className="mt-2 text-sm text-ink-2">{t('nobody')}</p>

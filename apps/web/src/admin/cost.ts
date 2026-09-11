@@ -18,7 +18,7 @@ import {
   type Database,
   type KindUsage,
 } from '@wikifake/db';
-import { MS_PER_DAY } from '@wikifake/domain';
+import { windowOf, type Range } from './range.js';
 
 export interface CostContext {
   readonly db: Database['db'];
@@ -26,9 +26,6 @@ export interface CostContext {
   readonly inputCostPerMTok?: number | undefined;
   readonly outputCostPerMTok?: number | undefined;
 }
-
-/** How many days the series covers. A month: long enough to see a trend. */
-export const COST_DAYS = 30;
 
 /** A million, spelled once. The unit every provider publishes its rate in. */
 const PER = 1_000_000;
@@ -91,11 +88,14 @@ function per(total: number | null, count: number): number | null {
   return total / count;
 }
 
-export async function readCost(context: CostContext, atMs: number): Promise<CostView> {
+export async function readCost(context: CostContext, range: Range): Promise<CostView> {
+  const window = windowOf(range);
   const [days, byKind, totals] = await Promise.all([
-    usageByDay(context.db, atMs - COST_DAYS * MS_PER_DAY),
-    usageByKind(context.db),
-    selectCostTotals(context.db),
+    // The day series always has a lower bound, even on an all-time range: a
+    // chart with one bar per day since the beginning is not a chart.
+    usageByDay(context.db, range.fromMs),
+    usageByKind(context.db, window),
+    selectCostTotals(context.db, window),
   ]);
 
   const spend = spendOf(totals, context.inputCostPerMTok, context.outputCostPerMTok);

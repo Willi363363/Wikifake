@@ -8,7 +8,7 @@
 // C4.6's insistence carries through every figure: **a cached game costs
 // nothing, and averaging it in makes generation look cheaper than it is.** So
 // the per-game denominator is games actually generated, not games served.
-import { eq, gte, sql } from 'drizzle-orm';
+import { and, eq, gte, lt, sql, type SQL } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
 import { game, participant } from '../schema/game.js';
@@ -16,6 +16,28 @@ import { llmCall } from '../schema/usage.js';
 
 type Tx = Parameters<Parameters<Database['db']['transaction']>[0]>[0];
 type Db = Database['db'] | Tx;
+
+/** I.8's window, or null for everything. */
+export interface Window {
+  readonly fromMs: number;
+  readonly toMs: number;
+}
+
+function calledWithin(window: Window | null): SQL | undefined {
+  if (window === null) return undefined;
+  return and(
+    gte(llmCall.createdAt, new Date(window.fromMs)),
+    lt(llmCall.createdAt, new Date(window.toMs)),
+  );
+}
+
+function startedWithin(window: Window | null): SQL | undefined {
+  if (window === null) return undefined;
+  return and(
+    gte(game.startedAt, new Date(window.fromMs)),
+    lt(game.startedAt, new Date(window.toMs)),
+  );
+}
 
 /** One day's model usage. `day` is a UTC date, as `YYYY-MM-DD`. */
 export interface DayUsage {
@@ -77,7 +99,10 @@ export interface CostTotals {
 }
 
 /** Every total the section divides by, in one pass each. */
-export async function selectCostTotals(db: Db): Promise<CostTotals> {
+export async function selectCostTotals(
+  db: Db,
+  window: Window | null,
+): Promise<CostTotals> {
   const [usage] = await db
     .select({
       calls: sql<number>`count(*)::int`,
@@ -86,12 +111,13 @@ export async function selectCostTotals(db: Db): Promise<CostTotals> {
       outputTokens: sql<number>`coalesce(sum(${llmCall.outputTokens}), 0)::int`,
       withoutTokens: sql<number>`count(*) filter (where ${llmCall.inputTokens} is null)::int`,
     })
-    .from(llmCall);
+    .from(llmCall)
+    .where(calledWithin(window));
 
   const [generated] = await db
     .select({ games: sql<number>`count(*)::int` })
     .from(game)
-    .where(eq(game.fromCache, false));
+    .where(and(eq(game.fromCache, false), startedWithin(window)));
 
   // Guests included, and counted by their `participant` row rather than by an
   // account: the model was called for their round too, so leaving them out
@@ -100,7 +126,11 @@ export async function selectCostTotals(db: Db): Promise<CostTotals> {
     .select({
       players: sql<number>`count(distinct coalesce(${participant.userId}, ${participant.id}::text))::int`,
     })
-    .from(participant);
+    .from(participant)
+    // The round's own start decides the window, not the seat's: a seat carries
+    // no timestamp until it is submitted.
+    .innerJoin(game, eq(game.id, participant.gameId))
+    .where(startedWithin(window));
 
   return {
     calls: usage?.calls ?? 0,
@@ -130,7 +160,10 @@ export interface KindUsage {
   readonly outputTokens: number;
 }
 
-export async function usageByKind(db: Db): Promise<readonly KindUsage[]> {
+export async function usageByKind(
+  db: Db,
+  window: Window | null,
+): Promise<readonly KindUsage[]> {
   return db
     .select({
       kind: llmCall.kind,
@@ -140,6 +173,7 @@ export async function usageByKind(db: Db): Promise<readonly KindUsage[]> {
       outputTokens: sql<number>`coalesce(sum(${llmCall.outputTokens}), 0)::int`,
     })
     .from(llmCall)
+    .where(calledWithin(window))
     .groupBy(llmCall.kind)
     .orderBy(llmCall.kind);
 }

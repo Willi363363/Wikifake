@@ -108,6 +108,10 @@ export function ActivationSection({ activation }: ActivationSectionProps) {
       {/* Said on the screen rather than left to be discovered: what "came back"
           can and cannot mean, given what is recorded. */}
       <p className="mt-3 max-w-prose text-xs text-muted">{t('caveat')}</p>
+      {/* I.8 — the range picks the cohort, not the rounds: `player_stats` has
+          running totals with no date on them, and "of the people who signed up
+          then, how many played" is what an activation figure has always meant. */}
+      <p className="mt-1 max-w-prose text-xs text-muted">{t('cohort')}</p>
     </section>
   );
 }

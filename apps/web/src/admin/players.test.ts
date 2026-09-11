@@ -15,6 +15,9 @@ import { readPlayers, MOST_ACTIVE } from './players.js';
 import { openWebTestDatabase, webTestDatabaseUrl } from '../testing/database.js';
 import type { TestDatabase } from '@wikifake/db/testing';
 
+/** Every row, whatever its date: what these cases meant before I.8's range. */
+const ALL = { fromMs: 0, toMs: Number.MAX_SAFE_INTEGER, preset: 'all' as const };
+
 const url = webTestDatabaseUrl();
 
 /** A Thursday, mid-afternoon UTC. Week 2900 began on the Monday before it. */
@@ -69,7 +72,7 @@ describe.skipIf(url === null)('I.3 — players and activity', () => {
     }
   }
 
-  const read = (atMs = THURSDAY) => readPlayers({ db: store.db }, atMs);
+  const read = (atMs = THURSDAY) => readPlayers({ db: store.db }, ALL, atMs);
 
   it('counts nothing when there is nothing', async () => {
     const view = await read();
@@ -80,6 +83,7 @@ describe.skipIf(url === null)('I.3 — players and activity', () => {
       everPlayed: 0,
       activeToday: 0,
       activeThisWeek: 0,
+      activeInRange: 0,
       mostActive: [],
     });
   });

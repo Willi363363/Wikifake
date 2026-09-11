@@ -12,6 +12,9 @@ import { readGames, MODES } from './games.js';
 import { openWebTestDatabase, webTestDatabaseUrl } from '../testing/database.js';
 import type { TestDatabase } from '@wikifake/db/testing';
 
+/** Every row, whatever its date: what these cases meant before I.8's range. */
+const ALL = { fromMs: 0, toMs: Number.MAX_SAFE_INTEGER, preset: 'all' as const };
+
 const url = webTestDatabaseUrl();
 
 describe.skipIf(url === null)('I.5 — rounds and the abandon rate', () => {
@@ -69,7 +72,7 @@ describe.skipIf(url === null)('I.5 — rounds and the abandon rate', () => {
     }
   }
 
-  const read = () => readGames({ db: store.db });
+  const read = () => readGames({ db: store.db }, ALL);
 
   it('answers nothing rather than zero when no round has ended', async () => {
     const view = await read();

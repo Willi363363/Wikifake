@@ -59,6 +59,9 @@ export function HealthSection({ health }: HealthSectionProps) {
       >
         {t('title')}
       </h2>
+      {/* I.8 — a probe has no history to range over. Said here rather than
+          left to be noticed when the figures do not move. */}
+      <p className="mt-1 text-xs text-muted">{t('live')}</p>
 
       {/* The line this section exists for. Three states and three sentences:
           agreeing, disagreeing, and not knowable — because "unknown" and
