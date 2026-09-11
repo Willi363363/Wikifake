@@ -66,13 +66,37 @@ The fix is the line `apps/web` and `@wikifake/db` already carry:
 `fileParallelism: false`. Eight runs under the load that had produced a failure
 were green. It costs a slower realtime suite.
 
-**Across packages, one Redis is still shared**, and that half is open: turbo
-runs the three suites that read `REDIS_URL` at once, so `pnpm test` can still
-race itself however serial each suite is internally. `--concurrency=1` is the
-diagnosis, not the fix. A distinct database index per package is the obvious
-candidate, since `REDIS_URL` already carries one; a flush between runs and
-prefixed keys are the others. Choosing wants a moment's thought about which the
-socket service should tolerate in production, so it stays recorded.
+**Across packages, one Redis is still shared** — and on 2026-09-11 that was
+measured rather than assumed, because it had cost three CI runs in a day on
+diffs touching no realtime code.
+
+### What the measurement says, and it is not what this entry said
+
+Four conditions on this machine, `apps/realtime` at 141 cases each time:
+
+```
+alone                                    ×5   green
+with @wikifake/article on the same Redis ×5   green
+turbo run test --force, 16 cores         ×2   green
+turbo run test --force, pinned to 2      ×2   green
+```
+
+**Nothing reproduced it locally**, including the pinned run that imitates a CI
+runner. What CI failed on, all three times, was the same helper — `until` in
+`testing/client.ts` — at **2.04 seconds** against a 2-second ceiling. Not wrong
+data: a wait that had not finished.
+
+So the shared Redis is still shared, and the evidence no longer points at it as
+the cause of *these* failures. A key collision produces a wrong answer; what
+happens here is a slow one. `until`'s deadline is now eight seconds and
+`testTimeout` twenty, on C.7's argument: a threshold on a shared runner measures
+the runner, and nothing in this suite asserts how fast the server answered.
+
+**What stays open** is the shape rather than the symptom: three packages read
+`REDIS_URL` and turbo runs them at once, so a key collision remains *possible*
+even though it is not what has been happening. A distinct database index per
+package is still the obvious answer, and it is still cheap — it simply should
+not be sold as the fix for a timeout it would not have changed.
 
 ## A green suite and a failing job: Vitest's unhandled errors
 
