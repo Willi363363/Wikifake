@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 to J.7 — documents, arrivals, graphics, and links that resolve |
+| **State** | 🔶 J.1 to J.8 — the launch list, less the two sweeps and the export |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -67,7 +67,7 @@ better than a page-view counter.
 | J.5 | The FAQ, and the copy the landing needs | ✅ — `10-seo-faq.md` |
 | J.6 | `alt` text pass across every image | ✅ |
 | J.7 | Broken-link check, wired into CI | ✅ |
-| J.8 | The performance budget, extended past the landing | ⬜ |
+| J.8 | The performance budget, extended past the landing | ✅ — `10-seo-budget.md` |
 | J.9 | The indexing decision for the routes E to I added | ⬜ |
 | J.10 | Phone width and reachability, over those same routes | ⬜ |
 | J.11 | The export, over what F, G and H added | ⬜ |
@@ -75,13 +75,6 @@ better than a page-view counter.
 **The sheets carry the arguments**, and the table above names them: a step whose
 whole reasoning fits in a paragraph has no sheet and is argued in a section
 below instead. Nothing is said in both places.
-
-### J.8 — a budget that exists, over pages that have none
-
-The landing already carries one and CI already fails on it: layouts that do not
-scale with frames, the worst throttled frame under 250 ms, CLS under 0.1, total
-blocking time under 200 ms. J.8 is to give the other routes a number, not to
-invent the first one.
 
 ### J.9 and J.10 — what the audit found
 
