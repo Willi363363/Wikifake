@@ -138,7 +138,7 @@ export function ChatDock() {
       // `inset-y-0 right-0`, so its offset lands off the viewport on every side
       // it has. The `border-b`/`border-t` below stay 1px `line` — those are
       // dividers inside the card, which is exactly what that token is for.
-      className="fixed inset-y-0 right-0 z-40 flex w-full max-w-sm flex-col border-l-[length:var(--border-width-3)] border-line-strong bg-surface"
+      className="fixed inset-y-0 right-0 z-40 flex w-full max-w-sm flex-col border-l-3 border-line-strong bg-surface"
     >
       <header className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
         <h2 className="text-base text-ink">{t('title')}</h2>

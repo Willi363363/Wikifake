@@ -99,45 +99,45 @@ change what those packages are allowed to put on the wire.
 Recorded during phase 11 because the zone work ran into it and could not fix it
 from where it stood.
 
-## `border-l-3` emits nothing, and the other three sides do
+## ~~`border-l-3` emits nothing~~ — the finding was wrong, 2026-09-11
 
-Measured on 2026-09-06, in one build, from one file Tailwind scans, with all
-four classes present in the source:
+**`border-l-3` emits a rule, and always did at this version.** The 2026-09-06
+entry said it emitted nothing while the other three sides resolved, filed it as
+a probable Tailwind bug, and left a `border-l-[length:var(--border-width-3)]`
+workaround in two files with comments telling nobody to simplify it back. This
+replaces it, because a register that keeps a wrong entry is worse than one that
+never had it.
+
+What a clean `next build` of this repository actually produces, Tailwind 4.3.3 —
+the version the lockfile pinned then and pins now:
 
 ```
-border-3     → border-width: var(--border-width-3)          ✅
-border-r-3   → border-right-width: var(--border-width-3)    ✅
-border-t-3   → border-top-width: var(--border-width-3)      ✅
-border-b-3   → border-bottom-width: var(--border-width-3)   ✅
-border-l-3   → (no rule at all)                             ❌
+.border-l-3,.border-l-\[length\:var\(--border-width-3\)\]{
+  border-left-style: var(--tw-border-style);
+  border-left-width: var(--border-width-3)
+}
 ```
 
-**Why this is worth a register entry rather than a shrug.** The failure is
-silent in every direction it can be. Nothing errors, nothing warns, the class
-stays in the markup, the build succeeds, review passes — and the border is
-simply not drawn. The one place it was used, the scanner line of the paragraph
-token, would have been an animation nobody could see moving, which is the
-hardest kind of absence to notice: there is no gap where it should be, because
-a line that was never there leaves no gap.
+**The rule was there and the search was not.** Lightning CSS merges rules whose
+declarations are identical, so the two spellings share one selector list — and
+the workaround was on the same element as the class it was working around.
+Searching the built stylesheet for `.border-l-3{`, with the brace, finds
+nothing: the built rule has a comma there. The other three sides had no
+workaround beside them, so their rules stood alone and matched.
 
-It was found by reading the built stylesheet, not by looking at the page.
+Confirmed twice over. Tailwind's own compiler, handed `border-l-3` against this
+repository's `globals.css`, emits the same declarations as the other three
+sides; and a `next build` with `.next` deleted and no arbitrary-value class left
+anywhere in the tree emits `.border-l-3` on its own.
 
-**What we do about it.** The workaround is
-`border-l-[length:var(--border-width-3)]`, which works and keeps the number in
-the token. It is in `packages/ui/src/token/paragraph-token.tsx`, with a comment
-saying why, so nobody simplifies it back.
+**Both files are simplified back**, and the token keeps the number.
 
-**What we have not done.** Understood it. `--border-width-3` is a theme token
-rather than one of Tailwind's own scale values, and the left side behaving
-differently from the other three points at the framework rather than at us —
-but that is a hypothesis, not a diagnosis. Reproducing it in a bare Tailwind
-project is what would turn this into an upstream bug report, and nobody has.
-
-**The general lesson, which outlives this particular class.** A utility class
-that generates nothing is indistinguishable from one that generates correctly,
-in the source, in a diff and in a review. Where a class carries something
-structural — a border that is the design, a colour that is a contrast pair —
-read the built stylesheet once rather than trusting the name.
+**The general lesson, corrected.** The old one — read the built stylesheet
+rather than trusting a class name — still holds. What it was missing is that
+*reading* a built stylesheet is its own skill: it has been minified, and a
+minifier merges, reorders and rewrites. Match the whole selector list, not a
+name and a brace. The first grep of this investigation made the same mistake the
+original finding did, which is how the mistake got understood.
 
 ## ~~`disabled:opacity-40`~~ — closed on 2026-09-11
 
