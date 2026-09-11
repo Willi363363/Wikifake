@@ -154,4 +154,28 @@ describe('11.6 — French is translated, not copied', () => {
 
     expect(identical).toEqual([...IDENTICAL_ON_PURPOSE].sort());
   });
+
+  // The catalogue wrote both apostrophes: 116 French messages used `’` and 30
+  // used `'`, sometimes in neighbouring sentences of the same screen. Two
+  // reasons that is worth a test rather than a sweep nobody repeats.
+  //
+  // The visible one: a paragraph that mixes them looks like two people wrote
+  // it, and on `/privacy` that is the impression the page can least afford.
+  //
+  // The one that bites: **`'` is ICU's escape character.** `l'{name}` does not
+  // print an apostrophe followed by a value — the quote opens a literal and the
+  // placeholder is printed as written. Three messages already stood one
+  // apostrophe away from that, and none of them would have failed a test: they
+  // would have shown `{count}` to a player. `’` cannot escape anything, so
+  // typing the catalogue correctly removes the hazard rather than documenting
+  // it.
+  it.each(LOCALES)('%s types its apostrophes, and never ICU’s quote', (locale) => {
+    const straight = ZONES.flatMap((zone) =>
+      entriesOf(zoneFile(locale, zone))
+        .filter(([, message]) => typeof message === 'string' && message.includes("'"))
+        .map(([key]) => `${zone}.${key}`),
+    ).sort();
+
+    expect(straight).toEqual([]);
+  });
 });

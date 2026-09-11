@@ -133,6 +133,6 @@ describe('I.7 — the topic list', () => {
 
     expect(screen.getByText('Contenu')).not.toBeNull();
     expect(screen.getByText('Taux de cache')).not.toBeNull();
-    expect(screen.getByText(/n'est pas une panne/)).not.toBeNull();
+    expect(screen.getByText(/n’est pas une panne/)).not.toBeNull();
   });
 });

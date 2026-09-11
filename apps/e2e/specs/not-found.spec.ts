@@ -40,9 +40,9 @@ test.describe('11.8 — an unknown URL', () => {
 
     expect(response?.status()).toBe(404);
     await expect(
-      page.getByRole('heading', { name: "Cette page n'est pas là" }),
+      page.getByRole('heading', { name: 'Cette page n’est pas là' }),
     ).toBeVisible();
-    await expect(page.getByRole('link', { name: "Revenir à l'accueil" })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Revenir à l’accueil' })).toBeVisible();
     await expect(page.getByText('That page is not here')).toHaveCount(0);
   });
 
