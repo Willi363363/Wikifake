@@ -24,6 +24,8 @@ import { CostSection } from '../../../src/admin/cost-screen.js';
 import { rateFrom, readCost } from '../../../src/admin/cost.js';
 import { GamesSection } from '../../../src/admin/games-screen.js';
 import { readGames } from '../../../src/admin/games.js';
+import { TrafficSection } from '../../../src/admin/traffic-screen.js';
+import { readTraffic } from '../../../src/admin/traffic.js';
 import { PlayersSection } from '../../../src/admin/players-screen.js';
 import { readPlayers } from '../../../src/admin/players.js';
 import { requireAdmin } from '../../../src/admin/gate.js';
@@ -55,6 +57,7 @@ export default async function AdminPage({
   const players = await readPlayers({ db: db() }, range, Date.now());
   const activation = await readActivation({ db: db() }, range);
   const games = await readGames({ db: db() }, range);
+  const traffic = await readTraffic({ db: db() }, range);
   const cost = await readCost(
     {
       db: db(),
@@ -85,6 +88,9 @@ export default async function AdminPage({
       <PlayersSection players={players} />
       <ActivationSection activation={activation} />
       <GamesSection games={games} />
+      {/* Step J.4b — the one section about people who are not players yet, so
+          it sits after the rounds and before what they cost. */}
+      <TrafficSection traffic={traffic} />
       <CostSection cost={cost} />
       <ContentSection content={content} />
 

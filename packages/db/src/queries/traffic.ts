@@ -40,19 +40,48 @@ export interface DailyViews {
 }
 
 /**
- * Every counted day in a range, oldest first.
+ * A half-open window in milliseconds, as every ranged query in this package
+ * takes one — `null` for all time.
+ */
+export interface Window {
+  readonly fromMs: number;
+  readonly toMs: number;
+}
+
+/**
+ * The window, as the two days the `date` column can be compared against.
  *
- * Rows rather than a total: the panel of J.4b draws a series, and a sum of a
- * series is something the caller can do and the reverse is not.
+ * The upper bound is the day containing the **last instant** of a half-open
+ * window, not the day containing `toMs`. With `toMs` at a real clock reading —
+ * which is what the panel passes — the two are the same day and today is
+ * included, which is the point. With `toMs` at exactly midnight they differ,
+ * and taking the earlier one is what keeps `from <= at < to` true at a day's
+ * resolution rather than quietly including a day the caller excluded.
+ */
+function daysIn(window: Window): { first: string; last: string } {
+  return {
+    first: utcDay(new Date(window.fromMs)),
+    last: utcDay(new Date(window.toMs - 1)),
+  };
+}
+
+/**
+ * Every counted day in a window, oldest first.
+ *
+ * Rows rather than a total: the panel draws a series, and a sum of a series is
+ * something the caller can do while the reverse is not.
  */
 export async function selectPageViews(
   db: Db,
-  from: Date,
-  to: Date,
+  window: Window | null,
 ): Promise<DailyViews[]> {
-  return db
-    .select({ day: pageView.day, page: pageView.page, views: pageView.views })
-    .from(pageView)
-    .where(and(gte(pageView.day, utcDay(from)), lte(pageView.day, utcDay(to))))
+  const columns = { day: pageView.day, page: pageView.page, views: pageView.views };
+  const query = db.select(columns).from(pageView);
+
+  if (window === null) return query.orderBy(pageView.day, pageView.page);
+
+  const { first, last } = daysIn(window);
+  return query
+    .where(and(gte(pageView.day, first), lte(pageView.day, last)))
     .orderBy(pageView.day, pageView.page);
 }

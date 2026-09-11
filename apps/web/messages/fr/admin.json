@@ -88,6 +88,24 @@
     },
     "caveat": "Seules les manches terminées comptent dans le taux : une place dans une manche en cours n'a rien abandonné. Et il ne peut pas être ventilé par écran — saisir un thème, voter et attendre la génération ne laissent aucune ligne, d'où la ventilation par mode."
   },
+  "traffic": {
+    "title": "Arrivées",
+    "reach": "Portée",
+    "reachWhy": "Sur les vues de la page d’accueil de cette période, la part qui a atteint l’écran où l’on saisit un sujet.",
+    "none": "—",
+    "landing": "Accueil",
+    "entry": "Écran de saisie",
+    "columns": {
+      "day": "Jour",
+      "landing": "Accueil",
+      "entry": "Saisie"
+    },
+    "empty": "Rien n’a été compté sur cette période.",
+    "since": "Le décompte a commencé le {day}. Une période qui remonte plus loin couvre des jours que personne ne comptait : deux périodes à cheval sur cette date ne sont pas comparables.",
+    "never": "Rien n’a encore été compté. Les arrivées sont comptées depuis la mise en ligne de cette fonction : un panneau vide, ici, c’est à quoi ressemble un compteur neuf.",
+    "caveat": "Ce sont des chargements de page, pas des personnes : ce compteur ne contient aucun identifiant, donc deux chargements par un même lecteur et un chargement par chacun de deux lecteurs donnent le même nombre. La portée peut dépasser 100 % — on atteint l’écran de saisie depuis un signet, sans passer par l’accueil.",
+    "more": "{count, plural, one {# jour antérieur n’est pas affiché} other {# jours antérieurs ne sont pas affichés}}"
+  },
   "cost": {
     "title": "Coût",
     "noRate": "—",

@@ -104,6 +104,10 @@ describe('11.6 — French is translated, not copied', () => {
     'admin.games.modes.solo',
     'admin.games.noRounds',
     'admin.health.columns.service',
+    // The em dash the arrivals section prints when there is nothing to divide,
+    // which is punctuation in both languages — `admin.games.noRounds` above is
+    // the same character for the same reason.
+    'admin.traffic.none',
     'home.title',
     'language.names.en',
     'language.names.fr',

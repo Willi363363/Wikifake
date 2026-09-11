@@ -20,6 +20,12 @@ import type { TestDatabase } from '../testing/database.js';
 const url = testDatabaseUrl();
 
 const MIDDAY = new Date('2026-09-11T12:00:00.000Z');
+
+/** The one UTC day an instant falls in, as a half-open window. */
+function dayOf(at: Date): { fromMs: number; toMs: number } {
+  const midnight = Date.parse(`${at.toISOString().slice(0, 10)}T00:00:00.000Z`);
+  return { fromMs: midnight, toMs: midnight + 24 * 60 * 60 * 1000 };
+}
 const EVENING = new Date('2026-09-11T23:30:00.000Z');
 const NEXT_DAY = new Date('2026-09-12T00:30:00.000Z');
 
@@ -41,7 +47,7 @@ describe.skipIf(url === null)('J.4 — arrivals are counted, not stored', () => 
   it('counts the first load of a page', async () => {
     await recordPageView(store.db, 'landing', MIDDAY);
 
-    expect(await selectPageViews(store.db, MIDDAY, MIDDAY)).toEqual([
+    expect(await selectPageViews(store.db, dayOf(MIDDAY))).toEqual([
       { day: '2026-09-11', page: 'landing', views: 1 },
     ]);
   });
@@ -50,7 +56,7 @@ describe.skipIf(url === null)('J.4 — arrivals are counted, not stored', () => 
     await recordPageView(store.db, 'landing', MIDDAY);
     await recordPageView(store.db, 'landing', EVENING);
 
-    const [row] = await selectPageViews(store.db, MIDDAY, EVENING);
+    const [row] = await selectPageViews(store.db, dayOf(MIDDAY));
     expect(row?.views).toBe(2);
   });
 
@@ -59,7 +65,7 @@ describe.skipIf(url === null)('J.4 — arrivals are counted, not stored', () => 
     await recordPageView(store.db, 'entry', MIDDAY);
     await recordPageView(store.db, 'entry', MIDDAY);
 
-    expect(await selectPageViews(store.db, MIDDAY, MIDDAY)).toEqual([
+    expect(await selectPageViews(store.db, dayOf(MIDDAY))).toEqual([
       { day: '2026-09-11', page: 'entry', views: 2 },
       { day: '2026-09-11', page: 'landing', views: 1 },
     ]);
@@ -76,9 +82,21 @@ describe.skipIf(url === null)('J.4 — arrivals are counted, not stored', () => 
     await recordPageView(store.db, 'landing', EVENING);
     await recordPageView(store.db, 'landing', NEXT_DAY);
 
-    expect(await selectPageViews(store.db, EVENING, NEXT_DAY)).toEqual([
+    expect(await selectPageViews(store.db, null)).toEqual([
       { day: '2026-09-11', page: 'landing', views: 1 },
       { day: '2026-09-12', page: 'landing', views: 1 },
+    ]);
+  });
+
+  it('takes the last instant of a half-open window, not the day after it', async () => {
+    await recordPageView(store.db, 'landing', EVENING);
+    await recordPageView(store.db, 'landing', NEXT_DAY);
+
+    // A window ending at exactly midnight excludes the day that begins there.
+    // At any real clock reading — which is what the panel passes — today is in.
+    const untilMidnight = { fromMs: dayOf(EVENING).fromMs, toMs: dayOf(NEXT_DAY).fromMs };
+    expect(await selectPageViews(store.db, untilMidnight)).toEqual([
+      { day: '2026-09-11', page: 'landing', views: 1 },
     ]);
   });
 
@@ -86,7 +104,7 @@ describe.skipIf(url === null)('J.4 — arrivals are counted, not stored', () => 
     await recordPageView(store.db, 'landing', EVENING);
     await recordPageView(store.db, 'landing', NEXT_DAY);
 
-    expect(await selectPageViews(store.db, NEXT_DAY, NEXT_DAY)).toEqual([
+    expect(await selectPageViews(store.db, dayOf(NEXT_DAY))).toEqual([
       { day: '2026-09-12', page: 'landing', views: 1 },
     ]);
   });
@@ -103,7 +121,7 @@ describe.skipIf(url === null)('J.4 — arrivals are counted, not stored', () => 
         recordPageView(right.db, 'landing', MIDDAY),
       ]);
 
-      const [row] = await selectPageViews(store.db, MIDDAY, MIDDAY);
+      const [row] = await selectPageViews(store.db, dayOf(MIDDAY));
       // The whole reason the increment is `views + 1` inside the statement. A
       // read-then-write answers 1 here, and answers it intermittently.
       expect(row?.views).toBe(2);

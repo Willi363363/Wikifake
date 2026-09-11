@@ -35,7 +35,7 @@ doubled.
 | Privacy policy | 🔶 | `app/[locale]/privacy`; `legal.test.tsx`, `legal.spec.ts` — the address is a placeholder |
 | Terms | 🔶 | `app/[locale]/terms`; same tests, same placeholder |
 | Cookie consent | ❌ | and still not needed — see below |
-| Analytics | 🔶 | `page_view` + `POST /api/view`; counted since J.4, shown by nobody until J.4b |
+| Analytics | ✅ | first-party, no identifier — `page_view`, `POST /api/view`, and the panel's arrivals section |
 | FAQ | ❌ | **J.5** |
 | Broken-link check | ❌ | **J.7** — nothing in `.github/workflows/` |
 

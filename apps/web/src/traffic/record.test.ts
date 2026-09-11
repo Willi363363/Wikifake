@@ -44,7 +44,11 @@ describe.skipIf(url === null)('J.4 — the arrival route', () => {
 
   const context = () => ({ db: store.db, now: () => AT });
 
-  const counts = () => selectPageViews(store.db, AT, AT);
+  /** The one UTC day `AT` falls in, as the half-open window the read takes. */
+  const counts = () => {
+    const midnight = Date.parse(`${AT.toISOString().slice(0, 10)}T00:00:00.000Z`);
+    return selectPageViews(store.db, { fromMs: midnight, toMs: midnight + 86_400_000 });
+  };
 
   it('counts a page it was told about', async () => {
     const answer = await handleRecordView(context(), beacon({ page: 'landing' }));
