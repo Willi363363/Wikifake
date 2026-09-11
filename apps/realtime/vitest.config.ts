@@ -8,6 +8,15 @@ export default {
   ...baseConfig,
   test: {
     ...baseConfig.test,
+    /*
+     * Longer than Vitest's five seconds, because `until` waits eight.
+     *
+     * The helper's deadline is the one that should fire: it names what it was
+     * waiting for, and "Test timed out in 5000ms" names nothing. Twenty rather
+     * than nine so that a test doing two waits in sequence still fails on the
+     * second wait rather than on the budget above both.
+     */
+    testTimeout: 20_000,
     // One database, so one file at a time — the same line `apps/web` and
     // `@wikifake/db` carry, for the same reason.
     //
