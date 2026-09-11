@@ -20,6 +20,8 @@
 // that asks, by the same gate the game screens use.
 import { selectPlayerStats } from '@wikifake/db';
 import type { Metadata } from 'next';
+
+import { robotsFor } from '../../../src/indexing.js';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -29,7 +31,7 @@ import { db } from '../../../src/game/wiring.js';
 import { Profile } from '../../../src/account/profile.js';
 
 /** Not content, and not a page any crawler should hold: it is one player's. */
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export const metadata: Metadata = { robots: robotsFor('/profile') };
 
 /** Never prerendered: it reads a cookie and answers differently per player. */
 export const dynamic = 'force-dynamic';

@@ -10,6 +10,8 @@
 // and you are not allowed on it yet*. Here that answer is the thing being
 // withheld, so `requireAdmin` raises a 404 and the page simply never renders.
 import type { Metadata } from 'next';
+
+import { robotsFor } from '../../../src/indexing.js';
 import { getTranslations } from 'next-intl/server';
 
 import { HealthSection } from '../../../src/admin/health-screen.js';
@@ -32,7 +34,7 @@ import { requireAdmin } from '../../../src/admin/gate.js';
 import { db } from '../../../src/game/wiring.js';
 
 /** Not content, and not a page any crawler should hold or index. */
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export const metadata: Metadata = { robots: robotsFor('/admin') };
 
 /** Never prerendered: it reads a cookie and answers differently per request. */
 export const dynamic = 'force-dynamic';

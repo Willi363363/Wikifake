@@ -11,6 +11,10 @@
 // presented as encyclopaedic and attributed to Wikipedia. The old `robots.txt`
 // carried a comment calling that the most serious risk the project holds, and it
 // was right.
+import { readdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { describe, expect, it } from 'vitest';
 
 import robots from '../app/robots.js';
@@ -21,10 +25,12 @@ import {
   CRAWLERS_KEPT_OUT,
   INDEXABLE_ROUTES,
   localePath,
+  robotsFor,
   robotsRules,
   siteOrigin,
   sitemapEntries,
   TRAINING_CRAWLERS,
+  UNINDEXED_ROUTES,
 } from './indexing.js';
 
 /** An environment with none of the variables, so a default is a default. */
@@ -203,6 +209,80 @@ describe('J.3 — the two documents are the exception to "a game, not content"',
     for (const route of ['/privacy', '/terms']) {
       expect([everybody?.disallow ?? []].flat()).not.toContain(route);
     }
+  });
+});
+
+describe('J.9 — every screen has an indexing decision', () => {
+  /*
+   * The successor to eight page files each making the call on their own.
+   *
+   * `/leaderboard` is how that ends: eight pages declared `noindex` in their
+   * own metadata and the ninth simply did not, which no test could see because
+   * there was nothing to compare a page against. This walks the routes that
+   * exist and holds each one to having been decided about — the same shape
+   * `route-parity.test.ts` holds the REST catalogue to.
+   */
+  const LOCALE = join(dirname(fileURLToPath(import.meta.url)), '..', 'app', '[locale]');
+
+  /** Every `page.tsx` under `app/[locale]`, as the path Next serves it at. */
+  function pageRoutes(directory: string, prefix = ''): string[] {
+    return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+      if (!entry.isDirectory()) {
+        return entry.name === 'page.tsx' ? [prefix === '' ? '/' : prefix] : [];
+      }
+      // A route group — `(game)` — is a folder that is not a URL segment.
+      const segment = entry.name.startsWith('(') ? prefix : `${prefix}/${entry.name}`;
+      return pageRoutes(join(directory, entry.name), segment);
+    });
+  }
+
+  const ROUTES = pageRoutes(LOCALE);
+
+  it('found the screens', () => {
+    // A walk that found nothing classifies nothing, and passes.
+    expect(ROUTES.length).toBeGreaterThan(8);
+    expect(ROUTES).toContain('/leaderboard');
+  });
+
+  it.each(ROUTES)('has decided about %s', (route) => {
+    const indexable = (INDEXABLE_ROUTES as readonly string[]).includes(route);
+    const unindexed = route in UNINDEXED_ROUTES;
+    // A dynamic segment is a route nobody can name, and the three that exist —
+    // a room, the catch-all, the gallery — are kept out by `robots.txt` rather
+    // than by their own metadata.
+    const dynamic = route.includes('[');
+    const disallowed = (CRAWLERS_KEPT_OUT as readonly string[]).some((path) =>
+      route.startsWith(path.endsWith('/') ? path.slice(0, -1) : path),
+    );
+
+    expect({ route, decided: indexable || unindexed || dynamic || disallowed }).toEqual({
+      route,
+      decided: true,
+    });
+  });
+
+  it('never says a route is both published and hidden', () => {
+    const both = (INDEXABLE_ROUTES as readonly string[]).filter(
+      (route) => route in UNINDEXED_ROUTES,
+    );
+    expect(both).toEqual([]);
+  });
+
+  /*
+   * The board, named rather than implied.
+   *
+   * This is the one decision J.9 was left to make, so it is asserted where
+   * somebody reviewing the step will look for it — and `follow` is the half
+   * that says the way out of the board is still worth walking.
+   */
+  it('keeps the leaderboard out of an index, and lets a crawler leave by the door', () => {
+    expect(robotsFor('/leaderboard')).toEqual({ index: false, follow: true });
+  });
+
+  it('refuses a route nobody decided about', () => {
+    // The default is loud rather than indexable: a screen added without a line
+    // in `UNINDEXED_ROUTES` throws where it is rendered, not in a report.
+    expect(() => robotsFor('/invented')).toThrow(/no indexing decision/);
   });
 });
 

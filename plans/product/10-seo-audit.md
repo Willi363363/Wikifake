@@ -106,13 +106,10 @@ because the two icons live one in each.
 Two steps, both of them findings rather than ideas:
 
 - **J.9** — the indexing decision for the ten routes added after the contract
-  was written. `/quests`, `/shop`, `/profile`, `/choose-a-name` and `/admin` are
-  `noindex` in their own metadata; `/sign-in` and `/sign-up` are `noindex,
-  follow`; **`/leaderboard` carries no directive at all**, and its source says
-  in as many words that whether a board should be indexed is track J's call. It
-  is also the only one of the ten a guest is invited to read, which is the
-  argument for indexing it. The decision belongs in `src/indexing.ts` beside the
-  others, not in a page file.
+  was written. **Done**: the board is `noindex, follow` — it publishes
+  pseudonyms, and a player chose a name other players would see rather than one
+  a search engine keeps — and every decision moved into `UNINDEXED_ROUTES` in
+  `src/indexing.ts`, where a test holds each screen to having one.
 - **J.10** — the 360 px sweep, and a reachability assertion, over the eight
   routes tracks E to I added.
 

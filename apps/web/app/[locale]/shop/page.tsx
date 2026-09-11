@@ -13,6 +13,8 @@
 // `setWornCosmetic` would refuse it anyway — `profile` is the row that holds
 // what is worn.
 import type { Metadata } from 'next';
+
+import { robotsFor } from '../../../src/indexing.js';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -23,7 +25,7 @@ import { ShopScreen } from '../../../src/shop/screen.js';
 import { readShop } from '../../../src/shop/stock.js';
 
 /** Not content, and not a page any crawler should hold: it is one player's. */
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export const metadata: Metadata = { robots: robotsFor('/shop') };
 
 /** Never prerendered: it reads a cookie and answers differently per player. */
 export const dynamic = 'force-dynamic';
