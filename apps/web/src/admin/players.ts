@@ -18,6 +18,8 @@ import {
 import { periodIndexOf, periodWindowOf } from '@wikifake/domain';
 import type { Database } from '@wikifake/db';
 
+import { windowOf, type Range } from './range.js';
+
 export interface PlayersContext {
   readonly db: Database['db'];
 }
@@ -34,6 +36,8 @@ export interface PlayersView {
   readonly everPlayed: number;
   readonly activeToday: number;
   readonly activeThisWeek: number;
+  /** Seen at any point in the chosen range. A range on `last_seen`. */
+  readonly activeInRange: number;
   readonly mostActive: readonly ActivePlayer[];
 }
 
@@ -47,20 +51,29 @@ export interface PlayersView {
  */
 export async function readPlayers(
   context: PlayersContext,
+  range: Range,
   atMs: number,
 ): Promise<PlayersView> {
   const today = periodWindowOf('daily', periodIndexOf('daily', atMs));
   const week = periodWindowOf('weekly', periodIndexOf('weekly', atMs));
+  const cohort = windowOf(range);
 
-  const [totals, everPlayed, activeToday, activeThisWeek, mostActive] = await Promise.all(
-    [
-      countAccounts(context.db),
-      countEverPlayed(context.db),
+  const [totals, everPlayed, activeToday, activeThisWeek, activeInRange, mostActive] =
+    await Promise.all([
+      countAccounts(context.db, cohort),
+      countEverPlayed(context.db, cohort),
       countActiveSince(context.db, today.fromMs),
       countActiveSince(context.db, week.fromMs),
+      // Not a cohort: *seen since* is a range on `last_seen`, which is the one
+      // dated column `player_stats` has.
+      countActiveSince(context.db, range.fromMs),
+      // **All-time, whatever the range.** `games_finished` is a running total
+      // with no date on it — E.4 keeps it as an aggregate maintained rather
+      // than recomputed — so "most active this week" is a question the schema
+      // cannot answer, and the screen says the list is all-time rather than
+      // pretending otherwise.
       selectMostActive(context.db, MOST_ACTIVE),
-    ],
-  );
+    ]);
 
   return {
     accounts: totals.accounts,
@@ -68,6 +81,7 @@ export async function readPlayers(
     everPlayed,
     activeToday,
     activeThisWeek,
+    activeInRange,
     mostActive,
   };
 }

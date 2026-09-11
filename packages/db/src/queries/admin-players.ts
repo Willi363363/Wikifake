@@ -10,7 +10,7 @@
 // `@wikifake/domain` owns what a day is — and *today* on this panel has to be
 // the same today as a daily quest and a daily leaderboard, or three screens are
 // measuring three different days.
-import { and, count, desc, eq, gte, isNotNull, sql } from 'drizzle-orm';
+import { and, count, desc, eq, gte, isNotNull, lt, sql, type SQL } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
 import { playerStats } from '../schema/stats.js';
@@ -19,6 +19,28 @@ import { user } from '../schema/auth.js';
 
 type Tx = Parameters<Parameters<Database['db']['transaction']>[0]>[0];
 type Db = Database['db'] | Tx;
+
+/** I.8's window, or null for everything. */
+export interface Window {
+  readonly fromMs: number;
+  readonly toMs: number;
+}
+
+/**
+ * Accounts created within the window — **a cohort, not a period.**
+ *
+ * This is the one place in the panel where a range picks *who* rather than
+ * *when*, and it is the reading an activation figure has always had: "of the
+ * people who signed up in September, how many played" is a question about
+ * September's arrivals whenever they played, not about September's rounds.
+ */
+function createdWithin(window: Window | null): SQL | undefined {
+  if (window === null) return undefined;
+  return and(
+    gte(user.createdAt, new Date(window.fromMs)),
+    lt(user.createdAt, new Date(window.toMs)),
+  );
+}
 
 /**
  * How many accounts exist, and how many of them are guests.
@@ -34,13 +56,15 @@ type Db = Database['db'] | Tx;
  */
 export async function countAccounts(
   db: Db,
+  window: Window | null,
 ): Promise<{ accounts: number; guests: number }> {
   const [row] = await db
     .select({
       accounts: sql<number>`count(*) filter (where ${user.isAnonymous} is not true)::int`,
       guests: sql<number>`count(*) filter (where ${user.isAnonymous} is true)::int`,
     })
-    .from(user);
+    .from(user)
+    .where(createdWithin(window));
 
   return { accounts: row?.accounts ?? 0, guests: row?.guests ?? 0 };
 }
@@ -131,12 +155,18 @@ export async function selectMostActive(
  * that means anything on its own: a thousand accounts and forty players is a
  * different game from a thousand accounts and nine hundred players.
  */
-export async function countEverPlayed(db: Db): Promise<number> {
+export async function countEverPlayed(db: Db, window: Window | null): Promise<number> {
   const [row] = await db
     .select({ players: count() })
     .from(playerStats)
     .innerJoin(user, eq(user.id, playerStats.userId))
-    .where(and(gte(playerStats.gamesFinished, 1), isNotNull(user.email)));
+    .where(
+      and(
+        gte(playerStats.gamesFinished, 1),
+        isNotNull(user.email),
+        createdWithin(window),
+      ),
+    );
 
   return row?.players ?? 0;
 }
@@ -187,7 +217,7 @@ export interface Funnel {
   readonly returned: number;
 }
 
-export async function selectFunnel(db: Db): Promise<Funnel> {
+export async function selectFunnel(db: Db, window: Window | null): Promise<Funnel> {
   const [row] = await db
     .select({
       created: sql<number>`count(*)::int`,
@@ -203,7 +233,12 @@ export async function selectFunnel(db: Db): Promise<Funnel> {
     })
     .from(user)
     .leftJoin(playerStats, eq(playerStats.userId, user.id))
-    .where(sql`${user.isAnonymous} is not true`);
+    // The window narrows the cohort — who signed up — and not the rounds they
+    // then played. `games_finished` is a running total with no date on it, so
+    // "finished a round this week" is a question the schema cannot answer;
+    // "of the people who signed up this week, how many have finished one" is
+    // the question it can, and is the one activation has always meant.
+    .where(and(sql`${user.isAnonymous} is not true`, createdWithin(window)));
 
   return {
     created: row?.created ?? 0,

@@ -14,7 +14,7 @@ import { game, llmCall, participant, user } from '@wikifake/db';
 import { MS_PER_DAY } from '@wikifake/domain';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { rateFrom, readCost, spendOf, COST_DAYS } from './cost.js';
+import { rateFrom, readCost, spendOf } from './cost.js';
 import { openWebTestDatabase, webTestDatabaseUrl } from '../testing/database.js';
 import type { TestDatabase } from '@wikifake/db/testing';
 
@@ -144,7 +144,9 @@ describe.skipIf(url === null)('I.6 — what the model has cost', () => {
         inputCostPerMTok: rates.input,
         outputCostPerMTok: rates.output,
       },
-      NOW,
+      // A range that ends after NOW, so every fixture is inside it — and wide
+      // enough that the day series still has its own lower bound.
+      { fromMs: NOW - 60 * MS_PER_DAY, toMs: NOW + MS_PER_DAY, preset: 'custom' },
     );
 
   it('reports tokens and no money when no rate is set', async () => {
@@ -241,12 +243,17 @@ describe.skipIf(url === null)('I.6 — what the model has cost', () => {
     expect(view.days[1]?.calls).toBe(2);
   });
 
-  it('leaves out a day older than the window', async () => {
+  it('leaves out a call older than the range', async () => {
+    // I.8 — the window is the chosen range's rather than a fixed month, and
+    // the fixture's range is sixty days wide.
     await round();
-    await call({ atMs: NOW - (COST_DAYS + 1) * MS_PER_DAY });
+    await call({ atMs: NOW - 61 * MS_PER_DAY });
     await call({ atMs: NOW });
 
-    expect((await read()).days).toHaveLength(1);
+    const view = await read();
+    expect(view.days).toHaveLength(1);
+    // And the totals agree with the series: both are inside the same window.
+    expect(view.totals.calls).toBe(1);
   });
 
   it('answers nothing rather than dividing by nothing', async () => {

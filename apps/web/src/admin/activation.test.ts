@@ -13,6 +13,9 @@ import { readActivation, shareOf } from './activation.js';
 import { openWebTestDatabase, webTestDatabaseUrl } from '../testing/database.js';
 import type { TestDatabase } from '@wikifake/db/testing';
 
+/** Every row, whatever its date: what these cases meant before I.8's range. */
+const ALL = { fromMs: 0, toMs: Number.MAX_SAFE_INTEGER, preset: 'all' as const };
+
 const url = webTestDatabaseUrl();
 const DAY = 86_400_000;
 const NOON = Date.UTC(2026, 8, 10, 12, 0, 0);
@@ -82,7 +85,7 @@ describe.skipIf(url === null)('I.4 — the funnel', () => {
     }
   }
 
-  const read = () => readActivation({ db: store.db });
+  const read = () => readActivation({ db: store.db }, ALL);
 
   it('answers nothing rather than zero when nobody has signed up', async () => {
     const view = await read();

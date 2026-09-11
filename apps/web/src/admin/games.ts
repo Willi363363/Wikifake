@@ -7,6 +7,7 @@
 import { countRoundsByMode, countSeatsByMode, type Database } from '@wikifake/db';
 
 import { shareOf } from './activation.js';
+import { windowOf, type Range } from './range.js';
 
 export interface GamesContext {
   readonly db: Database['db'];
@@ -66,10 +67,11 @@ function rowFor(
  * deliberate: a third query with its own `where` clause is a third chance to
  * disagree with the two above it. Summing the rows cannot.
  */
-export async function readGames(context: GamesContext): Promise<GamesView> {
+export async function readGames(context: GamesContext, range: Range): Promise<GamesView> {
+  const window = windowOf(range);
   const [rounds, seats] = await Promise.all([
-    countRoundsByMode(context.db),
-    countSeatsByMode(context.db),
+    countRoundsByMode(context.db, window),
+    countSeatsByMode(context.db, window),
   ]);
 
   const roundsFor = (mode: string) =>
