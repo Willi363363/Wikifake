@@ -93,11 +93,11 @@ The other half is the only part of this whole procedure that ever had doubt in
 it: **whether a suspended free-tier Render service comes back with the same
 image.** Everything else is DNS and an environment variable.
 
-What is missing to run it is the step-1 value — the commit Render served — which
-was to be captured at runbook step 1 and is not written down anywhere. Without
-it, "the same image" has nothing to be compared against, so the check becomes
-weaker: that it answers at all, and that its `commit` is a pre-cutover SHA rather
-than one of `main`'s recent ones.
+What was missing to run it was the step-1 value — the commit Render served —
+which was to be captured at runbook step 1 and was written down nowhere. Without
+it, "the same image" had nothing to be compared against, so the check was the
+weaker one: that it answers at all, and that its `commit` is a pre-cutover SHA
+rather than one of `main`'s recent ones.
 
 So the dry run reduces to:
 
@@ -106,13 +106,40 @@ So the dry run reduces to:
    procedure has been missing, and capturing it is most of what this run buys.
 3. Suspend it again.
 
+### Run on 2026-09-11, and the answer is yes
+
+```
+GET https://wikifake.onrender.com/api/health   →  200
+{"status":"ok","version":"1.1.0","commit":"c726c591…","commit_short":"c726c59",
+ "model":"gemini-3.1-flash-lite","llm_configured":true}
+x-render-origin-server: uvicorn
+```
+
+**`c726c59` is the value the procedure was missing.** It is the merge of #26,
+21 August, an ancestor of `main` and comfortably pre-cutover — so the service
+came back on its old image rather than on anything recent.
+
+Two details make that more than a guess. The origin server is **uvicorn**: the
+Python stack, whose source step 10.9 deleted from the tree. And the payload is
+**snake_case** — `commit_short`, `llm_configured` — where the TypeScript health
+route answers `commitShort` and `llmConfigured`. A service rebuilt from the
+current tree could not produce those keys, because that code no longer exists.
+
+The doubt this step carried is therefore settled: **a suspended free-tier Render
+service does come back with the same image.** It took under two minutes. The
+service was suspended again immediately afterwards.
+
+> Compare against `c726c59` the day a rollback is real. A woken service serving
+> anything else is not the net this file describes, and the rest of the
+> procedure should stop until that is understood.
+
 **It no longer touches production.** Production is `wikifake.vercel.app`; this
 service holds no traffic and no state — so the reason to do it outside playing
 hours is gone, and with it the main excuse for not having done it. It is still a
 human's gesture on a dashboard: no CI job and no agent here holds a token for it.
 
-> **Status: not run.** Step 10.10 stays open until it has been, and until the
-> commit from step 2 is written above.
+> **Status: run on 2026-09-11**, and the commit is recorded above. Step 10.10 is
+> closed.
 
 ## When to stop rolling back and fix forward instead
 

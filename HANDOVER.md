@@ -83,7 +83,7 @@ rule with a finding still to write, and the promotion procedure above.
 
 ## Outstanding — the order to do it in
 
-Everything below needs a person, and nothing below needs code except item 14,
+Everything below needs a person, and nothing below needs code except item 13,
 which is optional. **No domain has been bought**, so production is
 `wikifake.vercel.app` and group one is what buying a name would cost.
 
@@ -93,43 +93,44 @@ five variables in Vercel, one redeploy, and a sign-in from a phone. **E.1 and
 track E are done, and so is track F** — `CRON_SECRET` is set, and
 `/api/cron/quests` answers 401 to a request with no token instead of the 503 it
 answered while unconfigured. `05-accounts-oauth.md` records the order it ran in.
+**Step 10.10's dry run ran the same evening**: the suspended Render service woke
+on its old image, and `phase-10-rollback.md` finally holds the commit the
+procedure is meant to compare against.
 
 **Now:**
 
 1. Regenerate `GOOGLE_GENERATIVE_AI_API_KEY`, in a 2026-08-27 transcript.
-2. Step 10.10's dry run: resume the Render service, read `/api/health`, write
-   the commit into `phase-10-rollback.md`, suspend again.
-3. C.7's device measurement — `plans/product/03-landing-budget.md`, steps 1–6.
+2. C.7's device measurement — `plans/product/03-landing-budget.md`, steps 1–6.
    Track C closes with it, and it is the last ⚠️ of the product effort.
-4. Read the French catalogue as a French reader (`phase-11-i18n.md`).
-5. Have `/privacy` and `/terms` read by somebody legal. They are accurate about
+3. Read the French catalogue as a French reader (`phase-11-i18n.md`).
+4. Have `/privacy` and `/terms` read by somebody legal. They are accurate about
    the system; whether they are sufficient is a judgement no test makes.
 
 **The day a domain is bought — five gestures, in this order:**
 
-6. Remove the old domain from Render **first**: two providers claiming one name
+5. Remove the old domain from Render **first**: two providers claiming one name
    is a certificate error. Add it to Vercel, point the registrar's records at
    what Vercel asks for, wait for the certificate.
-7. Add `https://<domain>/api/auth/callback/google` to the Google console, and
+6. Add `https://<domain>/api/auth/callback/google` to the Google console, and
    change `BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL` to it.
-8. `NEXT_PUBLIC_REALTIME_URL` = `wss://…`, then **redeploy** — it is inlined at
+7. `NEXT_PUBLIC_REALTIME_URL` = `wss://…`, then **redeploy** — it is inlined at
    build time, so a variable change alone does nothing.
-9. Render, the realtime service: add the new origin to
+8. Render, the realtime service: add the new origin to
    `REALTIME_ALLOWED_ORIGINS`. An origin it does not name is refused before the
    upgrade, which fails closed and invisibly.
-10. GitHub → Settings → Variables: `WEB_DEPLOY_URL` = the domain,
+9. GitHub → Settings → Variables: `WEB_DEPLOY_URL` = the domain,
     `REALTIME_DEPLOY_URL` = Render, **delete** `DEPLOY_URL` and
     `STAGING_DEPLOY_URL`.
-11. Open a throwaway pull request towards `staging` and confirm nothing stays
+10. Open a throwaway pull request towards `staging` and confirm nothing stays
     pending: the only way to learn a variable name was typed wrong.
 
 **Then, at leisure:**
 
-12. Promote to `main` when something is worth promoting — merged, and **never
+11. Promote to `main` when something is worth promoting — merged, and **never
     squashed**.
-13. Watch the panel's arrivals section once a week. It is what says whether
+12. Watch the panel's arrivals section once a week. It is what says whether
     there is traffic, and nothing else does.
-14. The remaining debt, if the mood takes you: the chat rail covering a card
+13. The remaining debt, if the mood takes you: the chat rail covering a card
     border at 360 px, `disabled:opacity-40`, `border-l-3` emitting no rule, the
     per-package Redis index (`10-test-debt.md`).
 
