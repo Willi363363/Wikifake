@@ -124,7 +124,7 @@ describe('I.5 — the rate, and the table under it', () => {
   it('says the same things in French', () => {
     renderIn('fr', <GamesSection games={view()} />);
 
-    expect(screen.getByText("Taux d'abandon")).not.toBeNull();
+    expect(screen.getByText('Taux d’abandon')).not.toBeNull();
     expect(screen.getByText('Salons')).not.toBeNull();
     expect(screen.getByText(/ventilé par écran/)).not.toBeNull();
   });

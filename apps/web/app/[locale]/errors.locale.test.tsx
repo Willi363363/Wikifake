@@ -40,8 +40,8 @@ describe('11.8 — a 404 inside a locale', () => {
 
   it('speaks French under the fr locale, with no English left', async () => {
     const html = await inLocale('fr', <LocaleNotFound />);
-    expect(html).toContain('Cette page n&#x27;est pas là');
-    expect(html).toContain('Revenir à l&#x27;accueil');
+    expect(html).toContain('Cette page n’est pas là');
+    expect(html).toContain('Revenir à l’accueil');
     expect(html).not.toContain('That page is not here');
     expect(html).not.toContain('Back to the front door');
   });

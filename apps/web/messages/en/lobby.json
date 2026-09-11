@@ -39,7 +39,7 @@
     },
     "waitingForHost": "Waiting for the host to start the round.",
     "readyCancel": "Ready — cancel",
-    "imReady": "I'm ready",
+    "imReady": "I’m ready",
     "startRound": "Start the round",
     "startWithoutWaiting": "Start without waiting",
     "backToRoom": "Back to the room"
