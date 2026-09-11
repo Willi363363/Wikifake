@@ -1,0 +1,97 @@
+{
+  "nav": "Legal information",
+  "privacy": {
+    "title": "Privacy",
+    "updated": "Last updated 11 September 2026",
+    "intro": "What WikiFake stores about you, why, and how to get rid of it. It describes what the code actually does, and it is short because the game collects little.",
+    "sections": {
+      "controller": {
+        "heading": "Who runs WikiFake",
+        "body": "WikiFake is a free, non-commercial project run by William Rouvière as an individual, who is the data controller for everything on this page. Write to <contact>{address}</contact> about anything to do with your data."
+      },
+      "guest": {
+        "heading": "Playing without an account",
+        "body": "You can play without signing up, and that is the normal way in. Starting a game creates a temporary guest record, so the round belongs to something and other players can be shown the name you typed. It holds no email address. Create an account and the guest record is deleted — the rounds you played follow you into the account."
+      },
+      "account": {
+        "heading": "What an account holds",
+        "body": "Your email address and whether it has been verified; the name and picture your provider sends if you sign in with Google or GitHub; a password, hashed, if you signed up with one; and the pseudonym you choose. The pseudonym is the only thing other players ever see — your email address is shown to nobody."
+      },
+      "play": {
+        "heading": "What playing records",
+        "body": "For each round: the topic, when it started and finished, the paragraphs you marked, your score, any hint you bought or item you used, and the coins it earned or cost. Alongside that: the quests you were given and claimed, your entries on the leaderboards, your overall statistics, and any report you send about an article."
+      },
+      "technical": {
+        "heading": "Technical data",
+        "body": "A session record keeps you signed in: an expiry, the IP address the request came from, and your browser’s user agent. When your profile is created, the hosting network’s own header tells us which country the request appears to come from; it is recorded once, turned into a broad region for the regional leaderboard, never refreshed, and you can override it. When error reporting is switched on, a crash sends the details of the failure — the option that would attach your IP address or your request’s headers to it is not on."
+      },
+      "cookies": {
+        "heading": "Cookies",
+        "body": "Two, both ours. One keeps you signed in; the other remembers the language you picked, and is written only when you click the switch. There is no advertising, no analytics, no third-party cookie and no cross-site identifier — which is why nothing asked you to dismiss a banner before you could read this."
+      },
+      "processors": {
+        "heading": "Who else the data passes through",
+        "body": "The site is hosted by Vercel and the multiplayer service by Render; the database is Neon; the caches are Upstash and Render. The language model that rewrites the article is Google’s: it receives the topic you typed and the article’s text, and nothing that says who you are. Signing in with Google or GitHub tells us who you are because you asked it to. Wikipedia is read by our server and never by your browser, so Wikipedia does not see you. Nothing is sold, and nothing here funds advertising."
+      },
+      "retention": {
+        "heading": "How long it is kept",
+        "body": "Until you delete it. Sessions expire on their own; everything else stays for as long as your account does, and there is no automatic clear-out today. A guest’s rounds stay with the guest record they belong to."
+      },
+      "rights": {
+        "heading": "Your rights",
+        "body": "From your profile you can download a copy of your account — your email address, your pseudonym, your statistics, your rounds and the reports you sent — and you can delete the account outright. Coins and quests are not in that file yet. Deleting removes your account, profile, statistics, coins, quests and leaderboard entries; rounds you played with other people stay, with your name replaced by a random placeholder, so their scores still make sense. A pseudonym is claimed once and cannot be changed afterwards. You can also ask for a correction, object to what is done here, or complain to the CNIL."
+      },
+      "changes": {
+        "heading": "If this page changes",
+        "body": "The date at the top is the day it last did. There is no mailing list to tell you, so it is worth a look if you care."
+      }
+    }
+  },
+  "terms": {
+    "title": "Terms",
+    "updated": "Last updated 11 September 2026",
+    "intro": "The rules of a free game, written to be read rather than accepted. Playing means accepting them.",
+    "sections": {
+      "what": {
+        "heading": "What this is",
+        "body": "WikiFake shows you a Wikipedia article in which a language model has deliberately rewritten some of the facts, and asks you to find them. Nothing you read in a round is a reliable source. Do not cite it, and do not carry any of it away as something you learned."
+      },
+      "wikipedia": {
+        "heading": "Wikipedia",
+        "body": "The articles come from French Wikipedia and are used under <licence>{licenceName}</licence>. Each round credits the article and its contributors, and WikiFake’s modifications are released under the same licence. This project is not affiliated with, endorsed by, or connected to Wikipedia or the Wikimedia Foundation."
+      },
+      "age": {
+        "heading": "Who can play",
+        "body": "You need to be at least 15, or to have a parent or guardian’s agreement. Nothing here is meant for younger children."
+      },
+      "account": {
+        "heading": "Your account and your name",
+        "body": "One account, one pseudonym, chosen once. Do not take a name meant to impersonate somebody or to insult anybody: such a name can be removed, and so can an account that keeps choosing them."
+      },
+      "coins": {
+        "heading": "Coins and items",
+        "body": "Coins are earned by playing and spent inside the game. They cannot be bought, sold or exchanged for money, they are worth nothing outside the game, and a balance can be corrected if a defect hands out what nobody earned."
+      },
+      "fair": {
+        "heading": "Fair play",
+        "body": "Play with a browser, not a script. Do not automate rounds, harvest the site, or try to break, overload or get round the service — including the parts of it that decide what a round is worth."
+      },
+      "reports": {
+        "heading": "What you send us",
+        "body": "You can report a claim an article gets wrong. What you write is stored with your account and used to improve the game, so keep anything personal out of it."
+      },
+      "availability": {
+        "heading": "No promise about availability",
+        "body": "This is a personal project running largely on free infrastructure. It can be slow, it can be down, a round can be lost, and it can stop existing. It is offered as it is."
+      },
+      "liability": {
+        "heading": "Liability",
+        "body": "As far as the law allows, WikiFake is not liable for what follows from using it — including anything you believed because a round said so. Nothing here limits a liability the law does not allow to be limited."
+      },
+      "law": {
+        "heading": "Law, and where to complain",
+        "body": "French law applies. Write to <contact>{address}</contact> about anything on this page or the last one; if that goes nowhere, a complaint about your data goes to the CNIL."
+      }
+    }
+  }
+}

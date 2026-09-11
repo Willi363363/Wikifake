@@ -12,6 +12,7 @@
 import type account from '../../messages/en/account.json';
 import type errors from '../../messages/en/errors.json';
 import type home from '../../messages/en/home.json';
+import type legal from '../../messages/en/legal.json';
 import type seo from '../../messages/en/seo.json';
 import type language from '../../messages/en/language.json';
 import type leaderboard from '../../messages/en/leaderboard.json';
@@ -41,6 +42,7 @@ export const ZONES = [
   'routes',
   'language',
   'seo',
+  'legal',
 ] as const;
 
 export type Zone = (typeof ZONES)[number];
@@ -67,6 +69,7 @@ export type CatalogueMessages = {
   routes: typeof routes;
   language: typeof language;
   seo: typeof seo;
+  legal: typeof legal;
 };
 
 /** Every zone of one locale, loaded and nested under its namespace. */

@@ -111,6 +111,9 @@ describe('11.6 — French is translated, not copied', () => {
     'leaderboard.columns.rank',
     'leaderboard.columns.score',
     'leaderboard.regions.europe',
+    // French borrowed the word and kept the spelling: the section of the
+    // privacy policy about cookies is headed "Cookies" in both.
+    'legal.privacy.sections.cookies.heading',
     'lobby.entry.brand',
     'lobby.entry.tabs.solo',
     'lobby.entry.topicPlaceholder',

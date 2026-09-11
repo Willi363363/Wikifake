@@ -32,16 +32,17 @@ doubled.
 | `alt` text pass | 🔶 | no `<img>` and no `next/image` anywhere; one `<svg>` unlabelled — **J.6** |
 | Favicon and app icons | ✅ | `app/icon.tsx`, `app/apple-icon.tsx`; `icons.spec.ts` — J.2 |
 | Web manifest | ✅ | `app/manifest.ts`; `manifest.test.ts`, `icons.spec.ts` — J.2 |
-| Privacy policy | ❌ | **J.3** |
-| Terms | ❌ | **J.3** |
+| Privacy policy | 🔶 | `app/[locale]/privacy`; `legal.test.tsx`, `legal.spec.ts` — the address is a placeholder |
+| Terms | 🔶 | `app/[locale]/terms`; same tests, same placeholder |
 | Cookie consent | ❌ | and still not needed — see below |
 | Analytics | ❌ | **J.4** |
 | FAQ | ❌ | **J.5** |
 | Broken-link check | ❌ | **J.7** — nothing in `.github/workflows/` |
 
-**Two rows moved the day after the audit**, and they are ticked above rather
-than left for a reader to reconcile: J.2 drew the icons and wrote the manifest,
-and `10-seo-icons.md` records what that cost.
+**Four rows moved in the two days after the audit**, and they are ticked above
+rather than left for a reader to reconcile: J.2 drew the icons and wrote the
+manifest, J.3 wrote the two documents. `10-seo-icons.md` and `10-seo-legal.md`
+record what each cost — including the step J.3 had to file against E.7's export.
 
 ## The three rows that changed state without anybody touching them
 

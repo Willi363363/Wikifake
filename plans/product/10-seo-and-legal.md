@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 and J.2 done — the audit re-run, and the icons drawn |
+| **State** | 🔶 J.1 to J.3 — the two documents are written; the contact address is not |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -61,7 +61,7 @@ better than a page-view counter.
 |---|---|---|
 | J.1 | Re-run the audit, and record it | ✅ |
 | J.2 | Favicon, app icons, web manifest | ✅ — `10-seo-icons.md` |
-| J.3 | Privacy policy and terms, localised | ⬜ |
+| J.3 | Privacy policy and terms, localised | 🔶 — `10-seo-legal.md`, awaiting an address |
 | J.4 | Cookieless analytics | ⬜ |
 | J.5 | FAQ, and the copy the landing needs | ⬜ |
 | J.6 | `alt` text pass across every image | ⬜ |
@@ -69,6 +69,7 @@ better than a page-view counter.
 | J.8 | The performance budget, extended past the landing | ⬜ |
 | J.9 | The indexing decision for the routes E to I added | ⬜ |
 | J.10 | Phone width and reachability, over those same routes | ⬜ |
+| J.11 | The export, over what F, G and H added | ⬜ |
 
 ### J.8 — a budget that exists, over pages that have none
 
@@ -92,6 +93,22 @@ without being endorsed by them — C.8 refused the globe for the same reason. Th
 landing's first line is "Who is lying?", so the question is the game. The
 drawing, the colour rule it must obey, and the defect a browser test found in it
 are in `10-seo-icons.md`.
+
+### J.3 — written from the code, and 🔶 for one line
+
+Every claim on the two pages was read out of the schema, the export and deletion
+paths, the proxy and the provider list — not out of a template. Two things it
+could not finish: the contact address is a placeholder the owner has to replace,
+and nobody has read the text as a lawyer. `10-seo-legal.md` argues both.
+
+### J.11 — the export is older than three tracks
+
+`exportAccount` was written in E.7 and still returns what existed then: the
+account, the profile, the statistics, the games and the reports. **Coins, quest
+assignments, hint purchases, item uses and leaderboard entries are not in the
+file a player downloads**, which makes the right of access partly unimplemented.
+Found while writing the policy, which is why the policy says what the file
+actually holds.
 
 ### J.7 — In CI, or it will not be run
 

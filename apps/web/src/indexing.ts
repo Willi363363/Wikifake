@@ -51,12 +51,20 @@ export const CRAWLERS_KEPT_OUT = [
 ] as const;
 
 /**
- * The routes that are ours to publish: the front door and the way in.
+ * The routes that are ours to publish: the front door, the way in, and the two
+ * documents.
  *
  * Deliberately short. The old sitemap had one URL and a comment explaining that
- * the rest of the site is a game, not content — that is still true.
+ * the rest of the site is a game, not content — that is still true of the game.
+ *
+ * The two legal pages are the exception step J.3 added, and they are the only
+ * pages on this site somebody may go looking for *from outside it*: a policy
+ * nobody can find is a policy that does not answer the question it exists to
+ * answer. Every other screen tracks E to I added says `noindex` in its own
+ * metadata, which is the right answer for one player's profile and the wrong
+ * one for a document addressed to anybody.
  */
-export const INDEXABLE_ROUTES = ['/', '/play'] as const;
+export const INDEXABLE_ROUTES = ['/', '/play', '/privacy', '/terms'] as const;
 
 // The title and the description used to live here as English constants. Step
 // 11.5 moved them into the catalogue — `messages/<locale>/seo.json` — because

@@ -181,6 +181,31 @@ describe('the origin a canonical link is built on', () => {
   });
 });
 
+describe('J.3 — the two documents are the exception to "a game, not content"', () => {
+  /*
+   * They are published, and every other screen this effort added is not.
+   *
+   * A privacy policy is the one page somebody may come looking for from outside
+   * the site — from a search, from a complaint form, from a note they made
+   * months ago — so a policy no crawler may keep is a policy that fails at the
+   * one thing it exists for. `/profile`, `/quests`, `/shop` and the rest say
+   * `noindex` in their own metadata and belong nowhere near this list.
+   */
+  it('publishes the privacy policy and the terms', () => {
+    expect(INDEXABLE_ROUTES).toContain('/privacy');
+    expect(INDEXABLE_ROUTES).toContain('/terms');
+  });
+
+  it('keeps no crawler out of either', () => {
+    const rules = robotsRules(BARE);
+    const everybody = [rules.rules].flat().find((rule) => rule.userAgent === '*');
+
+    for (const route of ['/privacy', '/terms']) {
+      expect([everybody?.disallow ?? []].flat()).not.toContain(route);
+    }
+  });
+});
+
 // C6.3 — the title and description bounds moved with the strings themselves:
 // per locale, in `app/[locale]/layout.test.tsx`, against the `seo` zone of the
 // catalogue (step 11.5).
