@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 to J.5 — three documents, and arrivals counted and shown |
+| **State** | 🔶 J.1 to J.6 — three documents, arrivals counted, graphics labelled |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -65,7 +65,7 @@ better than a page-view counter.
 | J.4 | Arrivals counted, first-party | ✅ — `10-seo-analytics.md` |
 | J.4b | The panel section that shows them | ✅ — `10-seo-analytics.md` |
 | J.5 | The FAQ, and the copy the landing needs | ✅ — `10-seo-faq.md` |
-| J.6 | `alt` text pass across every image | ⬜ |
+| J.6 | `alt` text pass across every image | ✅ |
 | J.7 | Broken-link check, wired into CI | ⬜ |
 | J.8 | The performance budget, extended past the landing | ⬜ |
 | J.9 | The indexing decision for the routes E to I added | ⬜ |
@@ -94,6 +94,21 @@ without being endorsed by them — C.8 refused the globe for the same reason. Th
 landing's first line is "Who is lying?", so the question is the game. The
 drawing, the colour rule it must obey, and the defect a browser test found in it
 are in `10-seo-icons.md`.
+
+### J.6 — one attribute, and the scan that keeps it true
+
+The pass had almost nothing to audit, which J.1 had already found: **no `<img>`
+and no `next/image` anywhere**, and two inline `<svg>`. One of them — the arrow
+marking another player's cursor — carried neither `aria-hidden` nor a name, so a
+screen reader announced a graphic that means nothing beside the name it
+decorates. Hidden, because *where* is the whole of what an arrow says and a
+position announced to somebody not looking at the screen is noise.
+
+The rest of the step is `graphics.test.ts`: a source scan over **both**
+`apps/web` and `packages/ui` — the two icons live one in each — refusing an
+`<svg>` that is neither hidden nor named, and an `<img>` or `next/image` with no
+`alt` at all, for the day there is one. It was checked by breaking the other
+icon on purpose: the scan failed and named the file.
 
 ### J.5 — and the half of it that was already done
 

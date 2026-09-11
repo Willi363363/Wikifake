@@ -56,7 +56,18 @@ export function PlayerCursors({ cursors }: PlayerCursorsProps) {
             transitionDuration: `${String(THROTTLE_MS * 2)}ms`,
           }}
         >
-          <svg viewBox="0 0 16 16" className="size-4 shrink-0">
+          {/* Step J.6 — hidden from a screen reader, because it says nothing
+              a screen reader can use. The arrow means "somebody is here", and
+              *where* is the whole of it: a position on screen, announced to
+              somebody who is not looking at the screen, is noise. The name
+              beside it is the part that carries the information, and it is
+              text. */}
+          <svg
+            viewBox="0 0 16 16"
+            className="size-4 shrink-0"
+            aria-hidden
+            focusable="false"
+          >
             <path
               d="M2 2 L2 12 L5 9 L7 14 L9 13 L7 8.5 L11 8.5 Z"
               fill={cursor.colour}
