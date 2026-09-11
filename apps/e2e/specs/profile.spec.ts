@@ -13,16 +13,7 @@
 // So this plays a round. Once.
 import { expect, test, type Page } from '@playwright/test';
 
-import { someone, type Someone } from './accounts.js';
-
-async function signUp(page: Page, who: Someone): Promise<void> {
-  await page.goto('/sign-up');
-  await page.getByLabel('Email', { exact: true }).fill(who.email);
-  await page.getByLabel('Pseudonym', { exact: true }).fill(who.pseudonym);
-  await page.getByLabel('Password', { exact: true }).fill(who.password);
-  await page.getByRole('button', { name: 'Create the account' }).click();
-  await expect(page).toHaveURL(/\/play$/);
-}
+import { signUp, someone } from './accounts.js';
 
 /** The solo journey of `solo.spec.ts`, in as few steps as a round allows. */
 async function playARound(page: Page, marks: number): Promise<void> {

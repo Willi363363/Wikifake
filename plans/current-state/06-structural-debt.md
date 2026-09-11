@@ -170,25 +170,21 @@ in a box 80px taller, so the landing's question sits about 40 pixels above where
 every heading after it sits. Cosmetic, and real. Same family as the two entries
 above: a rule that reads correctly, reviews correctly and does nothing.
 
-## `signUp` promises a wait it does not perform, and a copy of it still does
+## `signUp` promised a wait it did not perform — closed 2026-09-11
 
-`apps/e2e/specs/accounts.ts:58` documents itself as "creates the account, **and
+`apps/e2e/specs/accounts.ts` documented itself as "creates the account, **and
 waits for the screen it lands on**", with a paragraph explaining that waiting
-there rather than in each caller "is what stops a spec from asserting against a
-page that is still mid-claim". The body fills three fields, clicks, and returns.
+there rather than in each caller is what stops a spec from racing the pseudonym
+claim E.3.2 added. The body filled three fields, clicked, and returned.
 
-Two things say the gap is already being paid for. `account-data.spec.ts:91`
-carries a comment compensating for it — *"waited for, not assumed: `signUp`
-clicks and returns"* — and `profile.spec.ts:18` keeps a **local** `signUp` that
-is the shared one plus the missing `toHaveURL`, while importing `someone` from
-the shared file beside it. That local copy is exactly the duplication
-`accounts.ts` was created to end.
+Nothing failed, because every caller had grown its own wait — and `profile.spec`
+had grown a private copy of the whole function, which is the duplication
+`accounts.ts` was created to end. **A contract nobody keeps is paid for one line
+at a time by whoever reads it next**, and it cost J.10 a red run.
 
-Nothing is failing: all four callers of the shared helper follow it with their
-own wait. What is wrong is the contract, and the next spec to trust the sentence
-will race the pseudonym claim E.3.2 added — intermittently, which is the failure
-mode the helper was written against.
-
-The fix is one line in the helper and the deletion of the local copy. It is left
-here because those two together change what five specs wait on, which is not an
-aside in a step about a debrief.
+**Closed**, and the line is not the obvious one: it waits for the form to be
+*left*, not for `/play` to be reached. An account whose pseudonym is already
+claimed lands on `/choose-a-name`, which `pseudonym.spec.ts` exists to prove, so
+a helper insisting on `/play` would have hung on the spec that tests the other
+half. The callers keep their `toHaveURL`: it stopped being a wait and became the
+assertion it always read like.

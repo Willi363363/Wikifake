@@ -88,9 +88,10 @@ test.describe('E.7 — your data, and its way out', () => {
   test('frees the pseudonym for somebody else', async ({ page, browser }) => {
     const ada = someone('data');
     await signUp(page, ada);
-    // Waited for, not assumed: `signUp` clicks and returns, and sign-up is two
-    // round trips since E.3.2 — the account, then the pseudonym. Going to
-    // `/profile` before the second lands is a redirect to `/sign-in`.
+    // The landing is asserted rather than waited for: `signUp` waits for the
+    // sign-up form to be left, and *which* screen it lands on is this spec's
+    // claim — `/play` rather than `/choose-a-name` means the pseudonym was
+    // free.
     await expect(page).toHaveURL(/\/play$/);
     await page.goto('/profile');
     await page.getByRole('button', { name: 'Delete my account' }).click();
