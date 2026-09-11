@@ -9,15 +9,14 @@
 
 **The product effort is finished.** Tracks F, G, H and I shipped overnight; this
 session took track J from an unstarted checklist to eleven closed steps. What is
-left in `plans/product/` is four things a person has to do, and none of them is
-code.
+left is a numbered list of gestures in a dashboard, and none of it is code.
 
 ## State at the pause
 
-- **`staging`:** carries everything below. **`main` is 103 commits behind it**,
-  and nothing of tracks C to J is in production.
-- Working tree clean. Fourteen pull requests this session, #234 to #247, all
-  merged to `staging`.
+- **Tracks C to J are in production.** The promotion merged 108 commits into
+  `main` and every route was probed by hand; `staging` is two documentation
+  commits ahead of it.
+- Working tree clean. Twenty-two pull requests this session, #234 to #255.
 - **`plans/README.md` carries the state of every track.** Nothing else does.
 
 ## Read this before promoting: the migrations
@@ -91,33 +90,69 @@ Two things came out of CI rather than out of a plan: the debt register split a
 fifth way (`10-test-debt.md`) because `08-toolchain-debt.md` hit the 200-line
 rule with a finding still to write, and the promotion procedure above.
 
-## Outstanding
+## Outstanding — the order to do it in
 
-**Needs a person, not a session:**
+Everything below needs a person, and nothing below needs code except item 17,
+which is optional.
 
-- **Nothing**, for the schema: it is already up to date. The check above is
-  what says so, and it is a query rather than a `git diff`.
-- **E.1's credentials** — Google console, then two variables in Vercel.
-  `plans/product/05-accounts-oauth.md` has the runbook and the preview trap.
-- **`CRON_SECRET` in Vercel**, or track F's quests never rotate.
-- **C.7's device measurement** — `plans/product/03-landing-budget.md`, steps 1–6.
-- **A human reading of the legal text.** `/privacy` and `/terms` are accurate
-  about the system, which is the part a repository can hold. Whether they are
-  *sufficient* is a judgement no test makes, and it sits in the same queue as
-  the French catalogue's review (`phase-11-i18n.md`).
+**Today, about ninety minutes, all of it in a dashboard:**
 
-**Inherited and still open:**
+1. Remove the custom domain from Render; add it to the Vercel project; wait for
+   the certificate. Both providers claiming it is a certificate error.
+2. Vercel production: `NEXT_PUBLIC_REALTIME_URL` = `wss://…`, then **redeploy**
+   — it is inlined at build time, so a variable change alone does nothing.
+3. Render, the realtime service: add the public origin to
+   `REALTIME_ALLOWED_ORIGINS`. An origin it does not name is refused before the
+   upgrade, which fails closed and invisibly.
+4. GitHub → Settings → Variables: `WEB_DEPLOY_URL` = the public domain,
+   `REALTIME_DEPLOY_URL` = Render, **delete** `DEPLOY_URL` and
+   `STAGING_DEPLOY_URL`.
+5. Google Cloud → Credentials → OAuth client ID, *Web application*. Redirect
+   URIs: `https://<domain>/api/auth/callback/google` and the localhost one.
+   Never a preview host — Google matches exactly, Vercel generates those.
+6. The consent screen: External, then **Publish**. It asks for a privacy policy
+   and terms, which track J shipped.
+7. Vercel production: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`,
+   `BETTER_AUTH_URL` = the public domain, `CRON_SECRET` = anything random.
+   Redeploy. `BETTER_AUTH_URL` unset defaults to localhost and takes the
+   callback, the realtime origins and the canonical URL down with it.
+8. Sign in with Google **from a phone** — E.1's exit line.
+9. Regenerate `GOOGLE_GENERATIVE_AI_API_KEY`, in a 2026-08-27 transcript.
 
-- **Step 10.10's dry run** — resume the suspended Render service, read
-  `/api/health`, write the commit into `phase-10-rollback.md`, suspend.
-- **Move the domain**, runbook step 5. The public domain still points at Render.
-- **A rollback must recreate `DEPLOY_URL`.**
-- **The Google AI key from the 2026-08-27 transcript**, if never regenerated.
-- **The `rules.yml` concurrency defect**, and `Human review` failing on every
-  pull request — the label it waits for was retired in #150. `gh` has no
-  `workflow` scope, so neither can be fixed from a session.
-- **Chat rail covers a card border at 360 px**; **`disabled:opacity-40`** is the
-  one translucency the direction forbids.
+**This week:**
+
+10. Step 10.10's dry run: resume the Render service, read `/api/health`, write
+    the commit into `phase-10-rollback.md`, suspend again.
+11. C.7's device measurement — `plans/product/03-landing-budget.md`, steps 1–6.
+    Track C closes with it.
+12. Open a throwaway pull request towards `staging` and confirm nothing stays
+    pending: the only way to learn a variable name was typed wrong.
+13. Promote the documentation commits — merged, and **never squashed**.
+14. Read the French catalogue as a French reader (`phase-11-i18n.md`).
+15. Have `/privacy` and `/terms` read by somebody legal. They are accurate about
+    the system; whether they are sufficient is a judgement no test makes.
+
+**Then, at leisure:**
+
+16. Watch the panel's arrivals section once a week. It is what says whether
+    there is traffic, and nothing else does.
+17. The remaining debt, if the mood takes you: the chat rail covering a card
+    border at 360 px, `disabled:opacity-40`, `border-l-3` emitting no rule, the
+    per-package Redis index (`10-test-debt.md`).
+
+**Advertising — not yet, and a decision rather than an omission.**
+`11-deferred.md` carries the arithmetic: €1–3 per thousand impressions needs
+traffic in the hundreds of thousands to mean anything. When it does, in order:
+apply to AdSense, add a Google-certified consent platform and therefore the
+cookie banner this site does not have, add `ads.txt`, **rewrite the "Cookies"
+and "Who else the data passes through" paragraphs in both catalogues** — they
+currently promise there is no advertising — and give the panel a revenue
+section.
+
+**Three that a session cannot fix:** the `rules.yml` concurrency defect;
+`Human review` failing on every pull request, because the label it waits for was
+retired in #150 and `gh` has no `workflow` scope; and a rollback needing
+`DEPLOY_URL` recreated.
 
 ## Read this before trusting a green
 
