@@ -32,8 +32,8 @@ doubled.
 | `alt` text pass | ✅ | nothing to label but two `<svg>`, and `graphics.test.ts` refuses the next unlabelled one — J.6 |
 | Favicon and app icons | ✅ | `app/icon.tsx`, `app/apple-icon.tsx`; `icons.spec.ts` — J.2 |
 | Web manifest | ✅ | `app/manifest.ts`; `manifest.test.ts`, `icons.spec.ts` — J.2 |
-| Privacy policy | 🔶 | `app/[locale]/privacy`; `legal.test.tsx`, `legal.spec.ts` — the address is a placeholder |
-| Terms | 🔶 | `app/[locale]/terms`; same tests, same placeholder |
+| Privacy policy | ✅ | `app/[locale]/privacy`; `legal.test.tsx`, `legal.spec.ts` — J.3 |
+| Terms | ✅ | `app/[locale]/terms`; same tests — J.3 |
 | Cookie consent | ❌ | and still not needed — see below |
 | Analytics | ✅ | first-party, no identifier — `page_view`, `POST /api/view`, and the panel's arrivals section |
 | FAQ | ✅ | `app/[locale]/faq`, eleven questions and a `FAQPage` — J.5 |
