@@ -36,7 +36,7 @@ are defined in `product/`, and their state is the table below.
 | G | Leaderboards | ✅ done — world and regional, with thresholds | `product/07-leaderboards.md` |
 | H | Coins and the shop | ✅ done — the ledger, the shop, and no payment | `product/08-economy.md` |
 | I | Admin panel | ✅ done — read-only, six sections, one range | `product/09-admin.md` |
-| J | SEO, legal and polish | 🔶 the icons, the documents, and arrivals counted and shown | `product/10-seo-and-legal.md` |
+| J | SEO, legal and polish | 🔶 icons, three documents, and arrivals counted and shown | `product/10-seo-and-legal.md` |
 
 What was deliberately left out of it, with the reasons, is in
 `product/11-deferred.md`.

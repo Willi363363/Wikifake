@@ -36,7 +36,7 @@ doubled.
 | Terms | 🔶 | `app/[locale]/terms`; same tests, same placeholder |
 | Cookie consent | ❌ | and still not needed — see below |
 | Analytics | ✅ | first-party, no identifier — `page_view`, `POST /api/view`, and the panel's arrivals section |
-| FAQ | ❌ | **J.5** |
+| FAQ | ✅ | `app/[locale]/faq`, eleven questions and a `FAQPage` — J.5 |
 | Broken-link check | ❌ | **J.7** — nothing in `.github/workflows/` |
 
 **Four rows moved in the two days after the audit**, and they are ticked above

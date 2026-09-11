@@ -10,7 +10,10 @@
 // renders, so both are here.
 import { expect, test } from '@playwright/test';
 
-test.describe('J.3 — the documents are reachable', () => {
+// J.5 added the third document to this journey rather than a spec of its own:
+// what is asserted is the same claim about the same footer, and a second file
+// would be a second place to remember when a fourth arrives.
+test.describe('J.3 and J.5 — the documents are reachable', () => {
   test('the front door links the privacy policy, and it answers', async ({ page }) => {
     await page.goto('/');
 
@@ -63,12 +66,36 @@ test.describe('J.3 — the documents are reachable', () => {
     await expect(page.getByRole('link', { name: 'Terms' })).toBeVisible();
   });
 
+  test('the FAQ is one click away, and answers as data too', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('link', { name: 'Questions' }).click();
+
+    await expect(page).toHaveURL(/\/faq$/);
+    await expect(
+      page.getByRole('heading', { level: 1, name: 'Questions' }),
+    ).toBeVisible();
+
+    // The answer a reader of a game about false facts most needs, and the one
+    // this page puts second on purpose.
+    await expect(
+      page.getByRole('heading', { name: 'Can I trust what I read in a round?' }),
+    ).toBeVisible();
+
+    // The structured data, parsed out of the served document rather than
+    // rendered: it is emitted for machines, and this is the only place that
+    // reads it the way one would.
+    const block = await page.locator('script[type="application/ld+json"]').textContent();
+    const data = JSON.parse(block ?? '') as { '@type': string; mainEntity: unknown[] };
+    expect(data['@type']).toBe('FAQPage');
+    expect(data.mainEntity.length).toBeGreaterThan(5);
+  });
+
   test('a crawler is allowed to keep them', async ({ page }) => {
-    for (const path of ['/privacy', '/terms']) {
+    for (const path of ['/privacy', '/terms', '/faq']) {
       await page.goto(path);
 
-      // Every other screen this effort added says `noindex`. These two must
-      // not: a policy nobody can find answers nobody.
+      // Every other screen this effort added says `noindex`. These three must
+      // not: a document nobody can find answers nobody.
       await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(
         0,
       );

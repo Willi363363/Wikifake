@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 to J.4b — the documents, and arrivals counted and shown |
+| **State** | 🔶 J.1 to J.5 — three documents, and arrivals counted and shown |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -64,7 +64,7 @@ better than a page-view counter.
 | J.3 | Privacy policy and terms, localised | 🔶 — `10-seo-legal.md`, awaiting an address |
 | J.4 | Arrivals counted, first-party | ✅ — `10-seo-analytics.md` |
 | J.4b | The panel section that shows them | ✅ — `10-seo-analytics.md` |
-| J.5 | FAQ, and the copy the landing needs | ⬜ |
+| J.5 | The FAQ, and the copy the landing needs | ✅ — `10-seo-faq.md` |
 | J.6 | `alt` text pass across every image | ⬜ |
 | J.7 | Broken-link check, wired into CI | ⬜ |
 | J.8 | The performance budget, extended past the landing | ⬜ |
@@ -94,6 +94,18 @@ without being endorsed by them — C.8 refused the globe for the same reason. Th
 landing's first line is "Who is lying?", so the question is the game. The
 drawing, the colour rule it must obey, and the defect a browser test found in it
 are in `10-seo-icons.md`.
+
+### J.5 — and the half of it that was already done
+
+Eleven questions, answered from the code like the two documents before them, and
+`trust` is second on purpose: everything else says how the game works, and that
+one says not to believe what it shows you.
+
+The step's second half — *the copy the landing needs* — was audited and found to
+need nothing. The landing says what the game is in four beats and ends on a call
+to action C.5 deliberately put last; the copy that was missing is the questions
+those beats do not answer, which is this page. It also carries the site's only
+structured data, built from the catalogue rather than written twice.
 
 ### J.4 — a counter, and the step it turned out to be hiding
 

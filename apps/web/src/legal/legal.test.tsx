@@ -137,3 +137,36 @@ describe('J.3 — the licence is the one the round already credits', () => {
     expect(link.getAttribute('href')).toBe(LICENCE.url);
   });
 });
+
+describe('J.5 — the questions', () => {
+  it.each(LOCALES)(
+    'asks the one about not believing the game, second, in %s',
+    (locale) => {
+      // Order is a decision here rather than a detail: everything else on the
+      // page is how the game works, and `trust` is the one that says not to
+      // believe what it shows you. A reader who leaves after two answers should
+      // have read it.
+      expect(SECTIONS.faq[1]).toBe('trust');
+
+      const page = within(renderIn(locale, <LegalDocument name="faq" />).container);
+      const heading = sectionsOf(locale, 'faq')['trust']?.heading ?? '';
+      expect(page.getByRole('heading', { level: 2, name: heading })).toBeDefined();
+    },
+  );
+
+  it('answers every question it lists, in both languages', () => {
+    for (const locale of LOCALES) {
+      const sections = sectionsOf(locale, 'faq');
+      for (const id of SECTIONS.faq) {
+        const answer = sections[id]?.body ?? '';
+        // A heading with no answer under it is the way a FAQ rots: somebody
+        // adds the question they meant to answer and never comes back.
+        expect({ locale, id, answered: answer.length > 40 }).toEqual({
+          locale,
+          id,
+          answered: true,
+        });
+      }
+    }
+  });
+});

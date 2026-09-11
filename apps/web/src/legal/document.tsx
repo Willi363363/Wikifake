@@ -7,8 +7,11 @@
 // which is the failure mode a policy already has without any help from us.
 // The chassis around it stays loud; the prose does not.
 //
-// One component for both documents because they are the same shape: a title, a
-// date, one paragraph of introduction, and sections of a heading and a body.
+// One component for all three because they are the same shape: a title, a date,
+// one paragraph of introduction, and sections of a heading and a body. The FAQ
+// of J.5 joined them rather than growing a second renderer — it is a standing
+// document of headings and paragraphs, whatever its subject, and the `legal`
+// zone is where the standing documents live.
 // The order lives here, in `SECTIONS`, rather than being read off the catalogue
 // — `Object.keys` on a message object is an order that depends on how a
 // translator saved the file, and the order of a legal document is part of it.
@@ -50,6 +53,26 @@ export const SECTIONS = {
     'availability',
     'liability',
     'law',
+  ],
+  /*
+   * The questions, in the order they are asked.
+   *
+   * `trust` sits second on purpose. Everything else on this page is about how
+   * the game works; that one is about not believing what it shows you, and a
+   * reader who leaves after two answers should have read it.
+   */
+  faq: [
+    'what',
+    'trust',
+    'free',
+    'articles',
+    'errors',
+    'scoring',
+    'friends',
+    'coins',
+    'french',
+    'realerror',
+    'data',
   ],
 } as const;
 
