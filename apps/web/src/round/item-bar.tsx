@@ -81,7 +81,10 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
                 'transition-[transform,box-shadow] duration-150 motion-reduce:transition-none',
                 'enabled:hover:translate-x-1 enabled:hover:translate-y-1 enabled:hover:shadow-none',
                 'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
-                'disabled:opacity-50',
+                // Flat fill, collapsed shadow, withdrawn text — the button
+                // primitive's disabled style, spelled here because this tile
+                // is not a `Button`.
+                'disabled:bg-bg-grain disabled:text-muted disabled:shadow-none',
                 inFlight ? 'bg-accent-soft' : 'bg-surface',
               )}
             >

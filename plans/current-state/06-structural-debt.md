@@ -139,21 +139,26 @@ in the source, in a diff and in a review. Where a class carries something
 structural — a border that is the design, a colour that is a contrast pair —
 read the built stylesheet once rather than trusting the name.
 
-## `disabled:opacity-40` is a translucency the direction otherwise forbids
+## ~~`disabled:opacity-40`~~ — closed on 2026-09-11
 
-`buttonVariants` fades a disabled button to 40%. On the primary button that
-composites `#ffe14d` against the page and black text with it, so `Submitted` in
-the round's top bar and a not-yet-valid `Flag it` read as grey on cream —
-recognisably disabled, and only just legible.
+`buttonVariants` faded a disabled button to 40%, and on the primary button that
+composited `#ffe14d` against the page and the black text with it: `Submitted` in
+the round's top bar read as grey on cream, recognisably off and only just
+legible. **Nothing could measure it** — `CONTRAST_PAIRS` measures two declared
+tokens, an opacity composite is neither of them, and WCAG 1.4.3 exempts a
+disabled control, so no audit called it either. It was invisible to every check
+this repository has, which is why it survived a whole track that looked at it.
 
-Nothing measures it: `CONTRAST_PAIRS` measures declared token pairs, and an
-opacity composite is neither of the two colours in one. WCAG 1.4.3 exempts a
-disabled control, so no audit calls it either.
+The fix is the one this entry predicted: the direction's own vocabulary, a flat
+fill and a collapsed shadow, text a step down. `muted` on `bg-grain` is now a
+row of the audit at 6.52 and 7.05, so the state that could not be measured is
+measured on every run.
 
-The answer is a disabled *style* rather than an opacity — the direction has one
-already, in that a flat fill and a collapsed shadow say "not now" without
-diluting anything. It belongs to `packages/ui`, which owns the variant and the
-gallery that pins it, so track D looked at it and left it.
+**It was five places, not one.** The entry said `buttonVariants`, because that
+is where it was found; the input, the label, the host's toggle and the item tile
+each spelled their own. That is the part worth keeping: a rule written once in a
+primitive is obeyed by whoever imports it and re-typed by everyone else.
+`primitives/disabled.test.ts` scans both trees for the next one.
 
 ## `margin-top: 0` on a stacked beat loses on specificity
 

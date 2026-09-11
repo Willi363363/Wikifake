@@ -132,8 +132,8 @@ old one deleted, checked by playing a round rather than by reading
 11. Watch the panel's arrivals section once a week. It is what says whether
     there is traffic, and nothing else does.
 12. The remaining debt, if the mood takes you: the chat rail covering a card
-    border at 360 px, `disabled:opacity-40`, `border-l-3` emitting no rule, the
-    per-package Redis index (`10-test-debt.md`).
+    border at 360 px, `border-l-3` emitting no rule, the per-package Redis index
+    (`10-test-debt.md`). `disabled:opacity-40` is closed.
 
 **Advertising — not yet, and a decision rather than an omission.**
 `11-deferred.md` carries the arithmetic: €1–3 per thousand impressions needs

@@ -38,7 +38,22 @@ export const buttonVariants = cva(
     'transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(.2,.9,.3,1)]',
     'motion-reduce:transition-none',
     'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
-    'disabled:pointer-events-none disabled:opacity-40',
+    // Disabled is a *style*, not a translucency.
+    //
+    // It used to be `disabled:opacity-40`, and that was the one fade in a
+    // direction that fades nothing: on the primary button it composited #ffe14d
+    // against the page and the black text with it, so `Submitted` in the round's
+    // top bar read as grey on cream — recognisably off, and only just legible.
+    // Worse, nothing could measure it: `CONTRAST_PAIRS` measures two declared
+    // tokens, and an opacity composite is neither of them.
+    //
+    // The direction already had the vocabulary. A flat fill and a collapsed
+    // shadow say "not now" — the same gesture as the hover, arrived at instead
+    // of departed from. The black frame stays, because the frame is the design;
+    // what goes is the colour, the depth and a step of the text. Both colours
+    // are tokens, so `muted` on `bg-grain` is a row of the audit rather than a
+    // composite nobody can compute.
+    'disabled:pointer-events-none disabled:bg-bg-grain disabled:text-muted disabled:shadow-none',
   ),
   {
     variants: {

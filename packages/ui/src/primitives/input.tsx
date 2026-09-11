@@ -32,7 +32,9 @@ export function Input({ className, type, ...props }: InputProps) {
         'text-sm text-ink placeholder:text-muted-2',
         'outline-none',
         'focus-visible:ring-[3px] focus-visible:ring-accent-line focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
-        'disabled:cursor-not-allowed disabled:opacity-40',
+        // The same disabled vocabulary as the button: a flat fill and
+        // withdrawn text, both of them tokens the audit can measure.
+        'disabled:cursor-not-allowed disabled:bg-bg-grain disabled:text-muted',
         className,
       )}
       {...props}
