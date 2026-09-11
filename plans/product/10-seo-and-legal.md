@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | ⬜ not started |
+| **State** | 🔶 J.1 done — the audit re-run, and the two steps it added |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -13,32 +13,17 @@ Work through the launch checklist — the SaaS-shaped list of privacy policy,
 sitemap, meta tags, consent, performance — **as an audit first**. Half of it
 is already done, and re-planning done work is how a checklist becomes busywork.
 
-## Audited against the code, 2026-09-05
+## The audit lives in its own sheet
 
-| Item | State |
-|---|---|
-| `robots.txt` | ✅ `apps/web/app/robots.ts`, generated |
-| `sitemap.xml` | ✅ `apps/web/app/sitemap.ts`, from `src/indexing.ts` |
-| Custom 404 | ✅ `not-found.tsx`, localised — step 11.8 |
-| Error page | ✅ `global-error.tsx`, localised — step 11.8 |
-| Meta title and description | ✅ per locale, `[locale]/layout.tsx` |
-| Canonical URLs and `hreflang` | ✅ `src/indexing.ts`, held by a test |
-| Mobile | ✅ phase 6 step 6.5, and re-checked by tracks C and D |
-| Accessibility | ✅ contrast audit + two browser journeys (#153) |
-| Favicon and app icons | ❌ absent |
-| Web manifest | ❌ absent |
-| Social share image | ❌ absent — track C step C.8 |
-| Privacy policy | ❌ absent |
-| Terms | ❌ absent |
-| Cookie consent | ❌ absent |
-| Analytics | ❌ none installed |
-| FAQ | ❌ absent |
-| `alt` text pass | ⬜ never audited as a pass |
-| Broken-link check | ⬜ never run |
-| Performance budget | ⬜ no budget recorded |
+Re-run on 2026-09-11 against the code at the tip of `staging`, and recorded in
+`10-seo-audit.md` — nineteen rows, each one naming the file that delivers it and
+the test that holds it.
 
-**This table is a snapshot and will go stale.** Re-run the audit at the start
-of the track rather than trusting these rows.
+**Do not re-read the version that used to sit here.** It was a snapshot of
+2026-09-05, and three of its ✅ were already false: the share image had since
+shipped, and the mobile and accessibility rows named a list of four routes while
+tracks E to I added eight more. A snapshot in a plan file is how a checklist
+starts lying, which is exactly what J.1 is for.
 
 ## The legal minimum, and why it is not optional
 
@@ -74,14 +59,31 @@ better than a page-view counter.
 
 | # | Step | State |
 |---|---|---|
-| J.1 | Re-run the audit above | ⬜ |
+| J.1 | Re-run the audit, and record it | ✅ |
 | J.2 | Favicon, app icons, web manifest | ⬜ |
 | J.3 | Privacy policy and terms, localised | ⬜ |
 | J.4 | Cookieless analytics | ⬜ |
 | J.5 | FAQ, and the copy the landing needs | ⬜ |
 | J.6 | `alt` text pass across every image | ⬜ |
 | J.7 | Broken-link check, wired into CI | ⬜ |
-| J.8 | Performance budget, recorded and enforced | ⬜ |
+| J.8 | The performance budget, extended past the landing | ⬜ |
+| J.9 | The indexing decision for the routes E to I added | ⬜ |
+| J.10 | Phone width and reachability, over those same routes | ⬜ |
+
+### J.8 — a budget that exists, over pages that have none
+
+The landing already carries one and CI already fails on it: layouts that do not
+scale with frames, the worst throttled frame under 250 ms, CLS under 0.1, total
+blocking time under 200 ms. J.8 is to give the other routes a number, not to
+invent the first one.
+
+### J.9 and J.10 — what the audit found
+
+`/leaderboard` is the only route added since the indexing contract that carries
+no directive either way, and its own source defers that call to this track. It
+is also the only one of the ten a guest is invited to read. J.10 is the 360 px
+sweep, which names four routes while ten exist. Both are argued in
+`10-seo-audit.md`.
 
 ### J.7 — In CI, or it will not be run
 
@@ -91,7 +93,7 @@ budget: a number in a document is a wish, a number in CI is a budget.
 
 ## Exit gate
 
-- The audit table has no ❌ that is not deliberately deferred, with a reason.
+- `10-seo-audit.md` has no ❌ that is not deliberately deferred, with a reason.
 - Privacy and terms exist in both locales and say what is actually stored.
 - No cookie banner, because nothing was installed that needs one.
 - The link check and the performance budget run in CI and can fail it.
