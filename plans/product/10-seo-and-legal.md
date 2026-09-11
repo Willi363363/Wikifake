@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 to J.9 — the launch list, less the phone sweep and the export |
+| **State** | 🔶 J.1 to J.10 — the launch list, less the export and one address |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -69,7 +69,7 @@ better than a page-view counter.
 | J.7 | Broken-link check, wired into CI | ✅ |
 | J.8 | The performance budget, extended past the landing | ✅ — `10-seo-budget.md` |
 | J.9 | The indexing decision for the routes E to I added | ✅ |
-| J.10 | Phone width and reachability, over those same routes | ⬜ |
+| J.10 | Phone width and reachability, over those same routes | ✅ — `10-seo-sweep.md` |
 | J.11 | The export, over what F, G and H added | ⬜ |
 
 **The sheets carry the arguments**, and the table above names them: a step whose
@@ -94,8 +94,6 @@ write nothing: there was no list to be missing from. `UNINDEXED_ROUTES` in
 about, and `indexing.test.ts` walks `app/[locale]` and holds every page to being
 classified — published, hidden, dynamic, or kept out by `robots.txt`. Checked by
 adding an empty page: the test failed and named it.
-
-### J.10 — what the audit found
 
 ### J.6 — one attribute, and the scan that keeps it true
 

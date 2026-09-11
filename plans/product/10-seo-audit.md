@@ -26,8 +26,8 @@ doubled.
 | Meta title and description | ✅ | `messages/<locale>/seo.json`; `[locale]/layout.test.tsx` |
 | Canonical URLs and `hreflang` | ✅ | `[locale]/layout.tsx`; `indexing.spec.ts` |
 | Social share image | ✅ | `[locale]/opengraph-image.tsx`, per locale — **was ❌**, C.8 shipped it |
-| Mobile | 🔶 | the 360 px sweep names four routes; ten exist — **J.10** |
-| Accessibility | 🔶 | contrast audit, reduced motion, `fills.test.ts` — nothing on the screens E to I added |
+| Mobile | ✅ | thirteen routes at 360 px, three of them behind an account — J.10 |
+| Accessibility | ✅ | contrast audit, reduced motion, `fills.test.ts`, and the screens E to I added now reached and read — J.10 |
 | Performance budget | ✅ | six entry screens, weight and CLS and blocking, in CI — J.8 |
 | `alt` text pass | ✅ | nothing to label but two `<svg>`, and `graphics.test.ts` refuses the next unlabelled one — J.6 |
 | Favicon and app icons | ✅ | `app/icon.tsx`, `app/apple-icon.tsx`; `icons.spec.ts` — J.2 |
@@ -111,7 +111,9 @@ Two steps, both of them findings rather than ideas:
   a search engine keeps — and every decision moved into `UNINDEXED_ROUTES` in
   `src/indexing.ts`, where a test holds each screen to having one.
 - **J.10** — the 360 px sweep, and a reachability assertion, over the eight
-  routes tracks E to I added.
+  routes tracks E to I added. **Done**: thirteen routes, three of them swept by
+  an account because a stranger is redirected off them, and every one of them
+  already fitted. `/admin` is deliberately not swept — `10-seo-sweep.md`.
 
 Neither is scope the track invented: both are rows of its own audit table that
 stopped being true while the table was not being read.
