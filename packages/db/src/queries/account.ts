@@ -20,9 +20,13 @@
 import { desc, eq } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
-import { flagReport } from '../schema/audit.js';
+import { admin } from '../schema/admin.js';
+import { coinMovement } from '../schema/coins.js';
+import { flagReport, hintPurchase, itemUse } from '../schema/audit.js';
 import { game, participant } from '../schema/game.js';
+import { leaderboardEntry } from '../schema/leaderboard.js';
 import { profile } from '../schema/profile.js';
+import { questAssignment } from '../schema/quests.js';
 import { user } from '../schema/auth.js';
 import { selectGameHistory } from './history.js';
 import { selectPlayerStats, type PlayerStats } from './stats.js';
@@ -37,16 +41,80 @@ import { selectPlayerStats, type PlayerStats } from './stats.js';
 type Tx = Parameters<Parameters<Database['db']['transaction']>[0]>[0];
 type Db = Database['db'] | Tx;
 
+/**
+ * Every table that holds something about a player, and what the export does
+ * with it — step J.11.
+ *
+ * **The reason this exists is that the export fell three tracks behind and
+ * nothing said so.** E.7 wrote it when the schema had five tables; F, G and H
+ * added coins, quests, hint purchases, item uses and leaderboard entries, and
+ * every one of them was missing from what a player could download. A right of
+ * access that silently stops covering new data is worse than one nobody built,
+ * because the gap is invisible from the outside.
+ *
+ * `account.export.test.ts` reads the schema directory, finds every table that
+ * references a `user` or a `participant`, and holds it to appearing here. A
+ * table added without a line fails that test — which is the only way this list
+ * stays true, since the alternative is somebody remembering.
+ */
+export const EXPORT_COVERAGE: Readonly<Record<string, string>> = {
+  // Exported, and the key in `AccountExport` that carries it.
+  user: 'account',
+  profile: 'profile',
+  player_stats: 'stats',
+  game: 'games',
+  participant: 'games',
+  answer: 'games',
+  flag_report: 'reports',
+  coin_movement: 'coins',
+  quest_assignment: 'quests',
+  leaderboard_entry: 'boards',
+  hint_purchase: 'hints',
+  item_use: 'items',
+  admin: 'account.administrator',
+
+  /*
+   * Not exported, with the reason. Each of these is a deliberate refusal rather
+   * than an oversight, which is the distinction this map exists to keep.
+   */
+  account:
+    'exempt: a hashed password and OAuth tokens are credentials, and an export is not a way to hand them over',
+  session:
+    'exempt: a session token is a credential; the rows expire on their own and name no act of the player',
+  verification:
+    'exempt: keyed by email address rather than by account, and holds a short-lived token',
+  room: 'exempt: a room belongs to the players in it, and what this player did in one is their participation',
+  game_position:
+    'exempt: where a paragraph sat in an article, which is about the article',
+};
+
 /** Everything this application holds about one account. */
 export interface AccountExport {
   readonly account: {
     readonly email: string;
+    readonly name: string;
+    readonly emailVerified: boolean;
+    /** What the provider sent, where one did. Null otherwise. */
+    readonly image: string | null;
     readonly createdAt: Date;
+    /** Step J.11 — a role granted by the operator is still a fact about them. */
+    readonly administrator: boolean;
   };
   /** Null for an account that never chose a pseudonym — E.3.2's other state. */
   readonly profile: {
     readonly pseudonym: string;
     readonly accent: string;
+    /**
+     * G.1's two, and the distinction is the point: one was derived from the
+     * network the request came over, the other the player set themselves. An
+     * export that showed only the effective one would hide which.
+     */
+    readonly derivedRegion: string | null;
+    readonly chosenRegion: string | null;
+    /** H.6 — what they are wearing, which is three columns rather than a table. */
+    readonly wornMarker: string | null;
+    readonly wornMarkStyle: string | null;
+    readonly wornFrame: string | null;
     readonly preferences: unknown;
   } | null;
   /** Null for an account that has never joined a round. */
@@ -59,6 +127,57 @@ export interface AccountExport {
     readonly quickNote: string;
     readonly explanation: string;
     readonly createdAt: Date;
+  }[];
+  /**
+   * H.1's ledger, and the balance it comes to.
+   *
+   * Every movement rather than the total: a balance is a number a player can
+   * dispute and a ledger is what answers them. `reference` is what the movement
+   * was for — a quest's rule, a cosmetic's identifier, a round's id.
+   */
+  readonly coins: {
+    readonly balance: number;
+    readonly movements: {
+      readonly amount: number;
+      readonly source: string;
+      readonly reference: string | null;
+      readonly balanceAfter: number;
+      readonly createdAt: Date;
+    }[];
+  };
+  /**
+   * F.3's assignments, claimed or not.
+   *
+   * No progress figure, because there is no progress column: F.4 counts it
+   * where the rules live, from the rounds this file already exports. An export
+   * that invented one would be a second implementation of the count.
+   */
+  readonly quests: {
+    readonly period: string;
+    readonly periodIndex: number;
+    readonly ruleId: string;
+    readonly target: number;
+    readonly assignedAt: Date;
+    readonly claimedAt: Date | null;
+  }[];
+  /** G.2's entries: the scores a board may rank, whether or not one did. */
+  readonly boards: {
+    readonly mode: string;
+    readonly score: number;
+    readonly finishedAt: Date;
+  }[];
+  /** H.4 — hints bought during a round, and what each cost. */
+  readonly hints: {
+    readonly falseInfoNumber: number;
+    readonly level: number;
+    readonly charged: number;
+    readonly purchasedAt: Date;
+  }[];
+  /** 8.9 — items spent in a room, and whom on. */
+  readonly items: {
+    readonly itemId: string;
+    readonly onSomebodyElse: boolean;
+    readonly usedAt: Date;
   }[];
 }
 
@@ -83,7 +202,13 @@ export async function exportAccount(
   userId: string,
 ): Promise<AccountExport | null> {
   const [account] = await db
-    .select({ email: user.email, createdAt: user.createdAt })
+    .select({
+      email: user.email,
+      name: user.name,
+      emailVerified: user.emailVerified,
+      image: user.image,
+      createdAt: user.createdAt,
+    })
     .from(user)
     .where(eq(user.id, userId));
 
@@ -96,6 +221,11 @@ export async function exportAccount(
     .select({
       pseudonym: profile.displayName,
       accent: profile.accent,
+      derivedRegion: profile.derivedRegion,
+      chosenRegion: profile.chosenRegion,
+      wornMarker: profile.wornMarker,
+      wornMarkStyle: profile.wornMarkStyle,
+      wornFrame: profile.wornFrame,
       preferences: profile.preferences,
     })
     .from(profile)
@@ -114,12 +244,101 @@ export async function exportAccount(
     .where(eq(flagReport.reporterId, userId))
     .orderBy(desc(flagReport.createdAt));
 
+  /*
+   * Step J.11 — the four tracks that arrived after E.7 wrote this.
+   *
+   * In parallel because they share nothing: six reads against six tables, none
+   * of which is a subquery of another. `hints` and `items` are the two that do
+   * not key on the account at all — they key on a *participation*, so they are
+   * joined back through `participant`, which is how they were invisible to the
+   * first version of this function.
+   */
+  const [movements, quests, boards, hints, items, role] = await Promise.all([
+    db
+      .select({
+        amount: coinMovement.amount,
+        source: coinMovement.source,
+        reference: coinMovement.reference,
+        balanceAfter: coinMovement.balanceAfter,
+        createdAt: coinMovement.createdAt,
+      })
+      .from(coinMovement)
+      .where(eq(coinMovement.userId, userId))
+      .orderBy(desc(coinMovement.createdAt)),
+
+    db
+      .select({
+        period: questAssignment.period,
+        periodIndex: questAssignment.periodIndex,
+        ruleId: questAssignment.ruleId,
+        target: questAssignment.target,
+        assignedAt: questAssignment.assignedAt,
+        claimedAt: questAssignment.claimedAt,
+      })
+      .from(questAssignment)
+      .where(eq(questAssignment.userId, userId))
+      .orderBy(desc(questAssignment.assignedAt)),
+
+    db
+      .select({
+        mode: leaderboardEntry.mode,
+        score: leaderboardEntry.score,
+        finishedAt: leaderboardEntry.finishedAt,
+      })
+      .from(leaderboardEntry)
+      .where(eq(leaderboardEntry.userId, userId))
+      .orderBy(desc(leaderboardEntry.finishedAt)),
+
+    db
+      .select({
+        falseInfoNumber: hintPurchase.falseInfoNumber,
+        level: hintPurchase.level,
+        charged: hintPurchase.charged,
+        purchasedAt: hintPurchase.purchasedAt,
+      })
+      .from(hintPurchase)
+      .innerJoin(participant, eq(hintPurchase.participantId, participant.id))
+      .where(eq(participant.userId, userId))
+      .orderBy(desc(hintPurchase.purchasedAt)),
+
+    db
+      .select({
+        itemId: itemUse.itemId,
+        targetId: itemUse.targetId,
+        usedAt: itemUse.usedAt,
+      })
+      .from(itemUse)
+      .innerJoin(participant, eq(itemUse.casterId, participant.id))
+      .where(eq(participant.userId, userId))
+      .orderBy(desc(itemUse.usedAt)),
+
+    db.select({ userId: admin.userId }).from(admin).where(eq(admin.userId, userId)),
+  ]);
+
   return {
-    account,
+    account: { ...account, administrator: role.length > 0 },
     profile: chosen ?? null,
     stats: await selectPlayerStats(db, userId),
     games: await selectGameHistory(db, userId),
     reports,
+    coins: {
+      // Summed from the movements already read rather than asked for again: a
+      // second query is a second answer, and the two would disagree the moment
+      // a round settled between them.
+      balance: movements.reduce((total, movement) => total + movement.amount, 0),
+      movements,
+    },
+    quests,
+    boards,
+    hints,
+    // The target is another player's participation id, which means nothing
+    // outside this database and names somebody else. Whether there *was* one is
+    // the part that is about this player.
+    items: items.map(({ itemId, targetId, usedAt }) => ({
+      itemId,
+      onSomebodyElse: targetId !== null,
+      usedAt,
+    })),
   };
 }
 

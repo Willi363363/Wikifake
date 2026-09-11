@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 to J.10 — the launch list, less the export and one address |
+| **State** | 🔶 every step done; J.3 waits on a contact address |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -70,7 +70,7 @@ better than a page-view counter.
 | J.8 | The performance budget, extended past the landing | ✅ — `10-seo-budget.md` |
 | J.9 | The indexing decision for the routes E to I added | ✅ |
 | J.10 | Phone width and reachability, over those same routes | ✅ — `10-seo-sweep.md` |
-| J.11 | The export, over what F, G and H added | ⬜ |
+| J.11 | The export, over what F, G and H added | ✅ |
 
 **The sheets carry the arguments**, and the table above names them: a step whose
 whole reasoning fits in a paragraph has no sheet and is argued in a section
@@ -110,14 +110,28 @@ The rest of the step is `graphics.test.ts`: a source scan over **both**
 `alt` at all, for the day there is one. It was checked by breaking the other
 icon on purpose: the scan failed and named the file.
 
-### J.11 — the export is older than three tracks
+### J.11 — the export caught up, and something now says when it falls behind
 
-`exportAccount` was written in E.7 and still returns what existed then: the
-account, the profile, the statistics, the games and the reports. **Coins, quest
-assignments, hint purchases, item uses and leaderboard entries are not in the
-file a player downloads**, which makes the right of access partly unimplemented.
-Found while writing the policy, which is why the policy says what the file
-actually holds.
+`exportAccount` was written in E.7 against five tables. F, G and H added coins,
+quest assignments, hint purchases, item uses and leaderboard entries, and **not
+one of them reached the file a player downloads** — a right of access that had
+quietly stopped covering new data, which is worse than one nobody built because
+the gap cannot be seen from outside.
+
+All five are in it now, along with G.1's two regions, H.6's worn cosmetics, the
+provider's name and picture, and whether the account is an administrator. The
+regions are exported separately rather than as the effective one, because an
+export that showed only the result would hide that one of them came from a
+request header.
+
+**The durable half is `EXPORT_COVERAGE`**: every table that references a `user`
+or a `participant` is named there, exported or exempt with an argued reason, and
+a scan of the schema directory holds the map to the tables that exist. The two
+that key on a *participation* rather than an account — hints and items — are
+exactly the ones a person missed, so the scan looks for both.
+
+The privacy policy is corrected in the same change: it said coins and quests
+were not in the file, and they are.
 
 ### J.7 — In CI, or it will not be run
 
