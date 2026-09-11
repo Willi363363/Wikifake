@@ -36,6 +36,7 @@ import {
   wearCosmeticResponse,
 } from './account.js';
 import { flagReportRequest, flagReportResponse } from './flags.js';
+import { recordViewRequest, recordViewResponse } from './traffic.js';
 import { healthResponse, pingResponse, usageResponse } from './health.js';
 import { createRoomRequest, createRoomResponse } from './rooms.js';
 import { claimQuestRequest, claimQuestResponse, questCronResponse } from './quests.js';
@@ -122,6 +123,13 @@ export const ROUTES: readonly Route[] = [
     path: '/api/flag-report',
     request: flagReportRequest,
     response: flagReportResponse,
+  },
+  {
+    // Step J.4. A page load counted, with no identifier of any kind on it.
+    method: 'POST',
+    path: '/api/view',
+    request: recordViewRequest,
+    response: recordViewResponse,
   },
   {
     // Step G.1. The region a player picks, which beats the derived one.

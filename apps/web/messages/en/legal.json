@@ -23,11 +23,11 @@
       },
       "technical": {
         "heading": "Technical data",
-        "body": "A session record keeps you signed in: an expiry, the IP address the request came from, and your browser’s user agent. When your profile is created, the hosting network’s own header tells us which country the request appears to come from; it is recorded once, turned into a broad region for the regional leaderboard, never refreshed, and you can override it. When error reporting is switched on, a crash sends the details of the failure — the option that would attach your IP address or your request’s headers to it is not on."
+        "body": "A session record keeps you signed in: an expiry, the IP address the request came from, and your browser’s user agent. When your profile is created, the hosting network’s own header tells us which country the request appears to come from; it is recorded once, turned into a broad region for the regional leaderboard, never refreshed, and you can override it. When error reporting is switched on, a crash sends the details of the failure — the option that would attach your IP address or your request’s headers to it is not on. Two pages are also counted: the front door and the screen with the topic field each add one to a daily total, so we can tell how many people arrive and how many get as far as asking for a game. That counter holds a date, a page name and a number, and no identifier of any kind — not even a hashed one — so it cannot tell whether two loads were the same person, and there is nothing in it to ask us for or to erase."
       },
       "cookies": {
         "heading": "Cookies",
-        "body": "Two, both ours. One keeps you signed in; the other remembers the language you picked, and is written only when you click the switch. There is no advertising, no analytics, no third-party cookie and no cross-site identifier — which is why nothing asked you to dismiss a banner before you could read this."
+        "body": "Two, both ours. One keeps you signed in; the other remembers the language you picked, and is written only when you click the switch. There is no advertising, no third-party analytics, no third-party cookie and no cross-site identifier — which is why nothing asked you to dismiss a banner before you could read this. What counting we do is the tally described above, on our own server, with nobody’s name on it."
       },
       "processors": {
         "heading": "Who else the data passes through",

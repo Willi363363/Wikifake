@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 to J.3 — the two documents are written; the contact address is not |
+| **State** | 🔶 J.1 to J.4 — the documents, and a counter nothing shows yet |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -62,7 +62,8 @@ better than a page-view counter.
 | J.1 | Re-run the audit, and record it | ✅ |
 | J.2 | Favicon, app icons, web manifest | ✅ — `10-seo-icons.md` |
 | J.3 | Privacy policy and terms, localised | 🔶 — `10-seo-legal.md`, awaiting an address |
-| J.4 | Cookieless analytics | ⬜ |
+| J.4 | Arrivals counted, first-party | ✅ — `10-seo-analytics.md` |
+| J.4b | The panel section that shows them | ⬜ |
 | J.5 | FAQ, and the copy the landing needs | ⬜ |
 | J.6 | `alt` text pass across every image | ⬜ |
 | J.7 | Broken-link check, wired into CI | ⬜ |
@@ -93,6 +94,21 @@ without being endorsed by them — C.8 refused the globe for the same reason. Th
 landing's first line is "Who is lying?", so the question is the game. The
 drawing, the colour rule it must obey, and the defect a browser test found in it
 are in `10-seo-icons.md`.
+
+### J.4 — a counter, and the step it turned out to be hiding
+
+The owner chose a first-party counter over Vercel Web Analytics, Plausible and
+doing nothing; `10-seo-analytics.md` records the comparison. One row per day per
+page, **no identifier of any kind**, so it counts loads rather than people and
+says so rather than implying otherwise.
+
+It split, as the method asks a step to when it exceeds one branch: **J.4** is
+the table, the route and the beacon; **J.4b** is the panel section that shows
+them. A table with a writer and no reader is a table somebody deletes in six
+months, so J.4b is not optional.
+
+It also made one sentence of the privacy policy false — "no analytics" — which
+is corrected in the same pull request rather than afterwards.
 
 ### J.3 — written from the code, and 🔶 for one line
 
