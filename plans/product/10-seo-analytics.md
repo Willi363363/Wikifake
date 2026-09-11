@@ -1,7 +1,7 @@
 # Track J — counting arrivals, without counting people
 
-The record of **J.4**. `10-seo-and-legal.md` keeps the step table — the only
-place that says where a step stands. J.4b puts these numbers on a screen.
+The record of **J.4** and **J.4b**. `10-seo-and-legal.md` keeps the step table —
+the only place that says where a step stands.
 
 ## The question, and why nothing already answered it
 
@@ -89,8 +89,42 @@ identifier, and the cookie section now says no *third-party* analytics rather
 than none. A policy that goes stale in the release that contradicts it is worse
 than one that was never written.
 
-## Still open
+## J.4b — the section, and the three sentences it refuses to leave out
 
-- **J.4b** — the numbers reach nobody until the panel shows them. A table with a
-  writer and no reader is a table that gets deleted in six months by somebody
-  who cannot see what it is for.
+A seventh section in the admin panel, between the rounds and what they cost:
+the one place in it about people who are not players yet.
+
+**The headline is the ratio**, not the totals. A landing that doubles its
+arrivals and keeps its reach did well; one that doubles them and halves its
+reach found the wrong audience. The two counts sit underneath, because a
+percentage of an unknown is not a figure.
+
+Three things a traffic panel is normally silent about are said on the screen,
+and each is a conclusion a reader would otherwise draw that the number does not
+support:
+
+- **an em dash rather than 0%** when nothing arrived. A reach of zero says the
+  landing failed; nobody arrived says nothing about the landing at all, and
+  printing 0% for it is the panel inventing a finding;
+- **the day counting began.** A ninety-day range covers weeks nobody was
+  counting, so two ranges that straddle that date are not comparable. `since` is
+  read over all time rather than over the range — asking inside the window would
+  answer "the first day of the range", which is not a fact about anything;
+- **these are loads, not people** — the same claim the privacy policy makes,
+  from the other side.
+
+**Reach can pass 100%, and that is not a defect**: the entry screen is reachable
+from a bookmark without the landing, so a ratio above one says the front door is
+not where players come in. A test asserts it rather than a clamp hiding it.
+
+Two smaller decisions. The day is printed as the stored `YYYY-MM-DD` and never
+formatted — the column is a UTC day, and a locale format renders it in the
+reader's zone, moving a figure to the day before for anybody west of Greenwich.
+And the table shows fourteen days with the rest counted in a line underneath: a
+fortnight is what somebody who posted a link on Monday is looking for, and
+ninety rows is a wall nobody reads.
+
+The read also grew a case the counter did not have: the window ends at a clock
+reading rather than at midnight, so **the day in progress has to be included**.
+A read that dropped it would show a panel permanently one day behind — the
+failure nobody notices, because yesterday's figures look right.

@@ -88,6 +88,24 @@
     },
     "caveat": "Only rounds that have ended count towards the rate: a seat in a round still running has not abandoned anything. And it cannot be split by screen — typing a topic, voting and waiting for generation leave no row, so the split is by mode."
   },
+  "traffic": {
+    "title": "Arrivals",
+    "reach": "Reach",
+    "reachWhy": "Of the landing views in this range, the share that reached the screen with the topic field.",
+    "none": "—",
+    "landing": "Landing",
+    "entry": "Entry screen",
+    "columns": {
+      "day": "Day",
+      "landing": "Landing",
+      "entry": "Entry"
+    },
+    "empty": "Nothing was counted in this range.",
+    "since": "Counting began on {day}. A range reaching further back covers days nobody was counting, so two ranges that straddle it are not comparable.",
+    "never": "Nothing has been counted yet. Arrivals are counted from the day this shipped, so an empty panel here is what a new counter looks like.",
+    "caveat": "These are page loads, not people: there is no identifier anywhere in this counter, so two loads by one reader and one load by each of two readers are the same number. Reach can pass 100% — the entry screen is reachable from a bookmark without the landing.",
+    "more": "{count, plural, one {# earlier day is not shown} other {# earlier days are not shown}}"
+  },
   "cost": {
     "title": "Cost",
     "noRate": "—",

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 to J.4 — the documents, and a counter nothing shows yet |
+| **State** | 🔶 J.1 to J.4b — the documents, and arrivals counted and shown |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -63,7 +63,7 @@ better than a page-view counter.
 | J.2 | Favicon, app icons, web manifest | ✅ — `10-seo-icons.md` |
 | J.3 | Privacy policy and terms, localised | 🔶 — `10-seo-legal.md`, awaiting an address |
 | J.4 | Arrivals counted, first-party | ✅ — `10-seo-analytics.md` |
-| J.4b | The panel section that shows them | ⬜ |
+| J.4b | The panel section that shows them | ✅ — `10-seo-analytics.md` |
 | J.5 | FAQ, and the copy the landing needs | ⬜ |
 | J.6 | `alt` text pass across every image | ⬜ |
 | J.7 | Broken-link check, wired into CI | ⬜ |
@@ -103,9 +103,10 @@ page, **no identifier of any kind**, so it counts loads rather than people and
 says so rather than implying otherwise.
 
 It split, as the method asks a step to when it exceeds one branch: **J.4** is
-the table, the route and the beacon; **J.4b** is the panel section that shows
-them. A table with a writer and no reader is a table somebody deletes in six
-months, so J.4b is not optional.
+the table, the route and the beacon; **J.4b** is the panel's seventh section,
+which leads with the ratio and says the three things a traffic panel is usually
+silent about — an em dash rather than 0%, the day counting began, and that these
+are loads rather than people.
 
 It also made one sentence of the privacy policy false — "no analytics" — which
 is corrected in the same pull request rather than afterwards.
