@@ -23,11 +23,11 @@
       },
       "technical": {
         "heading": "Données techniques",
-        "body": "Une session vous garde connecté : elle porte une date d’expiration, l’adresse IP d’où venait la requête et l’agent utilisateur de votre navigateur. À la création de votre profil, l’en-tête de l’hébergeur nous indique de quel pays la requête semble provenir ; c’est enregistré une seule fois, transformé en une région large pour le classement régional, jamais rafraîchi, et vous pouvez le corriger vous-même. Lorsque la remontée d’erreurs est activée, un plantage envoie les détails de la panne — l’option qui y joindrait votre adresse IP ou les en-têtes de votre requête n’est pas activée."
+        "body": "Une session vous garde connecté : elle porte une date d’expiration, l’adresse IP d’où venait la requête et l’agent utilisateur de votre navigateur. À la création de votre profil, l’en-tête de l’hébergeur nous indique de quel pays la requête semble provenir ; c’est enregistré une seule fois, transformé en une région large pour le classement régional, jamais rafraîchi, et vous pouvez le corriger vous-même. Lorsque la remontée d’erreurs est activée, un plantage envoie les détails de la panne — l’option qui y joindrait votre adresse IP ou les en-têtes de votre requête n’est pas activée. Deux pages sont par ailleurs comptées : la page d’accueil et l’écran où l’on saisit un sujet ajoutent chacune une unité à un total quotidien, afin que nous sachions combien de personnes arrivent et combien vont jusqu’à demander une partie. Ce compteur contient une date, un nom de page et un nombre, et aucun identifiant d’aucune sorte — pas même haché : il ne peut donc pas dire si deux chargements venaient de la même personne, et il n’y a rien dedans à vous communiquer ni à effacer."
       },
       "cookies": {
         "heading": "Cookies",
-        "body": "Deux, tous les deux les nôtres. L’un vous garde connecté ; l’autre retient la langue que vous avez choisie, et n’est écrit que lorsque vous cliquez sur le sélecteur. Il n’y a ni publicité, ni mesure d’audience, ni cookie tiers, ni identifiant inter-sites — c’est pour cela que rien ne vous a demandé d’écarter un bandeau avant de lire ceci."
+        "body": "Deux, tous les deux les nôtres. L’un vous garde connecté ; l’autre retient la langue que vous avez choisie, et n’est écrit que lorsque vous cliquez sur le sélecteur. Il n’y a ni publicité, ni mesure d’audience tierce, ni cookie tiers, ni identifiant inter-sites — c’est pour cela que rien ne vous a demandé d’écarter un bandeau avant de lire ceci. Le seul décompte que nous faisons est celui décrit plus haut, sur notre propre serveur, et il ne porte le nom de personne."
       },
       "processors": {
         "heading": "Par qui les données passent",

@@ -23,7 +23,17 @@
 // document, which is what track C's scene will later be laid over. The route
 // stays a server component and stays static: that is what C7.3 measures.
 import { Landing } from '../../src/landing/landing.js';
+import { PageView } from '../../src/traffic/page-view.js';
 
 export default function HomePage() {
-  return <Landing />;
+  return (
+    <>
+      <Landing />
+      {/* Step J.4 — the arrival, counted. It renders nothing and it is the only
+          reason this page touches the server at all: everything above is
+          prerendered, so without a beacon a visit that ends here leaves no
+          trace anywhere. */}
+      <PageView page="landing" />
+    </>
+  );
 }

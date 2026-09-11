@@ -72,6 +72,8 @@ export {
 } from './queries/admin-players.js';
 export type { ActivePlayer, Funnel } from './queries/admin-players.js';
 export { selectUserById } from './queries/users.js';
+export { recordPageView, selectPageViews, utcDay } from './queries/traffic.js';
+export type { DailyViews } from './queries/traffic.js';
 export {
   claimPseudonym,
   selectPseudonym,

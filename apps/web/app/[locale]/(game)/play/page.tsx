@@ -22,6 +22,7 @@
 // itself is the ticket route's; this is what keeps the screen honest about it.
 import { requirePseudonym } from '../../../../src/account/gate.js';
 import { LobbyEntry } from '../../../../src/lobby/entry.js';
+import { PageView } from '../../../../src/traffic/page-view.js';
 
 /** Never prerendered: it reads a cookie and answers differently per player. */
 export const dynamic = 'force-dynamic';
@@ -30,9 +31,15 @@ export default async function PlayPage() {
   const viewer = await requirePseudonym();
 
   return (
-    <LobbyEntry
-      signedIn={viewer.kind === 'account'}
-      {...(viewer.pseudonym === undefined ? {} : { pseudonym: viewer.pseudonym })}
-    />
+    <>
+      <LobbyEntry
+        signedIn={viewer.kind === 'account'}
+        {...(viewer.pseudonym === undefined ? {} : { pseudonym: viewer.pseudonym })}
+      />
+      {/* Step J.4 — the second half of the one funnel the admin panel cannot
+          see: of the people who arrive, how many reach the screen with the
+          topic field. Everything after this is already a row in `game`. */}
+      <PageView page="entry" />
+    </>
   );
 }

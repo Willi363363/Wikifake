@@ -32,6 +32,12 @@ export * as roomsApi from './rest/rooms.js';
 export * as flagsApi from './rest/flags.js';
 export * as questsApi from './rest/quests.js';
 export * as ticketsApi from './rest/tickets.js';
+export { recordViewRequest, recordViewResponse, viewedPage } from './rest/traffic.js';
+export type {
+  RecordViewRequest,
+  RecordViewResponse,
+  ViewedPage,
+} from './rest/traffic.js';
 export { incomingMessage, INCOMING_TYPES } from './ws/incoming.js';
 export type { IncomingMessage } from './ws/incoming.js';
 export { outgoingMessage, OUTGOING_TYPES } from './ws/outgoing.js';
