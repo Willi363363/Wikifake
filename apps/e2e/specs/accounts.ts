@@ -51,9 +51,19 @@ export function fill(page: Page, label: string, value: string): Promise<void> {
  * Creates the account, and waits for the screen it lands on.
  *
  * Step E.3.2 — sign-up claims the pseudonym once the account exists, so
- * "signed up" now means two round trips rather than one. Waiting for the URL
- * here rather than in each caller is what stops a spec from asserting against
- * a page that is still mid-claim.
+ * "signed up" means two round trips rather than one. Waiting for the URL here
+ * rather than in each caller is what stops a spec from asserting against a page
+ * that is still mid-claim.
+ *
+ * **The sentence above was true of the comment and not of the body until
+ * 2026-09-11**, which `06-structural-debt.md` recorded: it filled three fields,
+ * clicked, and returned. Every caller had grown its own wait, and one of them
+ * had grown a whole private copy of this function.
+ *
+ * What it waits for is *leaving* `/sign-up`, not arriving at `/play`. Both are
+ * correct landings — an account whose pseudonym was already claimed goes to
+ * `/choose-a-name` instead, and a helper that insisted on `/play` would hang on
+ * the one spec that tests exactly that.
  */
 export async function signUp(page: Page, who: Someone): Promise<void> {
   await page.goto('/sign-up');
@@ -61,6 +71,11 @@ export async function signUp(page: Page, who: Someone): Promise<void> {
   await fill(page, 'Pseudonym', who.pseudonym);
   await fill(page, 'Password', who.password);
   await page.getByRole('button', { name: 'Create the account' }).click();
+
+  // Refused on the form — a duplicate email — never leaves, and this times out
+  // rather than racing on. A loud helper is what the callers were compensating
+  // for one line at a time.
+  await page.waitForURL((url) => !url.pathname.endsWith('/sign-up'));
 }
 
 /**
