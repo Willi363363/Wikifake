@@ -53,10 +53,11 @@ quest that is just complete from one passed while a claim was in flight. "5 of
 3" is arithmetic nobody asked for, so the minimum is taken at the last possible
 moment.
 
-**A claimed row is a statement, not a disabled button.**
-`disabled:opacity-40` is the one translucency the direction forbids —
-`06-structural-debt.md` — and there is nothing to click on a quest that has
-already paid.
+**A claimed row is a statement, not a disabled button.** There is nothing to
+click on a quest that has already paid, and at the time the alternative was
+`disabled:opacity-40` — the one translucency the direction forbade, since
+replaced by a flat fill and a collapsed shadow (`06-structural-debt.md`). The
+decision stands on its own reason: a row that has paid is finished, not refused.
 
 **The coin total says what it is worth and what it is for.** Track H owns the
 wallet and F.6 credits nothing, so the screen adds up what was claimed and says

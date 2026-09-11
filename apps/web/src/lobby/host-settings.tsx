@@ -85,7 +85,9 @@ export function HostSettings({
           'flex w-full items-center justify-between border-3 px-3.5 py-2.5',
           'text-sm transition-colors outline-none',
           'focus-visible:ring-[3px] focus-visible:ring-accent-line focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
-          'disabled:pointer-events-none disabled:opacity-40',
+          // The same disabled vocabulary as the button primitive: the fill
+          // goes flat and the text withdraws, and nothing is diluted.
+          'disabled:pointer-events-none disabled:bg-bg-grain disabled:text-muted',
           withItems
             ? 'border-line-strong bg-accent-soft text-ink'
             : 'border-line-strong bg-surface text-ink-2',
