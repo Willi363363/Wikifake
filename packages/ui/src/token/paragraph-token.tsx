@@ -158,24 +158,26 @@ export function ParagraphToken({
         // a full-width element carrying only a left border — so the scanner
         // reads across the paragraph without ever covering it. Step B.9.
         //
-        // The border width is spelled the long way on purpose, and the reason
-        // is narrower and stranger than it first looked.
+        // `border-l-3`, spelled plainly, and there is a story in that.
         //
-        // `border-3`, `border-r-3`, `border-t-3` and `border-b-3` all resolve
-        // through the theme's `--border-width-3`. **`border-l-3` alone emits no
-        // rule at all** — measured on all four sides, in one build, from one
-        // file Tailwind scanned. It is a class that looks right, reads right,
-        // passes review and draws an invisible line.
+        // It was written the long way — an arbitrary-value spelling of the same
+        // width — on a 2026-09-06 finding that `border-l-3` "emits no rule at
+        // all" while the other three sides resolve. **The finding was wrong**,
+        // and the correction is in `06-structural-debt.md`: the class emits,
+        // and always did at this version. It was measured while the
+        // arbitrary-value class sat on this very element, the minifier merged
+        // two identical rules into one selector list, and a search for the
+        // class followed by a brace found nothing — the built rule has a comma
+        // there.
         //
-        // Recorded in `plans/current-state/05-known-debt.md`; it looks like a
-        // Tailwind bug rather than anything this repository can fix. Until it
-        // is understood, this spelling both works and keeps the number in the
-        // token instead of repeating `3px` here.
+        // The long spelling is not written out here for a reason of its own:
+        // `@source` scans this file as text, so a class named in a comment is a
+        // class in the stylesheet.
         <span
           aria-hidden
           className="pointer-events-none absolute inset-0 overflow-hidden rounded-token"
         >
-          <span className="absolute inset-y-0 left-0 w-full border-l-[length:var(--border-width-3)] border-bronze animate-scan-sweep" />
+          <span className="absolute inset-y-0 left-0 w-full border-l-3 border-bronze animate-scan-sweep" />
         </span>
       ) : null}
 

@@ -121,10 +121,10 @@ sheets on the same rectangle — never saw it. Beat 1 is the one that differs: i
 content is centred in a box 80px taller, so the question sits about 40 pixels
 above where every heading after it sits. Cosmetic, and real.
 
-**It is filed in `../current-state/06-structural-debt.md`**, beside `border-l-3`
-and `disabled:opacity-40` — the same family, a rule that reads correctly and
-does nothing. (The third of the three is closed since 2026-09-11; the family is
-the point, not the count.) It was written here first, when that register was at 190 lines
+**It is filed in `../current-state/06-structural-debt.md`**, where the family it
+was filed beside has since thinned: `disabled:opacity-40` was closed on
+2026-09-11 and `border-l-3` turned out never to have been a defect. This one is
+still what it says — a rule that reads correctly and does nothing. It was written here first, when that register was at 190 lines
 against the 200 cap and the handover was explicit that the next finding needed
 the split rather than a squeeze; #180 did the split, so the entry went where it
 belongs. The measurement stays here because this is the step that took it.
