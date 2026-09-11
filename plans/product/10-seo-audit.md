@@ -29,7 +29,7 @@ doubled.
 | Mobile | 🔶 | the 360 px sweep names four routes; ten exist — **J.10** |
 | Accessibility | 🔶 | contrast audit, reduced motion, `fills.test.ts` — nothing on the screens E to I added |
 | Performance budget | 🔶 | the landing has one, in CI; no other page does — **J.8** |
-| `alt` text pass | 🔶 | no `<img>` and no `next/image` anywhere; one `<svg>` unlabelled — **J.6** |
+| `alt` text pass | ✅ | nothing to label but two `<svg>`, and `graphics.test.ts` refuses the next unlabelled one — J.6 |
 | Favicon and app icons | ✅ | `app/icon.tsx`, `app/apple-icon.tsx`; `icons.spec.ts` — J.2 |
 | Web manifest | ✅ | `app/manifest.ts`; `manifest.test.ts`, `icons.spec.ts` — J.2 |
 | Privacy policy | 🔶 | `app/[locale]/privacy`; `legal.test.tsx`, `legal.spec.ts` — the address is a placeholder |
@@ -96,6 +96,8 @@ whose alt text Next fills from the file convention. Two inline `<svg>` exist:
   announces a graphic that means nothing next to the name it decorates.
 
 J.6 is therefore one attribute and a test that keeps the next `<svg>` honest.
+**Both shipped**, and the scan reads `packages/ui` as well as `apps/web`,
+because the two icons live one in each.
 
 ## What the audit added to the plan
 
