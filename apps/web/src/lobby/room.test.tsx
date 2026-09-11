@@ -166,9 +166,17 @@ describe('7.3 — the waiting room', () => {
       expect(screen.getByRole('button', { name: /Start/ })).not.toBeNull();
     });
 
-    // A refusal must not take the screen down. It is shown, and the roster that
-    // arrives next is the truth.
-    it('displays a not_host refusal cleanly', () => {
+    /*
+     * A refusal must not take the screen down. It is shown, and the roster that
+     * arrives next is the truth.
+     *
+     * Step 11.9 rewrote what "shown" means rather than deleting this case: the
+     * screen prints **the catalogue's sentence for the code**, and never the
+     * server's own. The second assertion is the one that matters — the message
+     * on the wire is English whatever the interface is, and this is what
+     * catches it coming back.
+     */
+    it('displays a not_host refusal in the reader\u2019s language', () => {
       mountRoom('bob');
       deliver(roster(player('ada', { isHost: true }), player('bob')));
 
@@ -178,7 +186,9 @@ describe('7.3 — the waiting room', () => {
         message: 'only the host can open the vote',
       });
 
-      expect(screen.getByRole('alert').textContent).toContain('only the host');
+      const said = screen.getByRole('alert').textContent ?? '';
+      expect(said).toContain('Only the player who opened the room');
+      expect(said).not.toContain('only the host can open the vote');
       // Still a room, still a roster.
       expect(screen.getByText('Players (2)')).not.toBeNull();
     });

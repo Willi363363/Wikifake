@@ -75,12 +75,19 @@ shell string in a `scripts` block is not portable in the way the rest of the
 toolchain is, and `hooks` in particular does two things in one line. Small, and
 worth folding into `scripts/` proper the next time somebody is in there.
 
-## Protocol and socket sentences reach players untranslated
+## Protocol and socket sentences reach players untranslated — closed at 11.9
 
-`chat.tsx` falls back to `decode` issue sentences from `@wikifake/protocol`, and
-the realtime provider shows close reasons authored in `apps/realtime`
-(`name_taken`, `room_not_found`, `invalid_name`). They are English under any
-interface locale.
+`chat.tsx` fell back to `decode` issue sentences from `@wikifake/protocol`, and
+the room screen showed the `message` authored in `apps/realtime` beside each
+error code. They were English under any interface locale.
+
+**Closed on 2026-09-11 by step 11.9**, along the line this entry argued for: the
+packages emit codes, the client owns the sentences. `errors.refusals` in the
+catalogue answers for all twenty-three `ERROR_CODE`s in both languages, a parity
+test holds the two lists to each other, and an unknown code falls back to a
+sentence rather than to an identifier. Kept here rather than deleted, because
+the argument is the reusable part: the next package that wants to say something
+to a player has the same choice to make.
 
 Structural rather than a defect with a location, and that is why it sits here
 rather than in the register next door: the fix is not to catalogue a string in

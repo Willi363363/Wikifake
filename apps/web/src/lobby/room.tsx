@@ -27,6 +27,7 @@ import { useRoomItems } from './room-items.js';
 import { useRoomCursors } from './room-cursors.js';
 import { useRoomLeaderboard } from './room-leaderboard.js';
 import { useRealtime } from '../realtime/provider.js';
+import { useRefusal } from '../realtime/refusal.js';
 import { useCaptures } from '../flags/flags.js';
 import { ranked } from '../round/leaderboard.js';
 import { Round } from '../round/round.js';
@@ -53,9 +54,16 @@ export interface RoomProps {
 
 export function Room({ roomCode, nickname }: RoomProps) {
   const t = useTranslations('lobby.room');
-  const { status, refusal: transportRefusal } = useRealtime();
+  const { status, refusal: transportCode } = useRealtime();
   const { send } = useRealtime();
   const room = useRoom(nickname);
+
+  // Step 11.9 — the server sends a code and this says it in the reader's
+  // language. What used to be printed here was the sentence the server wrote,
+  // which is English under any interface.
+  const sentence = useRefusal();
+  const refusal = sentence(room.refusal?.code);
+  const transportRefusal = sentence(transportCode);
 
   const [timeLimit, setTimeLimit] = useState(DEFAULT_TIME_LIMIT_SECONDS);
   const [withItems, setWithItems] = useState(true);
@@ -127,7 +135,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
         // Nothing is in flight over a socket: the answer is sent, and the roster
         // that comes back is the acknowledgement.
         busy={false}
-        refusal={room.refusal?.message ?? null}
+        refusal={refusal}
         hints={hints}
         items={items}
         effects={items.effects}
@@ -295,7 +303,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
               role="alert"
               className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
             >
-              {room.refusal.message}
+              {refusal}
             </p>
           )}
           {transportRefusal === null ? null : (

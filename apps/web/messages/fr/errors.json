@@ -11,5 +11,31 @@
     "retry": "Réessayer",
     "home": "Revenir à l'accueil",
     "reference": "Référence : {digest}"
+  },
+  "refusals": {
+    "room_not_found": "Ce salon n’est pas ouvert. Le code est peut-être erroné, ou tout le monde en est parti.",
+    "invalid_name": "Ce pseudonyme ne convient pas : il est vide, trop long, ou contient des caractères que le salon refuse.",
+    "name_taken": "Quelqu’un dans ce salon porte déjà ce nom. Choisissez-en un autre et revenez.",
+    "bad_json": "Votre navigateur et le serveur ne se sont pas compris. Rien n’a été perdu.",
+    "not_host": "Seul le joueur qui a ouvert le salon peut faire cela.",
+    "hints_blocked": "Quelqu’un a verrouillé vos indices pour le moment.",
+    "no_theme_submitted": "Personne n’a encore proposé de sujet.",
+    "topic_not_found": "Wikipédia n’a pas d’article là-dessus. Essayez un autre sujet.",
+    "generation_failed": "La manche n’a pas pu être construite. Cela ne vient pas de vous : réessayez dans un instant.",
+    "session_not_found": "Cette manche est terminée, ou elle n’a jamais existé ici.",
+    "hint_not_found": "Il n’y a pas d’indice sous ce numéro.",
+    "room_capacity_reached": "Le serveur n’a plus de place pour l’instant. Réessayez d’ici peu.",
+    "invalid_target": "Ce n’est pas quelqu’un sur qui cet objet peut être utilisé.",
+    "out_of_phase": "Ce n’est pas faisable à ce moment de la manche.",
+    "item_not_held": "Vous n’avez pas cet objet : il a été dépensé, ou il n’a jamais été à vous.",
+    "pseudonym_taken": "Un autre compte porte déjà ce pseudonyme, et le garde. Choisissez-en un autre.",
+    "quest_not_found": "Cette quête n’est pas l’une des vôtres.",
+    "quest_already_claimed": "Vous avez déjà pris cette récompense.",
+    "quest_not_complete": "Cette quête n’est pas encore terminée. Jouez encore un peu et elle le sera.",
+    "insufficient_coins": "Vous n’avez pas assez de pièces pour cela.",
+    "coins_not_accepted": "Les indices ne s’achètent pas en pièces dans un salon : une manche classée se joue, elle ne se paie pas.",
+    "cosmetic_not_owned": "Celui-ci ne vous appartient pas.",
+    "cosmetic_not_found": "La boutique n’a rien à ce nom.",
+    "unknown": "Le serveur a refusé, avec une raison que cette version ne sait pas expliquer."
   }
 }
