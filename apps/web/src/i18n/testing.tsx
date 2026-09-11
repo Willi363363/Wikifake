@@ -16,6 +16,10 @@ import type { ReactElement, ReactNode } from 'react';
 
 import errorsEn from '../../messages/en/errors.json';
 import homeEn from '../../messages/en/home.json';
+import leaderboardEn from '../../messages/en/leaderboard.json';
+import adminEn from '../../messages/en/admin.json';
+import questsEn from '../../messages/en/quests.json';
+import shopEn from '../../messages/en/shop.json';
 import roundEn from '../../messages/en/round.json';
 import waitingEn from '../../messages/en/waiting.json';
 import lobbyEn from '../../messages/en/lobby.json';
@@ -23,23 +27,36 @@ import smallEn from '../../messages/en/small.json';
 import routesEn from '../../messages/en/routes.json';
 import languageEn from '../../messages/en/language.json';
 import seoEn from '../../messages/en/seo.json';
+import legalEn from '../../messages/en/legal.json';
 import errorsFr from '../../messages/fr/errors.json';
 import homeFr from '../../messages/fr/home.json';
+import leaderboardFr from '../../messages/fr/leaderboard.json';
+import adminFr from '../../messages/fr/admin.json';
+import questsFr from '../../messages/fr/quests.json';
+import shopFr from '../../messages/fr/shop.json';
 import roundFr from '../../messages/fr/round.json';
 import waitingFr from '../../messages/fr/waiting.json';
+import accountEn from '../../messages/en/account.json';
+import accountFr from '../../messages/fr/account.json';
 import lobbyFr from '../../messages/fr/lobby.json';
 import smallFr from '../../messages/fr/small.json';
 import routesFr from '../../messages/fr/routes.json';
 import languageFr from '../../messages/fr/language.json';
 import seoFr from '../../messages/fr/seo.json';
+import legalFr from '../../messages/fr/legal.json';
 import type { CatalogueMessages } from './catalogue.js';
-import type { Locale } from './locales.js';
+import { TIME_ZONE, type Locale } from './locales.js';
 
 /** Statically imported: a test harness has no business being async. */
 const CATALOGUES: Record<Locale, CatalogueMessages> = {
   en: {
     home: homeEn,
+    account: accountEn,
     errors: errorsEn,
+    admin: adminEn,
+    quests: questsEn,
+    shop: shopEn,
+    leaderboard: leaderboardEn,
     round: roundEn,
     waiting: waitingEn,
     lobby: lobbyEn,
@@ -47,10 +64,16 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
     routes: routesEn,
     language: languageEn,
     seo: seoEn,
+    legal: legalEn,
   },
   fr: {
     home: homeFr,
+    account: accountFr,
     errors: errorsFr,
+    admin: adminFr,
+    quests: questsFr,
+    shop: shopFr,
+    leaderboard: leaderboardFr,
     round: roundFr,
     waiting: waitingFr,
     lobby: lobbyFr,
@@ -58,6 +81,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
     routes: routesFr,
     language: languageFr,
     seo: seoFr,
+    legal: legalFr,
   },
 };
 
@@ -69,7 +93,13 @@ function Catalogue({
   readonly children: ReactNode;
 }) {
   return (
-    <NextIntlClientProvider locale={locale} messages={CATALOGUES[locale]}>
+    // The same zone the request configuration declares: a suite that formatted
+    // dates in the machine's would pass on a laptop and fail in CI.
+    <NextIntlClientProvider
+      locale={locale}
+      timeZone={TIME_ZONE}
+      messages={CATALOGUES[locale]}
+    >
       {children}
     </NextIntlClientProvider>
   );

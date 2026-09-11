@@ -1,0 +1,148 @@
+{
+  "nav": "Informations légales",
+  "privacy": {
+    "title": "Confidentialité",
+    "updated": "Dernière mise à jour le 11 septembre 2026",
+    "intro": "Ce que WikiFake conserve sur vous, pourquoi, et comment le faire disparaître. Cette page décrit ce que le code fait réellement, et elle est courte parce que le jeu recueille peu de choses.",
+    "sections": {
+      "controller": {
+        "heading": "Qui fait tourner WikiFake",
+        "body": "WikiFake est un projet gratuit et non commercial mené par William Rouvière en son nom propre, responsable du traitement de tout ce qui figure sur cette page. Écrivez à <contact>{address}</contact> pour toute question touchant à vos données."
+      },
+      "guest": {
+        "heading": "Jouer sans compte",
+        "body": "Vous pouvez jouer sans vous inscrire, et c’est l’entrée normale. Lancer une partie crée un enregistrement d’invité temporaire, pour que la manche appartienne à quelqu’un et que les autres joueurs voient le nom que vous avez saisi. Il ne contient aucune adresse e-mail. Dès que vous créez un compte, cet enregistrement est supprimé — et les manches que vous avez jouées vous suivent dans le compte."
+      },
+      "account": {
+        "heading": "Ce que contient un compte",
+        "body": "Votre adresse e-mail et le fait qu’elle soit vérifiée ou non ; le nom et l’image transmis par votre fournisseur si vous vous connectez avec Google ou GitHub ; un mot de passe, haché, si vous en avez choisi un ; et le pseudonyme que vous vous donnez. Le pseudonyme est la seule chose que les autres joueurs voient — votre adresse e-mail n’est montrée à personne."
+      },
+      "play": {
+        "heading": "Ce que le jeu enregistre",
+        "body": "Pour chaque manche : le sujet, l’heure de début et de fin, les paragraphes que vous avez marqués, votre score, l’indice acheté ou l’objet utilisé le cas échéant, et les pièces gagnées ou dépensées. À côté de cela : les quêtes qui vous ont été attribuées et celles que vous avez réclamées, vos entrées dans les classements, vos statistiques globales, et les signalements que vous envoyez au sujet d’un article."
+      },
+      "technical": {
+        "heading": "Données techniques",
+        "body": "Une session vous garde connecté : elle porte une date d’expiration, l’adresse IP d’où venait la requête et l’agent utilisateur de votre navigateur. À la création de votre profil, l’en-tête de l’hébergeur nous indique de quel pays la requête semble provenir ; c’est enregistré une seule fois, transformé en une région large pour le classement régional, jamais rafraîchi, et vous pouvez le corriger vous-même. Lorsque la remontée d’erreurs est activée, un plantage envoie les détails de la panne — l’option qui y joindrait votre adresse IP ou les en-têtes de votre requête n’est pas activée. Deux pages sont par ailleurs comptées : la page d’accueil et l’écran où l’on saisit un sujet ajoutent chacune une unité à un total quotidien, afin que nous sachions combien de personnes arrivent et combien vont jusqu’à demander une partie. Ce compteur contient une date, un nom de page et un nombre, et aucun identifiant d’aucune sorte — pas même haché : il ne peut donc pas dire si deux chargements venaient de la même personne, et il n’y a rien dedans à vous communiquer ni à effacer."
+      },
+      "cookies": {
+        "heading": "Cookies",
+        "body": "Deux, tous les deux les nôtres. L’un vous garde connecté ; l’autre retient la langue que vous avez choisie, et n’est écrit que lorsque vous cliquez sur le sélecteur. Il n’y a ni publicité, ni mesure d’audience tierce, ni cookie tiers, ni identifiant inter-sites — c’est pour cela que rien ne vous a demandé d’écarter un bandeau avant de lire ceci. Le seul décompte que nous faisons est celui décrit plus haut, sur notre propre serveur, et il ne porte le nom de personne."
+      },
+      "processors": {
+        "heading": "Par qui les données passent",
+        "body": "Le site est hébergé par Vercel et le service multijoueur par Render ; la base de données est chez Neon ; les caches chez Upstash et Render. Le modèle de langue qui réécrit l’article est celui de Google : il reçoit le sujet que vous avez tapé et le texte de l’article, et rien qui dise qui vous êtes. Se connecter avec Google ou GitHub nous dit qui vous êtes parce que vous l’avez demandé. Wikipédia est lu par notre serveur et jamais par votre navigateur : Wikipédia ne vous voit donc pas. Rien n’est vendu, et rien ici ne finance de publicité."
+      },
+      "retention": {
+        "heading": "Combien de temps",
+        "body": "Jusqu’à ce que vous les effaciez. Les sessions expirent d’elles-mêmes ; le reste demeure aussi longtemps que votre compte, et il n’existe aujourd’hui aucune purge automatique. Les manches d’un invité restent attachées à l’enregistrement d’invité auquel elles appartiennent."
+      },
+      "rights": {
+        "heading": "Vos droits",
+        "body": "Depuis votre profil, vous pouvez télécharger une copie de votre compte — adresse e-mail, pseudonyme, régions, statistiques, manches, pièces et ce qu’elles ont rapporté ou coûté, quêtes, entrées de classement, indices achetés, objets utilisés et signalements envoyés — et supprimer le compte purement et simplement. N’y figure pas ce qui serait une clé plutôt qu’un fait : un mot de passe, les jetons émis par un fournisseur de connexion, et les identifiants d’autres joueurs. La suppression efface le compte, le profil, les statistiques, les pièces, les quêtes et les entrées de classement ; les manches jouées avec d’autres personnes subsistent, votre nom y étant remplacé par un libellé aléatoire, afin que leurs scores gardent un sens. Un pseudonyme se réserve une fois et ne peut plus être changé ensuite. Vous pouvez également demander une rectification, vous opposer à ce qui est fait ici, ou saisir la CNIL."
+      },
+      "changes": {
+        "heading": "Si cette page change",
+        "body": "La date en haut est celle du dernier changement. Aucune liste de diffusion ne vous préviendra : si le sujet vous importe, elle mérite un coup d’œil."
+      }
+    }
+  },
+  "terms": {
+    "title": "Conditions",
+    "updated": "Dernière mise à jour le 11 septembre 2026",
+    "intro": "Les règles d’un jeu gratuit, écrites pour être lues plutôt qu’acceptées. Jouer, c’est les accepter.",
+    "sections": {
+      "what": {
+        "heading": "Ce que c’est",
+        "body": "WikiFake vous montre un article de Wikipédia dont un modèle de langue a délibérément réécrit certains faits, et vous demande de les retrouver. Rien de ce que vous lisez dans une manche n’est une source fiable. Ne le citez pas, et n’en repartez avec rien que vous tiendriez pour acquis."
+      },
+      "wikipedia": {
+        "heading": "Wikipédia",
+        "body": "Les articles proviennent de Wikipédia en français et sont utilisés sous <licence>{licenceName}</licence>. Chaque manche crédite l’article et ses contributeurs, et les modifications de WikiFake sont publiées sous la même licence. Ce projet n’est ni affilié, ni approuvé, ni lié à Wikipédia ou à la Wikimedia Foundation."
+      },
+      "age": {
+        "heading": "Qui peut jouer",
+        "body": "Il faut avoir au moins 15 ans, ou l’accord d’un parent ou d’un tuteur. Rien ici ne s’adresse à de plus jeunes enfants."
+      },
+      "account": {
+        "heading": "Votre compte et votre nom",
+        "body": "Un compte, un pseudonyme, choisi une fois. Ne prenez pas un nom destiné à vous faire passer pour quelqu’un d’autre ou à insulter qui que ce soit : un tel nom peut être retiré, et un compte qui recommence également."
+      },
+      "coins": {
+        "heading": "Pièces et objets",
+        "body": "Les pièces se gagnent en jouant et se dépensent dans le jeu. Elles ne peuvent être ni achetées, ni vendues, ni échangées contre de l’argent, elles ne valent rien en dehors du jeu, et un solde peut être corrigé si un défaut a distribué ce que personne n’avait gagné."
+      },
+      "fair": {
+        "heading": "Jeu loyal",
+        "body": "Jouez avec un navigateur, pas avec un script. N’automatisez pas les manches, ne moissonnez pas le site, et n’essayez pas de casser, de saturer ou de contourner le service — y compris les parties qui décident de ce que vaut une manche."
+      },
+      "reports": {
+        "heading": "Ce que vous nous envoyez",
+        "body": "Vous pouvez signaler une affirmation qu’un article donne pour vraie à tort. Ce que vous écrivez est conservé avec votre compte et sert à améliorer le jeu : n’y mettez donc rien de personnel."
+      },
+      "availability": {
+        "heading": "Aucune promesse de disponibilité",
+        "body": "C’est un projet personnel qui tourne pour l’essentiel sur des infrastructures gratuites. Il peut être lent, il peut être indisponible, une manche peut être perdue, et il peut cesser d’exister. Il est proposé tel quel."
+      },
+      "liability": {
+        "heading": "Responsabilité",
+        "body": "Dans la limite de ce que permet la loi, WikiFake n’est pas responsable des conséquences de son utilisation — y compris de ce que vous auriez cru parce qu’une manche l’affirmait. Rien ici ne limite une responsabilité que la loi interdit de limiter."
+      },
+      "law": {
+        "heading": "Droit applicable, et où se plaindre",
+        "body": "Le droit français s’applique. Écrivez à <contact>{address}</contact> pour tout ce qui concerne cette page ou la précédente ; si cela reste sans suite, une réclamation portant sur vos données se dépose auprès de la CNIL."
+      }
+    }
+  },
+  "faq": {
+    "title": "Questions fréquentes",
+    "updated": "Dernière mise à jour le 11 septembre 2026",
+    "intro": "Ce qu’est le jeu, ce qu’il fait de ce que vous tapez, et ce qu’il ne faut surtout pas croire. Si quelque chose ici contredit un écran, c’est l’écran qui a raison et cette page qui a vieilli.",
+    "sections": {
+      "what": {
+        "heading": "Qu’est-ce que WikiFake ?",
+        "body": "Un jeu de lecture critique. Vous nommez un sujet, le site va chercher l’article correspondant sur Wikipédia en français, un modèle de langue en réécrit quelques faits, et vous devez les retrouver avant la fin du chronomètre."
+      },
+      "trust": {
+        "heading": "Puis-je croire ce que je lis dans une manche ?",
+        "body": "Non, et c’est la réponse qui mérite d’être lue deux fois. Tout article affiché dans une manche a été altéré exprès, et rien à l’écran ne dit où. Ne le citez pas, ne le répétez pas, et n’en retenez ni une date ni un chiffre. L’article d’origine est à un lien de chaque manche, dans la source qu’elle crédite."
+      },
+      "free": {
+        "heading": "Est-ce gratuit, et faut-il un compte ?",
+        "body": "Gratuit, sans publicité et sans rien à acheter. Le compte est facultatif : on peut jouer seul ou en salon sans en avoir un. S’inscrire, c’est ce qui fait suivre les statistiques, les quêtes, les classements et les pièces d’une session à l’autre — et les manches jouées en invité vous accompagnent."
+      },
+      "articles": {
+        "heading": "D’où viennent les articles ?",
+        "body": "De Wikipédia en français, dans l’état où ils sont le jour où vous jouez. Rien n’est coupé ni reformulé avant que le modèle ne les voie. Chaque manche crédite l’article et ses contributeurs et renvoie vers la licence : le texte est le leur, et nos modifications sont publiées aux mêmes conditions."
+      },
+      "errors": {
+        "heading": "Qui écrit les faux faits ?",
+        "body": "Un modèle de langue, à qui l’on demande de changer des faits en laissant intactes les phrases autour. Il déplace des dates, des nombres, des noms, des lieux — le genre de chose qui se lit parfaitement et qui est simplement faux. Rien n’est surligné, et l’article ne dit jamais combien de faits ont bougé."
+      },
+      "scoring": {
+        "heading": "Comment une manche est-elle comptée ?",
+        "body": "Vous marquez chaque paragraphe auquel vous ne croyez pas, puis vous validez. Un paragraphe falsifié que vous avez attrapé rapporte, un paragraphe marqué pour rien coûte, et ce qui reste au chronomètre vaut aussi quelque chose. Les chiffres exacts sont sur la page d’accueil, où ils sont lus dans les mêmes règles que celles avec lesquelles le serveur corrige."
+      },
+      "friends": {
+        "heading": "Peut-on jouer à plusieurs ?",
+        "body": "Oui. Ouvrez un salon et partagez son code : tout le monde joue le même article en même temps, voit les autres le marquer, et peut dépenser un objet pour leur compliquer la soirée. Le débrief final montre ce que chacun a trouvé et laissé passer."
+      },
+      "coins": {
+        "heading": "À quoi servent les pièces ?",
+        "body": "À acheter un indice pendant une manche, et des cosmétiques dans la boutique. Elles se gagnent en jouant et en réclamant des quêtes. Elles ne s’achètent pas avec de l’argent, ne se revendent pas, et ne valent rien en dehors du jeu."
+      },
+      "french": {
+        "heading": "Pourquoi les articles sont-ils en français si l’interface ne l’est pas ?",
+        "body": "Parce que le jeu lit Wikipédia en français, et qu’un article falsifié ne se lit utilement que dans la langue où il a été écrit. L’interface est en anglais et en français ; les articles sont français quelle que soit celle que vous avez choisie."
+      },
+      "realerror": {
+        "heading": "J’ai trouvé une vraie erreur — dans Wikipédia même.",
+        "body": "Signalez-la depuis la manche. Choisissez le paragraphe, ajoutez une note si vous en avez une, et le signalement est rédigé à la fin de la manche. Il est vérifié, et ceux qui tiennent sont conservés. C’est autre chose que les erreurs plantées par le jeu, et le jeu fait la différence."
+      },
+      "data": {
+        "heading": "Que gardez-vous sur moi ?",
+        "body": "Peu de choses, et la page de confidentialité les énumère au lieu de les résumer. En bref : un invité est un enregistrement temporaire sans adresse e-mail ; un compte contient une adresse, un pseudonyme et ce que vous avez joué ; rien n’est vendu et il n’y a pas de publicité. Vous pouvez télécharger une copie ou supprimer le compte depuis votre profil."
+      }
+    }
+  }
+}

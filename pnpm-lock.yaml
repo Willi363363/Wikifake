@@ -86,6 +86,9 @@ importers:
       '@wikifake/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
+      '@wikifake/tickets':
+        specifier: workspace:*
+        version: link:../../packages/tickets
       ai:
         specifier: ^7.0.77
         version: 7.0.77(zod@4.4.3)
@@ -156,6 +159,9 @@ importers:
       '@wikifake/protocol':
         specifier: workspace:*
         version: link:../../packages/protocol
+      '@wikifake/tickets':
+        specifier: workspace:*
+        version: link:../../packages/tickets
       '@wikifake/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -260,6 +266,9 @@ importers:
       '@wikifake/domain':
         specifier: workspace:*
         version: link:../domain
+      '@wikifake/env':
+        specifier: workspace:*
+        version: link:../env
       eslint:
         specifier: ^9.39.0
         version: 9.39.5(jiti@2.7.0)(supports-color@8.1.1)
@@ -396,6 +405,27 @@ importers:
         specifier: ^4.1.12
         version: 4.4.3
     devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^3.2.4
+        version: 3.2.7(supports-color@8.1.1)(vitest@3.2.7(@types/node@22.20.1)(jiti@2.7.0)(jsdom@30.0.1(@noble/hashes@2.3.0))(lightningcss@1.32.0)(supports-color@8.1.1)(terser@5.50.0)(tsx@4.23.12))
+      '@wikifake/config':
+        specifier: workspace:*
+        version: link:../config
+      eslint:
+        specifier: ^9.39.0
+        version: 9.39.5(jiti@2.7.0)(supports-color@8.1.1)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)(jiti@2.7.0)(jsdom@30.0.1(@noble/hashes@2.3.0))(lightningcss@1.32.0)(supports-color@8.1.1)(terser@5.50.0)(tsx@4.23.12)
+
+  packages/tickets:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.1
+        version: 22.20.1
       '@vitest/coverage-v8':
         specifier: ^3.2.4
         version: 3.2.7(supports-color@8.1.1)(vitest@3.2.7(@types/node@22.20.1)(jiti@2.7.0)(jsdom@30.0.1(@noble/hashes@2.3.0))(lightningcss@1.32.0)(supports-color@8.1.1)(terser@5.50.0)(tsx@4.23.12))

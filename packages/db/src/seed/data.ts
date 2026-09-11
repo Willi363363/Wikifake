@@ -22,9 +22,17 @@ export const SEED_USERS = [
   { id: 'seed_user_bob', name: 'Bob Bricoleur', email: 'bob@example.org' },
 ] as const;
 
+// `displayNameKey` is spelled out rather than computed, so that a seed whose
+// key stopped matching its name would be a visible diff rather than a silent
+// agreement between two calls to the same function — E.3.1.
 export const SEED_PROFILES = [
-  { userId: 'seed_user_ada', displayName: 'ada', accent: 'teal' },
-  { userId: 'seed_user_bob', displayName: 'bob', accent: 'bronze' },
+  { userId: 'seed_user_ada', displayName: 'ada', displayNameKey: 'ada', accent: 'teal' },
+  {
+    userId: 'seed_user_bob',
+    displayName: 'bob',
+    displayNameKey: 'bob',
+    accent: 'bronze',
+  },
 ] as const;
 
 export const SEED_ROOM = {

@@ -66,7 +66,7 @@ covers.
 
 It is not a leftover. With a single maintainer, a ruleset with no bypass makes
 the repository unrecoverable by the only person who can recover it — the
-promotion blocked by an already-merged commit, in `../current-state/06-structural-debt.md`,
+promotion blocked by an already-merged commit, in `../current-state/08-toolchain-debt.md`,
 is exactly the situation where the bypass is the way out. The cost is that it is
 always on rather than reached for.
 

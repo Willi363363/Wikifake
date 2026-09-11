@@ -62,9 +62,16 @@ export function ChatDock() {
     // bound this form applies cannot disagree — C5.4, in one place.
     const read = decode(chatContent, draft);
     if (!read.ok) {
-      // The schema's own sentence when it has one — that is server-authored
-      // data; the catalogue only owns the fallback.
-      setWrong(read.issues[0] ?? t('errors.cannotSend'));
+      /*
+       * Step 11.9 — the catalogue's sentence, never the schema's.
+       *
+       * `read.issues` are Zod's, authored in `@wikifake/protocol` and English
+       * under any interface: a French player typing too long a message read
+       * "String must contain at most 500 character(s)". The bound is still the
+       * protocol's — that is what `chatContent` is for — and saying so is the
+       * client's job, in the client's language.
+       */
+      setWrong(t('errors.cannotSend', { max: MAX_CHAT_LENGTH }));
       return;
     }
     setWrong(null);

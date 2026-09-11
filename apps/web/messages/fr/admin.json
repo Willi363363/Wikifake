@@ -1,0 +1,168 @@
+{
+  "title": "Administration",
+  "lead": "En lecture seule. Chaque chiffre vient d'une requête, et rien sur cette page ne peut modifier quoi que ce soit.",
+  "readOnly": "En lecture seule, et la dernière section est en place. Rien ici n'écrit, et aucune action n'est proposée — un panneau capable d'agir sur les données est une seconde application, avec ses permissions, ses journaux et son rayon d'action.",
+  "health": {
+    "title": "Santé",
+    "up": "En ligne",
+    "down": "Hors ligne",
+    "yes": "oui",
+    "no": "non",
+    "services": {
+      "web": "Application web",
+      "realtime": "Service temps réel",
+      "database": "Base de données"
+    },
+    "columns": {
+      "service": "Service",
+      "state": "État",
+      "took": "Durée",
+      "says": "Répond"
+    },
+    "commitAgree": "Les deux services tournent sur le même commit.",
+    "commitDisagree": "Les deux services tournent sur des commits différents — un déploiement est à moitié fait, ou l'un des deux a échoué.",
+    "commitUnknown": "Impossible de savoir si les deux concordent : l'un est hors ligne, ou aucun n'a été déployé depuis git.",
+    "model": "Modèle {model} · clé configurée : {configured}",
+    "live": "En direct, quelle que soit la période : une sonde n'a pas d'historique."
+  },
+  "players": {
+    "title": "Joueurs",
+    "accounts": "Comptes",
+    "guests": "{count, plural, =0 {aucun invité} one {# invité en plus} other {# invités en plus}}",
+    "everPlayed": "Ont déjà joué",
+    "ofAccounts": "sur {count, plural, one {# compte} other {# comptes}}",
+    "activeToday": "Actifs aujourd'hui",
+    "activeThisWeek": "Actifs cette semaine",
+    "mostActive": "Les plus assidus",
+    "nobody": "Personne n'a encore terminé de manche.",
+    "columns": {
+      "player": "Joueur",
+      "finished": "Terminées",
+      "started": "Commencées",
+      "lastSeen": "Vu la dernière fois"
+    },
+    "activeInRange": "Actifs sur la période",
+    "thisWeek": "{count} cette semaine",
+    "allTimeList": "Tout compris : les manches terminées sont un total cumulé sans date."
+  },
+  "activation": {
+    "title": "Activation",
+    "noWhole": "—",
+    "activation": "Activation",
+    "activationWhy": "Parmi les comptes créés, la part qui a terminé une manche.",
+    "returnRate": "Revenus",
+    "returnWhy": "Parmi ceux qui ont terminé une manche, la part active un autre jour.",
+    "ofPrevious": "{name}de l'étape précédente : ",
+    "steps": {
+      "created": "Comptes créés",
+      "started": "Ont commencé une manche",
+      "finished": "Ont terminé une manche",
+      "returned": "Sont revenus un autre jour"
+    },
+    "why": {
+      "created": "Inscrits. Les invités ne comptent pas : ce ne sont pas des comptes.",
+      "started": "Ont appuyé sur jouer au moins une fois. Ceux qui manquent se sont inscrits sans jamais commencer.",
+      "finished": "Ont soumis au moins une manche. L'écart au-dessus, ce sont les manches abandonnées en route.",
+      "returned": "Ont été actifs un jour plus tard que le premier. Deux manches d'affilée, ce n'est pas revenir."
+    },
+    "caveat": "« Revenus » signifie un jour d'activité ultérieur, pas une courbe de cohorte : un retour le lendemain et un retour six mois après se ressemblent ici, faute d'historique jour par jour.",
+    "cohort": "La période choisit qui s'est inscrit, pas quand ils ont joué — c'est ce qu'un taux d'activation a toujours voulu dire."
+  },
+  "games": {
+    "title": "Manches",
+    "noRounds": "—",
+    "abandonRate": "Taux d'abandon",
+    "abandonWhy": "Parmi les places dans les manches terminées, la part dont le joueur n'a jamais soumis.",
+    "modes": {
+      "solo": "Solo",
+      "multiplayer": "Salons",
+      "all": "Tout"
+    },
+    "columns": {
+      "mode": "Mode",
+      "rounds": "Manches",
+      "open": "En cours",
+      "seats": "Places (terminées)",
+      "abandoned": "Abandonnées",
+      "rate": "Taux"
+    },
+    "caveat": "Seules les manches terminées comptent dans le taux : une place dans une manche en cours n'a rien abandonné. Et il ne peut pas être ventilé par écran — saisir un thème, voter et attendre la génération ne laissent aucune ligne, d'où la ventilation par mode."
+  },
+  "traffic": {
+    "title": "Arrivées",
+    "reach": "Portée",
+    "reachWhy": "Sur les vues de la page d’accueil de cette période, la part qui a atteint l’écran où l’on saisit un sujet.",
+    "none": "—",
+    "landing": "Accueil",
+    "entry": "Écran de saisie",
+    "columns": {
+      "day": "Jour",
+      "landing": "Accueil",
+      "entry": "Saisie"
+    },
+    "empty": "Rien n’a été compté sur cette période.",
+    "since": "Le décompte a commencé le {day}. Une période qui remonte plus loin couvre des jours que personne ne comptait : deux périodes à cheval sur cette date ne sont pas comparables.",
+    "never": "Rien n’a encore été compté. Les arrivées sont comptées depuis la mise en ligne de cette fonction : un panneau vide, ici, c’est à quoi ressemble un compteur neuf.",
+    "caveat": "Ce sont des chargements de page, pas des personnes : ce compteur ne contient aucun identifiant, donc deux chargements par un même lecteur et un chargement par chacun de deux lecteurs donnent le même nombre. La portée peut dépasser 100 % — on atteint l’écran de saisie depuis un signet, sans passer par l’accueil.",
+    "more": "{count, plural, one {# jour antérieur n’est pas affiché} other {# jours antérieurs ne sont pas affichés}}"
+  },
+  "cost": {
+    "title": "Coût",
+    "noRate": "—",
+    "noRateWhy": "Aucun tarif par jeton n'est configuré : cette section indique des jetons plutôt que de l'argent. Renseignez MODEL_INPUT_COST_PER_MTOK et MODEL_OUTPUT_COST_PER_MTOK pour les valoriser — un tarif inscrit dans le dépôt vieillirait sans le dire.",
+    "rateSet": "Valorisé au tarif configuré par million de jetons.",
+    "spend": "Dépense totale",
+    "perGame": "Par manche générée",
+    "perPlayer": "Par joueur",
+    "tokensPerGame": "Jetons par manche",
+    "calls": "{count, plural, one {# appel} other {# appels}}",
+    "generated": "{count, plural, one {# générée} other {# générées}}",
+    "failed": "{count, plural, one {# appel a échoué et a coûté des jetons} other {# appels ont échoué et ont coûté des jetons}}",
+    "withoutTokens": "{count, plural, one {# appel n'a rapporté aucun décompte de jetons} other {# appels n'ont rapporté aucun décompte de jetons}} — les totaux ci-dessus ne les comptent pas.",
+    "byKind": "Par type",
+    "perDay": "Par jour, 30 derniers jours",
+    "nothing": "Aucun appel au modèle enregistré.",
+    "columns": {
+      "kind": "Type",
+      "calls": "Appels",
+      "failed": "Échecs",
+      "input": "Entrée",
+      "output": "Sortie"
+    }
+  },
+  "content": {
+    "title": "Contenu",
+    "nothing": "—",
+    "cacheHitRate": "Taux de cache",
+    "cacheWhy": "Une manche servie depuis le cache ne coûte rien à générer : ce taux sépare cent manches de cent générations.",
+    "generated": "Générées",
+    "ofGames": "sur {count, plural, one {# manche} other {# manches}}",
+    "distinctTopics": "Articles distincts",
+    "failedGeneration": "Génération échouée",
+    "ofCalls": "sur {count, plural, one {# appel} other {# appels}}",
+    "topicFailures": "{count, plural, =0 {Aucun choix de thème n'est revenu vide} one {# choix de thème sur {calls} est revenu vide} other {# choix de thème sur {calls} sont revenus vides}} — un mot dont Wikipédia n'a pas d'article n'est pas une panne.",
+    "topTopics": "Les plus jouées",
+    "noTopics": "Aucune manche jouée.",
+    "columns": {
+      "topic": "Article",
+      "games": "Manches",
+      "cached": "Depuis le cache"
+    }
+  },
+  "range": {
+    "label": "Période",
+    "presets": {
+      "7d": "7 jours",
+      "30d": "30 jours",
+      "90d": "90 jours",
+      "all": "Tout",
+      "custom": "Sur mesure"
+    },
+    "covering": "Du {from} au {to}, inclus.",
+    "coveringAll": "Tout depuis la première manche.",
+    "whatItMoves": "Elle agit sur les sections joueurs, activation, manches, coût et contenu. La santé est une sonde en direct, et la liste des plus assidus vient de totaux cumulés sans date — les deux le disent là où ils apparaissent.",
+    "allTime": "Tout compris, quelle que soit la période : ce sont des totaux cumulés sans date.",
+    "live": "En direct, quelle que soit la période.",
+    "cohort": "La période choisit qui s'est inscrit, pas quand ils ont joué."
+  }
+}

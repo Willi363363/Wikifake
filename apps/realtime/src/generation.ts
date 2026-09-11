@@ -17,12 +17,15 @@
 // per game.
 import { sourceArticle, type SourceDependencies } from '@wikifake/article';
 import { createGame, recordLlmCalls, type Database } from '@wikifake/db';
+import type { RoundRecord } from '@wikifake/domain';
 import type { ArticleView, FalsifiedPosition } from '@wikifake/protocol';
 
 /** Who is in the room when the round starts, as the roster knows them. */
 export interface RoundPlayer {
   readonly name: string;
   readonly colour: string;
+  /** The account this player's round belongs to, or null — step E.3b.2. */
+  readonly userId?: string | null;
 }
 
 export interface RoundRequest {
@@ -45,6 +48,16 @@ export type RoundOutcome =
       readonly ok: true;
       readonly article: ArticleView;
       readonly solution: readonly FalsifiedPosition[];
+      /**
+       * The rows this round is being played in — step E.3b.1.
+       *
+       * `createGame` has always returned them and this function has always
+       * thrown them away, which is why a multiplayer round reached Postgres as
+       * a game nobody ever finished: no `submitted_at`, no score, no
+       * `ended_at`, for ever. They ride into the room on `article_ready` and
+       * come back out on `record_results`.
+       */
+      readonly record: RoundRecord;
     }
   | { readonly ok: false };
 
@@ -88,10 +101,14 @@ export function createRoundSource(dependencies: GenerationDependencies): RoundSo
         timeLimit: request.timeLimit,
         fromCache,
         solution: entry.solution,
-        // A nickname, not an account: a room is played by whoever typed a name.
-        // Linking a signed-in player's rounds is `attachGuestRecords`' business.
+        // The nickname **and** the account — step E.3b.2. The name is what the
+        // room shows and what a debrief is read under; the id is what a profile
+        // counts. A guest has one too, an anonymous `user` row, which is what
+        // makes the rounds they play here follow them into an account created
+        // afterwards — exactly as solo's have since phase 4.
         players: request.players.map((player) => ({
           guestName: player.name,
+          userId: player.userId ?? null,
           colour: player.colour,
         })),
       });
@@ -100,7 +117,24 @@ export function createRoundSource(dependencies: GenerationDependencies): RoundSo
       // did this round cost" is a query rather than a reconciliation.
       await recordLlmCalls(dependencies.db, calls, started.gameId);
 
-      return { ok: true, article: entry.article, solution: entry.solution };
+      // Paired by position: `createGame` inserts the participants in the order
+      // it was given them and returns their ids in that same order, so the
+      // nickname at index *i* owns the row at index *i*. Named here rather than
+      // relied upon silently — `start.ts`'s own `returning` is what guarantees
+      // it, and a change there would break this quietly.
+      const participants = Object.fromEntries(
+        request.players.map((player, index) => [
+          player.name,
+          started.participantIds[index] as string,
+        ]),
+      );
+
+      return {
+        ok: true,
+        article: entry.article,
+        solution: entry.solution,
+        record: { gameId: started.gameId, participants },
+      };
     },
   };
 }

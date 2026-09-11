@@ -14,6 +14,7 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 
 import { RealtimeProvider } from './provider.js';
+import { fetchIdentity, type Identity } from './ticket.js';
 
 const NICKNAME = 'wikifake.nickname';
 
@@ -54,13 +55,53 @@ export function RoomGate({ children }: { children: ReactNode }) {
   //
   // Found by the browser tests of step 9.5, on the first run. Every unit suite
   // passes the nickname in as a prop, so none of them could have seen it.
-  const [nickname, setNickname] = useState<string | null>(null);
+  //
+  // Step E.3b.2 added the second thing to resolve, and it is resolved here for
+  // the same reason as the first: the socket must not open until both are
+  // known. The identity is captured when a player **joins**, so a connection
+  // opened a moment early is a round attributed to nobody, with no second
+  // chance later in it.
+  //
+  // The two are one piece of state on purpose. Two would let the provider see a
+  // nickname and no ticket for one render, which is exactly the connection this
+  // is here to prevent.
+  //
+  // Step E.3.3 — and the **name** now comes back from the same answer. What is
+  // in `sessionStorage` is what the browser would like to be called; a
+  // signed-in account is shown under its pseudonym whatever that says. The
+  // common disagreement is not an attack: it is a nickname left over from
+  // playing as a guest before signing up, and the server correcting it is what
+  // stops that name following somebody into every room they join afterwards.
+  const [identity, setIdentity] = useState<Identity | null>(null);
+
   useEffect(() => {
-    setNickname(readNickname());
+    const name = readNickname();
+    if (code === null || name === null) {
+      setIdentity(null);
+      return undefined;
+    }
+
+    let live = true;
+    // A failure is an empty ticket and the requested name, never a rejection:
+    // no ticket means the round is played unattributed, which is what every
+    // multiplayer round did before E.3b.2. Refusing to open a room because a
+    // statistics counter cannot be credited would trade a whole feature for a
+    // number.
+    void fetchIdentity(code, name).then((answered) => {
+      if (live) setIdentity(answered);
+    });
+
+    return () => {
+      live = false;
+    };
   }, [code]);
 
   return (
-    <RealtimeProvider roomCode={code} playerName={nickname}>
+    <RealtimeProvider
+      roomCode={code}
+      playerName={identity?.playerName ?? null}
+      ticket={identity?.ticket ?? ''}
+    >
       {children}
     </RealtimeProvider>
   );

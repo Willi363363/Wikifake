@@ -9,6 +9,7 @@ import { and, desc, eq, isNotNull, ne } from 'drizzle-orm';
 import type { Database } from '../client.js';
 import { flagReport } from '../schema/audit.js';
 import { game, participant } from '../schema/game.js';
+import { recomputePlayerStats, type PerfectRound } from './stats.js';
 
 type Db = Database['db'];
 
@@ -67,6 +68,7 @@ export async function attachGuestRecords(
   db: Db,
   fromUserId: string,
   toUserId: string,
+  isPerfect: PerfectRound,
 ): Promise<Attachment> {
   // Refusing rather than quietly doing nothing: being asked to attach an account
   // to itself means a caller has confused two ids, and the loss would be silent.
@@ -88,6 +90,22 @@ export async function attachGuestRecords(
     .set({ reporterId: toUserId })
     .where(eq(flagReport.reporterId, fromUserId))
     .returning({ id: flagReport.id });
+
+  /*
+   * Step E.4 — the aggregate follows the rounds.
+   *
+   * **Recomputed, not merged.** The guest's rounds were already counted against
+   * the anonymous account, and adding two stats rows together is wrong in a way
+   * that is easy to miss: `bestStreak` is a maximum over an ordering, and the
+   * two orderings interleave rather than concatenate — a guest's perfect round
+   * played between two of the account's own extends a streak that addition
+   * would have kept apart.
+   *
+   * The guest row goes with the anonymous user Better Auth deletes a moment
+   * later — `player_stats.user_id` cascades — so there is nothing to clean up
+   * here beyond rebuilding the one that survives.
+   */
+  await recomputePlayerStats(db, toUserId, isPerfect);
 
   return { participants: participants.length, flagReports: reports.length };
 }

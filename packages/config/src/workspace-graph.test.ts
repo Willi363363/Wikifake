@@ -27,6 +27,15 @@ const EXPECTED: Readonly<Record<string, readonly string[]>> = {
   config: [],
   env: ['zod'],
   protocol: ['zod'],
+  // Step E.3b.2 — the ticket that says which account is behind a socket.
+  //
+  // Its own package with **no dependencies at all**: it needs `node:crypto` and
+  // nothing else, and that import is the reason it is not in `protocol`, which
+  // is bundled into a browser. A package the browser has no reason to depend on
+  // cannot be imported into one by accident; a subpath export of `protocol`
+  // would have been one careless import from a build failure naming `crypto`
+  // and nothing else.
+  tickets: [],
   domain: ['@wikifake/protocol'],
   db: ['@wikifake/env', '@wikifake/protocol', 'drizzle-orm', 'postgres'],
   article: ['@wikifake/protocol', 'ai', 'cheerio', 'domhandler', 'zod'],

@@ -51,12 +51,95 @@ export const CRAWLERS_KEPT_OUT = [
 ] as const;
 
 /**
- * The routes that are ours to publish: the front door and the way in.
+ * The routes that are ours to publish: the front door, the way in, and the two
+ * documents.
  *
  * Deliberately short. The old sitemap had one URL and a comment explaining that
- * the rest of the site is a game, not content — that is still true.
+ * the rest of the site is a game, not content — that is still true of the game.
+ *
+ * The three documents are the exception steps J.3 and J.5 added, and they are
+ * the only pages on this site somebody may go looking for *from outside it*: a
+ * policy nobody can find is a policy that does not answer the question it
+ * exists to answer, and the questions people type into a search engine about a
+ * game are the ones on `/faq`. Every other screen tracks E to I added says `noindex` in its own
+ * metadata, which is the right answer for one player's profile and the wrong
+ * one for a document addressed to anybody.
  */
-export const INDEXABLE_ROUTES = ['/', '/play'] as const;
+export const INDEXABLE_ROUTES = ['/', '/play', '/faq', '/privacy', '/terms'] as const;
+
+/**
+ * The screens that are somebody's rather than anybody's — step J.9.
+ *
+ * Every route here answers `noindex`, and the value says whether a crawler may
+ * still follow the links on it. The decisions used to live as a literal in each
+ * page file, which is how `/leaderboard` came to have none at all: eight pages
+ * each made the call and the ninth forgot, and nothing could see the gap.
+ *
+ * `indexing.test.ts` now walks `app/[locale]` and holds every page route to
+ * being classified here, in `INDEXABLE_ROUTES`, or in `CRAWLERS_KEPT_OUT`. A
+ * screen added without a decision fails that test rather than being crawled.
+ *
+ * **`follow` is not a detail.** A sign-in form is worth nothing in an index and
+ * the pages it links to are worth something, so a crawler is welcome to walk
+ * through it. A profile, a quest list or the admin panel lead only further into
+ * one player's data, and there is nothing down there for anybody.
+ */
+export const UNINDEXED_ROUTES: Readonly<Record<string, { follow: boolean }>> = {
+  /*
+   * The board is the decision this step was left to make, and it is a refusal.
+   *
+   * `leaderboard/page.tsx` said in as many words that whether a board should be
+   * indexed was track J's call. Three reasons it is not:
+   *
+   *   - **it publishes pseudonyms to the open web.** A player chose a name
+   *     other players would see, which is not the same as choosing one a search
+   *     engine keeps. The privacy policy promises the first and would have to
+   *     promise the second;
+   *   - **its value is to somebody already here.** Nobody searches for a
+   *     leaderboard they have not played on, and the page is `force-dynamic`
+   *     precisely because today's board is not tomorrow's;
+   *   - **the periods and regions are query strings**, so indexing it invites a
+   *     crawler into a combinatorial set of near-identical pages — a crawl trap
+   *     to be answered with canonicals nobody has written.
+   *
+   * `follow`, because the way out of it is `/play`, which is indexed.
+   */
+  '/leaderboard': { follow: true },
+
+  // A form is not content, and the pages either one links to are.
+  '/sign-in': { follow: true },
+  '/sign-up': { follow: true },
+
+  // One player's, and everything they lead to is more of the same.
+  '/profile': { follow: false },
+  '/quests': { follow: false },
+  '/shop': { follow: false },
+  '/choose-a-name': { follow: false },
+
+  /*
+   * The panel, which is also 404 to everybody who is not an administrator.
+   *
+   * Declared anyway: a `noindex` on a page a crawler cannot reach costs
+   * nothing, and the day the gate changes shape this is the line that was
+   * already right.
+   */
+  '/admin': { follow: false },
+};
+
+/**
+ * What a page declares, in the shape Next's `Metadata` takes.
+ *
+ * Pages call this instead of writing `{ index: false, follow: false }` by hand:
+ * the literal is the spelling that drifted, and a route not named above is a
+ * mistake worth failing loudly for rather than defaulting quietly to indexable.
+ */
+export function robotsFor(route: string): { index: false; follow: boolean } {
+  const decided = UNINDEXED_ROUTES[route];
+  if (decided === undefined) {
+    throw new Error(`no indexing decision for ${route} — add one to UNINDEXED_ROUTES`);
+  }
+  return { index: false, follow: decided.follow };
+}
 
 // The title and the description used to live here as English constants. Step
 // 11.5 moved them into the catalogue — `messages/<locale>/seo.json` — because

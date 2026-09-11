@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | ⬜ not started |
+| **State** | ✅ done — boards, thresholds and a player's own rank |
 | **Branch** | `feat/leaderboards` |
 | **Depends on** | track E |
 | **Delivers** | a world ranking and a regional one |
@@ -53,13 +53,30 @@ Recorded in `11-deferred.md` rather than built.
 
 | # | Step | State |
 |---|---|---|
-| G.1 | Region on the profile: derived, overridable | ⬜ |
-| G.2 | `leaderboard_entry`, written when a round finishes | ⬜ |
-| G.3 | Periods: daily, weekly, all-time | ⬜ |
-| G.4 | Queries and their indexes, checked on seeded volume | ⬜ |
-| G.5 | The board screen, world and regional | ⬜ |
-| G.6 | Participant threshold and the empty state | ⬜ |
-| G.7 | Your own rank, and the rows around it | ⬜ |
+| G.1 | Region on the profile: derived, overridable | ✅ |
+| G.2 | `leaderboard_entry`, written when a round finishes | ✅ |
+| G.3 | Periods: daily, weekly, all-time | ✅ |
+| G.4 | Queries and their indexes, checked on seeded volume | ✅ |
+| G.5 | The board screen, world and regional | ✅ |
+| G.6 | Participant threshold and the empty state | ✅ |
+| G.7 | Your own rank, and the rows around it | ✅ |
+
+**What each step decided** is in three sheets: `07-leaderboards-steps.md`
+carries G.1 and G.2 — the region, and the entries a board may rank —
+`07-leaderboards-queries.md` carries G.3 and G.4, how a board is windowed and
+asked for, `07-leaderboards-screen.md` carries G.5 and G.6, and
+`07-leaderboards-rank.md` carries G.7 — which found that the board was listing
+rounds rather than players. The table above is the
+only place that says where a step stands.
+
+**The boards rank room rounds only.** The track offered "separately from
+multiplayer, or not at all" and the owner chose the second: a solo topic is one
+the player picked. G.5's sheet has the argument, and it is reversible without a
+migration.
+
+**G.1 stores three regions rather than six continents**, which narrows what this
+frame says above. The reason is the frame's own privacy argument, and it is in
+the sheet.
 
 ### G.4 — Indexes before the screen
 
@@ -69,6 +86,12 @@ table of a size the game does not have yet — because the alternative is
 discovering it on the day the game finally has players.
 
 ## Exit gate
+
+All five are met, and the first has a condition worth stating rather than
+hiding: a finished round appears **on an open board**. Below G.6's threshold of
+ten players it appears nowhere, which is that step's rule from this same file
+rather than a gap in this one. The entry itself is written in the transaction
+that grades the round, so there is no minute to wait for.
 
 - A finished multiplayer round appears in the world board within a minute.
 - The regional board matches, for a player whose region was overridden by hand.

@@ -65,6 +65,70 @@ export const ERROR_CODES = [
    * gets no correction.
    */
   'item_not_held',
+  /**
+   * E.3.2 — another account already holds that pseudonym. REST: 409.
+   *
+   * Distinct from `name_taken`, which is C5.2's: *somebody in this room is
+   * called that, right now*. This one is permanent and account-wide, and a
+   * client that could not tell them apart would offer "try again in a moment"
+   * for a name nobody is ever giving back.
+   */
+  'pseudonym_taken',
+  /**
+   * F.6 — a quest identifier that is not this account's, or is not anything.
+   *
+   * One code for both, like `session_not_found`: telling them apart would
+   * answer "does this quest exist" about somebody else's row to whoever asked.
+   */
+  'quest_not_found',
+  /**
+   * F.6 — the reward has already been taken. REST: 409.
+   *
+   * The ordinary outcome of a double-clicked button, and the one a client should
+   * treat as *success it has already had* rather than as a failure to retry.
+   */
+  'quest_already_claimed',
+  /**
+   * F.6 — the target has not been met yet. REST: 409.
+   *
+   * Distinct from the one above because the two differ in what a player can do:
+   * this one becomes claimable by playing, and that one never becomes anything.
+   */
+  'quest_not_complete',
+  /**
+   * H.4 — a hint asked for in coins by a player who has not got them. REST: 402.
+   *
+   * The one status code in this application that is about money, and it is
+   * about *earned* coins: nothing here takes a payment. A client shows the
+   * balance and the price rather than a retry.
+   */
+  'insufficient_coins',
+  /**
+   * H.4 — coins offered for a hint in a room. REST: 409.
+   *
+   * Solo only, and the reason is the leaderboards: a room round is ranked, and
+   * paying with coins leaves the score untouched — so a player with coins would
+   * outscore one without. G.5 kept the boards measuring play rather than
+   * spending, and this keeps them that way by construction.
+   */
+  'coins_not_accepted',
+  /**
+   * H.6 — the cosmetic asked for is not this player's to wear.
+   *
+   * **One code for unknown and unowned both.** Telling them apart would answer
+   * *does this cosmetic exist* to somebody who has not got it, which enumerates
+   * the catalogue — including whatever a launch has not announced yet.
+   */
+  'cosmetic_not_owned',
+  /**
+   * H.7 — the shop has nothing by that identifier.
+   *
+   * Distinct from `cosmetic_not_owned`, and the asymmetry is deliberate: the
+   * wear path hides whether a cosmetic exists from somebody who has not got it,
+   * because that would enumerate the catalogue. A **shop** has a public price
+   * list, so refusing to say what is in it would be secrecy about nothing.
+   */
+  'cosmetic_not_found',
 ] as const;
 
 export const errorCode = z.enum(ERROR_CODES);

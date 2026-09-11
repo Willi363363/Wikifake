@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | ⬜ not started |
+| **State** | 🔶 every step built; E.1 awaiting credentials |
 | **Branch** | `feat/player-accounts` |
 | **Depends on** | — |
 | **Delivers** | sign-in that works in production, a profile, and per-player stats |
@@ -24,6 +24,13 @@ tables, and a guest's game already follows them into their account.
 needs `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` in the Vercel
 environment, and the redirect URI registered in the Google console. Zero lines.
 
+**E.1 is ⚠️ rather than ✅ for two reasons, both in `05-accounts-oauth.md`.** The
+credentials are a person's to create. And the step's exit line — sign in with
+Google, from a phone — needs a button, which is E.2: `better-auth`'s social flow
+is a `POST`, not a URL anybody can paste. What E.1 did ship is the guard on the
+variable those credentials depend on, `BETTER_AUTH_URL`, whose localhost default
+would otherwise send every player who signs in to their own machine, silently.
+
 ## The data we ask for, and the reason it is this little
 
 Email, password, pseudonym. Nothing else — no real name, no birth date, no
@@ -44,35 +51,34 @@ leaderboard or a shared score.
 
 | # | Step | State |
 |---|---|---|
-| E.1 | OAuth credentials in the environments, Google first | ⬜ |
-| E.2 | Sign-in and sign-up screens, on the direction | ⬜ |
-| E.3 | Pseudonym: chosen, unique, and the only public identifier | ⬜ |
-| E.4 | `player_stats` — the aggregate a profile reads | ⬜ |
-| E.5 | The profile screen | ⬜ |
-| E.6 | Guest continuity — a guest game survives signing up | ⬜ |
-| E.7 | Export and delete my account | ⬜ |
+| E.1 | OAuth credentials in the environments, Google first | ⚠️ |
+| E.2 | Sign-in and sign-up screens, on the direction | ✅ |
+| E.3.1 | The pseudonym is a row of its own, and no two accounts share one | ✅ |
+| E.3.2 | Every account chooses one, including one that arrived through Google | ✅ |
+| E.3.3 | It is the only public identifier: a room shows it and nothing else | ✅ |
+| E.3b.1 | Multiplayer results reach the database | ✅ |
+| E.3b.2 | The socket player carries their account | ✅ |
+| E.4 | `player_stats` — the aggregate a profile reads | ✅ |
+| E.5 | The profile screen | ✅ |
+| E.6 | Guest continuity — a guest game survives signing up | ✅ |
+| E.7 | Export and delete my account | ✅ |
 
-### E.4 — What a statistic is
+**E.3 was one line hiding three steps**, and the re-cut is in
+`05-accounts-pseudonym.md` — the second of `../method/00-dev-cycle.md`'s three
+overflow cases, the same one E.3b hit. "Chosen, unique, and the only public
+identifier" is a *data* rule, a *sign-up* rule and a *room* rule, each with its
+own exit condition and none of which fits in a branch with the other two.
 
-Aggregate rows, written when a round ends, never recomputed from scratch on
-page load:
-
-- games played, finished, abandoned
-- falsifications found, missed, and paragraphs wrongly marked
-- best score, average score, current and best streak
-- first seen, last seen
-
-Two of those — last seen and finished-versus-started — are what the admin
-panel's activation KPI reads in track I, so they are named here and not
-invented twice.
-
-### E.7 — Export and delete
-
-Built here rather than deferred, because it is an hour's work while the schema
-is small and a week's work once quests, coins and leaderboards reference a
-player. Delete removes the account and anonymises what must be kept for the
-game's integrity — a finished room keeps its scores, attributed to a deleted
-player.
+**What each step decided, and what it got wrong first**, is in seven sheets.
+`05-accounts-oauth.md` carries E.1 — the runbook for the credentials, and the
+guard on the variable they depend on. `05-accounts-multiplayer.md` carries E.3b,
+which was found missing while E.4 was being built and turned out to be two steps.
+`05-accounts-pseudonym.md` carries the re-cut and E.3.1, and
+`05-accounts-choosing.md` carries E.3.2 and E.3.3, `05-accounts-erasure.md`
+carries E.7, and `05-accounts-continuity.md` carries E.6 — which found that the
+linking hook fires on sign-*in* too, so the promise the invitation makes is
+wider than the step assumed. `05-accounts-steps.md` carries the rest: E.2, E.4
+and E.5. The table above is the only place that says where a step stands.
 
 ## Exit gate
 

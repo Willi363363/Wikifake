@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   gradeSubmission,
   hintCostFor,
+  isPerfectRound,
   HINT_COST,
   PER_FALSE_POSITIVE,
   PER_TRUE_POSITIVE,
@@ -192,5 +193,40 @@ describe('C2.4 — the leaderboard', () => {
   it('handles the empty and single cases', () => {
     expect(rankByScore([])).toEqual([]);
     expect(rankByScore([{ score: 7 }])).toEqual([{ score: 7 }]);
+  });
+});
+
+describe('E.4 — a perfect round, which is what a streak counts', () => {
+  const round = (truePositives: number, falsePositives: number, totalFakes: number) => ({
+    truePositives,
+    falsePositives,
+    totalFakes,
+  });
+
+  it('is every falsification found and nothing true marked', () => {
+    expect(isPerfectRound(round(3, 0, 3))).toBe(true);
+  });
+
+  it('is not one when something was missed', () => {
+    expect(isPerfectRound(round(2, 0, 3))).toBe(false);
+  });
+
+  /*
+   * The half that keeps the streak honest.
+   *
+   * A player who marks every paragraph finds every falsification, so
+   * `found === total` on its own rewards the one strategy the scoring exists to
+   * punish — C2.1 takes 80 a mark for it. A streak that ignored false positives
+   * would rank the people who never read.
+   */
+  it('is not one when a true paragraph was marked as well', () => {
+    expect(isPerfectRound(round(3, 1, 3))).toBe(false);
+  });
+
+  it('is not one for a game with no falsifications to find', () => {
+    // `game_total_fakes_positive` forbids it in the database, so this is a
+    // guard against arithmetic rather than against data: `0 === 0` would
+    // otherwise make an impossible game a perfect one, forever.
+    expect(isPerfectRound(round(0, 0, 0))).toBe(false);
   });
 });

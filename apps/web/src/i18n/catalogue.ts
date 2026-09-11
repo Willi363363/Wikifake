@@ -9,13 +9,19 @@
 //
 // A catalogue entry is a whole message with placeholders, never a fragment to
 // concatenate: sentences built from pieces do not survive translation.
+import type account from '../../messages/en/account.json';
 import type errors from '../../messages/en/errors.json';
 import type home from '../../messages/en/home.json';
+import type legal from '../../messages/en/legal.json';
 import type seo from '../../messages/en/seo.json';
 import type language from '../../messages/en/language.json';
+import type leaderboard from '../../messages/en/leaderboard.json';
 import type routes from '../../messages/en/routes.json';
 import type small from '../../messages/en/small.json';
 import type lobby from '../../messages/en/lobby.json';
+import type admin from '../../messages/en/admin.json';
+import type quests from '../../messages/en/quests.json';
+import type shop from '../../messages/en/shop.json';
 import type round from '../../messages/en/round.json';
 import type waiting from '../../messages/en/waiting.json';
 import type { Locale } from './locales.js';
@@ -23,7 +29,12 @@ import type { Locale } from './locales.js';
 /** The zones migrated so far. Step 11.2 grows this list, one entry per zone. */
 export const ZONES = [
   'home',
+  'account',
   'errors',
+  'admin',
+  'quests',
+  'shop',
+  'leaderboard',
   'round',
   'waiting',
   'lobby',
@@ -31,6 +42,7 @@ export const ZONES = [
   'routes',
   'language',
   'seo',
+  'legal',
 ] as const;
 
 export type Zone = (typeof ZONES)[number];
@@ -44,7 +56,12 @@ export type Zone = (typeof ZONES)[number];
  */
 export type CatalogueMessages = {
   home: typeof home;
+  account: typeof account;
   errors: typeof errors;
+  admin: typeof admin;
+  quests: typeof quests;
+  shop: typeof shop;
+  leaderboard: typeof leaderboard;
   round: typeof round;
   waiting: typeof waiting;
   lobby: typeof lobby;
@@ -52,6 +69,7 @@ export type CatalogueMessages = {
   routes: typeof routes;
   language: typeof language;
   seo: typeof seo;
+  legal: typeof legal;
 };
 
 /** Every zone of one locale, loaded and nested under its namespace. */

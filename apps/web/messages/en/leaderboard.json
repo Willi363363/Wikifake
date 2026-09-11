@@ -1,0 +1,30 @@
+{
+  "title": "Leaderboards",
+  "lead": "Room rounds only. A solo topic is one you chose, so a solo score is not comparable with anybody else's.",
+  "periodLabel": "Period",
+  "periods": {
+    "daily": "Today",
+    "weekly": "This week",
+    "allTime": "All time"
+  },
+  "regionLabel": "Region",
+  "regions": {
+    "world": "World",
+    "europe": "Europe",
+    "americas": "The Americas",
+    "other": "Elsewhere"
+  },
+  "columns": {
+    "rank": "#",
+    "player": "Player",
+    "score": "Score",
+    "when": "When"
+  },
+  "empty": "No room rounds in this period yet. Open a room and it will be the first.",
+  "opensSoon": "This ranking opens once {needed} players have played a room round in this period.",
+  "soFar": "{count, plural, =0 {Nobody yet} one {# player so far} other {# players so far}}",
+  "openFirst": "The all-time board fills up first — try that one.",
+  "yourRank": "Your rank: {rank}",
+  "play": "Open a room",
+  "soloNote": "Your solo rounds still count towards your profile, your quests and your streak."
+}

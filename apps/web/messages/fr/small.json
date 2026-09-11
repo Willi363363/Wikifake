@@ -11,7 +11,7 @@
     "inputPlaceholder": "Dites quelque chose",
     "sendHint": "Entrée envoie, maj+entrée passe à la ligne",
     "errors": {
-      "cannotSend": "ce message ne peut pas être envoyé"
+      "cannotSend": "un message fait au plus {max} caractères, et ne peut pas être vide"
     }
   },
   "flags": {

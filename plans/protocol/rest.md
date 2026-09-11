@@ -1,56 +1,11 @@
 <!-- Generated from the Zod schemas in packages/protocol. Do not edit. -->
 <!-- Regenerate with: pnpm --filter @wikifake/protocol docs -->
 
-# REST — routes and payloads
+# REST — the round
 
-Nine routes. A `GET` takes no body.
-
-## `GET /ping`
-
-**Response**
-
-- `status` — `"alive"`
-
-## `GET /api/health`
-
-**Response**
-
-- `status` — `"ok"`
-- `version` — string (min 1 char)
-- `commit` — string
-- `commitShort` — string (max 7 chars)
-- `model` — string (min 1 char)
-- `llmConfigured` — boolean
-
-## `GET /api/usage`
-
-**Response**
-
-- `usage` — object
-  - `gamesGenerated` — integer (≥ 0)
-  - `gamesServedFromCache` — integer (≥ 0)
-  - `byKind` — record keyed by `"topic_choice"` | `"falsification"` | `"flag_verification"`, of objects
-    - `calls` — integer (≥ 0)
-    - `failures` — integer (≥ 0)
-    - `promptChars` — integer (≥ 0)
-    - `outputChars` — integer (≥ 0)
-    - `inputTokens` — integer (≥ 0)
-    - `outputTokens` — integer (≥ 0)
-  - `totals` — object
-    - `llmCalls` — integer (≥ 0)
-    - `inputTokens` — integer (≥ 0)
-    - `outputTokens` — integer (≥ 0)
-  - `perGeneratedGame` — object
-    - `llmCalls` — number (≥ 0)
-    - `inputTokens` — number (≥ 0)
-    - `outputTokens` — number (≥ 0)
-  - `cacheHitRate` — number (0–1)
-- `cache` — object | null
-  - `categories` — integer (≥ 0)
-  - `articles` — integer (≥ 0)
-  - `maxCategories` — integer (≥ 1)
-  - `variantsPerCategory` — integer (≥ 1)
-  - `ttlSeconds` — integer (≥ 1)
+8 routes a browser calls while a round is being
+played. A `GET` takes no body. The account and the shop are in
+`rest-account.md`; the probes and the cron in `rest-operations.md`.
 
 ## `POST /api/multiplayer/create`
 
@@ -85,6 +40,7 @@ Nine routes. A `GET` takes no body.
 - `sessionId` — string (16–64 chars, matching `^[A-Za-z0-9_-]+$`)
 - `falseInfoNumber` — integer (≥ 1)
 - `level` — `1` | `2` — default `1`
+- `pay` — `"score"` | `"coins"` — optional
 
 **Response**
 
@@ -135,6 +91,17 @@ Nine routes. A `GET` takes no body.
   - `explanation` — string (min 1 char)
   - `hint` — string (min 1 char)
 
+## `POST /api/realtime/ticket`
+
+**Request**
+
+- object
+
+**Response**
+
+- `ticket` — string (min 1 char)
+- `playerName` — string (1–24 chars, matching `^[\p{L}\p{N}_\-. ]+$`)
+
 ## `POST /api/flag-report`
 
 **Request**
@@ -159,3 +126,13 @@ Nine routes. A `GET` takes no body.
   - `reasoning` — string (min 1 char)
   - `sourcesFound` — array of string (min 1 char)
   - `recommendation` — `"approve_for_review"` | `"needs_more_info"` | `"reject"`
+
+## `POST /api/view`
+
+**Request**
+
+- `page` — `"landing"` | `"entry"`
+
+**Response**
+
+- `counted` — boolean

@@ -18,6 +18,7 @@
 import { decode, playerName, roomCode, topicLabel } from '@wikifake/protocol';
 import { Badge, Button, cn, Input, Label, Separator } from '@wikifake/ui';
 import { useTranslations } from 'next-intl';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useId, useState, type FormEvent } from 'react';
 
@@ -43,7 +44,34 @@ function complaint(
   return read.ok ? null : (read.issues[0] ?? fallback);
 }
 
-export function LobbyEntry() {
+export interface LobbyEntryProps {
+  /**
+   * Whether the browser is carrying a real account, as opposed to a guest.
+   *
+   * Decided on the server — `play/page.tsx` — because a client component cannot
+   * read a session without asking for it, and a screen that flickered from
+   * "Create an account" to "Your profile" after hydration would be one that
+   * looks broken to everybody who already has one.
+   */
+  readonly signedIn?: boolean;
+  /**
+   * The name this player is shown under in a room — step E.3.3.
+   *
+   * Present exactly when an account has chosen one, so its presence is what
+   * decides whether the nickname field is offered at all. A signed-in player is
+   * not asked, because there is nothing to ask: the room will show them their
+   * pseudonym whatever they type, and a field whose value is discarded is a
+   * field that lies.
+   *
+   * From the server for the same reason `signedIn` is. It is belt to the
+   * server's braces rather than the guarantee itself — `/api/realtime/ticket`
+   * substitutes the pseudonym whatever a browser asks for — so a stale render
+   * here is a cosmetic problem and not an identity one.
+   */
+  readonly pseudonym?: string;
+}
+
+export function LobbyEntry({ signedIn = false, pseudonym }: LobbyEntryProps) {
   const t = useTranslations('lobby.entry');
   const router = useRouter();
   const ids = useId();
@@ -55,8 +83,21 @@ export function LobbyEntry() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /** Validates, remembers, and hands back the trimmed name — or null. */
+  /**
+   * Validates, remembers, and hands back the trimmed name — or null.
+   *
+   * A pseudonym short-circuits the whole thing: there is no field to read and
+   * nothing a player could have typed wrong. It is still *remembered*, because
+   * the gate reads `sessionStorage` before it has an answer from the server and
+   * a room opened with the wrong name for one render is a room the player sees
+   * themselves renamed in.
+   */
   const acceptNickname = (): string | null => {
+    if (pseudonym !== undefined) {
+      rememberNickname(pseudonym);
+      return pseudonym;
+    }
+
     const read = decode(playerName, nickname);
     if (!read.ok) {
       setError(read.issues[0] ?? t('errors.nickname'));
@@ -128,20 +169,30 @@ export function LobbyEntry() {
     router.push(`/room/${code.toUpperCase()}`);
   };
 
-  const nicknameField = (
-    <div className="space-y-1.5">
-      <Label htmlFor={`${ids}-nickname`}>{t('nicknameLabel')}</Label>
-      <Input
-        id={`${ids}-nickname`}
-        value={nickname}
-        maxLength={24}
-        autoComplete="nickname"
-        onChange={(event) => {
-          setNickname(event.target.value);
-        }}
-      />
-    </div>
-  );
+  // Step E.3.3 — a signed-in player is told their name rather than asked for
+  // one. A room shows them their pseudonym and nothing else, so a text box here
+  // would be collecting a value the server is about to overrule.
+  const nicknameField =
+    pseudonym === undefined ? (
+      <div className="space-y-1.5">
+        <Label htmlFor={`${ids}-nickname`}>{t('nicknameLabel')}</Label>
+        <Input
+          id={`${ids}-nickname`}
+          value={nickname}
+          maxLength={24}
+          autoComplete="nickname"
+          onChange={(event) => {
+            setNickname(event.target.value);
+          }}
+        />
+      </div>
+    ) : (
+      <p className="text-sm text-muted">
+        {t.rich('playingAs', {
+          name: () => <span className="font-mono text-ink">{pseudonym}</span>,
+        })}
+      </p>
+    );
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10">
@@ -252,6 +303,21 @@ export function LobbyEntry() {
           </p>
         )}
       </div>
+
+      {/* Step E.5 — the one link to the account area, on the one screen every
+          player passes through. A profile nothing points at is a profile nobody
+          opens, and this is the screen somebody lands on after signing in. */}
+      <p className="mt-6 flex flex-wrap justify-center gap-4 text-center text-sm text-muted">
+        <Link href={signedIn ? '/profile' : '/sign-in'} className="text-ink underline">
+          {t(signedIn ? 'profile' : 'account')}
+        </Link>
+        {/* Step G.5 — beside the account link rather than behind it: a board is
+            the one screen this effort added that is nobody's in particular, and
+            a guest who has never signed in is exactly who it is for. */}
+        <Link href="/leaderboard" className="text-ink underline">
+          {t('leaderboard')}
+        </Link>
+      </p>
 
       <p className="mt-6 text-center">
         <Badge tone="accent">{t('serverAuthoritative')}</Badge>

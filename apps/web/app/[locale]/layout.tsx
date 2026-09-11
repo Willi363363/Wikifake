@@ -18,6 +18,7 @@ import type { ReactNode } from 'react';
 
 import { messagesFor } from '../../src/i18n/catalogue.js';
 import { LocaleSwitch } from '../../src/i18n/locale-switch.js';
+import { LegalLinks } from '../../src/legal/links.js';
 import { LOCALES, type Locale } from '../../src/i18n/locales.js';
 import { absolute, localePath, siteOrigin } from '../../src/indexing.js';
 
@@ -121,7 +122,10 @@ export async function generateMetadata({
       url: absolute(home),
       title: seo.title,
       description: seo.description,
-      images: ['/image.png'],
+      // **No `images` here, and that is step C.8's whole mechanism.** The
+      // `opengraph-image.tsx` beside this file supplies the URL, the size and
+      // the per-locale alt; an explicit entry would override it, which is how a
+      // French serif logo at 1024×1024 survived four redesigns in this slot.
       locale: OG_LOCALES[locale],
       alternateLocale: LOCALES.filter((other) => other !== locale).map(
         (other) => OG_LOCALES[other],
@@ -131,7 +135,8 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title: seo.title,
       description: seo.description,
-      images: ['/image.png'],
+      // Nor here: Next fills `twitter.images` from the Open Graph ones wherever
+      // Twitter has not been given its own, so the card is stated once.
     },
   };
 }
@@ -171,8 +176,13 @@ export default async function RootLayout({
               shares. Not navigation between screens (the restraint above
               stands): it re-serves the page the player is on, in the other
               language, and records the choice. */}
-          <footer className="flex justify-center pb-6">
+          {/* Step J.3 puts the two documents beside it, for the reason the
+              switch is here at all: this is the one surface every screen
+              shares, and a policy a player in a round cannot reach is a
+              policy that answers nobody. */}
+          <footer className="flex flex-col items-center gap-2 pb-6">
             <LocaleSwitch />
+            <LegalLinks />
           </footer>
         </NextIntlClientProvider>
       </body>

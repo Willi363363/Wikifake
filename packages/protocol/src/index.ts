@@ -21,10 +21,23 @@ export * from './rest/routes.js';
 
 export * as clientMessages from './ws/incoming.js';
 export * as serverMessages from './ws/outgoing.js';
+export * as accountApi from './rest/account.js';
+export { BOARD_PERIOD_IDS, boardPeriodId } from './boards.js';
+export type { BoardPeriodId } from './boards.js';
+export { REGION_IDS, regionId } from './regions.js';
+export type { RegionId } from './regions.js';
 export * as gameApi from './rest/game.js';
 export * as healthApi from './rest/health.js';
 export * as roomsApi from './rest/rooms.js';
 export * as flagsApi from './rest/flags.js';
+export * as questsApi from './rest/quests.js';
+export * as ticketsApi from './rest/tickets.js';
+export { recordViewRequest, recordViewResponse, viewedPage } from './rest/traffic.js';
+export type {
+  RecordViewRequest,
+  RecordViewResponse,
+  ViewedPage,
+} from './rest/traffic.js';
 export { incomingMessage, INCOMING_TYPES } from './ws/incoming.js';
 export type { IncomingMessage } from './ws/incoming.js';
 export { outgoingMessage, OUTGOING_TYPES } from './ws/outgoing.js';

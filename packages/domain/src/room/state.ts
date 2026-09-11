@@ -67,12 +67,48 @@ export interface PlayerState {
   readonly hand: readonly ItemInstance[];
   /** Their score once they submit, absent until then. */
   readonly submission: ScoredSubmission | null;
+  /**
+   * The account this slot's rounds belong to — step E.3b.2.
+   *
+   * Set when the slot is first claimed and **not** replaced when it is
+   * reclaimed: whoever reconnects into a slot is, by D5's token, the player who
+   * left it, and a reclaim that rewrote this would be a way to move somebody
+   * else's round onto your own statistics by holding one secret rather than
+   * two.
+   */
+  readonly userId: string | null;
 }
 
 /** What a submission was worth, kept until the round ends. */
 export interface ScoredSubmission {
   readonly score: number;
   readonly breakdown: ScoreBreakdown;
+  /**
+   * The paragraphs the player marked — step E.3b.1.
+   *
+   * Graded and then thrown away until this step, which is why the `answer`
+   * table has never held a multiplayer row: a debrief could say a player scored
+   * 420 and nothing anywhere could say what they marked to earn it. Kept until
+   * the round ends, which is when it is written down.
+   */
+  readonly marked: readonly number[];
+}
+
+/**
+ * The rows a round is being written to — step E.3b.1.
+ *
+ * `createGame` runs before the round starts and returns a `game` row and a
+ * `participant` row per player. Until this step the service threw both away, so
+ * a multiplayer round reached Postgres as a game nobody ever finished: no
+ * `submitted_at`, no score, no `ended_at`, for ever.
+ *
+ * Held on the **round** rather than on the players, because that is what it is:
+ * a player survives from one round to the next and these ids do not.
+ */
+export interface RoundRecord {
+  readonly gameId: string;
+  /** Each player's `participant` row, by the nickname they joined under. */
+  readonly participants: Readonly<Record<string, string>>;
 }
 
 /**
@@ -96,6 +132,14 @@ export interface RoundState {
    * everybody.
    */
   readonly startedAt: number;
+  /**
+   * Where this round is being written down, or null when it is not.
+   *
+   * Null is the shape a test uses and the shape a round would take if it were
+   * ever started without a row behind it. Production always has one:
+   * `article_ready` is only ever raised after `createGame` returned.
+   */
+  readonly record: RoundRecord | null;
 }
 
 /** The options the host controls. A guest can change neither (C1.7). */
@@ -222,7 +266,11 @@ export function assignColour(state: RoomState): string {
   );
 }
 
-export function newPlayer(name: string, colour: string): PlayerState {
+export function newPlayer(
+  name: string,
+  colour: string,
+  userId: string | null = null,
+): PlayerState {
   return {
     name,
     colour,
@@ -233,6 +281,7 @@ export function newPlayer(name: string, colour: string): PlayerState {
     items: EMPTY_ITEM_STATE,
     hand: [],
     submission: null,
+    userId,
   };
 }
 
@@ -251,6 +300,10 @@ export function forNewRound(player: PlayerState): PlayerState {
   return {
     name: player.name,
     colour: player.colour,
+    // Not reset either, and for a stronger reason than the connection below:
+    // this is who the slot *is*, not what it did last round. Clearing it would
+    // make the second round of a session belong to nobody.
+    userId: player.userId,
     // Not reset: whether a socket is up is not a property of the round. A player
     // whose connection dropped in the debrief is still disconnected in the next
     // lobby, and their grace window is still running.

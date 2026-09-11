@@ -88,9 +88,36 @@ describe('11.6 — French is translated, not copied', () => {
   // list is exact, not a lower bound: an entry that stops being identical is
   // removed, and a new identical message is either translated or defended here.
   const IDENTICAL_ON_PURPOSE = [
+    // The admin panel's. Three are words French spells the same —
+    // `Activation`, the term of art the track is named around, and `Service`,
+    // `Mode` and `Article`, column headings — plus `Solo`, which the game
+    // already uses untranslated on its own entry screen. The rest are em dashes, and a
+    // symbol is the same in every language. Every other admin string is
+    // translated.
+    'admin.activation.activation',
+    'admin.activation.noWhole',
+    'admin.activation.title',
+    'admin.content.columns.topic',
+    'admin.content.nothing',
+    'admin.cost.noRate',
+    'admin.games.columns.mode',
+    'admin.games.modes.solo',
+    'admin.games.noRounds',
+    'admin.health.columns.service',
+    // The em dash the arrivals section prints when there is nothing to divide,
+    // which is punctuation in both languages — `admin.games.noRounds` above is
+    // the same character for the same reason.
+    'admin.traffic.none',
     'home.title',
     'language.names.en',
     'language.names.fr',
+    // G.5 — a symbol, a word French spells the same, and a proper noun.
+    'leaderboard.columns.rank',
+    'leaderboard.columns.score',
+    'leaderboard.regions.europe',
+    // French borrowed the word and kept the spelling: the section of the
+    // privacy policy about cookies is headed "Cookies" in both.
+    'legal.privacy.sections.cookies.heading',
     'lobby.entry.brand',
     'lobby.entry.tabs.solo',
     'lobby.entry.topicPlaceholder',
@@ -103,6 +130,11 @@ describe('11.6 — French is translated, not copied', () => {
     'round.items.rickroll.name',
     'round.itemTarget.title',
     'routes.metadata.siteName',
+    // H.7 — two cosmetic names French spells the same way. `Double` is the same
+    // word in both, and `Violet` is the colour in both; the other eight are
+    // translated, which is what makes these two deliberate rather than missed.
+    'shop.names.FRAME_DOUBLE',
+    'shop.names.MARKER_VIOLET',
     'small.chat.tab',
     'small.solo.title',
     'waiting.dino.score',

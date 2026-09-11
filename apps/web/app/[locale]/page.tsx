@@ -18,61 +18,22 @@
 // 11.5 the metadata in `layout.tsx` is per-locale and reads the catalogue's
 // `seo` zone; its test pins that zone's description to this page's, so the
 // search result and the front door keep speaking one sentence.
-import { buttonVariants, Separator } from '@wikifake/ui';
-import { useTranslations } from 'next-intl';
-import Link from 'next/link';
-
-/**
- * What a round actually asks of a player, in the order it happens.
- *
- * Keys into the `home.steps` namespace rather than the sentences themselves:
- * the copy is the catalogue's, the order is this page's.
- */
-const STEPS = ['pick', 'read', 'mark'] as const;
+//
+// Since step C.1 the page itself is `src/landing/` — four beats told as a plain
+// document, which is what track C's scene will later be laid over. The route
+// stays a server component and stays static: that is what C7.3 measures.
+import { Landing } from '../../src/landing/landing.js';
+import { PageView } from '../../src/traffic/page-view.js';
 
 export default function HomePage() {
-  // Works in a server component: `next-intl` resolves it against
-  // `src/i18n/request.ts` here, and against the provider when client-rendered.
-  const t = useTranslations('home');
-
   return (
-    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center px-4 py-12">
-      <h1 className="text-center text-4xl font-semibold text-ink">{t('title')}</h1>
-      <p className="mx-auto mt-3 max-w-xl text-center text-sm text-muted">
-        {t('description')}
-      </p>
-
-      <div className="mt-8 flex justify-center">
-        {/* A link, styled as the primary button: the front door navigates, and a
-            button that navigates is a button a keyboard cannot open in a new
-            tab. `solo.tsx` does the same, for the same reason. */}
-        <Link href="/play" className={buttonVariants({ variant: 'primary', size: 'lg' })}>
-          {t('play')}
-        </Link>
-      </div>
-
-      <Separator className="my-10" />
-
-      <ol className="grid gap-6 sm:grid-cols-3">
-        {STEPS.map((step, index) => (
-          <li key={step}>
-            <p className="text-xs font-semibold tracking-wide text-muted">
-              {/* Numbered for a reader, not for a screen reader: the list
-                  already carries the order. */}
-              {String(index + 1).padStart(2, '0')}
-            </p>
-            <h2 className="mt-1 text-base font-semibold text-ink">
-              {t(`steps.${step}.title`)}
-            </h2>
-            <p className="mt-1 text-sm text-muted">{t(`steps.${step}.detail`)}</p>
-          </li>
-        ))}
-      </ol>
-
-      {/* The falsified text never reaches this page, so this is context rather
-          than the attribution C6.1 asks for — that one is rendered beside the
-          article itself, during the round and after it. */}
-      <p className="mt-10 text-center text-xs text-muted">{t('licence')}</p>
-    </main>
+    <>
+      <Landing />
+      {/* Step J.4 — the arrival, counted. It renders nothing and it is the only
+          reason this page touches the server at all: everything above is
+          prerendered, so without a beacon a visit that ends here leaves no
+          trace anywhere. */}
+      <PageView page="landing" />
+    </>
   );
 }

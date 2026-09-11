@@ -16,8 +16,21 @@ import { and, asc, eq, isNotNull, isNull } from 'drizzle-orm';
 import type { Database } from '../client.js';
 import { hintPurchase, itemUse } from '../schema/audit.js';
 import { answer, game, gamePosition, participant } from '../schema/game.js';
+import { recordMovement } from './coins.js';
+import { recordEligibleScore } from './leaderboard.js';
+import { recordRoundFinished } from './stats.js';
 
-type Db = Database['db'];
+/**
+ * A connection **or** a transaction — widened by H.4.
+ *
+ * The same alias `queries/profile.ts` and `queries/coins.ts` declare, and for
+ * the same reason: a hint paid for in coins records the purchase and the debit
+ * in one transaction, so `recordHintPurchase` has to accept the handle that
+ * transaction hands out. Every function here already worked on either; only the
+ * type said otherwise.
+ */
+type Tx = Parameters<Parameters<Database['db']['transaction']>[0]>[0];
+type Db = Database['db'] | Tx;
 
 /**
  * The participant this account or guest plays as, in this game.
@@ -46,6 +59,10 @@ export function selectRoundStatus(db: Db, gameId: string) {
       timeLimit: game.timeLimit,
       startedAt: game.startedAt,
       endedAt: game.endedAt,
+      // H.4 — a hint may be paid for in coins in solo and not in a room, so the
+      // handler that decides needs to know which this is. Read here rather than
+      // in a second query: the round is already being fetched.
+      mode: game.mode,
     })
     .from(game)
     .where(eq(game.id, gameId));
@@ -111,6 +128,11 @@ export interface BilledHint {
   readonly falseInfoNumber: number;
   readonly level: number;
   readonly charged: number;
+  /**
+   * H.4 — which currency paid. Absent means score, as every purchase did
+   * before that step.
+   */
+  readonly paidWith?: 'score' | 'coins';
 }
 
 /**
@@ -175,6 +197,23 @@ export interface GradedSubmission {
   readonly timeBonus: number;
   /** Injected: the rules take the clock as a parameter, and so does the record. */
   readonly at: Date;
+  /**
+   * Step H.3 — what this round pays in coins, decided by `coinsForRound`.
+   *
+   * A number and not a rule, for the reason `perfect` is a boolean: `db` may not
+   * read `@wikifake/domain`, so the amount travels with the grade. Zero or
+   * absent credits nothing, which is what a guest's round does — coins are an
+   * account feature, like quests.
+   */
+  readonly coins?: number;
+  /**
+   * Whether this round keeps the player's streak alive — step E.4.
+   *
+   * Decided by the caller, which is the one that graded it and the one allowed
+   * to know the rules: `workspace-graph.test.ts` keeps this package away from
+   * `@wikifake/domain`, so `isPerfectRound` is asked there and answered here.
+   */
+  readonly perfect: boolean;
 }
 
 /**
@@ -236,6 +275,74 @@ export async function recordSubmission(
       .update(game)
       .set({ endedAt: submission.at })
       .where(and(eq(game.id, submission.gameId), isNull(game.endedAt)));
+
+    // Step E.4 — the aggregate a profile reads, inside the same transaction as
+    // the grading it counts. A submission that landed and a statistic that did
+    // not is a profile disagreeing with a debrief about the same round, and
+    // nothing would ever notice: both look complete on their own.
+    //
+    // Only for a participant with an account behind them. A multiplayer player
+    // has a nickname and no `userId` today, which is why these numbers are
+    // solo's — see `queries/stats.ts`.
+    const [player] = await tx
+      .select({
+        userId: participant.userId,
+        totalFakes: game.totalFakes,
+        mode: game.mode,
+      })
+      .from(participant)
+      .innerJoin(game, eq(participant.gameId, game.id))
+      .where(eq(participant.id, submission.participantId))
+      .limit(1);
+
+    // Step G.2 — the score becomes eligible to be ranked, in the same
+    // transaction as the grading that produced it. An entry without a grading
+    // is a score nobody earned; a grading without an entry is a board that
+    // silently forgets a round. Neither is possible from here.
+    //
+    // Unlike the statistics below, this is written for a **guest** too: their
+    // `userId` is null and the boards of G.4 will not show them, but the round
+    // is part of the field the other players were ranked against, and E.7 makes
+    // the same choice when it empties a deleted account's rows.
+    if (player !== undefined) {
+      await recordEligibleScore(tx, {
+        participantId: submission.participantId,
+        userId: player.userId,
+        mode: player.mode,
+        score: submission.score,
+        finishedAt: submission.at,
+      });
+    }
+
+    // Step H.3 — the coins this round earned, inside the transaction that
+    // graded it. A credit without a grading is a coin nobody played for; a
+    // grading without its credit is a player who is owed one and nothing that
+    // remembers. The key is the participation, so a replayed grading pays once.
+    //
+    // Accounts only, like the statistics below and like quests: a guest's
+    // `user` row is deleted the moment they sign up, and `coin_movement`
+    // cascades — so a guest's coins would be coins that disappear.
+    if (player?.userId != null && (submission.coins ?? 0) > 0) {
+      await recordMovement(tx, {
+        userId: player.userId,
+        amount: submission.coins as number,
+        source: 'round_end',
+        reference: submission.gameId,
+        idempotencyKey: `round:${submission.participantId}`,
+      });
+    }
+
+    if (player?.userId != null) {
+      await recordRoundFinished(tx, {
+        userId: player.userId,
+        score: submission.score,
+        truePositives: submission.truePositives,
+        falsePositives: submission.falsePositives,
+        totalFakes: player.totalFakes,
+        at: submission.at,
+        perfect: submission.perfect,
+      });
+    }
 
     return true;
   });

@@ -9,6 +9,8 @@
 //
 // Nothing here imports an implementation, so a test that wants to describe a
 // fake service can import this alone.
+import type { RoomEffect } from '@wikifake/domain';
+
 import type { Bus } from './bus.js';
 import type { Registry } from './connections.js';
 import type { RoundSource } from './generation.js';
@@ -17,6 +19,9 @@ import type { RoomStore } from './rooms/store.js';
 import type { TokenStore } from './rooms/tokens.js';
 import type { Intervals } from './throttle.js';
 import type { OnAlarm, Scheduler } from './timers/scheduler.js';
+
+/** The one effect that writes: narrowed here so the port cannot take another. */
+export type RecordResults = Extract<RoomEffect, { kind: 'record_results' }>;
 
 export interface ServiceOptions {
   readonly origins: OriginPolicy;
@@ -40,6 +45,34 @@ export interface ServiceOptions {
    * can forget.
    */
   closeRoom(roomCode: string): Promise<void>;
+  /**
+   * Step E.3b.1 — write down what a round came to.
+   *
+   * Injected like `closeRoom` and `roomExists`, and for the same two reasons: a
+   * transport that opened its own connection to Postgres is a transport nobody
+   * can test without one, and a **required** port is one a deployment cannot
+   * forget. An optional callback here would mean a service quietly recording
+   * nothing, which is the state this step exists to leave.
+   */
+  recordResults(effect: RecordResults): Promise<void>;
+  /**
+   * Step E.3b.2 — which account a socket belongs to, or null.
+   *
+   * Injected like every other decision this transport does not make itself. It
+   * is handed what the client offered and answers with a `user` id or nothing;
+   * `main.ts` supplies `@wikifake/tickets`' verifier with the deployment's own
+   * secret, and a test supplies whatever it wants to prove.
+   *
+   * **Optional**, unlike `recordResults` — and the difference is the point. A
+   * deployment with no verifier attributes nothing, which is exactly the state
+   * before this step and a game that still works. A deployment with no
+   * `recordResults` loses rounds.
+   */
+  accountFor?: (credentials: {
+    readonly roomCode: string;
+    readonly playerName: string;
+    readonly ticket: string;
+  }) => string | null;
   /**
    * Where the room's state lives. Redis, since 5.2 — never this process.
    *

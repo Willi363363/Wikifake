@@ -39,6 +39,47 @@ Without that pair, the conformance check refused the promotion for bearing the
 name of the branch it is supposed to promote, and no batch could reach
 production without the check being skipped rather than passed.
 
+### A promotion is not only a merge: the migrations first
+
+**Nothing in the deploy path runs a migration.** Vercel's `buildCommand` is
+`turbo run build`, the web app's own build is `next build`, Render deploys a
+container, and no workflow calls `pnpm migrate`. Checked, rather than assumed,
+on 2026-09-11 — when fifteen migration *files* had accumulated between `main`
+and `staging`, and the answer to "who applies them" turned out to be *a person,
+by hand, as each one is written*.
+
+**So ask the database what it has, never the branch.** `git diff main..staging`
+over `packages/db/migrations/` says what `main` is missing and nothing at all
+about production; the row count in `drizzle.__drizzle_migrations` is the
+answer, and on 2026-09-11 it was already 21 of 21 while the files said fifteen
+were outstanding.
+
+So a promotion is three steps in this order, and the first is the one that gets
+forgotten:
+
+```bash
+# 1 — the database first. Ask what it holds, then apply: drizzle-kit applies
+#     what is missing and nothing else, so this is safe when nobody is sure.
+psql "$DATABASE_URL" -c 'select count(*) from drizzle.__drizzle_migrations;'
+DATABASE_URL='<the production one>' pnpm migrate
+
+# 2 — the batch. `staging` is the one protected head the checks accept.
+gh pr create --base main --head staging --title 'Promote staging: <what is in it>'
+
+# 3 — after the merge, realign, which is a fast-forward since main descends
+#     from staging.
+git switch staging && git merge --ff-only origin/main && git push
+```
+
+**Code before schema is an outage**: the deployment answers on the new commit
+within a minute of the merge, and a query against a table that does not exist
+is a 500 on every screen that reads it. Schema before code is not, because
+every migration this repository has written so far only adds.
+
+A promotion also needs whatever environment variables the batch introduced —
+they are listed in the step that introduced them, and a missing one fails at
+startup by design (`@wikifake/env`) rather than halfway through a round.
+
 ### Why update before, not during
 
 A conflict gets resolved properly on a working branch: you have the context,

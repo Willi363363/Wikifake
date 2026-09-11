@@ -1,10 +1,22 @@
 # Current state — structural debt
 
-The other half of the debt register. `05-known-debt.md` holds the defects that
-have a `file:line`; here are the problems that are about the shape of the
-repository — a tool we cannot adopt yet, a convention that is ambiguous, a
-check that does not cover what it looks like it covers. Same rule: recorded
-here, fixed in the step it belongs to.
+One of three debt registers, and the one about **the shape of the repository**:
+a tool we cannot adopt yet, a convention that is ambiguous, a check that does
+not cover what it looks like it covers.
+
+| Register | What goes in it |
+|---|---|
+| `05-known-debt.md` | defects and gaps with a `file:line` |
+| this file | the shape of the repository and its code |
+| `08-toolchain-debt.md` | the commands you run, and what they do not tell you |
+| `10-test-debt.md` | the suites: why a green run can be wrong |
+
+It split on 2026-09-06, at 190 lines with two findings waiting for room. The
+axis is the one that was already there: half these entries were about code
+somebody would read, half about a command somebody would run, and the second
+half is where every new finding was landing.
+
+Same rule as the other two: recorded here, fixed in the step it belongs to.
 
 ## The packages ship TypeScript, so the app cannot use Turbopack
 
@@ -46,30 +58,6 @@ indices, sorted positions, sequential numbers)` is `C3.3`). Each needs reading.
 It also touches sheets that open pull requests have in flight, so it wants its
 own step on a quiet tree.
 
-## `pnpm e2e` and `pnpm test` share one Redis, and the second one loses
-
-Found by causing it: an e2e run followed immediately by `pnpm test` failed
-`apps/realtime/src/broadcast.test.ts` — *"timed out waiting for the lobby to hold
-ada, bob"* — and the same suite passed on its own a minute later.
-
-Both read `REDIS_URL`, and locally that is one instance. Measured since:
-`redis-cli DBSIZE` reported **36 keys** left behind after a journey run, and
-`FLUSHALL` made the same socket suite pass. The journeys leave rooms,
-subscriptions and delayed jobs; the socket suite then opens its own rooms
-against a database that is not empty. Nothing is corrupted
-and nothing is wrong with either suite — they simply were not written to run
-back to back against shared state.
-
-CI never sees it: each job brings up its own services. A developer running both
-in one sitting sees it, reads a red socket test, and goes looking in the wrong
-file — which is the whole cost, and it is a real one.
-
-The fixes are all cheap and none is obviously right: a distinct Redis database
-index per suite (`REDIS_URL` already carries one), a flush between runs, or
-prefixed keys. Choosing wants a moment's thought about which of the three the
-socket service should tolerate in production, so it is recorded rather than
-guessed at.
-
 ## The `Makefile` targets that outlived the Makefile
 
 Step 10.9 rewrote `make check` and `make hooks` as `pnpm check` and
@@ -87,41 +75,19 @@ shell string in a `scripts` block is not portable in the way the rest of the
 toolchain is, and `hooks` in particular does two things in one line. Small, and
 worth folding into `scripts/` proper the next time somebody is in there.
 
-## A pull request title becomes a commit subject, and nothing checks it
+## Protocol and socket sentences reach players untranslated — closed at 11.9
 
-Found by causing it, during the batch of 2026-08-28.
+`chat.tsx` fell back to `decode` issue sentences from `@wikifake/protocol`, and
+the room screen showed the `message` authored in `apps/realtime` beside each
+error code. They were English under any interface locale.
 
-GitHub builds a squash commit's subject from the pull request **title** plus
-` (#NNN)`, and `scripts/checks.sh commit-msg` refuses a subject over 72
-characters. #125's title was 82, so the commit that landed on `staging` was 89.
-The conformance job walks `git rev-list BASE..HEAD`, so the next
-`staging` → `main` promotion failed on a commit that had already been merged.
-
-**There is no clean way out once it has happened.** The commit is immutable
-without a force-push to a protected branch; a later revert does not remove it
-from the range; and weakening the check to go green is the one thing the rules
-forbid outright. It costs either an amended force-push or an administrator's
-bypass — both of which are exactly what the branch protection exists to prevent.
-
-Structural rather than a defect, because the gap is in *where* the rule is
-enforced. Every local hook and every CI job passes at the moment the mistake is
-made. The title is the one input to a commit message that nothing validates, and
-the bill arrives at a later promotion, in a pull request that did nothing wrong.
-
-**The rule to carry meanwhile:** a title must be at most 72 minus the width of
-` (#NNN)` — 65 characters in practice — whenever the merge will be a squash.
-
-**The fix, unwritten:** the conformance job already has the pull request in its
-event payload. Measuring `github.event.pull_request.title` on `opened`,
-`edited` and `reopened` would refuse it before a commit exists, which is the only
-moment it is still cheap.
-
-## Protocol and socket sentences reach players untranslated
-
-`chat.tsx` falls back to `decode` issue sentences from `@wikifake/protocol`, and
-the realtime provider shows close reasons authored in `apps/realtime`
-(`name_taken`, `room_not_found`, `invalid_name`). They are English under any
-interface locale.
+**Closed on 2026-09-11 by step 11.9**, along the line this entry argued for: the
+packages emit codes, the client owns the sentences. `errors.refusals` in the
+catalogue answers for all twenty-three `ERROR_CODE`s in both languages, a parity
+test holds the two lists to each other, and an unknown code falls back to a
+sentence rather than to an identifier. Kept here rather than deleted, because
+the argument is the reusable part: the next package that wants to say something
+to a player has the same choice to make.
 
 Structural rather than a defect with a location, and that is why it sits here
 rather than in the register next door: the fix is not to catalogue a string in
@@ -188,3 +154,37 @@ The answer is a disabled *style* rather than an opacity — the direction has on
 already, in that a flat fill and a collapsed shadow say "not now" without
 diluting anything. It belongs to `packages/ui`, which owns the variant and the
 gallery that pins it, so track D looked at it and left it.
+
+## `margin-top: 0` on a stacked beat loses on specificity
+
+`app/landing-stage.css` sets it inside the scene's media query, with the comment
+"an absolutely positioned box with a margin is a box 5rem off the mark" — right
+about the consequence, wrong about the fix. The document rhythm above it is
+`.landing-stage__beat + .landing-stage__beat`, two classes against one, and a
+media query adds no specificity. Measured in Chromium at 1280 wide: beat 1 at
+`margin-top: 0px` and `top: 64`, beats 2 to 4 at `80px` and `top: 192`.
+
+The three that agree are why C.4's collision assertion never saw it — it
+compares beats 2 and 3. Beat 1 is the one that differs: its content is centred
+in a box 80px taller, so the landing's question sits about 40 pixels above where
+every heading after it sits. Cosmetic, and real. Same family as the two entries
+above: a rule that reads correctly, reviews correctly and does nothing.
+
+## `signUp` promised a wait it did not perform — closed 2026-09-11
+
+`apps/e2e/specs/accounts.ts` documented itself as "creates the account, **and
+waits for the screen it lands on**", with a paragraph explaining that waiting
+there rather than in each caller is what stops a spec from racing the pseudonym
+claim E.3.2 added. The body filled three fields, clicked, and returned.
+
+Nothing failed, because every caller had grown its own wait — and `profile.spec`
+had grown a private copy of the whole function, which is the duplication
+`accounts.ts` was created to end. **A contract nobody keeps is paid for one line
+at a time by whoever reads it next**, and it cost J.10 a red run.
+
+**Closed**, and the line is not the obvious one: it waits for the form to be
+*left*, not for `/play` to be reached. An account whose pseudonym is already
+claimed lands on `/choose-a-name`, which `pseudonym.spec.ts` exists to prove, so
+a helper insisting on `/play` would have hung on the spec that tests the other
+half. The callers keep their `toHaveURL`: it stopped being a wait and became the
+assertion it always read like.

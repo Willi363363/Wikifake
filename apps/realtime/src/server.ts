@@ -94,6 +94,23 @@ export function createService(options: ServiceOptions): Service {
       if (effect.kind === 'generate_article') {
         void track(produce(roomCode, effect.topic, applied.state));
       }
+
+      // Step E.3b.1 — the round, written down.
+      //
+      // Here rather than in `publish`, and the difference is the whole of why
+      // it is here: `publish` puts an effect on the channel and **every**
+      // instance holding a socket for this room receives it, so a write done
+      // there would be done once per instance. This runs on the one instance
+      // that applied the event — the same place `generate_article` is answered,
+      // for the same reason.
+      //
+      // Awaited, unlike the generation above: it is a handful of rows and
+      // nobody is reading Wikipedia. A round whose results are written a
+      // second late is a profile that disagrees with a debrief the player is
+      // looking at.
+      if (effect.kind === 'record_results') {
+        await options.recordResults(effect);
+      }
     }
   }
 
@@ -121,6 +138,11 @@ export function createService(options: ServiceOptions): Service {
         players: decided.players.map((player) => ({
           name: player.name,
           colour: player.colour,
+          // Step E.3b.2 — carried from the slot, which took it at the join.
+          // Read from the state the decision was taken against, like the
+          // players and the time limit above: the round is created for the room
+          // as it was when the topic was settled.
+          userId: player.userId,
         })),
       })
       .catch((): RoundOutcome => ({ ok: false }));
@@ -135,6 +157,8 @@ export function createService(options: ServiceOptions): Service {
             // The round starts now, not when the topic was picked: the minutes
             // spent reading Wikipedia are not minutes anybody was playing.
             startedAt: now(),
+            // Step E.3b.1 — where this round is written down.
+            record: outcome.record,
           }
         : { kind: 'article_failed' },
     );
@@ -206,7 +230,7 @@ export function createService(options: ServiceOptions): Service {
       refuse(socket, handshake.code, handshake.message);
       return;
     }
-    const { roomCode, playerName, token } = handshake.credentials;
+    const { roomCode, playerName, token, ticket } = handshake.credentials;
 
     if (!(await options.roomExists(roomCode))) {
       refuse(socket, 'room_not_found', 'That room does not exist.');
@@ -327,7 +351,16 @@ export function createService(options: ServiceOptions): Service {
     // Before the join rather than after: a grace alarm ringing between the two
     // would evict the player who has just reconnected.
     await scheduler.cancel(roomCode, 'grace', playerName);
-    await enqueue({ kind: 'join', player: playerName });
+    // Step E.3b.2 — who this is, decided here and never asked again. The rules
+    // are handed an answer rather than a ticket: whether a signature was real
+    // is a transport question, and a reducer that verified one could not be
+    // replayed without the secret.
+    //
+    // After the token claim above on purpose: a socket that has not proved it
+    // may hold this nickname has no business being attributed to an account.
+    const userId = options.accountFor?.({ roomCode, playerName, ticket }) ?? null;
+
+    await enqueue({ kind: 'join', player: playerName, userId });
 
     socket.on('close', () => {
       // The registry first: a `leave` that broadcasts must not try to send to

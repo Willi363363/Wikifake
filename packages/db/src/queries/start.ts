@@ -12,6 +12,7 @@
 // type satisfies these structurally, so nothing is retyped at the call site.
 import type { Database } from '../client.js';
 import { game, gamePosition, participant } from '../schema/game.js';
+import { recordRoundsJoined } from './stats.js';
 
 type Db = Database['db'];
 
@@ -89,7 +90,11 @@ export async function createGame(db: Db, input: NewGame): Promise<StartedGame> {
         timeLimit: input.timeLimit,
         fromCache: input.fromCache,
       })
-      .returning({ id: game.id });
+      // `startedAt` comes back rather than being read from a clock here: the
+      // stats row's `firstSeen` has to be the same instant the game says it
+      // began, or the incremental path and `recomputePlayerStats` disagree by
+      // however long the round trip took.
+      .returning({ id: game.id, startedAt: game.startedAt });
 
     // `returning` is typed as a list because a bulk insert returns one: a single
     // row is still an assumption, and an unchecked index would surface three
@@ -111,6 +116,19 @@ export async function createGame(db: Db, input: NewGame): Promise<StartedGame> {
         })),
       )
       .returning({ id: participant.id });
+
+    // Step E.4 — a round joined, counted here rather than at its end, which is
+    // what makes "abandoned" a number at all. Inside the transaction for the
+    // reason the whole function is one: a game whose players were never counted
+    // is a profile that is quietly short, and there would be nothing to notice
+    // it by.
+    await recordRoundsJoined(
+      tx,
+      input.players.flatMap((player) =>
+        player.userId === undefined || player.userId === null ? [] : [player.userId],
+      ),
+      row.startedAt,
+    );
 
     return { gameId: row.id, participantIds: participants.map((each) => each.id) };
   });

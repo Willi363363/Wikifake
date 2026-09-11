@@ -14,12 +14,18 @@ import {
   type Database,
 } from '@wikifake/db';
 import { connectFromEnv } from '@wikifake/db';
+import { isPerfectRound } from '@wikifake/domain';
 import { loadEnv, type Env } from '@wikifake/env';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { anonymous } from 'better-auth/plugins';
 
-import { socialProviders, type OAuthCredentials, type ProviderId } from './providers.js';
+import {
+  assertCallbackReachable,
+  socialProviders,
+  type OAuthCredentials,
+  type ProviderId,
+} from './providers.js';
 
 export interface AuthOptions {
   readonly db: Database['db'];
@@ -67,7 +73,16 @@ export function createAuth(options: AuthOptions) {
     plugins: [
       anonymous({
         onLinkAccount: async ({ anonymousUser, newUser }) => {
-          await attachGuestRecords(options.db, anonymousUser.user.id, newUser.user.id);
+          // Step E.4 — the guest's rounds bring their statistics with them, and
+          // the streak rule travels down with them. `@wikifake/db` may not ask
+          // `@wikifake/domain` whether a round was perfect — data does not
+          // depend on rules — so this layer, which may, hands the predicate in.
+          await attachGuestRecords(
+            options.db,
+            anonymousUser.user.id,
+            newUser.user.id,
+            isPerfectRound,
+          );
         },
       }),
     ],
@@ -85,6 +100,11 @@ let instance: ReturnType<typeof createAuth> | undefined;
  * folder — from `/api/health`, say — depend on a reachable database.
  */
 export function auth(env: Env = loadEnv()) {
+  // Step E.1. Checked here rather than in `createAuth`, which takes a base URL
+  // a test chooses: this is the path that reads the *deployment's* environment,
+  // and it is the only one where "localhost on a platform" can be true.
+  assertCallbackReachable(env);
+
   instance ??= createAuth({
     db: connectFromEnv().db,
     secret: env.BETTER_AUTH_SECRET,

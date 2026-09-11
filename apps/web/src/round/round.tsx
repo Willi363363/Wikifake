@@ -106,6 +106,18 @@ export interface RoundProps {
   readonly flags?: CapturesState | undefined;
   /** The room a report happened in, or '' in solo. */
   readonly roomCode?: string | undefined;
+  /**
+   * H.6 — the cosmetics that draw the player's own marks. Absent is the design
+   * system's own choice.
+   *
+   * **Which caller passes these is the decision**, not a flag inside: `solo.tsx`
+   * does and `lobby/room.tsx` does not, because `assignColour` hands out a
+   * distinct colour per arrival so that two players in a room can be told apart.
+   * A bought colour cannot be allowed to break that, and there is no setting to
+   * get wrong.
+   */
+  readonly marker?: string | null | undefined;
+  readonly markStyle?: string | null | undefined;
   onSubmit(marked: readonly number[]): void;
   /** Absent where a submission cannot be taken back — solo, over REST. */
   readonly onUnsubmit?: (() => void) | undefined;
@@ -140,6 +152,8 @@ export function Round({
   debrief,
   flags,
   roomCode = '',
+  marker,
+  markStyle,
 }: RoundProps) {
   const t = useTranslations('round');
   const timers = useTimers();
@@ -255,6 +269,8 @@ export function Round({
           distortions={effects?.distortions ?? NOTHING}
           verdicts={verdicts}
           locked={submitted || busy || ended}
+          marker={marker}
+          markStyle={markStyle}
           onToggle={toggle}
         />
 

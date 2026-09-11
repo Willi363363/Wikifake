@@ -21,9 +21,26 @@ import {
   submitRequest,
   submitResponse,
 } from './game.js';
+import {
+  buyCosmeticRequest,
+  buyCosmeticResponse,
+  chooseRegionRequest,
+  chooseRegionResponse,
+  claimPseudonymRequest,
+  claimPseudonymResponse,
+  deleteAccountRequest,
+  deleteAccountResponse,
+  exportAccountResponse,
+  readCosmeticsResponse,
+  wearCosmeticRequest,
+  wearCosmeticResponse,
+} from './account.js';
 import { flagReportRequest, flagReportResponse } from './flags.js';
+import { recordViewRequest, recordViewResponse } from './traffic.js';
 import { healthResponse, pingResponse, usageResponse } from './health.js';
 import { createRoomRequest, createRoomResponse } from './rooms.js';
+import { claimQuestRequest, claimQuestResponse, questCronResponse } from './quests.js';
+import { realtimeTicketRequest, realtimeTicketResponse } from './tickets.js';
 
 export interface Route {
   readonly method: 'GET' | 'POST';
@@ -68,10 +85,95 @@ export const ROUTES: readonly Route[] = [
     response: submitResponse,
   },
   {
+    // Step E.3b.2. No `request`: the room and the nickname are what the ticket
+    // is *bound* to, so they are in the address rather than in a body, and
+    // nothing else is sent.
+    method: 'POST',
+    path: '/api/realtime/ticket',
+    request: realtimeTicketRequest,
+    response: realtimeTicketResponse,
+  },
+  {
+    // Step E.3.2. A body rather than a query parameter: the pseudonym is what
+    // the request sends, not what it is bound to, and a name in a URL is a name
+    // in an access log.
+    method: 'POST',
+    path: '/api/account/pseudonym',
+    request: claimPseudonymRequest,
+    response: claimPseudonymResponse,
+  },
+  {
+    // Step E.7. No `request`: a `GET` has no body, and the account is the
+    // session's rather than a parameter — there is nothing to ask about.
+    method: 'GET',
+    path: '/api/account/export',
+    response: exportAccountResponse,
+  },
+  {
+    // Step E.7. `POST` and not `DELETE`: this is the one irreversible thing a
+    // player can do here, and a method a prefetcher might reach for is the
+    // wrong one to hang it on.
+    method: 'POST',
+    path: '/api/account/delete',
+    request: deleteAccountRequest,
+    response: deleteAccountResponse,
+  },
+  {
     method: 'POST',
     path: '/api/flag-report',
     request: flagReportRequest,
     response: flagReportResponse,
+  },
+  {
+    // Step J.4. A page load counted, with no identifier of any kind on it.
+    method: 'POST',
+    path: '/api/view',
+    request: recordViewRequest,
+    response: recordViewResponse,
+  },
+  {
+    // Step G.1. The region a player picks, which beats the derived one.
+    method: 'POST',
+    path: '/api/account/region',
+    request: chooseRegionRequest,
+    response: chooseRegionResponse,
+  },
+  {
+    // Step H.6. What the player is wearing and what they own. No `request`:
+    // a `GET` has no body and the account is the session's.
+    method: 'GET',
+    path: '/api/account/cosmetics',
+    response: readCosmeticsResponse,
+  },
+  {
+    // Step H.6. What the player is wearing, one slot at a time.
+    method: 'POST',
+    path: '/api/account/cosmetics',
+    request: wearCosmeticRequest,
+    response: wearCosmeticResponse,
+  },
+  {
+    // Step H.7. Buying one, at the catalogue's price — no price on the wire.
+    method: 'POST',
+    path: '/api/shop/buy',
+    request: buyCosmeticRequest,
+    response: buyCosmeticResponse,
+  },
+  {
+    // Step F.6. The one thing a player does to a quest.
+    method: 'POST',
+    path: '/api/quests/claim',
+    request: claimQuestRequest,
+    response: claimQuestResponse,
+  },
+  {
+    // Step F.5. A `GET` that writes, which is Vercel's scheduler dictating the
+    // method rather than a choice: it issues one, and a `POST` beside it would
+    // be a second door onto the same room. No `request` — the only input is the
+    // bearer token, and a token is not a body.
+    method: 'GET',
+    path: '/api/cron/quests',
+    response: questCronResponse,
   },
 ];
 

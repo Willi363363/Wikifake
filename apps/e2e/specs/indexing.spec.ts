@@ -130,4 +130,30 @@ test.describe('10.0 — indexing and the front door', () => {
     expect(sitemap).not.toContain('/room/');
     expect(sitemap).not.toContain('/solo');
   });
+
+  test('J.9 — the screens that are somebody\u2019s say so in the document', async ({
+    page,
+  }) => {
+    /*
+     * The decision lives in `src/indexing.ts`; this is what says it reaches a
+     * crawler. A `noindex` that never leaves the source is a page that is
+     * indexed while a constant says otherwise — and `/leaderboard` is the one
+     * this step decided about, so it is the one named here.
+     */
+    for (const path of ['/leaderboard', '/profile', '/sign-in']) {
+      await page.goto(path);
+      await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(
+        1,
+      );
+    }
+  });
+
+  test('J.9 — and the three documents still do not', async ({ page }) => {
+    for (const path of ['/faq', '/privacy', '/terms']) {
+      await page.goto(path);
+      await expect(page.locator('meta[name="robots"][content*="noindex"]')).toHaveCount(
+        0,
+      );
+    }
+  });
 });

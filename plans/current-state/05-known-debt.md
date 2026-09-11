@@ -179,16 +179,18 @@ not the client's to key — whoever owns the server messages must decide whether
 they become error *codes* the client translates, or stay sentences in one
 language. Until then a French interface will show them in English.
 
-## The structural debt is its own file
+## The register is five files
 
-The entries above are defects and gaps with a location. The notes that are
-about the *shape* of the repository — a bundler we cannot use yet, two
-notations for one contract — are in `06-structural-debt.md`, because this file
-once reached the 200-line limit and squeezing a document is how it stops being
-read.
+The entries above are defects and gaps with a `file:line`. Four neighbours hold
+the rest, because a register that reaches 200 lines stops being read:
+`06-structural-debt.md` the shape of the repository and its code,
+`08-toolchain-debt.md` the commands you run, `09-query-debt.md` query plans, and
+`10-test-debt.md` the suites — why a green run can be wrong.
 
-A finding recorded on the way through goes in whichever of the two it belongs
-to. Both are the debt register.
+The fourth arrived in H.2 and the fifth at J.9, each time because the file a
+finding belonged in had reached the cap while the finding was still being
+written — which is the reason to split rather than squeeze. All five are the
+register.
 
 ## The chat rail sits on the room card at 360 px
 

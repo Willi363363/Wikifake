@@ -46,9 +46,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const tab = async (name: string) => {
+const tab = async (name: string, props: { pseudonym?: string } = {}) => {
   const user = userEvent.setup();
-  render(<LobbyEntry />);
+  render(<LobbyEntry {...props} />);
   await user.click(screen.getByRole('tab', { name }));
   return user;
 };
@@ -250,5 +250,70 @@ describe('7.2 — the entry screen', () => {
     const user = await tab('Host');
     await user.click(screen.getByRole('button', { name: 'Open a room' }));
     expect(screen.getByRole('alert')).not.toBeNull();
+  });
+});
+
+// Step E.3.3 — a room shows a signed-in player their pseudonym and nothing
+// else, so the screen stops asking for a name it cannot honour.
+//
+// The guarantee itself is `/api/realtime/ticket`'s, asserted in
+// `realtime/ticket-handler.test.ts` against a real session: this screen not
+// offering a field is the courtesy on top of it. Both, because a screen that
+// collected a value the server overrules is a screen that lies, and a server
+// that trusted the screen would be a server with no rule at all.
+describe('E.3.3 — a signed-in player is told their name', () => {
+  it.each([
+    ['Host', 'Open a room'],
+    ['Join', 'Join'],
+  ])('offers no nickname field on the %s tab', async (name) => {
+    await tab(name, { pseudonym: 'AdaLovelace' });
+
+    expect(screen.queryByLabelText('Nickname')).toBeNull();
+    expect(screen.getByText(/Playing as/)).not.toBeNull();
+    expect(screen.getByText('AdaLovelace')).not.toBeNull();
+  });
+
+  it('opens a room under the pseudonym, with nothing typed', async () => {
+    const user = await tab('Host', { pseudonym: 'AdaLovelace' });
+
+    await user.click(screen.getByRole('button', { name: 'Open a room' }));
+
+    await waitFor(() => {
+      expect(pushed).toEqual(['/room/A1B2C3']);
+    });
+    // Remembered as well as used: the gate reads `sessionStorage` before the
+    // server has answered, and a room opened under the wrong name for one
+    // render is a room the player watches themselves be renamed in.
+    expect(readNickname()).toBe('AdaLovelace');
+  });
+
+  it('joins a room under the pseudonym', async () => {
+    const user = await tab('Join', { pseudonym: 'AdaLovelace' });
+
+    await user.type(screen.getByLabelText('Room code'), 'a1b2c3');
+    await user.click(screen.getByRole('button', { name: 'Join' }));
+
+    expect(pushed).toEqual(['/room/A1B2C3']);
+    expect(readNickname()).toBe('AdaLovelace');
+  });
+
+  it('overwrites a nickname left over from playing as a guest', async () => {
+    // The common case, and the reason the server substitutes rather than
+    // refuses: this tab played as `ada` before the account existed.
+    globalThis.sessionStorage.setItem('wikifake.nickname', 'ada');
+    const user = await tab('Host', { pseudonym: 'AdaLovelace' });
+
+    await user.click(screen.getByRole('button', { name: 'Open a room' }));
+
+    await waitFor(() => {
+      expect(readNickname()).toBe('AdaLovelace');
+    });
+  });
+
+  it('still asks a guest, who has no pseudonym to be shown instead', async () => {
+    await tab('Host');
+
+    expect(screen.getByLabelText('Nickname')).not.toBeNull();
+    expect(screen.queryByText(/Playing as/)).toBeNull();
   });
 });

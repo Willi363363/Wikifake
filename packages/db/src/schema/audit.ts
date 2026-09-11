@@ -69,6 +69,30 @@ export const hintPurchase = pgTable(
     level: integer('level').notNull(),
     /** What **this** purchase cost. Not the price of the level (see `charged`). */
     charged: integer('charged').notNull(),
+    /**
+     * Which currency paid for it — step H.4.
+     *
+     * A row here has always meant *this level was bought and the score paid for
+     * it*, which the check below enforced as `charged > 0`. H.4 gave coins as a
+     * second currency for the same mechanic, so a row can now mean *bought, and
+     * the ledger paid* — with `charged` at zero, because the score was not
+     * touched.
+     *
+     * A column rather than inferring it from `charged = 0`, because the two
+     * facts are different: what the score was charged, and what bought the hint.
+     * `charged = 0` already meant *the level was owned*, and a currency read off
+     * that would have made a re-bought hint look coin-paid.
+     *
+     * The penalty is a separate matter, and it took a rule change rather than
+     * none: it was computed from *the levels held*, so pricing a coin-paid level
+     * would have taken the coins and the score both. `hintPenaltyPaid` sums this
+     * table's `charged` instead — the definition that is true in both
+     * currencies, and the same number as before wherever score paid.
+     *
+     * Defaulted to `score`, so every row written before this step says what it
+     * meant.
+     */
+    paidWith: text('paid_with').notNull().default('score'),
     purchasedAt: timestamp('purchased_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
@@ -80,7 +104,21 @@ export const hintPurchase = pgTable(
     index('hint_purchase_participant_idx').on(table.participantId, table.purchasedAt),
     check('hint_purchase_level_range', sql`${table.level} in (1, 2)`),
     check('hint_purchase_number_1_based', sql`${table.falseInfoNumber} >= 1`),
-    check('hint_purchase_was_charged', sql`${table.charged} > 0`),
+    /**
+     * A purchase cost something — widened by H.4 rather than dropped.
+     *
+     * It read `charged > 0`, and that was the whole truth while score was the
+     * only currency. Now a coin-paid hint charges the score nothing, so the rule
+     * is *the score was charged, or the coins were* — and a row that charged
+     * neither is still refused, which is what the constraint was protecting: a
+     * hint nobody paid for.
+     */
+    check(
+      'hint_purchase_was_charged',
+      sql`${table.charged} > 0 or ${table.paidWith} = 'coins'`,
+    ),
+    /** Only the two currencies there are. Text, so a third is not a migration. */
+    check('hint_purchase_currency', sql`${table.paidWith} in ('score', 'coins')`),
   ],
 );
 

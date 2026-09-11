@@ -11,7 +11,7 @@
     "inputPlaceholder": "Say something",
     "sendHint": "Enter sends, shift+enter breaks a line",
     "errors": {
-      "cannotSend": "that message cannot be sent"
+      "cannotSend": "a message is at most {max} characters, and must not be empty"
     }
   },
   "flags": {

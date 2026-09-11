@@ -35,6 +35,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 import { cn } from '../cn.js';
+import { markStyleFor, markerColourFor } from '../cosmetic/appearance.js';
 import { isInteractive, TOKEN_LABELS, type TokenState } from './state.js';
 
 export const tokenVariants = cva(
@@ -108,12 +109,29 @@ export interface ParagraphTokenProps
    * touching this file — and `null` for a state that says nothing.
    */
   readonly label?: string | null;
+  /**
+   * H.6 — the cosmetics the player is wearing, or null for the design system's
+   * own choice.
+   *
+   * **Only the marked decoration is affected**, which is the rule that makes
+   * selling colours safe: the wash under the prose and the `ink` on it are a
+   * pair in `CONTRAST_PAIRS`, and nothing here touches them. What changes is the
+   * bar, which is `aria-hidden`, has no children, and is a rectangle.
+   *
+   * Two props rather than an `Outfit`, because `@wikifake/ui` depends on no
+   * `@wikifake` package: the design system is the one thing an application can
+   * use without pulling the game in. The caller unpacks the outfit.
+   */
+  readonly marker?: string | null | undefined;
+  readonly markStyle?: string | null | undefined;
 }
 
 export function ParagraphToken({
   className,
   state,
   label,
+  marker,
+  markStyle,
   children,
   disabled,
   ...props
@@ -122,6 +140,11 @@ export function ParagraphToken({
   const live = isInteractive(shown) && disabled !== true;
   const said = label === undefined ? TOKEN_LABELS[shown] : label;
   const glyph = GLYPH[shown];
+  // H.6 — null for either of these is the bar this component has always drawn.
+  // The colour is an inline style rather than a class because it is a bought
+  // hex and not a role: Tailwind cannot emit a utility for a value it has never
+  // seen, and a class list built at runtime is one the compiler cannot scan.
+  const worn = markerColourFor(marker ?? null);
 
   const body = (
     <>
@@ -156,11 +179,20 @@ export function ParagraphToken({
         </span>
       ) : null}
 
-      {/* The marked underline: `.token.selected::after`. */}
+      {/* The marked underline: `.token.selected::after`, and since H.6 the one
+          thing a cosmetic may change. Decoration: hidden, childless, and never
+          behind a word. */}
       {shown === 'selected' ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-1 -bottom-0.5 h-1 bg-accent"
+          className={cn(
+            'pointer-events-none absolute',
+            markStyleFor(markStyle ?? null),
+            // The accent stays the default so that a player wearing nothing
+            // gets exactly the bar they had, from a class the compiler can see.
+            worn === null ? 'bg-accent border-accent' : null,
+          )}
+          style={worn === null ? undefined : { backgroundColor: worn, borderColor: worn }}
         />
       ) : null}
 

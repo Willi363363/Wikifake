@@ -14,6 +14,7 @@ export type { Reduced, Reducer } from './reducer.js';
 export {
   gradeSubmission,
   hintCostFor,
+  isPerfectRound,
   rankByScore,
   scoreFor,
   timeBonusFor,
@@ -29,6 +30,7 @@ export type { HintLevel, Submission } from './scoring.js';
 export {
   grantHint,
   hintPenaltyFor,
+  hintPenaltyPaid,
   hintsUsedFor,
   ledgerFrom,
   EMPTY_LEDGER,
@@ -41,6 +43,55 @@ export type {
   HintPurchase,
   HintRequest,
 } from './hints.js';
+
+export { questRulesFor, QUEST_CATALOGUE, QUEST_RULES, QUEST_RULE_IDS } from './quests.js';
+export {
+  boardWindowOf,
+  periodIndexOf,
+  periodWindowOf,
+  BOARD_PERIODS,
+  MS_PER_DAY,
+} from './periods.js';
+export type { BoardPeriod, CalendarPeriod, PeriodWindow } from './periods.js';
+export { generateQuestSet, QUESTS_PER_SET } from './quest-generator.js';
+export type { QuestAssignment } from './quest-generator.js';
+export { isQuestComplete, progressFor, qualifies } from './quest-progress.js';
+export type { CountableRound } from './quest-progress.js';
+export type {
+  QuestPeriod,
+  QuestQualifier,
+  QuestRule,
+  QuestRuleId,
+  QuestTally,
+  QuestTarget,
+} from './quests.js';
+
+export {
+  coinsForRound,
+  hintCoinCostFor,
+  COINS_PER_PERFECT_ROUND,
+  COINS_PER_ROUND,
+  HINT_COINS,
+  REVEAL_COINS,
+} from './coins.js';
+export {
+  canWear,
+  cosmeticById,
+  cosmeticsInSlot,
+  isCosmeticId,
+  outfitFrom,
+  takeOff,
+  wear,
+  CHEAPEST_COSMETIC_COINS,
+  COSMETIC_CATALOGUE,
+  COSMETIC_IDS,
+  COSMETIC_SLOTS,
+  EMPTY_OUTFIT,
+} from './cosmetics.js';
+export type { Cosmetic, CosmeticId, CosmeticSlot, Outfit } from './cosmetics.js';
+
+export { asRegion, effectiveRegion, regionForCountry } from './regions.js';
+export type { PlayerRegion } from './regions.js';
 
 export { gradeAnswer, isWellFormedSolution, solutionIssues } from './grading.js';
 export type { Grading } from './grading.js';
@@ -93,7 +144,8 @@ export type {
   RoomOptions,
   RoomPhase,
   RoomState,
+  RoundRecord,
   RoundState,
   ScoredSubmission,
 } from './room/state.js';
-export type { RoomEffect, RoomEvent } from './room/events.js';
+export type { RecordedResult, RoomEffect, RoomEvent } from './room/events.js';

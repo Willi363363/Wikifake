@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | ⬜ not started |
+| **State** | ✅ H.1 to H.8 — the ledger, the shop, and the seam a purchase would use |
 | **Branch** | `feat/economy` |
 | **Depends on** | tracks E and F |
 | **Delivers** | a coin ledger, a shop, and no payment |
@@ -52,14 +52,19 @@ pay-to-win — which is both a worse game and a much harder thing to sell.
 
 | # | Step | State |
 |---|---|---|
-| H.1 | `coin_movement` — the ledger, with idempotency | ⬜ |
-| H.2 | Balance as a derived read, and its index | ⬜ |
-| H.3 | Earning: quest rewards, and end-of-round | ⬜ |
-| H.4 | Spending: hints, against the existing billing | ⬜ |
-| H.5 | The cosmetics catalogue, in `domain` | ⬜ |
-| H.6 | Ownership, and applying a cosmetic | ⬜ |
-| H.7 | The shop screen | ⬜ |
-| H.8 | The seam a purchase would attach to, documented not built | ⬜ |
+| H.1 | `coin_movement` — the ledger, with idempotency | ✅ |
+| H.2 | Balance as a derived read, and its index | ✅ |
+| H.3 | Earning: quest rewards, and end-of-round | ✅ |
+| H.4 | Spending: hints, against the existing billing | ✅ |
+| H.5 | The cosmetics catalogue, in `domain` | ✅ |
+| H.6 | Ownership, and applying a cosmetic | ✅ |
+| H.7 | The shop screen | ✅ |
+| H.8 | The seam a purchase would attach to, documented not built | ✅ |
+
+**What each step decided** is in seven sheets, all prefixed `08-economy-`:
+`-ledger.md` carries H.1 and H.2, `-earning.md` H.3, `-spending.md` H.4,
+`-cosmetics.md` H.5, `-ownership.md` H.6, `-shop.md` H.7 and `-seam.md` H.8.
+The table above is the only place that says where a step stands.
 
 ### H.8 — The seam
 
@@ -72,11 +77,27 @@ It is documentation, not an abstraction layer. Building an interface for a
 payment provider nobody has chosen is how this track doubles in size for
 nothing.
 
+**Written, in `08-economy-seam.md`** — and with one piece of code, which is a
+test rather than an abstraction: `economy-seam.test.ts` sweeps the repository
+for payment vocabulary, so the last line of the exit gate is checked rather than
+reviewed.
+
 ## Exit gate
 
-- Every coin in existence is explained by a ledger row.
-- The same credit applied twice with one idempotency key credits once.
-- A balance read matches the sum of movements, on a seeded account with
-  thousands of them.
-- No purchasable item changes a round's outcome.
-- No payment code, no price in currency, anywhere in the diff.
+All five hold, and each names what holds it:
+
+- **Every coin in existence is explained by a ledger row.** `coin_movement` is
+  the only place coins come from, and `sumBalance` is the sum of that column
+  (H.1).
+- **The same credit applied twice with one idempotency key credits once.**
+  `unique(user_id, idempotency_key)`, with `onConflictDoNothing` so a retry gets
+  its answer rather than an aborted transaction (H.1).
+- **A balance read matches the sum of movements, on a seeded account with
+  thousands of them.** `coins-volume.test.ts` holds the fast read to the audit
+  sum (H.2).
+- **No purchasable item changes a round's outcome.** The slot union has no
+  member that could, and `cosmetics.test.ts` reads every source file in
+  `domain` and fails if one mentions the catalogue (H.5).
+- **No payment code, no price in currency, anywhere in the diff.**
+  `economy-seam.test.ts` sweeps `apps/`, `packages/` and `scripts/` for the
+  vocabulary and fails if it appears (H.8).

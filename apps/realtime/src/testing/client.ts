@@ -29,7 +29,26 @@ export interface Opened {
   resume(): void;
 }
 
-const TIMEOUT_MS = 2000;
+/**
+ * How long a wait may take before it is a hang rather than a slow machine.
+ *
+ * **Eight seconds, and it was two.** Measured on 2026-09-11, after three CI
+ * runs went red on diffs that touched no realtime code: every one of them was
+ * this helper, timing out at 2.04s — the operation had not finished by the
+ * ceiling, not failed.
+ *
+ * The same argument C.7 makes about frame budgets applies: *a threshold on a
+ * shared runner measures the runner*. Nothing here asserts how fast the server
+ * answered — a suite that wanted latency measured would say so — so the deadline
+ * is only a failure mode, and it should be obviously longer than any legitimate
+ * wait. A condition that is met early costs nothing either way: this polls every
+ * 5ms and returns the moment it is true.
+ *
+ * `vitest.config.ts` raises `testTimeout` with it. Otherwise Vitest's own
+ * five-second default fires first and reports "Test timed out in 5000ms",
+ * losing the sentence that says *what* was being waited for.
+ */
+const TIMEOUT_MS = 8000;
 
 /**
  * The TCP socket under the WebSocket.

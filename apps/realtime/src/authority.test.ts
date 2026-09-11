@@ -86,6 +86,9 @@ describe.skipIf(url === null)('5.7 — who decides, and what ends a room', () =>
         forgotten.push(roomCode);
         return Promise.resolve();
       },
+      // Step E.3b.1 — required, so a deployment cannot forget it. This suite is
+      // not about what a round is written down as.
+      recordResults: () => Promise.resolve(),
       rooms: store,
       bus,
       namespace: NAMESPACE,
@@ -332,6 +335,9 @@ describe.skipIf(url === null)('5.7 — who decides, and what ends a room', () =>
         article: { ...ARTICLE, topic: 'Chien' },
         solution: SOLUTION,
         startedAt: Date.now(),
+        // The late article this case is about never became a round, so it never
+        // had rows of its own to be written to.
+        record: null,
       });
       // A fence: chat rides the same channel, so once it has arrived any second
       // `game_start` would already be behind it.

@@ -9,6 +9,7 @@
       "join": "Join"
     },
     "nicknameLabel": "Nickname",
+    "playingAs": "Playing as <name></name>.",
     "topicLabel": "Wikipedia topic",
     "topicPlaceholder": "Chat",
     "playSolo": "Play solo",
@@ -23,7 +24,10 @@
       "roomNotOpened": "the room could not be opened",
       "unreadableRoom": "the server opened a room we cannot read",
       "unreachable": "the server could not be reached"
-    }
+    },
+    "account": "Create an account, or sign in",
+    "profile": "Your profile",
+    "leaderboard": "Leaderboards"
   },
   "room": {
     "eyebrow": "Room",

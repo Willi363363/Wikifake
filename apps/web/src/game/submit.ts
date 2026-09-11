@@ -15,9 +15,11 @@
 import {
   gradeAnswer,
   gradeSubmission,
-  hintPenaltyFor,
+  hintPenaltyPaid,
   hintsUsedFor,
   ledgerFrom,
+  coinsForRound,
+  isPerfectRound,
 } from '@wikifake/domain';
 import {
   recordSubmission,
@@ -113,7 +115,11 @@ export async function handleSubmit(
 
   const solution = await selectSolution(context.db, gameId);
   const grading = gradeAnswer(solution, parsed.value.marked);
-  const ledger = ledgerFrom(await selectHintPurchases(context.db, participantId));
+  // Two facts out of one read — H.4: how many falsifications were helped, and
+  // what the score paid for them. A hint bought with coins is in the ledger and
+  // charged nothing, so the count includes it and the penalty does not.
+  const purchases = await selectHintPurchases(context.db, participantId);
+  const ledger = ledgerFrom(purchases);
   const at = context.now();
 
   const graded = gradeSubmission({
@@ -121,12 +127,18 @@ export async function handleSubmit(
     falsePositives: grading.wrong.length,
     // C1.3 — from the ledger the database holds, not from anything sent.
     hintsUsed: hintsUsedFor(ledger),
-    hintPenalty: hintPenaltyFor(ledger),
+    hintPenalty: hintPenaltyPaid(purchases),
     // C1.5 — nothing can steal points in solo: `SCORE_STEAL` is cast by a rival,
     // and there is none. It arrives with the multiplayer transport in phase 5.
     scoreStolen: 0,
     timeLimitSeconds: access.round.timeLimit,
     elapsedSeconds: elapsedSeconds(access.round.startedAt, at),
+  });
+
+  const perfect = isPerfectRound({
+    truePositives: grading.found.length,
+    falsePositives: grading.wrong.length,
+    totalFakes: solution.length,
   });
 
   const settled = await recordSubmission(context.db, {
@@ -136,6 +148,15 @@ export async function handleSubmit(
     score: graded.score,
     ...graded.breakdown,
     at,
+    // Step E.4 — the streak rule, asked here because this is the layer allowed
+    // to know it. `workspace-graph.test.ts` keeps `@wikifake/db` away from
+    // `@wikifake/domain`: data does not depend on rules, so the rule is applied
+    // where the round is graded and the answer travels with the grade.
+    perfect: perfect,
+    // Step H.3 — what the round pays, from the one place that decides it. The
+    // same `perfect` the streak uses, so the two cannot disagree about the
+    // round they are both describing.
+    coins: coinsForRound({ perfect }),
   });
 
   // Another request graded it first. Theirs is the grading that counts.

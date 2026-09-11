@@ -32,6 +32,24 @@ const STATUS: Readonly<Partial<Record<ErrorCode, number>>> = {
   hints_blocked: 403,
   /** C5.6 — too many rooms are open. Temporary, hence 503 and not 429. */
   room_capacity_reached: 503,
+  /** E.3.2 — a pseudonym another account holds. A conflict, and a lasting one. */
+  pseudonym_taken: 409,
+  /** E.3.2 — a pseudonym the protocol's own schema refuses. The caller can fix it. */
+  invalid_name: BAD_REQUEST,
+  /** F.6 — not this account's quest, or nothing at all. One code for both. */
+  quest_not_found: 404,
+  /** F.6 — the reward is already taken. A conflict, and a lasting one. */
+  quest_already_claimed: 409,
+  /** F.6 — the target is not met yet. A conflict the player can resolve. */
+  quest_not_complete: 409,
+  /** H.4 — the coins are not there. 402, the one money-shaped status here. */
+  insufficient_coins: 402,
+  /** H.4 — coins offered in a room, where the score is what a hint costs. */
+  coins_not_accepted: 409,
+  /** H.6 — not yours to wear. 403 rather than 404: the refusal is about you. */
+  cosmetic_not_owned: 403,
+  /** H.7 — nothing by that name is for sale. */
+  cosmetic_not_found: 404,
 };
 
 export function statusFor(code: ErrorCode): number {

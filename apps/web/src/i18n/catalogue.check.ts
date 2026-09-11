@@ -13,10 +13,15 @@
 // `ZONES` in `catalogue.ts` grows.
 import type { CatalogueMessages } from './catalogue.js';
 
+import type frAccount from '../../messages/fr/account.json';
 import type frErrors from '../../messages/fr/errors.json';
 import type frHome from '../../messages/fr/home.json';
 import type frLanguage from '../../messages/fr/language.json';
+import type frLeaderboard from '../../messages/fr/leaderboard.json';
 import type frLobby from '../../messages/fr/lobby.json';
+import type frAdmin from '../../messages/fr/admin.json';
+import type frQuests from '../../messages/fr/quests.json';
+import type frShop from '../../messages/fr/shop.json';
 import type frRound from '../../messages/fr/round.json';
 import type frRoutes from '../../messages/fr/routes.json';
 import type frSeo from '../../messages/fr/seo.json';
@@ -37,10 +42,15 @@ type Covers<Candidate extends Reference, Reference> = Candidate;
  * one (a key only French has refuses too). The error names the zone.
  */
 export type FrenchCarriesEveryEnglishKey = [
+  Covers<typeof frAccount, ShapeOf<CatalogueMessages['account']>>,
   Covers<typeof frErrors, ShapeOf<CatalogueMessages['errors']>>,
   Covers<typeof frHome, ShapeOf<CatalogueMessages['home']>>,
   Covers<typeof frLanguage, ShapeOf<CatalogueMessages['language']>>,
+  Covers<typeof frLeaderboard, ShapeOf<CatalogueMessages['leaderboard']>>,
   Covers<typeof frLobby, ShapeOf<CatalogueMessages['lobby']>>,
+  Covers<typeof frAdmin, ShapeOf<CatalogueMessages['admin']>>,
+  Covers<typeof frQuests, ShapeOf<CatalogueMessages['quests']>>,
+  Covers<typeof frShop, ShapeOf<CatalogueMessages['shop']>>,
   Covers<typeof frRound, ShapeOf<CatalogueMessages['round']>>,
   Covers<typeof frRoutes, ShapeOf<CatalogueMessages['routes']>>,
   Covers<typeof frSeo, ShapeOf<CatalogueMessages['seo']>>,
@@ -49,10 +59,15 @@ export type FrenchCarriesEveryEnglishKey = [
 ];
 
 export type FrenchAddsNoKeyOfItsOwn = [
+  Covers<ShapeOf<CatalogueMessages['account']>, ShapeOf<typeof frAccount>>,
   Covers<ShapeOf<CatalogueMessages['errors']>, ShapeOf<typeof frErrors>>,
   Covers<ShapeOf<CatalogueMessages['home']>, ShapeOf<typeof frHome>>,
   Covers<ShapeOf<CatalogueMessages['language']>, ShapeOf<typeof frLanguage>>,
+  Covers<ShapeOf<CatalogueMessages['leaderboard']>, ShapeOf<typeof frLeaderboard>>,
   Covers<ShapeOf<CatalogueMessages['lobby']>, ShapeOf<typeof frLobby>>,
+  Covers<ShapeOf<CatalogueMessages['admin']>, ShapeOf<typeof frAdmin>>,
+  Covers<ShapeOf<CatalogueMessages['quests']>, ShapeOf<typeof frQuests>>,
+  Covers<ShapeOf<CatalogueMessages['shop']>, ShapeOf<typeof frShop>>,
   Covers<ShapeOf<CatalogueMessages['round']>, ShapeOf<typeof frRound>>,
   Covers<ShapeOf<CatalogueMessages['routes']>, ShapeOf<typeof frRoutes>>,
   Covers<ShapeOf<CatalogueMessages['seo']>, ShapeOf<typeof frSeo>>,

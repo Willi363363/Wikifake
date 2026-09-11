@@ -1,0 +1,129 @@
+/*
+ * Track C's collision — step C.4.
+ *
+ * Beats 2 and 3 are the same paragraph twice: once as Wikipedia has it, once as
+ * a round would serve it. Everything here exists so that the second lands on the
+ * first rather than beside it, because that alignment is what makes beat 3 a
+ * demonstration instead of a claim.
+ *
+ * Its own file because `landing-stage.css` is the mechanism and this is one
+ * scene's use of it, and because a stylesheet nobody rereads is a stylesheet
+ * that grows a second way of doing everything.
+ *
+ * **The media query is the same switch**, repeated rather than shared: CSS has
+ * no way to hand one condition to two files. `stage.test.tsx` holds every
+ * `landing-*.css` to the identical query, so the copy cannot drift.
+ */
+
+@media (min-width: 48rem) and (prefers-reduced-motion: no-preference) {
+  /*
+   * Step C.4 — beats 2 and 3 are the same paragraph twice, so they are laid out
+   * the same way.
+   *
+   * Three fixed rows: what is said above the article, the article, and what is
+   * said below it. Both beats declare all three — beat 2's last row is empty on
+   * purpose — so the two sheets land on **exactly the same rectangle**. That
+   * alignment is the collision: the reader watches one number change under
+   * them, in place, rather than watching two cards cross-fade.
+   *
+   * The header sits at the bottom of its row and the tail at the top of its
+   * own, so a longer translation grows away from the article instead of moving
+   * it. French runs a line longer than English here, and a scene that only
+   * lines up in one locale lines up in none.
+   */
+  .landing-article {
+    display: grid;
+    grid-template-rows: 9rem auto 5rem;
+    align-content: center;
+    width: 100%;
+  }
+
+  /*
+   * The section is not the copy here: its middle row has to outlive the cut.
+   *
+   * Written as a child of the beat rather than as `.landing-article` alone, so
+   * it beats `.landing-stage__beat > *` on specificity instead of on the order
+   * two files happen to be imported in.
+   */
+  .landing-stage__beat > .landing-article {
+    opacity: 1;
+  }
+
+  /*
+   * The article does not drift. Everything else does.
+   *
+   * A beat travels three rems against the scroll, so two beats mid-handover are
+   * six rems apart — and two sheets six rems apart pass each other instead of
+   * one landing on the other. `--depth: -3` cancels exactly that, and it is the
+   * vocabulary of C.3 spent rather than a second mechanism: this class declares
+   * variables, `.landing-move` owns the one transform.
+   *
+   * It is also the right thing to say about the scene. The article is the fixed
+   * point the demonstration happens to; the commentary is what moves.
+   */
+  .landing-article__sheet {
+    --depth: -3;
+  }
+
+  .landing-article__head {
+    align-self: end;
+    opacity: var(--copy-opacity);
+  }
+
+  /*
+   * The credit line is copy, not article.
+   *
+   * Found by looking: it sits inside the figure, so it rode the sheet's wide
+   * plateau and both captions were legible on top of each other through the
+   * whole handover — two sentences in the same six millimetres, which is worse
+   * than either. The sheet is the only thing that outlives the cut.
+   */
+  .landing-article__credit {
+    opacity: var(--copy-opacity);
+  }
+
+  .landing-article__tail {
+    align-self: start;
+    opacity: var(--copy-opacity);
+  }
+
+  /*
+   * The mark, wiped in rather than faded.
+   *
+   * A pseudo-element scaled on one axis: composite-only, and a hard edge
+   * travelling left to right, which is what a highlighter does and what this
+   * direction means by motion. Animating `background-size` would have been a
+   * paint on every frame for the same picture.
+   *
+   * The colour is `green-soft` — the debrief's "found" — so the landing teaches
+   * the colour before a player meets it. The wash carries `ink`, never the
+   * fill: `bg-green` here would be the one hard colour rule broken on the first
+   * screen anybody sees.
+   */
+  .landing-mark {
+    position: relative;
+    /*
+     * Found by looking: without a stacking context of its own, the wipe below
+     * sits at `z-index: -1` of whatever context is nearest — which is the page,
+     * so it painted *behind the reading sheet's own ground* and the mark simply
+     * never appeared. `isolate` keeps the -1 inside this element, where it means
+     * "behind the text and in front of nothing else".
+     */
+    isolation: isolate;
+    /* The wash is the pseudo-element's now; the class on the element is what a
+       phone and a reduced-motion viewer still see. */
+    background: none;
+    --mark-reveal: clamp(0, calc((var(--beat-progress, 0) + 0.3) / 0.3), 1);
+  }
+
+  .landing-mark::before {
+    content: '';
+    position: absolute;
+    inset: -0.1em -0.15em;
+    z-index: -1;
+    background: var(--color-green-soft);
+    transform: scaleX(var(--mark-reveal));
+    transform-origin: left center;
+    will-change: transform;
+  }
+}
