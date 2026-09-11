@@ -37,7 +37,7 @@ doubled.
 | Cookie consent | ❌ | and still not needed — see below |
 | Analytics | ✅ | first-party, no identifier — `page_view`, `POST /api/view`, and the panel's arrivals section |
 | FAQ | ✅ | `app/[locale]/faq`, eleven questions and a `FAQPage` — J.5 |
-| Broken-link check | ❌ | **J.7** — nothing in `.github/workflows/` |
+| Broken-link check | ✅ | `links.spec.ts`, in the journeys CI already runs — J.7 |
 
 **Four rows moved in the two days after the audit**, and they are ticked above
 rather than left for a reader to reconcile: J.2 drew the icons and wrote the

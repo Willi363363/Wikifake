@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 to J.6 — three documents, arrivals counted, graphics labelled |
+| **State** | 🔶 J.1 to J.7 — documents, arrivals, graphics, and links that resolve |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -66,11 +66,15 @@ better than a page-view counter.
 | J.4b | The panel section that shows them | ✅ — `10-seo-analytics.md` |
 | J.5 | The FAQ, and the copy the landing needs | ✅ — `10-seo-faq.md` |
 | J.6 | `alt` text pass across every image | ✅ |
-| J.7 | Broken-link check, wired into CI | ⬜ |
+| J.7 | Broken-link check, wired into CI | ✅ |
 | J.8 | The performance budget, extended past the landing | ⬜ |
 | J.9 | The indexing decision for the routes E to I added | ⬜ |
 | J.10 | Phone width and reachability, over those same routes | ⬜ |
 | J.11 | The export, over what F, G and H added | ⬜ |
+
+**The sheets carry the arguments**, and the table above names them: a step whose
+whole reasoning fits in a paragraph has no sheet and is argued in a section
+below instead. Nothing is said in both places.
 
 ### J.8 — a budget that exists, over pages that have none
 
@@ -87,14 +91,6 @@ is also the only one of the ten a guest is invited to read. J.10 is the 360 px
 sweep, which names four routes while ten exist. Both are argued in
 `10-seo-audit.md`.
 
-### J.2 — the mark is a question mark, and not a letter
-
-A yellow "W" is Wikipedia's own favicon, and this game reads their encyclopaedia
-without being endorsed by them — C.8 refused the globe for the same reason. The
-landing's first line is "Who is lying?", so the question is the game. The
-drawing, the colour rule it must obey, and the defect a browser test found in it
-are in `10-seo-icons.md`.
-
 ### J.6 — one attribute, and the scan that keeps it true
 
 The pass had almost nothing to audit, which J.1 had already found: **no `<img>`
@@ -110,41 +106,6 @@ The rest of the step is `graphics.test.ts`: a source scan over **both**
 `alt` at all, for the day there is one. It was checked by breaking the other
 icon on purpose: the scan failed and named the file.
 
-### J.5 — and the half of it that was already done
-
-Eleven questions, answered from the code like the two documents before them, and
-`trust` is second on purpose: everything else says how the game works, and that
-one says not to believe what it shows you.
-
-The step's second half — *the copy the landing needs* — was audited and found to
-need nothing. The landing says what the game is in four beats and ends on a call
-to action C.5 deliberately put last; the copy that was missing is the questions
-those beats do not answer, which is this page. It also carries the site's only
-structured data, built from the catalogue rather than written twice.
-
-### J.4 — a counter, and the step it turned out to be hiding
-
-The owner chose a first-party counter over Vercel Web Analytics, Plausible and
-doing nothing; `10-seo-analytics.md` records the comparison. One row per day per
-page, **no identifier of any kind**, so it counts loads rather than people and
-says so rather than implying otherwise.
-
-It split, as the method asks a step to when it exceeds one branch: **J.4** is
-the table, the route and the beacon; **J.4b** is the panel's seventh section,
-which leads with the ratio and says the three things a traffic panel is usually
-silent about — an em dash rather than 0%, the day counting began, and that these
-are loads rather than people.
-
-It also made one sentence of the privacy policy false — "no analytics" — which
-is corrected in the same pull request rather than afterwards.
-
-### J.3 — written from the code, and 🔶 for one line
-
-Every claim on the two pages was read out of the schema, the export and deletion
-paths, the proxy and the provider list — not out of a template. Two things it
-could not finish: the contact address is a placeholder the owner has to replace,
-and nobody has read the text as a lawyer. `10-seo-legal.md` argues both.
-
 ### J.11 — the export is older than three tracks
 
 `exportAccount` was written in E.7 and still returns what existed then: the
@@ -159,6 +120,28 @@ actually holds.
 A link check run by hand is a link check run once. It goes in the pipeline,
 against the built site, and it fails the build. Same for the performance
 budget: a number in a document is a wish, a number in CI is a budget.
+
+**Shipped as a browser journey rather than a workflow job**, and the three
+reasons are worth keeping: `pnpm e2e` already runs on every pull request, a spec
+fails the build exactly the way a job does, and a new job means editing
+`.github/workflows/`, which the repository's token has no scope for. C.7's
+performance budget made the same call.
+
+It asserts two different things. **What the site publishes resolves** — every
+`<loc>` in the sitemap, which is the one broken link a crawler is guaranteed to
+find. And **what the site links resolves** — every internal `href` reachable
+from the front door in two hops, in both languages, fetched and required not to
+answer 400 or worse.
+
+A crawl that finds nothing passes everything, so the pages it must have reached
+are named: the three documents and the way in, in both locales. Checked by
+pointing the footer's FAQ link at `/faqs`: the spec failed and said which path
+had stopped being reachable.
+
+**External links are checked for shape and never fetched.** Wikipedia and
+creativecommons.org are somebody else's uptime, and a build that goes red
+because a third party is slow is a build nobody trusts twice — which is how a
+link check ends up disabled.
 
 ## Exit gate
 
