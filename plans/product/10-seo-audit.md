@@ -28,7 +28,7 @@ doubled.
 | Social share image | ✅ | `[locale]/opengraph-image.tsx`, per locale — **was ❌**, C.8 shipped it |
 | Mobile | 🔶 | the 360 px sweep names four routes; ten exist — **J.10** |
 | Accessibility | 🔶 | contrast audit, reduced motion, `fills.test.ts` — nothing on the screens E to I added |
-| Performance budget | 🔶 | the landing has one, in CI; no other page does — **J.8** |
+| Performance budget | ✅ | six entry screens, weight and CLS and blocking, in CI — J.8 |
 | `alt` text pass | ✅ | nothing to label but two `<svg>`, and `graphics.test.ts` refuses the next unlabelled one — J.6 |
 | Favicon and app icons | ✅ | `app/icon.tsx`, `app/apple-icon.tsx`; `icons.spec.ts` — J.2 |
 | Web manifest | ✅ | `app/manifest.ts`; `manifest.test.ts`, `icons.spec.ts` — J.2 |
@@ -66,7 +66,9 @@ asserts, in CI: layouts do not scale with frames, the worst frame under a
 throttled CPU stays below 250 ms, CLS below 0.1 and total blocking time below
 200 ms on a phone-shaped viewport. **No other route has a number**, and there is
 no page-weight or Lighthouse baseline. J.8 is therefore "extend a budget that
-exists", not "invent one" — which is a smaller step than the track file assumed.
+exists", not "invent one" — which is a smaller step than the track file assumed,
+and is what it turned out to be: six screens, a measured ceiling of 400kB, and
+the measurement itself shared with C.7's spec.
 
 ## Cookie consent: the deferral holds, and here is the evidence
 

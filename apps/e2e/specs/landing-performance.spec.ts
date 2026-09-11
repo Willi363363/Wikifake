@@ -17,17 +17,19 @@
 // scene that only composites is fast on almost all of them. So the assertion
 // below is the one that would still be worth running if the device measurement
 // were done tomorrow — it is what stops the budget being *undone* later.
+// Step J.8 moved the measurement itself into `vitals.ts`, where the budgets of
+// the other entry screens read it too: two budgets that measured differently
+// would disagree about the measurement rather than about the pages.
 import { expect, test, type Page } from '@playwright/test';
 
-/**
- * How much slower than this machine to pretend to be.
- *
- * Four, which is the usual figure for a mid-range Android against a developer
- * laptop on single-thread work. It is a stand-in and it is named as one: the
- * exit gate asks for a device, and `03-landing-budget.md` carries the runbook
- * for measuring one.
- */
-const CPU_SLOWDOWN = 4;
+import {
+  CPU_SLOWDOWN,
+  PHONE,
+  observeLargestPaint,
+  readVitals,
+  reportVitals,
+  throttle,
+} from './vitals.js';
 
 /**
  * The two lengths the structural claim is asked at.
@@ -248,88 +250,21 @@ test.describe('C.7 — the load, on a phone-shaped browser', () => {
   // pretending to be: what it buys is the layout a phone gets — below `md`, so
   // the scene never engages — measured with a slow CPU and a slow network under
   // it, which is the state the exit gate's Lighthouse clause is about.
-  test.use({
-    viewport: { width: 412, height: 915 },
-    deviceScaleFactor: 2,
-    isMobile: true,
-    hasTouch: true,
-  });
+  test.use(PHONE);
 
   test('arrives without shifting anything under it', async ({ page }) => {
-    const client = await page.context().newCDPSession(page);
-    await client.send('Emulation.setCPUThrottlingRate', { rate: CPU_SLOWDOWN });
-    await client.send('Network.enable');
-    // Roughly a mid-band mobile connection: 1.6 Mbps down, 150ms of latency.
-    await client.send('Network.emulateNetworkConditions', {
-      offline: false,
-      latency: 150,
-      downloadThroughput: (1.6 * 1024 * 1024) / 8,
-      uploadThroughput: (750 * 1024) / 8,
-    });
-
-    await page.addInitScript(() => {
-      // Buffered, and installed before the document: the largest contentful
-      // paint happens long before any test code could ask for it.
-      const store = window as unknown as { largestPaint?: number };
-      store.largestPaint = 0;
-      new PerformanceObserver((list) => {
-        for (const entry of list.getEntries()) store.largestPaint = entry.startTime;
-      }).observe({ type: 'largest-contentful-paint', buffered: true });
-    });
+    await throttle(page);
+    await observeLargestPaint(page);
 
     await page.goto('/', { waitUntil: 'load' });
     await expect(page.getByRole('heading', { name: 'Who is lying?' })).toBeVisible();
     // Long enough for the fonts to swap and for anything late to shift.
     await page.waitForTimeout(2000);
 
-    const vitals = await page.evaluate(() => {
-      const navigation = performance.getEntriesByType(
-        'navigation',
-      )[0] as PerformanceNavigationTiming;
-      const paints = performance.getEntriesByType('paint');
-      // `layout-shift` and `resource` carry fields this project's `lib` does not
-      // declare, so both are read through `unknown` rather than asserted onto a
-      // type the DOM library says they are not.
-      const shifts = performance.getEntriesByType('layout-shift') as unknown as {
-        value: number;
-        hadRecentInput: boolean;
-      }[];
-      const resources = performance.getEntriesByType('resource') as unknown as {
-        transferSize?: number;
-      }[];
-      const store = window as unknown as { largestPaint?: number };
-
-      return {
-        ttfb: Math.round(navigation.responseStart),
-        fcp: Math.round(
-          paints.find((paint) => paint.name === 'first-contentful-paint')?.startTime ??
-            Number.NaN,
-        ),
-        lcp: Math.round(store.largestPaint ?? Number.NaN),
-        load: Math.round(navigation.loadEventEnd),
-        // Only the shifts nobody asked for: one that follows an interaction is
-        // the page answering, not the page moving under a reader.
-        cls: shifts
-          .filter((shift) => !shift.hadRecentInput)
-          .reduce((total, shift) => total + shift.value, 0),
-        blocking: performance
-          .getEntriesByType('longtask')
-          .reduce((total, task) => total + Math.max(0, task.duration - 50), 0),
-        kilobytes: Math.round(
-          resources.reduce((total, resource) => total + (resource.transferSize ?? 0), 0) /
-            1024,
-        ),
-        requests: resources.length,
-      };
-    });
+    const vitals = await readVitals(page);
 
     // eslint-disable-next-line no-console
-    console.log(
-      `C.7 — 412px, ${String(CPU_SLOWDOWN)}× CPU, 1.6Mbps: ttfb ${String(vitals.ttfb)}ms, ` +
-        `fcp ${String(vitals.fcp)}ms, lcp ${String(vitals.lcp)}ms, load ${String(vitals.load)}ms, ` +
-        `cls ${vitals.cls.toFixed(3)}, blocking ${String(Math.round(vitals.blocking))}ms, ` +
-        `${String(vitals.kilobytes)}kB over ${String(vitals.requests)} requests`,
-    );
+    console.log(reportVitals('C.7', vitals));
 
     /*
      * **The one Core Web Vital a scroll scene is likely to break, and the one
