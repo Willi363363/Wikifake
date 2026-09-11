@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 every step done; J.3 waits on a contact address |
+| **State** | ✅ every step done; the legal text awaits a human reading |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -61,7 +61,7 @@ better than a page-view counter.
 |---|---|---|
 | J.1 | Re-run the audit, and record it | ✅ |
 | J.2 | Favicon, app icons, web manifest | ✅ — `10-seo-icons.md` |
-| J.3 | Privacy policy and terms, localised | 🔶 — `10-seo-legal.md`, awaiting an address |
+| J.3 | Privacy policy and terms, localised | ✅ — `10-seo-legal.md` |
 | J.4 | Arrivals counted, first-party | ✅ — `10-seo-analytics.md` |
 | J.4b | The panel section that shows them | ✅ — `10-seo-analytics.md` |
 | J.5 | The FAQ, and the copy the landing needs | ✅ — `10-seo-faq.md` |

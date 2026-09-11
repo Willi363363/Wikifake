@@ -89,13 +89,17 @@ with itself in one of them.
 message file is an order that depends on how somebody saved it, and the order of
 a legal document is part of the document.
 
-## The two things this step cannot finish on its own
+## What this step could not finish on its own
 
-- **The contact address is a placeholder.** `privacy@wikifake.invalid` —
-  `.invalid` is reserved by RFC 2606 precisely so a placeholder cannot be
-  somebody's real inbox. The owner has not settled which address to publish.
-  **J.3 stays 🔶 until it is replaced**, because a policy that cannot be replied
-  to fails the obligation it exists to meet.
+- ~~**The contact address is a placeholder.**~~ **Closed on 2026-09-11**: the
+  owner gave `admin.wikifake@gmail.com`, and the step went ✅ with it. It
+  shipped 🔶 rather than ✅ for the four days in between, on the argument that a
+  policy nobody can reply to fails the obligation it exists to meet — and the
+  placeholder was `privacy@wikifake.invalid`, on the TLD RFC 2606 reserves so
+  that a stand-in cannot quietly be a real inbox.
+
+  What the address now owes whoever writes to it is an answer within a month,
+  which is the GDPR's window rather than a courtesy.
 - **Nobody has read this as a lawyer.** It was written to be accurate about the
   system, which is the part a repository can hold; whether it is *sufficient* is
   a judgement no test makes. It belongs in the same queue as the French
