@@ -14,13 +14,15 @@
 // its profile, so that a bookmark cannot be used to look at a form that would
 // only ever refuse.
 import type { Metadata } from 'next';
+
+import { robotsFor } from '../../../src/indexing.js';
 import { redirect } from 'next/navigation';
 
 import { PseudonymScreen } from '../../../src/account/pseudonym-screen.js';
 import { readViewer } from '../../../src/account/gate.js';
 
 /** Not content: it is one account's missing field. */
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export const metadata: Metadata = { robots: robotsFor('/choose-a-name') };
 
 /** Never prerendered: it reads a cookie and answers differently per player. */
 export const dynamic = 'force-dynamic';

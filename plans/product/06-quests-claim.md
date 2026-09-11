@@ -68,7 +68,7 @@ but the other two were real:
   in the source rather than defended with a test that would have to assert an
   extra query nobody can observe.
 
-The lesson is the same one `08-toolchain-debt.md` records from the database half:
+The lesson is the same one `10-test-debt.md` records from the database half:
 a suite where every fixture shares a value cannot see a function reading the
 wrong one. Fixtures that vary the thing under test are what make a mutation run
 mean anything.

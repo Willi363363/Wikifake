@@ -15,6 +15,8 @@
 // is the one screen an account in that state can finish, and offering it
 // anything else is offering it a detour.
 import type { Metadata } from 'next';
+
+import { robotsFor } from '../../../src/indexing.js';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -25,7 +27,7 @@ import { QuestsScreen } from '../../../src/quests/screen.js';
 import { readLiveQuests } from '../../../src/quests/sets.js';
 
 /** Not content, and not a page any crawler should hold: it is one player's. */
-export const metadata: Metadata = { robots: { index: false, follow: false } };
+export const metadata: Metadata = { robots: robotsFor('/quests') };
 
 /** Never prerendered: it reads a cookie and answers differently per player. */
 export const dynamic = 'force-dynamic';

@@ -10,11 +10,13 @@
 // cheaper than growing the disallow list.
 import type { Metadata } from 'next';
 
+import { robotsFor } from '../../../src/indexing.js';
+
 import { AccountScreen } from '../../../src/account/account-screen.js';
 import { offeredProviders } from '../../../src/auth/providers.js';
 import { loadEnv } from '@wikifake/env';
 
-export const metadata: Metadata = { robots: { index: false, follow: true } };
+export const metadata: Metadata = { robots: robotsFor('/sign-in') };
 
 export default function SignInPage() {
   return <AccountScreen mode="signIn" providers={offeredProviders(loadEnv())} />;

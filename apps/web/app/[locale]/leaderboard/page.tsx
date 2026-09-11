@@ -16,10 +16,21 @@ import { decode } from '@wikifake/protocol';
 import { BoardScreen } from '../../../src/leaderboard/screen.js';
 import { readBoard } from '../../../src/leaderboard/board.js';
 import { readViewer } from '../../../src/account/gate.js';
+import { robotsFor } from '../../../src/indexing.js';
 import { db } from '../../../src/game/wiring.js';
 
-/** Whether a board should be indexed is track J's call; nothing here needs it. */
-export const metadata: Metadata = { title: 'WikiFake' };
+/**
+ * Step J.9 made the call this file was waiting for: **not indexed**.
+ *
+ * A board publishes pseudonyms, and a player chose a name other players would
+ * see rather than one a search engine would keep. The argument is in
+ * `src/indexing.ts` beside the other eight, where a decision can be seen to
+ * have been made rather than inferred from its absence.
+ */
+export const metadata: Metadata = {
+  title: 'WikiFake',
+  robots: robotsFor('/leaderboard'),
+};
 
 /** Never prerendered: today's board is different tomorrow. */
 export const dynamic = 'force-dynamic';

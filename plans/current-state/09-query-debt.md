@@ -2,8 +2,8 @@
 
 The fourth register. `05-known-debt.md` holds defects with a `file:line`,
 `06-structural-debt.md` the shape of the code, `08-toolchain-debt.md` the
-commands you run — and this one holds **query plans**: what is slow, at what
-size, and what was measured rather than assumed.
+commands you run, `10-test-debt.md` the suites — and this one holds **query
+plans**: what is slow, at what size, and what was measured rather than assumed.
 
 It exists because the other three had all reached their 200-line cap, and
 because these findings share a shape: each is a number taken on a seeded table,

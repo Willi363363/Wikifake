@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 J.1 to J.8 — the launch list, less the two sweeps and the export |
+| **State** | 🔶 J.1 to J.9 — the launch list, less the phone sweep and the export |
 | **Branch** | `feat/seo-and-legal` |
 | **Depends on** | track A (for anything drawn) |
 | **Delivers** | the launch checklist, and only the parts that are missing |
@@ -68,7 +68,7 @@ better than a page-view counter.
 | J.6 | `alt` text pass across every image | ✅ |
 | J.7 | Broken-link check, wired into CI | ✅ |
 | J.8 | The performance budget, extended past the landing | ✅ — `10-seo-budget.md` |
-| J.9 | The indexing decision for the routes E to I added | ⬜ |
+| J.9 | The indexing decision for the routes E to I added | ✅ |
 | J.10 | Phone width and reachability, over those same routes | ⬜ |
 | J.11 | The export, over what F, G and H added | ⬜ |
 
@@ -76,13 +76,26 @@ better than a page-view counter.
 whole reasoning fits in a paragraph has no sheet and is argued in a section
 below instead. Nothing is said in both places.
 
-### J.9 and J.10 — what the audit found
+### J.9 — the board is not indexed, and the decision has one home
 
-`/leaderboard` is the only route added since the indexing contract that carries
-no directive either way, and its own source defers that call to this track. It
-is also the only one of the ten a guest is invited to read. J.10 is the 360 px
-sweep, which names four routes while ten exist. Both are argued in
-`10-seo-audit.md`.
+`/leaderboard` was the only route added since the contract with no directive
+either way, and its own source said the call belonged to this track. **It is not
+indexed**, for three reasons: a board publishes pseudonyms, and a player chose a
+name other players would see rather than one a search engine keeps; nobody
+searches for a leaderboard they have not played on, which is why the page is
+`force-dynamic` in the first place; and its periods and regions are query
+strings, so indexing it invites a crawler into a combinatorial set of
+near-identical pages. `follow`, because the way out of it is `/play`.
+
+The rest of the step is where the decision lives. Eight pages each wrote
+`{ index: false, follow: … }` by hand, which is exactly how the ninth came to
+write nothing: there was no list to be missing from. `UNINDEXED_ROUTES` in
+`src/indexing.ts` is that list, `robotsFor` throws on a route nobody decided
+about, and `indexing.test.ts` walks `app/[locale]` and holds every page to being
+classified — published, hidden, dynamic, or kept out by `robots.txt`. Checked by
+adding an empty page: the test failed and named it.
+
+### J.10 — what the audit found
 
 ### J.6 — one attribute, and the scan that keeps it true
 
