@@ -88,20 +88,22 @@ describe('11.6 — French is translated, not copied', () => {
   // list is exact, not a lower bound: an entry that stops being identical is
   // removed, and a new identical message is either translated or defended here.
   const IDENTICAL_ON_PURPOSE = [
-    // The admin panel's. Three are words French spells the same — `Activation`,
-    // the term of art the track is named around; `Service` and `Mode`, column
-    // headings; and `Solo`, which the game already uses untranslated on its own
-    // entry screen. The rest are em dashes, and a symbol is the same in every
-    // language. Every other admin string is translated.
+    // The admin panel's. Three are words French spells the same —
+    // `Activation`, the term of art the track is named around, and `Service`,
+    // `Mode` and `Article`, column headings — plus `Solo`, which the game
+    // already uses untranslated on its own entry screen. The rest are em dashes, and a
+    // symbol is the same in every language. Every other admin string is
+    // translated.
     'admin.activation.activation',
     'admin.activation.noWhole',
     'admin.activation.title',
+    'admin.content.columns.topic',
+    'admin.content.nothing',
     'admin.cost.noRate',
     'admin.games.columns.mode',
     'admin.games.modes.solo',
     'admin.games.noRounds',
     'admin.health.columns.service',
-    'admin.sections.activation',
     'home.title',
     'language.names.en',
     'language.names.fr',

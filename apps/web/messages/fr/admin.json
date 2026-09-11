@@ -1,23 +1,7 @@
 {
   "title": "Administration",
   "lead": "En lecture seule. Chaque chiffre vient d'une requête, et rien sur cette page ne peut modifier quoi que ce soit.",
-  "sections": {
-    "health": "Santé",
-    "players": "Joueurs",
-    "activation": "Activation",
-    "games": "Manches",
-    "cost": "Coût",
-    "content": "Contenu"
-  },
-  "answers": {
-    "health": "Les deux services répondent-ils, sur quel commit, et à quelle vitesse.",
-    "players": "Inscrits, actifs aujourd'hui et cette semaine, et les plus assidus.",
-    "activation": "Parmi les comptes créés, combien ont joué une manche — et combien sont revenus ensuite.",
-    "games": "Commencées, terminées, abandonnées, et le taux d'abandon par écran.",
-    "cost": "Dépense du modèle par jour, par manche et par joueur.",
-    "content": "Quels articles sont tirés, taux de cache, échecs de génération."
-  },
-  "readOnly": "Les sections sont en construction. Rien ici n'écrit, et aucune action n'est proposée — un panneau capable d'agir sur les données est une seconde application.",
+  "readOnly": "En lecture seule, et la dernière section est en place. Rien ici n'écrit, et aucune action n'est proposée — un panneau capable d'agir sur les données est une seconde application, avec ses permissions, ses journaux et son rayon d'action.",
   "health": {
     "title": "Santé",
     "up": "En ligne",
@@ -121,6 +105,25 @@
       "failed": "Échecs",
       "input": "Entrée",
       "output": "Sortie"
+    }
+  },
+  "content": {
+    "title": "Contenu",
+    "nothing": "—",
+    "cacheHitRate": "Taux de cache",
+    "cacheWhy": "Une manche servie depuis le cache ne coûte rien à générer : ce taux sépare cent manches de cent générations.",
+    "generated": "Générées",
+    "ofGames": "sur {count, plural, one {# manche} other {# manches}}",
+    "distinctTopics": "Articles distincts",
+    "failedGeneration": "Génération échouée",
+    "ofCalls": "sur {count, plural, one {# appel} other {# appels}}",
+    "topicFailures": "{count, plural, =0 {Aucun choix de thème n'est revenu vide} one {# choix de thème sur {calls} est revenu vide} other {# choix de thème sur {calls} sont revenus vides}} — un mot dont Wikipédia n'a pas d'article n'est pas une panne.",
+    "topTopics": "Les plus jouées",
+    "noTopics": "Aucune manche jouée.",
+    "columns": {
+      "topic": "Article",
+      "games": "Manches",
+      "cached": "Depuis le cache"
     }
   }
 }

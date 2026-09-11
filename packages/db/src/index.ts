@@ -50,6 +50,18 @@ export { isAdmin, pingDatabase } from './queries/admin.js';
 export { countRoundsByMode, countSeatsByMode } from './queries/admin-games.js';
 export { selectCostTotals, usageByDay, usageByKind } from './queries/admin-cost.js';
 export type { CostTotals, DayUsage, KindUsage } from './queries/admin-cost.js';
+export {
+  countCacheHits,
+  countDistinctTopics,
+  countGenerated,
+  countGenerationFailures,
+  selectTopTopics,
+} from './queries/admin-content.js';
+export type {
+  CacheCounts,
+  GenerationFailures,
+  TopicCount,
+} from './queries/admin-content.js';
 export type { RoundCounts, SeatCounts } from './queries/admin-games.js';
 export {
   countAccounts,
