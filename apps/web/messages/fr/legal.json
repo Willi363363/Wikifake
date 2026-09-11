@@ -1,0 +1,97 @@
+{
+  "nav": "Informations légales",
+  "privacy": {
+    "title": "Confidentialité",
+    "updated": "Dernière mise à jour le 11 septembre 2026",
+    "intro": "Ce que WikiFake conserve sur vous, pourquoi, et comment le faire disparaître. Cette page décrit ce que le code fait réellement, et elle est courte parce que le jeu recueille peu de choses.",
+    "sections": {
+      "controller": {
+        "heading": "Qui fait tourner WikiFake",
+        "body": "WikiFake est un projet gratuit et non commercial mené par William Rouvière en son nom propre, responsable du traitement de tout ce qui figure sur cette page. Écrivez à <contact>{address}</contact> pour toute question touchant à vos données."
+      },
+      "guest": {
+        "heading": "Jouer sans compte",
+        "body": "Vous pouvez jouer sans vous inscrire, et c’est l’entrée normale. Lancer une partie crée un enregistrement d’invité temporaire, pour que la manche appartienne à quelqu’un et que les autres joueurs voient le nom que vous avez saisi. Il ne contient aucune adresse e-mail. Dès que vous créez un compte, cet enregistrement est supprimé — et les manches que vous avez jouées vous suivent dans le compte."
+      },
+      "account": {
+        "heading": "Ce que contient un compte",
+        "body": "Votre adresse e-mail et le fait qu’elle soit vérifiée ou non ; le nom et l’image transmis par votre fournisseur si vous vous connectez avec Google ou GitHub ; un mot de passe, haché, si vous en avez choisi un ; et le pseudonyme que vous vous donnez. Le pseudonyme est la seule chose que les autres joueurs voient — votre adresse e-mail n’est montrée à personne."
+      },
+      "play": {
+        "heading": "Ce que le jeu enregistre",
+        "body": "Pour chaque manche : le sujet, l’heure de début et de fin, les paragraphes que vous avez marqués, votre score, l’indice acheté ou l’objet utilisé le cas échéant, et les pièces gagnées ou dépensées. À côté de cela : les quêtes qui vous ont été attribuées et celles que vous avez réclamées, vos entrées dans les classements, vos statistiques globales, et les signalements que vous envoyez au sujet d’un article."
+      },
+      "technical": {
+        "heading": "Données techniques",
+        "body": "Une session vous garde connecté : elle porte une date d’expiration, l’adresse IP d’où venait la requête et l’agent utilisateur de votre navigateur. À la création de votre profil, l’en-tête de l’hébergeur nous indique de quel pays la requête semble provenir ; c’est enregistré une seule fois, transformé en une région large pour le classement régional, jamais rafraîchi, et vous pouvez le corriger vous-même. Lorsque la remontée d’erreurs est activée, un plantage envoie les détails de la panne — l’option qui y joindrait votre adresse IP ou les en-têtes de votre requête n’est pas activée."
+      },
+      "cookies": {
+        "heading": "Cookies",
+        "body": "Deux, tous les deux les nôtres. L’un vous garde connecté ; l’autre retient la langue que vous avez choisie, et n’est écrit que lorsque vous cliquez sur le sélecteur. Il n’y a ni publicité, ni mesure d’audience, ni cookie tiers, ni identifiant inter-sites — c’est pour cela que rien ne vous a demandé d’écarter un bandeau avant de lire ceci."
+      },
+      "processors": {
+        "heading": "Par qui les données passent",
+        "body": "Le site est hébergé par Vercel et le service multijoueur par Render ; la base de données est chez Neon ; les caches chez Upstash et Render. Le modèle de langue qui réécrit l’article est celui de Google : il reçoit le sujet que vous avez tapé et le texte de l’article, et rien qui dise qui vous êtes. Se connecter avec Google ou GitHub nous dit qui vous êtes parce que vous l’avez demandé. Wikipédia est lu par notre serveur et jamais par votre navigateur : Wikipédia ne vous voit donc pas. Rien n’est vendu, et rien ici ne finance de publicité."
+      },
+      "retention": {
+        "heading": "Combien de temps",
+        "body": "Jusqu’à ce que vous les effaciez. Les sessions expirent d’elles-mêmes ; le reste demeure aussi longtemps que votre compte, et il n’existe aujourd’hui aucune purge automatique. Les manches d’un invité restent attachées à l’enregistrement d’invité auquel elles appartiennent."
+      },
+      "rights": {
+        "heading": "Vos droits",
+        "body": "Depuis votre profil, vous pouvez télécharger une copie de votre compte — adresse e-mail, pseudonyme, statistiques, manches et signalements envoyés — et supprimer le compte purement et simplement. Les pièces et les quêtes ne figurent pas encore dans ce fichier. La suppression efface le compte, le profil, les statistiques, les pièces, les quêtes et les entrées de classement ; les manches jouées avec d’autres personnes subsistent, votre nom y étant remplacé par un libellé aléatoire, afin que leurs scores gardent un sens. Un pseudonyme se réserve une fois et ne peut plus être changé ensuite. Vous pouvez également demander une rectification, vous opposer à ce qui est fait ici, ou saisir la CNIL."
+      },
+      "changes": {
+        "heading": "Si cette page change",
+        "body": "La date en haut est celle du dernier changement. Aucune liste de diffusion ne vous préviendra : si le sujet vous importe, elle mérite un coup d’œil."
+      }
+    }
+  },
+  "terms": {
+    "title": "Conditions",
+    "updated": "Dernière mise à jour le 11 septembre 2026",
+    "intro": "Les règles d’un jeu gratuit, écrites pour être lues plutôt qu’acceptées. Jouer, c’est les accepter.",
+    "sections": {
+      "what": {
+        "heading": "Ce que c’est",
+        "body": "WikiFake vous montre un article de Wikipédia dont un modèle de langue a délibérément réécrit certains faits, et vous demande de les retrouver. Rien de ce que vous lisez dans une manche n’est une source fiable. Ne le citez pas, et n’en repartez avec rien que vous tiendriez pour acquis."
+      },
+      "wikipedia": {
+        "heading": "Wikipédia",
+        "body": "Les articles proviennent de Wikipédia en français et sont utilisés sous <licence>{licenceName}</licence>. Chaque manche crédite l’article et ses contributeurs, et les modifications de WikiFake sont publiées sous la même licence. Ce projet n’est ni affilié, ni approuvé, ni lié à Wikipédia ou à la Wikimedia Foundation."
+      },
+      "age": {
+        "heading": "Qui peut jouer",
+        "body": "Il faut avoir au moins 15 ans, ou l’accord d’un parent ou d’un tuteur. Rien ici ne s’adresse à de plus jeunes enfants."
+      },
+      "account": {
+        "heading": "Votre compte et votre nom",
+        "body": "Un compte, un pseudonyme, choisi une fois. Ne prenez pas un nom destiné à vous faire passer pour quelqu’un d’autre ou à insulter qui que ce soit : un tel nom peut être retiré, et un compte qui recommence également."
+      },
+      "coins": {
+        "heading": "Pièces et objets",
+        "body": "Les pièces se gagnent en jouant et se dépensent dans le jeu. Elles ne peuvent être ni achetées, ni vendues, ni échangées contre de l’argent, elles ne valent rien en dehors du jeu, et un solde peut être corrigé si un défaut a distribué ce que personne n’avait gagné."
+      },
+      "fair": {
+        "heading": "Jeu loyal",
+        "body": "Jouez avec un navigateur, pas avec un script. N’automatisez pas les manches, ne moissonnez pas le site, et n’essayez pas de casser, de saturer ou de contourner le service — y compris les parties qui décident de ce que vaut une manche."
+      },
+      "reports": {
+        "heading": "Ce que vous nous envoyez",
+        "body": "Vous pouvez signaler une affirmation qu’un article donne pour vraie à tort. Ce que vous écrivez est conservé avec votre compte et sert à améliorer le jeu : n’y mettez donc rien de personnel."
+      },
+      "availability": {
+        "heading": "Aucune promesse de disponibilité",
+        "body": "C’est un projet personnel qui tourne pour l’essentiel sur des infrastructures gratuites. Il peut être lent, il peut être indisponible, une manche peut être perdue, et il peut cesser d’exister. Il est proposé tel quel."
+      },
+      "liability": {
+        "heading": "Responsabilité",
+        "body": "Dans la limite de ce que permet la loi, WikiFake n’est pas responsable des conséquences de son utilisation — y compris de ce que vous auriez cru parce qu’une manche l’affirmait. Rien ici ne limite une responsabilité que la loi interdit de limiter."
+      },
+      "law": {
+        "heading": "Droit applicable, et où se plaindre",
+        "body": "Le droit français s’applique. Écrivez à <contact>{address}</contact> pour tout ce qui concerne cette page ou la précédente ; si cela reste sans suite, une réclamation portant sur vos données se dépose auprès de la CNIL."
+      }
+    }
+  }
+}

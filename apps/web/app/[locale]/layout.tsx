@@ -18,6 +18,7 @@ import type { ReactNode } from 'react';
 
 import { messagesFor } from '../../src/i18n/catalogue.js';
 import { LocaleSwitch } from '../../src/i18n/locale-switch.js';
+import { LegalLinks } from '../../src/legal/links.js';
 import { LOCALES, type Locale } from '../../src/i18n/locales.js';
 import { absolute, localePath, siteOrigin } from '../../src/indexing.js';
 
@@ -175,8 +176,13 @@ export default async function RootLayout({
               shares. Not navigation between screens (the restraint above
               stands): it re-serves the page the player is on, in the other
               language, and records the choice. */}
-          <footer className="flex justify-center pb-6">
+          {/* Step J.3 puts the two documents beside it, for the reason the
+              switch is here at all: this is the one surface every screen
+              shares, and a policy a player in a round cannot reach is a
+              policy that answers nobody. */}
+          <footer className="flex flex-col items-center gap-2 pb-6">
             <LocaleSwitch />
+            <LegalLinks />
           </footer>
         </NextIntlClientProvider>
       </body>
