@@ -1,9 +1,7 @@
 # Session handover — 2026-09-11
 
-> Written in English, like everything else in this repository (`CLAUDE.md`).
->
-> Replaces the handover of 2026-09-07, which described a pause after tracks C
-> and E. Everything it listed as outstanding and still open is restated below.
+> Written in English, like everything else here (`CLAUDE.md`). Replaces the
+> handover of 2026-09-07; everything it left open is restated below.
 
 ## Context
 
@@ -27,22 +25,20 @@ commit to `main`, and neither workflow calls `pnpm migrate`. Checked rather than
 assumed — `08-toolchain-debt.md` carries the finding, `method/01-git-flow.md`
 the procedure.
 
-**The production schema is nonetheless up to date**, and this paragraph replaces
-one that said otherwise. `drizzle.__drizzle_migrations` holds all twenty-one
-rows, applied **one at a time between 10 and 11 September** as each migration
-was written; every table and column the batch adds exists. The earlier claim —
-"fifteen migrations are pending" — was read off `git diff main..staging` over
-the migration *files*, which says what `main` is missing and nothing at all
-about a database. **Ask the database, not the branch:**
+**The production schema is nonetheless up to date.** The claim that fifteen
+migrations were pending was read off `git diff main..staging` over the migration
+*files*, which says what `main` is missing and nothing at all about a database.
+**Ask the database, not the branch:**
 
 ```sql
 select count(*) from drizzle.__drizzle_migrations;   -- 21, and 21 .sql files
 ```
 
-That is the lesson worth carrying: the schema is kept in step **by hand, by the
-person who writes the migrations**, and it has been kept well. It works while
-that is one person doing both jobs, and the register says what it costs the day
-it is two.
+All twenty-one rows were there, applied one at a time between 10 and 11
+September as each was written. The schema is kept in step **by hand, by the
+person who writes the migrations**, and kept well — which works while that is
+one person doing both jobs, and the register says what it costs the day it is
+two.
 
 Before applying anything new, `0007` is the one that can abort — it backfills
 `profile.display_name_key`, then makes it `NOT NULL` **and `UNIQUE`**, so two
@@ -54,37 +50,32 @@ select lower(regexp_replace(btrim(display_name), '\s+', ' ', 'g')) as key,
 from profile group by 1 having count(*) > 1;
 ```
 
-The order, when there *is* something to apply — code before schema is an outage,
-schema before code is not:
+The order, when there *is* something to apply — schema before code, never after:
 
 ```bash
-DATABASE_URL='<production>' pnpm migrate     # drizzle applies only what is missing
-gh pr create --base main --head staging --title 'Promote staging: tracks C to J'
+DATABASE_URL='<production>' pnpm migrate   # drizzle applies only what is missing
+gh pr create --base main --head staging    # merged, never squashed
 git switch staging && git merge --ff-only origin/main && git push
 ```
 
 ## What shipped this session — track J, eleven steps
 
-- **J.1** re-ran the audit and found three ✅ that were already false: the share
-  image had shipped, and the mobile and accessibility rows named four routes
-  while ten existed. It filed the two steps that became J.9 and J.10.
-- **J.2** drew the mark — a question mark, because Wikipedia's own favicon is a
-  W and this game reads their encyclopaedia without being endorsed by them. It
-  found that Next passes `id` to an icon route as a *promise*: `/icon/192` was
-  serving a 32×32 PNG with every unit test green.
+Each step has its own sheet in `plans/product/10-seo-*.md`; this is the digest.
+
+- **J.1** re-ran the audit and found three ✅ that were already false, filing
+  the two steps that became J.9 and J.10. **J.2** drew the mark — a question
+  mark, because Wikipedia's favicon is a W and this game reads their
+  encyclopaedia without being endorsed by them — and found that Next passes an
+  icon route's `id` as a *promise*: `/icon/192` served a 32×32 PNG, green.
 - **J.3** wrote the privacy policy and the terms from the code rather than from
-  a template, and found that the export was three tracks behind.
+  a template, and found the export three tracks behind; **J.11** caught it up,
+  and `EXPORT_COVERAGE` now fails when a new table is not decided about.
 - **J.4 / J.4b** count arrivals — one row per day per page, **no identifier of
-  any kind** — and show them in the panel's seventh section.
-- **J.5** answers eleven questions and carries the site's only structured data.
-- **J.6** labelled the one unlabelled `<svg>` and left a scan behind.
-- **J.7** follows every link the site offers, in the journeys CI already runs.
-- **J.8** gave the five other entry screens the budget the landing had.
-- **J.9** decided the leaderboard is **not** indexed — a board publishes
-  pseudonyms — and moved every indexing decision into one list with a test.
-- **J.10** swept thirteen routes at 360 px, three of them behind an account.
-- **J.11** caught the export up, and `EXPORT_COVERAGE` now fails when a new
-  table is not decided about.
+  any kind**. **J.5** is the FAQ and the site's only structured data.
+- **J.6** to **J.10** are the sweeps: the unlabelled `<svg>`, every link
+  followed in CI, a weight budget on the five other entry screens, thirteen
+  routes at 360 px, and the decision that the leaderboard is **not** indexed,
+  because a board publishes pseudonyms.
 
 Two things came out of CI rather than out of a plan: the debt register split a
 fifth way (`10-test-debt.md`) because `08-toolchain-debt.md` hit the 200-line
@@ -92,62 +83,71 @@ rule with a finding still to write, and the promotion procedure above.
 
 ## Outstanding — the order to do it in
 
-Everything below needs a person, and nothing below needs code except item 17,
-which is optional.
+Everything below needs a person, and nothing below needs code except item 18,
+which is optional. **No domain has been bought**, so the first group runs
+against `wikifake.vercel.app` and the second group is what buying one costs.
 
-**Today, about ninety minutes, all of it in a dashboard:**
+**Today, an hour, all of it in a dashboard:**
 
-1. Remove the custom domain from Render; add it to the Vercel project; wait for
-   the certificate. Both providers claiming it is a certificate error.
-2. Vercel production: `NEXT_PUBLIC_REALTIME_URL` = `wss://…`, then **redeploy**
-   — it is inlined at build time, so a variable change alone does nothing.
-3. Render, the realtime service: add the public origin to
+1. Google Cloud → Credentials → OAuth client ID, *Web application*. Redirect
+   URIs: `https://wikifake.vercel.app/api/auth/callback/google` and
+   `http://localhost:3000/api/auth/callback/google`. Never a preview host —
+   Google matches exactly and Vercel generates a new one per deployment.
+2. The consent screen: External, then **Publish**. It asks for a privacy policy
+   and terms, which track J shipped. Unpublished, only listed accounts sign in.
+3. Vercel production: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`,
+   `BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL` = `https://wikifake.vercel.app`,
+   `CRON_SECRET` = anything random. Redeploy. `BETTER_AUTH_URL` unset defaults
+   to localhost and takes the callback, the realtime origins and the canonical
+   URL down with it, silently.
+4. Sign in with Google **from a phone** — E.1's exit line.
+5. Regenerate `GOOGLE_GENERATIVE_AI_API_KEY`, in a 2026-08-27 transcript.
+
+**The day a domain is bought — five gestures, in this order:**
+
+6. Remove the old domain from Render **first**: two providers claiming one name
+   is a certificate error. Add it to Vercel, point the registrar's records at
+   what Vercel asks for, wait for the certificate.
+7. Add `https://<domain>/api/auth/callback/google` to the Google console, and
+   change `BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL` to it.
+8. `NEXT_PUBLIC_REALTIME_URL` = `wss://…`, then **redeploy** — it is inlined at
+   build time, so a variable change alone does nothing.
+9. Render, the realtime service: add the new origin to
    `REALTIME_ALLOWED_ORIGINS`. An origin it does not name is refused before the
    upgrade, which fails closed and invisibly.
-4. GitHub → Settings → Variables: `WEB_DEPLOY_URL` = the public domain,
-   `REALTIME_DEPLOY_URL` = Render, **delete** `DEPLOY_URL` and
-   `STAGING_DEPLOY_URL`.
-5. Google Cloud → Credentials → OAuth client ID, *Web application*. Redirect
-   URIs: `https://<domain>/api/auth/callback/google` and the localhost one.
-   Never a preview host — Google matches exactly, Vercel generates those.
-6. The consent screen: External, then **Publish**. It asks for a privacy policy
-   and terms, which track J shipped.
-7. Vercel production: `GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`,
-   `BETTER_AUTH_URL` = the public domain, `CRON_SECRET` = anything random.
-   Redeploy. `BETTER_AUTH_URL` unset defaults to localhost and takes the
-   callback, the realtime origins and the canonical URL down with it.
-8. Sign in with Google **from a phone** — E.1's exit line.
-9. Regenerate `GOOGLE_GENERATIVE_AI_API_KEY`, in a 2026-08-27 transcript.
+10. GitHub → Settings → Variables: `WEB_DEPLOY_URL` = the domain,
+    `REALTIME_DEPLOY_URL` = Render, **delete** `DEPLOY_URL` and
+    `STAGING_DEPLOY_URL`.
 
-**This week:**
+**This week, domain or no domain:**
 
-10. Step 10.10's dry run: resume the Render service, read `/api/health`, write
+11. Step 10.10's dry run: resume the Render service, read `/api/health`, write
     the commit into `phase-10-rollback.md`, suspend again.
-11. C.7's device measurement — `plans/product/03-landing-budget.md`, steps 1–6.
+12. C.7's device measurement — `plans/product/03-landing-budget.md`, steps 1–6.
     Track C closes with it.
-12. Open a throwaway pull request towards `staging` and confirm nothing stays
+13. Open a throwaway pull request towards `staging` and confirm nothing stays
     pending: the only way to learn a variable name was typed wrong.
-13. Promote the documentation commits — merged, and **never squashed**.
-14. Read the French catalogue as a French reader (`phase-11-i18n.md`).
-15. Have `/privacy` and `/terms` read by somebody legal. They are accurate about
+14. Promote the documentation commits — merged, and **never squashed**.
+15. Read the French catalogue as a French reader (`phase-11-i18n.md`).
+16. Have `/privacy` and `/terms` read by somebody legal. They are accurate about
     the system; whether they are sufficient is a judgement no test makes.
 
 **Then, at leisure:**
 
-16. Watch the panel's arrivals section once a week. It is what says whether
+17. Watch the panel's arrivals section once a week. It is what says whether
     there is traffic, and nothing else does.
-17. The remaining debt, if the mood takes you: the chat rail covering a card
+18. The remaining debt, if the mood takes you: the chat rail covering a card
     border at 360 px, `disabled:opacity-40`, `border-l-3` emitting no rule, the
     per-package Redis index (`10-test-debt.md`).
 
 **Advertising — not yet, and a decision rather than an omission.**
 `11-deferred.md` carries the arithmetic: €1–3 per thousand impressions needs
-traffic in the hundreds of thousands to mean anything. When it does, in order:
-apply to AdSense, add a Google-certified consent platform and therefore the
-cookie banner this site does not have, add `ads.txt`, **rewrite the "Cookies"
-and "Who else the data passes through" paragraphs in both catalogues** — they
-currently promise there is no advertising — and give the panel a revenue
-section.
+traffic in the hundreds of thousands to mean anything, and AdSense wants a
+domain somebody owns, which is another reason group two comes first. When it
+does: apply, add a Google-certified consent platform and therefore the cookie
+banner this site does not have, add `ads.txt`, **rewrite the "Cookies" and "Who
+else the data passes through" paragraphs in both catalogues** — they currently
+promise there is no advertising — and give the panel a revenue section.
 
 **Three that a session cannot fix:** the `rules.yml` concurrency defect;
 `Human review` failing on every pull request, because the label it waits for was
