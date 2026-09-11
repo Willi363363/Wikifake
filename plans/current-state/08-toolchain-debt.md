@@ -106,3 +106,24 @@ one.
 carries the commit, or the config could refuse to reuse a server whose
 `/api/health` does not report the working tree's `HEAD` — the deployment probe
 already compares exactly that, for exactly this reason.
+
+## Nothing in the deploy path runs a migration
+
+**Found by asking, before a promotion of fifteen of them.** `vercel.json` builds
+with `turbo run build`; `apps/web`'s build is `next build`; Render deploys a
+container on a commit to `main`; `ci.yml` and `deploy-check.yml` never call
+`pnpm migrate`. The production database is migrated by somebody typing the
+command, or not at all.
+
+It has not bitten yet because the rewrite's promotions were few and the person
+promoting was the person who wrote the migration. It becomes a defect the first
+time those are two different people, or two days apart: the deployment answers
+on the new commit within a minute of a merge, and a query against a table that
+does not exist is a 500 on every screen that reads it.
+
+**The procedure is now written down** — `../method/01-git-flow.md`, migrations
+before the promotion PR — which is a smaller fix than the right one. The right
+one is a release step that runs `drizzle-kit migrate` against the production
+`DATABASE_URL` before the deployment is promoted, and it needs a place to hold
+that secret that is not a laptop. Recorded here until there is one.
+
