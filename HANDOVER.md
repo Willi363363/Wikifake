@@ -28,15 +28,26 @@ commit to `main`, and neither workflow calls `pnpm migrate`. Checked rather than
 assumed — `08-toolchain-debt.md` carries the finding, `method/01-git-flow.md`
 the procedure.
 
-**Fifteen migrations, 0006 to 0020, are pending on production**: `player_stats`,
-`quest_assignment`, `leaderboard_entry`, `coin_movement`, `admin`, `page_view`,
-the two region columns, the three worn-cosmetic columns, and their indexes.
-Nothing in the batch drops anything.
+**The production schema is nonetheless up to date**, and this paragraph replaces
+one that said otherwise. `drizzle.__drizzle_migrations` holds all twenty-one
+rows, applied **one at a time between 10 and 11 September** as each migration
+was written; every table and column the batch adds exists. The earlier claim —
+"fifteen migrations are pending" — was read off `git diff main..staging` over
+the migration *files*, which says what `main` is missing and nothing at all
+about a database. **Ask the database, not the branch:**
 
-**One of them can abort, and it is worth two minutes first.** `0007` backfills
-`profile.display_name_key`, then makes it `NOT NULL` **and `UNIQUE`**. Two
-existing profiles that fold to the same key — case and whitespace — fail the
-constraint and take the whole migration with them. Ask first:
+```sql
+select count(*) from drizzle.__drizzle_migrations;   -- 21, and 21 .sql files
+```
+
+That is the lesson worth carrying: the schema is kept in step **by hand, by the
+person who writes the migrations**, and it has been kept well. It works while
+that is one person doing both jobs, and the register says what it costs the day
+it is two.
+
+Before applying anything new, `0007` is the one that can abort — it backfills
+`profile.display_name_key`, then makes it `NOT NULL` **and `UNIQUE`**, so two
+existing profiles folding to the same key take the whole migration with them:
 
 ```sql
 select lower(regexp_replace(btrim(display_name), '\s+', ' ', 'g')) as key,
@@ -44,11 +55,8 @@ select lower(regexp_replace(btrim(display_name), '\s+', ' ', 'g')) as key,
 from profile group by 1 having count(*) > 1;
 ```
 
-No rows, and the batch is a series of additions. Rows, and they have to be
-renamed before anything is promoted.
-
-Then, in this order — code before schema is an outage, schema before code is
-not:
+The order, when there *is* something to apply — code before schema is an outage,
+schema before code is not:
 
 ```bash
 DATABASE_URL='<production>' pnpm migrate     # drizzle applies only what is missing
@@ -87,7 +95,8 @@ rule with a finding still to write, and the promotion procedure above.
 
 **Needs a person, not a session:**
 
-- **The migrations above**, before any promotion.
+- **Nothing**, for the schema: it is already up to date. The check above is
+  what says so, and it is a query rather than a `git diff`.
 - **E.1's credentials** — Google console, then two variables in Vercel.
   `plans/product/05-accounts-oauth.md` has the runbook and the preview trap.
 - **`CRON_SECRET` in Vercel**, or track F's quests never rotate.
