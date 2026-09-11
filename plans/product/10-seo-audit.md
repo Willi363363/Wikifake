@@ -114,6 +114,9 @@ Two steps, both of them findings rather than ideas:
   routes tracks E to I added. **Done**: thirteen routes, three of them swept by
   an account because a stranger is redirected off them, and every one of them
   already fitted. `/admin` is deliberately not swept — `10-seo-sweep.md`.
+- **J.11**, filed by J.3 rather than by the audit, is done too: the export
+  covers what F, G and H added, and `EXPORT_COVERAGE` is what says so the next
+  time a track adds a table.
 
 Neither is scope the track invented: both are rows of its own audit table that
 stopped being true while the table was not being read.

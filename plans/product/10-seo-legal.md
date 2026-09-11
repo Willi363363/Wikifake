@@ -51,11 +51,15 @@ That is a right of access that is partly unimplemented, and a policy promising
 "a copy of your data" would have been the first false sentence on the page. Two
 consequences, both deliberate:
 
-- the policy says what the file actually contains, and says plainly that coins
-  and quests are not in it yet;
+- the policy said what the file actually contained, and said plainly that coins
+  and quests were not in it yet;
 - **step J.11** is filed to close it. Fixing it here would have been the
   out-of-scope work `02-repository-rules.md` forbids, and it is a query change
   with its own tests.
+
+**J.11 closed it**, and the policy sentence above changed with it: the export
+now carries the coins, the quests, the boards, the hints and the items, and
+`EXPORT_COVERAGE` holds the next table somebody adds to being decided about.
 
 ## The decisions
 

@@ -39,7 +39,7 @@
       },
       "rights": {
         "heading": "Your rights",
-        "body": "From your profile you can download a copy of your account — your email address, your pseudonym, your statistics, your rounds and the reports you sent — and you can delete the account outright. Coins and quests are not in that file yet. Deleting removes your account, profile, statistics, coins, quests and leaderboard entries; rounds you played with other people stay, with your name replaced by a random placeholder, so their scores still make sense. A pseudonym is claimed once and cannot be changed afterwards. You can also ask for a correction, object to what is done here, or complain to the CNIL."
+        "body": "From your profile you can download a copy of your account — your email address, your pseudonym, the regions, your statistics, your rounds, your coins and what they were earned and spent on, your quests, your leaderboard entries, the hints you bought, the items you used and the reports you sent — and you can delete the account outright. What is not in it is what would be a key rather than a fact: a password, the tokens a sign-in provider issued, and the identifiers of other players. Deleting removes your account, profile, statistics, coins, quests and leaderboard entries; rounds you played with other people stay, with your name replaced by a random placeholder, so their scores still make sense. A pseudonym is claimed once and cannot be changed afterwards. You can also ask for a correction, object to what is done here, or complain to the CNIL."
       },
       "changes": {
         "heading": "If this page changes",
