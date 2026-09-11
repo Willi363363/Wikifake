@@ -11,5 +11,31 @@
     "retry": "Try that again",
     "home": "Back to the front door",
     "reference": "Reference: {digest}"
+  },
+  "refusals": {
+    "room_not_found": "That room is not open. The code may be wrong, or everybody may have left it.",
+    "invalid_name": "That nickname will not do — it is empty, too long, or holds characters the room refuses.",
+    "name_taken": "Somebody in this room is already called that. Pick another and come back in.",
+    "bad_json": "Your browser and the server did not understand each other. Nothing was lost.",
+    "not_host": "Only the player who opened the room can do that.",
+    "hints_blocked": "Somebody has locked your hints for the moment.",
+    "no_theme_submitted": "Nobody has proposed a subject yet.",
+    "topic_not_found": "Wikipedia has no article for that. Try another subject.",
+    "generation_failed": "The round could not be built. Nothing you did — try again in a moment.",
+    "session_not_found": "That round is over, or it was never here.",
+    "hint_not_found": "There is no hint under that number.",
+    "room_capacity_reached": "There is no room left on the server right now. Try again shortly.",
+    "invalid_target": "That is not somebody this item can be used on.",
+    "out_of_phase": "That cannot be done at this point in the round.",
+    "item_not_held": "You have not got that item — it was spent, or it was never yours.",
+    "pseudonym_taken": "Another account already has that pseudonym, and keeps it. Choose a different one.",
+    "quest_not_found": "That quest is not one of yours.",
+    "quest_already_claimed": "You have already taken that reward.",
+    "quest_not_complete": "That quest is not finished yet. Play a little more and it will be.",
+    "insufficient_coins": "You have not got enough coins for that.",
+    "coins_not_accepted": "Hints are not bought with coins in a room — a ranked round is played, not paid for.",
+    "cosmetic_not_owned": "That is not yours to wear.",
+    "cosmetic_not_found": "The shop has nothing by that name.",
+    "unknown": "The server refused that, and said something this version does not know how to explain."
   }
 }
