@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 I.1 to I.5 — everything but cost, content and the date range |
+| **State** | 🔶 I.1 to I.6 — content and the date range remain |
 | **Branch** | `feat/admin-panel` |
 | **Depends on** | track E |
 | **Delivers** | a read-only view of the application's health |
@@ -68,7 +68,7 @@ is money, this panel gets a section; not before.
 | I.3 | Players and activity | ✅ |
 | I.4 | Activation and return | ✅ |
 | I.5 | Games, and the abandon rate | ✅ |
-| I.6 | Cost, from `llm_call` | ⬜ |
+| I.6 | Cost, from `llm_call` | ✅ |
 | I.7 | Content and cache | ⬜ |
 | I.8 | A date range, applied across every section | ⬜ |
 
@@ -88,6 +88,13 @@ anywhere that writes it, and an empty table as the safe default.
 value rather than an exception, and the figure the section is really for — do
 the two services agree about what is deployed, with *unknown* kept distinct from
 *disagreeing*.
+
+### I.6 — Cost
+
+**Built, and in `09-admin-cost.md`**: tokens are recorded and money is a rate a
+deployment opts into, because one written into the source would go stale
+without saying. Both halves of the rate or neither, cached games out of the
+denominator, and failed calls counted — they spent the tokens.
 
 ### I.5 — Games
 

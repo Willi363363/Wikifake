@@ -91,11 +91,12 @@ describe('11.6 — French is translated, not copied', () => {
     // The admin panel's. Three are words French spells the same — `Activation`,
     // the term of art the track is named around; `Service` and `Mode`, column
     // headings; and `Solo`, which the game already uses untranslated on its own
-    // entry screen. The other two are em dashes, and a symbol is the same in
-    // every language. Every other admin string is translated.
+    // entry screen. The rest are em dashes, and a symbol is the same in every
+    // language. Every other admin string is translated.
     'admin.activation.activation',
     'admin.activation.noWhole',
     'admin.activation.title',
+    'admin.cost.noRate',
     'admin.games.columns.mode',
     'admin.games.modes.solo',
     'admin.games.noRounds',
