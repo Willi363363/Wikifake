@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | **in progress** — production runs the new stack, multiplayer included; 10.10's dry run and the domain are left |
+| **State** | **in progress** — production runs the new stack, multiplayer included; the domain is the last thing left |
 | **Branch** | `feat/rewrite-phase-10-contract` |
 | **Depends on** | all the others (0 to 9) |
 | **Delivers** | a repository without Python, production on the new stack |
@@ -59,7 +59,7 @@ when Postgres and Redis are present, which is how CI runs them.
 | # | Step — dismantling and cutting over | State |
 |---|---|---|
 | 10.9 | Delete the Python | ✅ done |
-| 10.10 | Rig the rollback net | ⚠️ written — the dry run needs a human |
+| 10.10 | Rig the rollback net | ✅ written, and dry-run on 2026-09-11 |
 | 10.11 | Merge and cut production over | ✅ done |
 | 10.12 | Rewrite the current state | ✅ done |
 
@@ -97,15 +97,14 @@ step 7 without them. One has since been caught up:
 
 `phase-10-cutover-runbook.md` owns the domain, and records which of its steps ran.
 
-**10.10 is written and not run**, and it is cheaper now than when it was
-written. The procedure is `phase-10-rollback.md` — one page, read before 10.11
-rather than during. Its one uncertain claim is whether a suspended Render
-service comes back with the same image. Confirming that used to mean suspending
-**live production**; it no longer does, because that service holds no traffic —
-so the dry run is a resume, a reading of `/api/health`, and a suspend. What it
-mainly buys is the pre-cutover commit value, which runbook step 1 was supposed
-to capture and nobody wrote down. The step stays open until it has happened and
-the sheet says so.
+**10.10 is written and now run.** The procedure is `phase-10-rollback.md` — one
+page, read before 10.11 rather than during. Its one uncertain claim was whether
+a suspended Render service comes back with the same image; confirming it used to
+mean suspending **live production**, and once it no longer did, the dry run was
+a resume, a reading of `/api/health` and a suspend. It came back on the old
+image — uvicorn, snake_case keys, a 21 August commit — and that commit,
+`c726c59`, is the value runbook step 1 was supposed to capture and nobody wrote
+down. It is in the sheet now, which is what the step was open for.
 
 **10.12 is done, and it changed the shape of `plans/current-state/`.** Three
 files went — the FastAPI modules, the Vite directories, the hand-written
@@ -125,10 +124,9 @@ business holding and gained three the new stack actually has.
 - ✅ Public production is served by Vercel and the socket host, `deploy-check`
   green. The socket service went live on Render's free tier and a four-player
   round was played against it — `phase-09-realtime-live.md`.
-- ⚠️ The rollback is written and has been dry-run — **written, never run.** The
-  criterion asks for both; only the first is true. Step 10.10, and its dry run
-  no longer touches production, so what is left of it is three dashboard
-  gestures.
+- ✅ The rollback is written and has been dry-run, on 2026-09-11. Both halves of
+  the criterion, a year after the first: the net exists, and it has been pulled
+  once to see that it holds.
 - ✅ The current state describes the real stack.
 
 ## Contract touched
