@@ -18,6 +18,9 @@
 import { expect, test, type Page } from '@playwright/test';
 import { REDUCIBLE } from '@wikifake/ui/motion';
 
+import { someone, signUp } from './accounts.js';
+import { PHONE_WIDTH, overflowOn } from './phone.js';
+
 /** What `motion.css` names an animation: `shake` is `--animate-shake`. */
 const custom = (name: string): string => `--animate-${name}`;
 
@@ -133,44 +136,90 @@ test.describe('D.8 — the round at 360 px', () => {
 });
 
 test.describe('6.5 — the interface at 360 px', () => {
-  // 360 CSS pixels: a phone held upright, and `--width-floor` in the theme. The
-  // page itself must never scroll sideways; a wide table or a code block inside
-  // its own `overflow-x` container is fine and is not what this looks at.
-  test.use({ viewport: { width: 360, height: 800 } });
+  test.use(PHONE_WIDTH);
 
-  // `/gallery` is the one the phase's own criterion names — it renders every
-  // component the design system exports, so it is the widest page there is.
-  for (const route of ['/', '/play', '/solo', '/gallery']) {
+  /*
+   * The four phase 6 named, and the six J.10 added.
+   *
+   * `/gallery` is the one the phase's own criterion names — it renders every
+   * component the design system exports, so it is the widest page there is.
+   * The rest are every screen an arrival can render without an account, which
+   * is what J.1 found this list had stopped being: it named four routes while
+   * ten existed, and it had not weakened — the application had grown out of it.
+   */
+  const ANONYMOUS = [
+    '/',
+    '/play',
+    '/solo',
+    '/gallery',
+    '/leaderboard',
+    '/sign-in',
+    '/sign-up',
+    '/faq',
+    '/privacy',
+    '/terms',
+  ];
+
+  for (const route of ANONYMOUS) {
     test(`${route} does not scroll sideways`, async ({ page }) => {
       await page.goto(route);
-      // Fonts and images change layout after first paint, and a page measured
-      // too early is a page measured before the thing that overflows arrived.
-      await page.waitForLoadState('networkidle');
 
-      const overflow = await page.evaluate(() => {
-        const root = document.documentElement;
-        // One pixel of slack: sub-pixel layout rounds, and a 0.5 px difference
-        // is not a page a thumb can push off-screen.
-        const slack = 1;
-        if (root.scrollWidth <= root.clientWidth + slack) return null;
+      // Reached, and not merely answered. A route that redirected to the sign-in
+      // form would measure the sign-in form and pass — which is the failure this
+      // sweep is most likely to have, since half these screens are one
+      // redirect away from being somebody else's.
+      expect(new URL(page.url()).pathname).toBe(route);
 
-        // A bare "it overflowed" costs whoever reads this failure an evening,
-        // so the assertion carries the widest elements with it.
-        const culprits = Array.from(document.querySelectorAll<HTMLElement>('body *'))
-          .filter(
-            (element) => element.getBoundingClientRect().right > root.clientWidth + slack,
-          )
-          .slice(0, 5)
-          .map((element) => ({
-            tag: element.tagName.toLowerCase(),
-            class: element.className.toString().slice(0, 80),
-            right: Math.round(element.getBoundingClientRect().right),
-          }));
-
-        return { scrollWidth: root.scrollWidth, clientWidth: root.clientWidth, culprits };
-      });
-
-      expect(overflow).toBeNull();
+      expect(await overflowOn(page)).toBeNull();
     });
   }
+});
+
+test.describe('J.10 — and the screens behind an account', () => {
+  test.use(PHONE_WIDTH);
+
+  /*
+   * One test for three screens, because the account is the expensive part.
+   *
+   * `/profile`, `/quests` and `/shop` send an anonymous visitor to `/sign-in`
+   * or `/sign-up`, so sweeping them as a stranger measures the form instead —
+   * which is exactly how a screen can be unmeasured while appearing in a list
+   * of measured screens. The assertion is therefore two things at once:
+   * **the screen is reachable** by somebody entitled to it, and it fits.
+   */
+  test('a signed-in player can read their own screens at 360 px', async ({ page }) => {
+    const who = someone('phone');
+    await signUp(page, who);
+    // The helper's own comment says it waits and it does not —
+    // `06-structural-debt.md` records that, and every caller pays for it here.
+    // Without this the first `goto` races the session cookie and lands on
+    // `/sign-in`, which is exactly what the assertion below is for.
+    await expect(page).toHaveURL(/\/play$/);
+
+    for (const [route, heading] of [
+      ['/profile', who.pseudonym],
+      ['/quests', 'Quests'],
+      ['/shop', 'Shop'],
+    ] as const) {
+      await page.goto(route);
+
+      // The screen itself rather than a redirect to one of the forms.
+      expect(new URL(page.url()).pathname).toBe(route);
+      await expect(page.getByRole('heading', { name: heading }).first()).toBeVisible();
+
+      expect({ route, overflow: await overflowOn(page) }).toEqual({
+        route,
+        overflow: null,
+      });
+    }
+  });
+
+  /*
+   * `/admin` is not swept, and that is a decision rather than an omission.
+   *
+   * It answers 404 to everybody who is not an administrator, and nothing in
+   * this suite can make one: the role is a row in `admin`, written by hand.
+   * What would be needed is a database fixture for a screen whose only reader
+   * is the owner of the deployment — `10-seo-sweep.md` records the trade.
+   */
 });
