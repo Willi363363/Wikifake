@@ -1,34 +1,99 @@
 'use client';
 
-// The lab: one page at a time, in the panel it will live in.
+// The lab: every page of the panel, in the panel.
 //
-// The rail is settled, and so are Overview, Players and Activation. Arrivals is
-// the page under review, so it is the one with a switcher — and the period bar
-// sits above all of them, because it always belonged to the panel rather than
-// to a page.
-import { useMemo, useState } from 'react';
+// Four pages are settled and render what was chosen — Overview, Players,
+// Activation, Arrivals. Four are still open and carry their candidates:
+// Rounds, Content, Cost, Health. Open one in the rail and its switcher appears
+// above the frame; open a settled one and there is nothing to choose.
+//
+// The period bar sits above all of them, because it belongs to the panel
+// rather than to a page — and it deliberately does not reach Health, which is
+// three probes with no history to filter.
+import { useMemo, useState, type ReactNode } from 'react';
 
 import { ActivationFunnel } from './page-activation.js';
+import { ArrivalsDigest } from './page-arrivals.js';
 import {
-  ARRIVALS_LAYOUTS,
-  ArrivalsDigest,
-  ArrivalsStep,
-  ArrivalsTrend,
-  type ArrivalsLayout,
-} from './page-arrivals.js';
+  CONTENT_LAYOUTS,
+  ContentDigest,
+  ContentLibrary,
+  ContentSplit,
+} from './page-content.js';
+import { COST_LAYOUTS, CostDigest, CostLedger, CostUnit } from './page-cost.js';
+import {
+  HEALTH_LAYOUTS,
+  HealthBoard,
+  HealthDeployment,
+  HealthDigest,
+} from './page-health.js';
 import { Digest } from './page-overview.js';
 import { PlayersDigest } from './page-players.js';
+import { ROUNDS_LAYOUTS, RoundsDigest, RoundsModes, RoundsSeats } from './page-rounds.js';
 import { PeriodBar } from './period-bar.js';
 import { Rail } from './rail.js';
 import { RailIcon } from './rail-icon.js';
 import { allItems } from './rail-models.js';
-import { DEFAULT_PERIOD, sampleFor, type Period } from './sample-data.js';
+import { DEFAULT_PERIOD, sampleFor, type Period, type Sample } from './sample-data.js';
 
 /** The narrow frame. 380px, because the repository measures screens at 360. */
 const PHONE_WIDTH = 380;
 
-/** The page the switcher is for. The others render what was chosen, or wait. */
-const UNDER_REVIEW = 'traffic';
+interface Candidate {
+  readonly id: string;
+  readonly name: string;
+  readonly bet: string;
+  readonly cost: string;
+}
+
+interface Open {
+  readonly layouts: readonly Candidate[];
+  readonly render: (id: string, data: Sample) => ReactNode;
+}
+
+/** The four pages still to decide, and what each one is choosing between. */
+const OPEN: Readonly<Record<string, Open>> = {
+  games: {
+    layouts: ROUNDS_LAYOUTS,
+    render: (id, data) => {
+      if (id === 'digest') return <RoundsDigest data={data} />;
+      if (id === 'modes') return <RoundsModes data={data} />;
+      return <RoundsSeats data={data} />;
+    },
+  },
+  content: {
+    layouts: CONTENT_LAYOUTS,
+    render: (id, data) => {
+      if (id === 'digest') return <ContentDigest data={data} />;
+      if (id === 'split') return <ContentSplit data={data} />;
+      return <ContentLibrary data={data} />;
+    },
+  },
+  cost: {
+    layouts: COST_LAYOUTS,
+    render: (id, data) => {
+      if (id === 'digest') return <CostDigest data={data} />;
+      if (id === 'unit') return <CostUnit data={data} />;
+      return <CostLedger data={data} />;
+    },
+  },
+  health: {
+    layouts: HEALTH_LAYOUTS,
+    render: (id, data) => {
+      if (id === 'digest') return <HealthDigest data={data} />;
+      if (id === 'board') return <HealthBoard data={data} />;
+      return <HealthDeployment data={data} />;
+    },
+  },
+};
+
+/** The four already chosen. */
+const SETTLED: Readonly<Record<string, (data: Sample) => ReactNode>> = {
+  overview: (data) => <Digest data={data} />,
+  players: (data) => <PlayersDigest data={data} />,
+  activation: (data) => <ActivationFunnel data={data} />,
+  traffic: (data) => <ArrivalsDigest data={data} />,
+};
 
 function chip(selected: boolean): string {
   return selected
@@ -37,16 +102,20 @@ function chip(selected: boolean): string {
 }
 
 export function RailLab() {
-  const [layout, setLayout] = useState<ArrivalsLayout>(
-    ARRIVALS_LAYOUTS[0] as ArrivalsLayout,
-  );
   const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD);
-  const [activeId, setActiveId] = useState(UNDER_REVIEW);
+  const [activeId, setActiveId] = useState('games');
+  /** One chosen candidate per open page, so switching pages keeps the choice. */
+  const [chosen, setChosen] = useState<Readonly<Record<string, string>>>({});
   const [narrow, setNarrow] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const data = useMemo(() => sampleFor(period), [period]);
   const active = allItems().find((item) => item.id === activeId) ?? allItems()[0];
+
+  const open = OPEN[activeId];
+  const layoutId =
+    open === undefined ? '' : (chosen[activeId] ?? (open.layouts[0] as Candidate).id);
+  const layout = open?.layouts.find((one) => one.id === layoutId);
 
   function select(id: string): void {
     setActiveId(id);
@@ -56,34 +125,39 @@ export function RailLab() {
   return (
     <div className="flex min-h-dvh flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-3">
-        <h1 className="m-0 text-2xl font-extrabold text-ink">Arrivals lab</h1>
+        <h1 className="m-0 text-2xl font-extrabold text-ink">Admin panel lab</h1>
         <p className="m-0 max-w-prose text-sm text-muted">
-          The rail, Overview, Players and Activation are settled — open them in the rail.
-          Three arrangements of Arrivals, the most misreadable page here: two counts and a
-          ratio, and not one of them is a number of people. They differ on how hard they
-          work to stop that misreading. The period above the page moves every figure that
-          has a date, and the values are sample data, not a database.
+          Every page of the panel, in the panel. Overview, Players, Activation and
+          Arrivals are settled and render what was chosen. Rounds, Content, Cost and
+          Health each carry three candidates — pick a page in the rail and its switcher
+          appears below. The period moves every figure that has a date; the values are
+          sample data, not a database.
         </p>
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-[10px] tracking-[0.14em] text-muted uppercase">
-          Arrivals
+          {active?.label}
         </span>
-        {ARRIVALS_LAYOUTS.map((candidate) => (
-          <button
-            key={candidate.id}
-            type="button"
-            aria-pressed={candidate.id === layout.id}
-            onClick={() => {
-              setLayout(candidate);
-              setActiveId(UNDER_REVIEW);
-            }}
-            className={chip(candidate.id === layout.id)}
-          >
-            {candidate.name}
-          </button>
-        ))}
+        {open === undefined ? (
+          <span className="border-3 border-line bg-bg px-3 py-2 text-[13px] text-muted">
+            Settled — nothing to choose here
+          </span>
+        ) : (
+          open.layouts.map((candidate) => (
+            <button
+              key={candidate.id}
+              type="button"
+              aria-pressed={candidate.id === layoutId}
+              onClick={() => {
+                setChosen({ ...chosen, [activeId]: candidate.id });
+              }}
+              className={chip(candidate.id === layoutId)}
+            >
+              {candidate.name}
+            </button>
+          ))
+        )}
 
         <span className="ml-4 font-mono text-[10px] tracking-[0.14em] text-muted uppercase">
           Width
@@ -111,20 +185,22 @@ export function RailLab() {
         </button>
       </div>
 
-      <dl className="m-0 grid gap-2 border-3 border-line-strong bg-surface p-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1">
-          <dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-            The bet
-          </dt>
-          <dd className="m-0 text-sm text-ink-2">{layout.bet}</dd>
-        </div>
-        <div className="flex flex-col gap-1">
-          <dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-            What it costs
-          </dt>
-          <dd className="m-0 text-sm text-ink-2">{layout.cost}</dd>
-        </div>
-      </dl>
+      {layout === undefined ? null : (
+        <dl className="m-0 grid gap-2 border-3 border-line-strong bg-surface p-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-1">
+            <dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
+              The bet
+            </dt>
+            <dd className="m-0 text-sm text-ink-2">{layout.bet}</dd>
+          </div>
+          <div className="flex flex-col gap-1">
+            <dt className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
+              What it costs
+            </dt>
+            <dd className="m-0 text-sm text-ink-2">{layout.cost}</dd>
+          </div>
+        </dl>
+      )}
 
       {/* The frame. A fixed narrow width rather than a media query, so that both
           widths can be looked at on one screen without resizing a browser. */}
@@ -165,25 +241,8 @@ export function RailLab() {
           <PeriodBar period={period} onChoose={setPeriod} />
 
           <div className="flex-1 p-5">
-            {activeId === 'overview' ? <Digest data={data} /> : null}
-            {activeId === 'players' ? <PlayersDigest data={data} /> : null}
-            {activeId === 'activation' ? <ActivationFunnel data={data} /> : null}
-            {activeId === UNDER_REVIEW ? (
-              <>
-                {layout.id === 'digest' ? <ArrivalsDigest data={data} /> : null}
-                {layout.id === 'step' ? <ArrivalsStep data={data} /> : null}
-                {layout.id === 'trend' ? <ArrivalsTrend data={data} /> : null}
-              </>
-            ) : null}
-            {['overview', 'players', 'activation', UNDER_REVIEW].includes(
-              activeId,
-            ) ? null : (
-              <p className="m-0 pt-16 text-center text-sm text-muted">
-                <span className="font-bold text-ink">{active?.label}</span> gets its own
-                round of this. Overview, Players, Activation and Arrivals are drawn so
-                far.
-              </p>
-            )}
+            {SETTLED[activeId]?.(data)}
+            {open?.render(layoutId, data)}
           </div>
         </div>
 

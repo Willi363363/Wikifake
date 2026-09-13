@@ -22,38 +22,25 @@
 // A selector that silently moved them would be lying, so `sampleFor` leaves
 // them alone and every layout that shows one says why where it shows it.
 
-export interface FunnelStep {
-  readonly name: string;
-  readonly count: number;
-  /** Share of the step above. `null` for the first. */
-  readonly ofPrevious: number | null;
-  /** Share of the first step. `null` for the first. */
-  readonly ofCreated: number | null;
-  /** What the step means, and what the gap above it is. */
-  readonly why: string;
-  /** The people the step above has and this one does not. */
-  readonly lost: string;
-}
+export type { FunnelStep, Kind, Mode, Player, Service, Topic } from './sample-figures.js';
 
-export interface Service {
-  readonly name: string;
-  readonly up: boolean;
-  readonly ms: number;
-}
-
-/**
- * A row of the most-active list — `ActivePlayer`, field for field.
- *
- * **A pseudonym, never an email**, which is E.3.3's promise and holds on a
- * mockup as firmly as on a screen: a layout drawn with addresses is a layout
- * somebody will build with addresses.
- */
-export interface Player {
-  readonly displayName: string;
-  readonly gamesFinished: number;
-  readonly gamesPlayed: number;
-  readonly lastSeen: string;
-}
+import {
+  BASE,
+  INPUT_RATE,
+  kindOf,
+  modeOf,
+  MOST_ACTIVE,
+  OUTPUT_RATE,
+  series,
+  TOPICS,
+  WHY,
+  type FunnelStep,
+  type Kind,
+  type Mode,
+  type Player,
+  type Service,
+  type Topic,
+} from './sample-figures.js';
 
 export interface Period {
   readonly id: string;
@@ -107,44 +94,6 @@ export const PERIODS: readonly Period[] = [
 
 export const DEFAULT_PERIOD = PERIODS[2] as Period;
 
-/** The figures at one month, before the period scales them. */
-const BASE = {
-  players: { accounts: 1284, guests: 412, everPlayed: 948, activeInRange: 596 },
-  activation: { created: 96, started: 75, finished: 57, returned: 27 },
-  games: { rounds: 2941, solo: 1882, multiplayer: 1059, open: 12 },
-  traffic: { landing: 1902, entry: 781 },
-  cost: { spend: 4.17, tokensPerGame: 7412 },
-  content: { generated: 1024, distinctTopics: 268 },
-};
-
-/** A curve with a shape, stretched to however many columns the period wants. */
-function series(buckets: number, top: number): readonly number[] {
-  const shape = [0.38, 0.52, 0.44, 0.67, 0.58, 0.81, 0.73, 0.62, 0.88, 0.76, 0.94, 1];
-  return Array.from({ length: buckets }, (_, at) => {
-    const from = shape[Math.round((at / Math.max(1, buckets - 1)) * (shape.length - 1))];
-    return Math.max(1, Math.round((from ?? 1) * top));
-  });
-}
-
-const WHY: readonly { readonly why: string; readonly lost: string }[] = [
-  {
-    why: 'Signed up. Guests do not count: they are not accounts.',
-    lost: '',
-  },
-  {
-    why: 'Pressed play at least once.',
-    lost: 'signed up and never started',
-  },
-  {
-    why: 'Submitted at least one round.',
-    lost: 'started a round and abandoned it',
-  },
-  {
-    why: 'Active on a later day than the first. Two rounds in a row is not coming back.',
-    lost: 'finished a round and never came back',
-  },
-];
-
 export interface Sample {
   readonly period: Period;
   readonly players: {
@@ -170,6 +119,10 @@ export interface Sample {
     readonly multiplayer: number;
     readonly open: number;
     readonly abandonRate: number;
+    /** One row per mode, plus the total — `countRoundsByMode` and seats. */
+    readonly modes: readonly Mode[];
+    readonly total: Mode;
+    readonly perDay: readonly number[];
   };
   readonly traffic: {
     readonly landing: number;
@@ -194,37 +147,47 @@ export interface Sample {
     readonly perGame: number;
     readonly perPlayer: number;
     readonly tokensPerGame: number;
+    readonly calls: number;
+    readonly failed: number;
+    /**
+     * Calls that reported no token count at all.
+     *
+     * `input_tokens` is nullable because the model does not always say, and
+     * `sum` skips a null — so the totals are missing these rather than
+     * quietly understating. The page has to say so.
+     */
+    readonly withoutTokens: number;
+    readonly inputTokens: number;
+    readonly outputTokens: number;
+    readonly byKind: readonly Kind[];
+    readonly perDay: readonly number[];
+    /** Euros per million tokens, and the model they are for. */
+    readonly model: string;
+    readonly inputRate: number;
+    readonly outputRate: number;
   };
   readonly content: {
+    readonly games: number;
+    readonly fromCache: number;
     readonly generated: number;
     readonly cacheHitRate: number;
     readonly distinctTopics: number;
     readonly topTopic: string;
+    readonly topics: readonly Topic[];
+    readonly falsificationCalls: number;
+    readonly falsificationFailed: number;
+    readonly topicCalls: number;
+    readonly topicFailed: number;
   };
   readonly health: {
     readonly services: readonly Service[];
     readonly sameCommit: boolean;
+    readonly version: string;
+    readonly commit: string;
+    readonly model: string;
+    readonly llmConfigured: boolean;
   };
 }
-
-/** Cumulative, dateless, and the same whatever the period says. */
-const MOST_ACTIVE: readonly Player[] = [
-  { displayName: 'Cassiopée', gamesFinished: 184, gamesPlayed: 201, lastSeen: '2 h' },
-  {
-    displayName: 'Marmotte du Vercors',
-    gamesFinished: 167,
-    gamesPlayed: 179,
-    lastSeen: '5 h',
-  },
-  { displayName: 'Aristide', gamesFinished: 142, gamesPlayed: 158, lastSeen: '1 d' },
-  { displayName: 'Pivoine', gamesFinished: 118, gamesPlayed: 140, lastSeen: '1 d' },
-  { displayName: 'Grande Ourse', gamesFinished: 97, gamesPlayed: 103, lastSeen: '3 d' },
-  { displayName: 'Théodule', gamesFinished: 91, gamesPlayed: 112, lastSeen: '3 d' },
-  { displayName: 'Belle de nuit', gamesFinished: 84, gamesPlayed: 90, lastSeen: '6 d' },
-  { displayName: 'Ortolan', gamesFinished: 76, gamesPlayed: 95, lastSeen: '6 d' },
-  { displayName: 'Ficelle', gamesFinished: 71, gamesPlayed: 78, lastSeen: '8 d' },
-  { displayName: 'Vent d’autan', gamesFinished: 64, gamesPlayed: 88, lastSeen: '12 d' },
-];
 
 /** Every figure the chosen period implies. The one thing the lab computes. */
 export function sampleFor(period: Period): Sample {
@@ -242,7 +205,36 @@ export function sampleFor(period: Period): Sample {
   const spend = Number((BASE.cost.spend * period.scale).toFixed(2));
   const generated = at(BASE.content.generated);
   const activeInRange = at(BASE.players.activeInRange);
+  const falsification = kindOf(
+    'Falsification',
+    at(1024),
+    at(7),
+    at(6_124_000),
+    at(1_466_000),
+  );
+  const topicChoice = kindOf('Topic choice', at(618), at(12), at(247_000), at(31_000));
   const landingDays = series(period.buckets, Math.max(4, Math.round(landing / 12)));
+  const solo = modeOf(
+    'Solo',
+    at(BASE.games.solo),
+    8,
+    at(BASE.games.soloSeats),
+    at(BASE.games.soloSubmitted),
+  );
+  const rooms = modeOf(
+    'Rooms',
+    at(BASE.games.multiplayer),
+    4,
+    at(BASE.games.roomSeats),
+    at(BASE.games.roomSubmitted),
+  );
+  const total = modeOf(
+    'All',
+    solo.rounds + rooms.rounds,
+    solo.open + rooms.open,
+    solo.seats + rooms.seats,
+    solo.submitted + rooms.submitted,
+  );
 
   return {
     period,
@@ -273,7 +265,10 @@ export function sampleFor(period: Period): Sample {
       solo: at(BASE.games.solo),
       multiplayer: at(BASE.games.multiplayer),
       open: BASE.games.open,
-      abandonRate: 0.18,
+      abandonRate: total.abandonRate,
+      modes: [solo, rooms],
+      total,
+      perDay: series(period.buckets, Math.max(3, Math.round(rounds / 12))),
     },
     traffic: {
       landing,
@@ -289,12 +284,33 @@ export function sampleFor(period: Period): Sample {
       perGame: spend / generated,
       perPlayer: spend / Math.max(1, activeInRange),
       tokensPerGame: BASE.cost.tokensPerGame,
+      calls: falsification.calls + topicChoice.calls,
+      failed: falsification.failed + topicChoice.failed,
+      withoutTokens: at(3),
+      inputTokens: falsification.inputTokens + topicChoice.inputTokens,
+      outputTokens: falsification.outputTokens + topicChoice.outputTokens,
+      byKind: [falsification, topicChoice],
+      perDay: series(period.buckets, Math.max(2, Math.round((spend * 100) / 12))),
+      model: 'gemini-3.1-flash-lite',
+      inputRate: INPUT_RATE,
+      outputRate: OUTPUT_RATE,
     },
     content: {
+      games: rounds,
+      fromCache: rounds - generated,
       generated,
-      cacheHitRate: 0.65,
+      cacheHitRate: (rounds - generated) / rounds,
       distinctTopics: at(BASE.content.distinctTopics),
-      topTopic: 'Chat',
+      topTopic: TOPICS[0]?.topic ?? 'Chat',
+      topics: TOPICS.map((topic) => ({
+        topic: topic.topic,
+        games: at(topic.games),
+        fromCache: at(topic.fromCache),
+      })),
+      falsificationCalls: falsification.calls,
+      falsificationFailed: falsification.failed,
+      topicCalls: topicChoice.calls,
+      topicFailed: topicChoice.failed,
     },
     health: {
       services: [
@@ -303,6 +319,10 @@ export function sampleFor(period: Period): Sample {
         { name: 'Database', up: true, ms: 12 },
       ],
       sameCommit: true,
+      version: '0.1.0',
+      commit: '82dfc0d',
+      model: 'gemini-3.1-flash-lite',
+      llmConfigured: true,
     },
   };
 }
