@@ -10,7 +10,7 @@
 // The period bar sits above all of them, because it belongs to the panel
 // rather than to a page — and it deliberately does not reach Health, which is
 // three probes with no history to filter.
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { ActivationFunnel } from './page-activation.js';
 import { ArrivalsDigest } from './page-arrivals.js';
@@ -38,6 +38,16 @@ import { DEFAULT_PERIOD, sampleFor, type Period, type Sample } from './sample-da
 
 /** The narrow frame. 380px, because the repository measures screens at 360. */
 const PHONE_WIDTH = 380;
+
+/**
+ * Below this, the lab shows the narrow panel whether or not anybody asked.
+ *
+ * The rail is 248px and the panel needs the rest; on a phone that left the
+ * content column about 140px wide, which is not a mockup of anything. The
+ * Desktop button still works — it is a deliberate look at the wide layout, not
+ * the default a small screen falls into.
+ */
+const NARROW_BELOW = 900;
 
 interface Candidate {
   readonly id: string;
@@ -107,7 +117,25 @@ export function RailLab() {
   /** One chosen candidate per open page, so switching pages keeps the choice. */
   const [chosen, setChosen] = useState<Readonly<Record<string, string>>>({});
   const [narrow, setNarrow] = useState(false);
+  /** Set once somebody presses Desktop or Phone; until then the screen decides. */
+  const [chose, setChose] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Follows the viewport until a button is pressed. `matchMedia` rather than a
+  // resize listener, and read in an effect rather than during render, because
+  // the server has no window and the first paint has to match it.
+  useEffect(() => {
+    if (chose) return undefined;
+    const small = window.matchMedia(`(max-width: ${String(NARROW_BELOW)}px)`);
+    const follow = () => {
+      setNarrow(small.matches);
+    };
+    follow();
+    small.addEventListener('change', follow);
+    return () => {
+      small.removeEventListener('change', follow);
+    };
+  }, [chose]);
 
   const data = useMemo(() => sampleFor(period), [period]);
   const active = allItems().find((item) => item.id === activeId) ?? allItems()[0];
@@ -123,10 +151,12 @@ export function RailLab() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col gap-6 px-4 py-8">
-      <header className="flex flex-col gap-3">
-        <h1 className="m-0 text-2xl font-extrabold text-ink">Admin panel lab</h1>
-        <p className="m-0 max-w-prose text-sm text-muted">
+    <div className="flex min-h-dvh flex-col gap-4 px-4 py-6 sm:gap-6 sm:py-8">
+      <header className="flex flex-col gap-2 sm:gap-3">
+        <h1 className="m-0 text-xl font-extrabold text-ink sm:text-2xl">
+          Admin panel lab
+        </h1>
+        <p className="m-0 max-w-prose text-[13px] text-muted sm:text-sm">
           Every page of the panel, in the panel. Overview, Players, Activation and
           Arrivals are settled and render what was chosen. Rounds, Content, Cost and
           Health each carry three candidates — pick a page in the rail and its switcher
@@ -166,6 +196,7 @@ export function RailLab() {
           type="button"
           aria-pressed={!narrow}
           onClick={() => {
+            setChose(true);
             setNarrow(false);
             setDrawerOpen(false);
           }}
@@ -177,6 +208,7 @@ export function RailLab() {
           type="button"
           aria-pressed={narrow}
           onClick={() => {
+            setChose(true);
             setNarrow(true);
           }}
           className={chip(narrow)}
@@ -207,7 +239,7 @@ export function RailLab() {
       <div
         className="relative flex overflow-hidden border-3 border-line-strong bg-bg shadow-md"
         style={{
-          height: 940,
+          height: narrow ? 780 : 940,
           width: narrow ? PHONE_WIDTH : '100%',
           maxWidth: '100%',
         }}
