@@ -101,37 +101,40 @@ old one deleted, checked by playing a round rather than by reading
 
 **Now:**
 
-1. C.7's device measurement — `plans/product/03-landing-budget.md`, steps 1–6.
+1. **Grant the panel to `admin.wikifake@gmail.com`** — the `admin` table is
+   empty, so `/admin` answers 404 to everybody, the owner included.
+   `09-admin-role.md` carries the two statements and the order to run them in.
+2. C.7's device measurement — `plans/product/03-landing-budget.md`, steps 1–6.
    Track C closes with it, and it is the last ⚠️ of the product effort.
-2. Read the French catalogue as a French reader (`phase-11-i18n.md`).
-3. Have `/privacy` and `/terms` read by somebody legal. They are accurate about
+3. Read the French catalogue as a French reader (`phase-11-i18n.md`).
+4. Have `/privacy` and `/terms` read by somebody legal. They are accurate about
    the system; whether they are sufficient is a judgement no test makes.
 
-**The day a domain is bought — five gestures, in this order:**
+**The day a domain is bought — six gestures, in this order:**
 
-4. Remove the old domain from Render **first**: two providers claiming one name
+5. Remove the old domain from Render **first**: two providers claiming one name
    is a certificate error. Add it to Vercel, point the registrar's records at
    what Vercel asks for, wait for the certificate.
-5. Add `https://<domain>/api/auth/callback/google` to the Google console, and
+6. Add `https://<domain>/api/auth/callback/google` to the Google console, and
    change `BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL` to it.
-6. `NEXT_PUBLIC_REALTIME_URL` = `wss://…`, then **redeploy** — it is inlined at
+7. `NEXT_PUBLIC_REALTIME_URL` = `wss://…`, then **redeploy** — it is inlined at
    build time, so a variable change alone does nothing.
-7. Render, the realtime service: add the new origin to
+8. Render, the realtime service: add the new origin to
    `REALTIME_ALLOWED_ORIGINS`. An origin it does not name is refused before the
    upgrade, which fails closed and invisibly.
-8. GitHub → Settings → Variables: `WEB_DEPLOY_URL` = the domain,
-    `REALTIME_DEPLOY_URL` = Render, **delete** `DEPLOY_URL` and
-    `STAGING_DEPLOY_URL`.
-9. Open a throwaway pull request towards `staging` and confirm nothing stays
+9. GitHub → Settings → Variables: `WEB_DEPLOY_URL` = the domain,
+   `REALTIME_DEPLOY_URL` = Render, **delete** `DEPLOY_URL` and
+   `STAGING_DEPLOY_URL`.
+10. Open a throwaway pull request towards `staging` and confirm nothing stays
     pending: the only way to learn a variable name was typed wrong.
 
 **Then, at leisure:**
 
-10. Promote to `main` when something is worth promoting — merged, and **never
-    squashed**.
-11. Watch the panel's arrivals section once a week. It is what says whether
+11. Promote to `main` when something is worth promoting — merged, and **never
+    squashed**. `staging` is ten commits ahead of it on 2026-09-13.
+12. Watch the panel's arrivals section once a week. It is what says whether
     there is traffic, and nothing else does.
-12. The remaining debt, if the mood takes you: the chat rail covering a card
+13. The remaining debt, if the mood takes you: the chat rail covering a card
     border at 360 px, and the per-package Redis index (`10-test-debt.md`).
     `disabled:opacity-40` is closed, and `border-l-3` turned out not to be a
     defect at all.
