@@ -51,22 +51,63 @@ one of them is wrong however it looks. Each is already written somewhere in
 
 ## Steps
 
-**This table is the only place that says where a step stands.**
+**This table is the only place that says where a step stands.** Every layout
+already exists, working, in `apps/web/src/dev/` — the column says which file to
+lift it from, so no step starts by deciding anything.
 
-| # | Step | State |
-|---|---|---|
-| K.1 | The shell: eight routes, the rail, `requireAdmin` on each, indexing decisions | ⬜ |
-| K.2 | The period, in the address, shared by every page, with the custom dialog | ⬜ |
-| K.3 | Overview — digest | ⬜ |
-| K.4 | Players — digest | ⬜ |
-| K.5 | Activation — funnel | ⬜ |
-| K.6 | Arrivals — digest and the one-step funnel | ⬜ |
-| K.7 | Rounds — two modes | ⬜ |
-| K.8 | Content — digest | ⬜ |
-| K.9 | Cost — digest, and the two rate variables set in Vercel | ⬜ |
-| K.10 | Health — status board | ⬜ |
-| K.11 | The catalogue: every new string in both locales | ⬜ |
-| K.12 | Retire `/dev/admin` and its prefix | ⬜ |
+| # | Step | From the lab | State |
+|---|---|---|---|
+| K.1 | Eight routes, the rail, the gate on each, indexing decisions | `rail.tsx`, `rail-models.ts` | ✅ |
+| K.2 | The period bar, shared, with the custom dialog | `period-bar.tsx` | ⬜ |
+| K.3 | Overview — digest | `page-overview.tsx` | ⬜ |
+| K.4 | Players — digest | `page-players.tsx`, `PlayersDigest` | ⬜ |
+| K.5 | Activation — funnel | `page-activation.tsx` | ⬜ |
+| K.6 | Arrivals — digest and the one-step funnel | `page-arrivals.tsx` | ⬜ |
+| K.7 | Rounds — two modes | `page-rounds.tsx`, `RoundsModes` | ⬜ |
+| K.8 | Content — digest | `page-content.tsx`, `ContentDigest` | ⬜ |
+| K.9 | Cost — digest, and the two rate variables in Vercel | `page-cost.tsx`, `CostDigest` | ⬜ |
+| K.10 | Health — status board | `page-health.tsx`, `HealthBoard` | ⬜ |
+| K.11 | The catalogue: every new string in both locales | — | ⬜ |
+| K.12 | Retire `/dev/admin`, `src/dev/` and the `/dev` prefix | — | ⬜ |
+
+## How a page step runs
+
+K.3 to K.10 are the same four moves, and none of them is a decision:
+
+1. **Move the component** from `src/dev/` to `src/admin/`, keeping its name.
+   The shared pieces — `parts.tsx`'s `Tile`, `Figure`, `Sparkline`, `Funnel`,
+   `PairedBars`, `Key` — move once, on the first page that needs them.
+2. **Swap `Sample` for the reader.** Every field the lab draws exists in
+   `readPlayers`, `readActivation`, `readGames`, `readTraffic`, `readCost`,
+   `readContent` or `readHealth`; `sample-figures.ts` names which. A field that
+   does not map is a field to drop, not a query to invent.
+3. **Swap the English literals for catalogue keys.** Most already exist in the
+   `admin` zone — the section had them. What is new goes in both locales in the
+   same pull request, and a message French spells identically is defended by
+   name in `catalogue.test.ts` rather than left to look like a paste.
+4. **Amend the section's test** with the behaviour. `players-screen.test.tsx`
+   and its seven siblings assert the markup of the body being replaced: they
+   are rewritten against the new one, never skipped and never deleted.
+
+## What K.2 has to get right
+
+It is the step the other eight lean on, and it carries the one thing the lab
+proved by being wrong first.
+
+- **The period stays in the query string**, as I.8 made it. `RangeChooser`
+  already follows the page it is on (K.1); K.2 replaces its look, not its
+  contract.
+- **The presets change.** The owner asked for `24 h · this week · this month ·
+  this year · all · custom`. Those are **calendar** periods and `range.ts` is
+  **rolling** (7/30/90 days). The two are not the same question, and that is a
+  decision to take before the code: `rangeFrom` and `PRESETS` change with it,
+  and `range.test.ts` moves with them.
+- **The custom dialog is a mockup, not a date picker.** In the lab its two
+  dates are fixed and Apply selects one hard-coded range. K.2 is where it
+  becomes real, or where it is cut and `custom` leaves `Preset`.
+- **Three figures must keep ignoring it.** `activeToday` and `activeThisWeek`
+  are fixed windows, `mostActive` is cumulative, health is a live probe. The
+  bar says so once for the whole panel so that no page repeats it.
 
 ## Entry conditions, and what they cost
 
