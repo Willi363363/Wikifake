@@ -1,17 +1,27 @@
-// The three navigations being compared — a scratch route, not a product one.
+// The navigations being compared — a scratch route, not a product one.
 //
-// Only the *shape* of the navigation varies here: how many pages there are,
-// what they are called, and how they are grouped. What each page would contain
-// is deliberately out of scope, and the lab renders a stub body saying so.
+// The grouping was chosen: eight sections under Audience, The game and System.
+// What is still open is how loudly the rail *says* it, and that is the only
+// axis these four models vary. The entries, their order and their names are
+// identical in all four, so what is being judged is the expression rather than
+// four different navigations wearing the same words.
 //
 // The labels are English because everything in this repository is, including
-// the interface (`CLAUDE.md`). The ones that already exist are the English
-// catalogue's own words for the seven sections — `messages/en/admin.json` — so
-// that what is being judged is the structure rather than a fresh translation.
+// the interface (`CLAUDE.md`). The seven that already exist are the English
+// catalogue's own words — `messages/en/admin.json`.
 
 /** The icons the lab draws. One name per glyph in `rail-icon.tsx`. */
 export type IconName =
   'grid' | 'pulse' | 'users' | 'funnel' | 'cards' | 'bars' | 'coin' | 'document';
+
+/**
+ * How a model draws the grouping it shares with the other three.
+ *
+ * `headings` a heading over each run · `boxed` each group in its own bordered
+ * block · `dividers` a rule between runs and no words at all · `two-level` a
+ * column of group icons beside the pages of the group in hand.
+ */
+export type RailStyle = 'headings' | 'boxed' | 'dividers' | 'two-level';
 
 export interface Item {
   readonly id: string;
@@ -19,30 +29,25 @@ export interface Item {
   /** The address this entry would own. */
   readonly route: string;
   readonly icon: IconName;
-  /**
-   * The second level, for a model that merges sections into one page.
-   *
-   * Empty for the models that give every section its own address — which is
-   * the whole difference between model C and the other two.
-   */
-  readonly tabs?: readonly string[];
 }
 
 export interface Group {
   readonly id: string;
-  /** `null` for a group that is a plain run of entries with no heading. */
+  /** `null` for the run that holds Overview: it is nobody's category. */
   readonly heading: string | null;
+  /** What the two-level rail puts in its first column. */
+  readonly icon: IconName;
   readonly items: readonly Item[];
 }
 
 export interface Model {
-  readonly id: 'flat' | 'grouped' | 'merged';
+  readonly id: 'headings' | 'boxed' | 'dividers' | 'two-level';
   readonly name: string;
+  readonly style: RailStyle;
   /** One sentence: what this model is betting on. */
   readonly bet: string;
   /** One sentence: what it costs. Stated so the comparison is not rigged. */
   readonly cost: string;
-  readonly groups: readonly Group[];
 }
 
 const OVERVIEW: Item = {
@@ -51,7 +56,6 @@ const OVERVIEW: Item = {
   route: '/admin',
   icon: 'grid',
 };
-
 const HEALTH: Item = {
   id: 'health',
   label: 'Health',
@@ -91,90 +95,64 @@ const CONTENT: Item = {
 };
 
 /**
- * A — one entry per section, in one flat run.
+ * The grouping itself — shared by every model, and the thing that was chosen.
  *
- * The shape the panel already has, given an address each. Eight entries is
- * within what a person scans without reading, which is the argument for it.
+ * Overview is in a run of its own rather than at the top of Audience: it is the
+ * page about all three groups, so putting it inside one of them would be a
+ * claim that is not true.
  */
-const FLAT: Model = {
-  id: 'flat',
-  name: 'A — flat',
-  bet: 'Eight entries is few enough to scan without reading, so nothing needs a parent.',
-  cost: 'Nothing says which entries answer the same question, so the order has to carry it alone.',
-  groups: [
-    {
-      id: 'all',
-      heading: null,
-      items: [OVERVIEW, HEALTH, PLAYERS, ACTIVATION, ROUNDS, ARRIVALS, COST, CONTENT],
-    },
-  ],
-};
+export const GROUPS: readonly Group[] = [
+  { id: 'top', heading: null, icon: 'grid', items: [OVERVIEW] },
+  {
+    id: 'audience',
+    heading: 'Audience',
+    icon: 'users',
+    items: [ARRIVALS, PLAYERS, ACTIVATION],
+  },
+  { id: 'game', heading: 'The game', icon: 'cards', items: [ROUNDS, CONTENT] },
+  { id: 'system', heading: 'System', icon: 'pulse', items: [COST, HEALTH] },
+];
 
-/**
- * B — the same eight, under three headings.
- *
- * The count does not change; what changes is that the rail answers *what kind
- * of question is this* before it answers *which page*.
- */
-const GROUPED: Model = {
-  id: 'grouped',
-  name: 'B — grouped',
-  bet: 'The rail names the question before the page: who is playing, what is being played, what it costs to run.',
-  cost: 'Three headings and a collapse are chrome eight entries may not need.',
-  groups: [
-    { id: 'top', heading: null, items: [OVERVIEW] },
-    { id: 'audience', heading: 'Audience', items: [ARRIVALS, PLAYERS, ACTIVATION] },
-    { id: 'game', heading: 'The game', items: [ROUNDS, CONTENT] },
-    { id: 'system', heading: 'System', items: [COST, HEALTH] },
-  ],
-};
+export const MODELS: readonly Model[] = [
+  {
+    id: 'headings',
+    name: 'B — headings',
+    style: 'headings',
+    bet: 'A small heading is the cheapest thing that can name a group, and it never has to be learnt.',
+    cost: 'Three lines of chrome that are not pages, and a heading reads as clickable whether or not it is.',
+  },
+  {
+    id: 'boxed',
+    name: 'B1 — boxed',
+    style: 'boxed',
+    bet: 'The direction already draws a container with a 3px border, so a group can be one instead of a label above nothing.',
+    cost: 'Three borders inside a bordered rail is a lot of structure competing for the same eye.',
+  },
+  {
+    id: 'dividers',
+    name: 'B2 — dividers',
+    style: 'dividers',
+    bet: 'The grouping is carried by the gaps: a rule between runs is read without being named, and no word is spent on a category nobody clicks.',
+    cost: 'A grouping nobody named is a grouping each person names differently.',
+  },
+  {
+    id: 'two-level',
+    name: 'B3 — two levels',
+    style: 'two-level',
+    bet: 'One narrow column of groups beside the pages of the group in hand: the rail stops being a list of eight and becomes a list of four.',
+    cost: 'Five of the eight pages are out of sight, so crossing the panel takes two clicks instead of one.',
+  },
+];
 
-/**
- * C — four pages, each with a second level.
- *
- * The bet is that seven sections were never seven *pages*: three of them answer
- * one question between them, and a tab strip is cheaper to cross than a rail.
- */
-const MERGED: Model = {
-  id: 'merged',
-  name: 'C — merged',
-  bet: 'Four addresses instead of eight: sections that answer one question share a page and a tab strip.',
-  cost: 'A tab strip is a second navigation, and a bookmark now has to carry which tab.',
-  groups: [
-    {
-      id: 'all',
-      heading: null,
-      items: [
-        OVERVIEW,
-        {
-          id: 'audience',
-          label: 'Audience',
-          route: '/admin/audience',
-          icon: 'users',
-          tabs: ['Arrivals', 'Players', 'Activation'],
-        },
-        {
-          id: 'game',
-          label: 'The game',
-          route: '/admin/game',
-          icon: 'cards',
-          tabs: ['Rounds', 'Content'],
-        },
-        {
-          id: 'system',
-          label: 'System',
-          route: '/admin/system',
-          icon: 'pulse',
-          tabs: ['Cost', 'Health'],
-        },
-      ],
-    },
-  ],
-};
+/** Every entry, in rail order — what a keyboard would walk. */
+export function allItems(): readonly Item[] {
+  return GROUPS.flatMap((group) => group.items);
+}
 
-export const MODELS: readonly Model[] = [FLAT, GROUPED, MERGED];
-
-/** Every entry of a model, in rail order — what a keyboard would walk. */
-export function itemsOf(model: Model): readonly Item[] {
-  return model.groups.flatMap((group) => group.items);
+/** The group an entry belongs to. What the two-level rail opens on. */
+export function groupOf(itemId: string): Group {
+  return (
+    GROUPS.find((group) => group.items.some((item) => item.id === itemId)) ??
+    (GROUPS[0] as Group)
+  );
 }

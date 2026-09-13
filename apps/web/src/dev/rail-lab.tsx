@@ -1,16 +1,15 @@
 'use client';
 
-// The lab: three navigations, one page, switchable.
+// The lab: one grouping, four ways of drawing it, one page.
 //
-// It exists to answer three questions and no others — how many pages there
-// are, what they are called, and how the rail behaves when you use it. So the
-// body of each page is a stub that says what would go there rather than a
-// second mockup nobody asked for yet.
+// The structure was settled — eight pages under Audience, The game and System.
+// What is left is how loudly the rail says so, and that is a question a
+// description cannot answer, so the four answers are rendered instead.
 import { useState } from 'react';
 
 import { Rail } from './rail.js';
 import { RailIcon } from './rail-icon.js';
-import { itemsOf, MODELS, type Model } from './rail-models.js';
+import { allItems, MODELS, type Model } from './rail-models.js';
 
 /** The narrow frame. 380px, because the repository measures screens at 360. */
 const PHONE_WIDTH = 380;
@@ -24,32 +23,14 @@ function chip(selected: boolean): string {
 export function RailLab() {
   const [model, setModel] = useState<Model>(MODELS[0] as Model);
   const [activeId, setActiveId] = useState('overview');
-  const [folded, setFolded] = useState<ReadonlySet<string>>(new Set());
   const [narrow, setNarrow] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [tab, setTab] = useState(0);
 
-  const active = itemsOf(model).find((item) => item.id === activeId) ?? itemsOf(model)[0];
-
-  function chooseModel(next: Model): void {
-    setModel(next);
-    // Every model has an Overview, and it is the only id all three share.
-    setActiveId('overview');
-    setFolded(new Set());
-    setTab(0);
-  }
+  const active = allItems().find((item) => item.id === activeId) ?? allItems()[0];
 
   function select(id: string): void {
     setActiveId(id);
-    setTab(0);
     setDrawerOpen(false);
-  }
-
-  function toggleGroup(id: string): void {
-    const next = new Set(folded);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setFolded(next);
   }
 
   return (
@@ -57,9 +38,9 @@ export function RailLab() {
       <header className="flex flex-col gap-3">
         <h1 className="m-0 text-2xl font-extrabold text-ink">Rail lab</h1>
         <p className="m-0 max-w-prose text-sm text-muted">
-          Three navigations for the admin panel, side by side in the real stack. Only the
-          shape of the rail is being decided here — how many pages, what they are called,
-          how it behaves under a cursor. What each page holds comes later.
+          The grouping is settled: eight pages under Audience, The game and System. The
+          four models below differ only in how the rail says so — the entries, their order
+          and their names are identical in all four. What each page holds comes later.
         </p>
       </header>
 
@@ -73,7 +54,7 @@ export function RailLab() {
             type="button"
             aria-pressed={candidate.id === model.id}
             onClick={() => {
-              chooseModel(candidate);
+              setModel(candidate);
             }}
             className={chip(candidate.id === model.id)}
           >
@@ -127,23 +108,20 @@ export function RailLab() {
       <div
         className="relative flex overflow-hidden border-3 border-line-strong bg-bg shadow-md"
         style={{
-          // Tall enough that model B's eight entries and three headings fit
-          // without scrolling: a rail that scrolls in one model and not in the
-          // others is not being compared on its shape any more.
-          height: 740,
+          // Tall enough that the tallest model — B1, which spends a border and a
+          // heading row on each group — fits without scrolling. A rail that
+          // scrolls in one model and not the others is not being compared on
+          // its shape any more.
+          height: 780,
           width: narrow ? PHONE_WIDTH : '100%',
           maxWidth: '100%',
         }}
       >
         {narrow ? null : (
-          <div className="w-62 shrink-0">
-            <Rail
-              model={model}
-              activeId={active?.id ?? 'overview'}
-              onSelect={select}
-              folded={folded}
-              onToggleGroup={toggleGroup}
-            />
+          <div
+            className={model.style === 'two-level' ? 'w-80 shrink-0' : 'w-62 shrink-0'}
+          >
+            <Rail model={model} activeId={activeId} onSelect={select} />
           </div>
         )}
 
@@ -172,31 +150,10 @@ export function RailLab() {
             </div>
           </div>
 
-          {active?.tabs === undefined ? null : (
-            <div className="flex gap-2 overflow-x-auto border-b-3 border-line-strong bg-surface px-4 py-2.5">
-              {active.tabs.map((name, at) => (
-                <button
-                  key={name}
-                  type="button"
-                  aria-pressed={at === tab}
-                  onClick={() => {
-                    setTab(at);
-                  }}
-                  className={`min-h-11 whitespace-nowrap ${chip(at === tab)}`}
-                >
-                  {name}
-                </button>
-              ))}
-            </div>
-          )}
-
           <div className="flex flex-1 items-center justify-center p-6">
             <p className="m-0 max-w-prose text-center text-sm text-muted">
-              The body of{' '}
-              <span className="font-bold text-ink">
-                {active?.tabs === undefined ? active?.label : active.tabs[tab]}
-              </span>{' '}
-              is not part of this decision. Only the rail is.
+              The body of <span className="font-bold text-ink">{active?.label}</span> is
+              not part of this decision. Only the rail is.
             </p>
           </div>
         </div>
@@ -212,13 +169,7 @@ export function RailLab() {
               className="absolute inset-0 border-0 bg-ink/60"
             />
             <div className="absolute inset-y-0 left-0 w-72 max-w-[85%]">
-              <Rail
-                model={model}
-                activeId={active?.id ?? 'overview'}
-                onSelect={select}
-                folded={folded}
-                onToggleGroup={toggleGroup}
-              />
+              <Rail model={model} activeId={activeId} onSelect={select} />
             </div>
           </>
         ) : null}
