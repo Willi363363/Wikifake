@@ -1,10 +1,8 @@
-// The navigations being compared — a scratch route, not a product one.
+// The navigation — a scratch route, not a product one.
 //
-// The grouping was chosen: eight sections under Audience, The game and System.
-// What is still open is how loudly the rail *says* it, and that is the only
-// axis these four models vary. The entries, their order and their names are
-// identical in all four, so what is being judged is the expression rather than
-// four different navigations wearing the same words.
+// Settled, and no longer varying: eight pages under Audience, The game and
+// System, each group drawn as its own bordered block (B1). What varies now is
+// the Overview page, in `overview-layouts.tsx`.
 //
 // The labels are English because everything in this repository is, including
 // the interface (`CLAUDE.md`). The seven that already exist are the English
@@ -13,15 +11,6 @@
 /** The icons the lab draws. One name per glyph in `rail-icon.tsx`. */
 export type IconName =
   'grid' | 'pulse' | 'users' | 'funnel' | 'cards' | 'bars' | 'coin' | 'document';
-
-/**
- * How a model draws the grouping it shares with the other three.
- *
- * `headings` a heading over each run · `boxed` each group in its own bordered
- * block · `dividers` a rule between runs and no words at all · `two-level` a
- * column of group icons beside the pages of the group in hand.
- */
-export type RailStyle = 'headings' | 'boxed' | 'dividers' | 'two-level';
 
 export interface Item {
   readonly id: string;
@@ -38,16 +27,6 @@ export interface Group {
   /** What the two-level rail puts in its first column. */
   readonly icon: IconName;
   readonly items: readonly Item[];
-}
-
-export interface Model {
-  readonly id: 'headings' | 'boxed' | 'dividers' | 'two-level';
-  readonly name: string;
-  readonly style: RailStyle;
-  /** One sentence: what this model is betting on. */
-  readonly bet: string;
-  /** One sentence: what it costs. Stated so the comparison is not rigged. */
-  readonly cost: string;
 }
 
 const OVERVIEW: Item = {
@@ -111,37 +90,6 @@ export const GROUPS: readonly Group[] = [
   },
   { id: 'game', heading: 'The game', icon: 'cards', items: [ROUNDS, CONTENT] },
   { id: 'system', heading: 'System', icon: 'pulse', items: [COST, HEALTH] },
-];
-
-export const MODELS: readonly Model[] = [
-  {
-    id: 'headings',
-    name: 'B — headings',
-    style: 'headings',
-    bet: 'A small heading is the cheapest thing that can name a group, and it never has to be learnt.',
-    cost: 'Three lines of chrome that are not pages, and a heading reads as clickable whether or not it is.',
-  },
-  {
-    id: 'boxed',
-    name: 'B1 — boxed',
-    style: 'boxed',
-    bet: 'The direction already draws a container with a 3px border, so a group can be one instead of a label above nothing.',
-    cost: 'Three borders inside a bordered rail is a lot of structure competing for the same eye.',
-  },
-  {
-    id: 'dividers',
-    name: 'B2 — dividers',
-    style: 'dividers',
-    bet: 'The grouping is carried by the gaps: a rule between runs is read without being named, and no word is spent on a category nobody clicks.',
-    cost: 'A grouping nobody named is a grouping each person names differently.',
-  },
-  {
-    id: 'two-level',
-    name: 'B3 — two levels',
-    style: 'two-level',
-    bet: 'One narrow column of groups beside the pages of the group in hand: the rail stops being a list of eight and becomes a list of four.',
-    cost: 'Five of the eight pages are out of sight, so crossing the panel takes two clicks instead of one.',
-  },
 ];
 
 /** Every entry, in rail order — what a keyboard would walk. */
