@@ -48,6 +48,10 @@ export const CRAWLERS_KEPT_OUT = [
   '/room/',
   '/solo',
   '/gallery',
+  // The scratch prefix. Kept out as a prefix rather than route by route, so
+  // that a second mockup added under it inherits the decision instead of
+  // needing one — and so that deleting the prefix deletes the exemption.
+  '/dev',
 ] as const;
 
 /**
@@ -124,6 +128,14 @@ export const UNINDEXED_ROUTES: Readonly<Record<string, { follow: boolean }>> = {
    * already right.
    */
   '/admin': { follow: false },
+  /*
+   * The rail lab — a scratch route with no data on it.
+   *
+   * `/dev` is already in `CRAWLERS_KEPT_OUT`, so this entry is not what keeps a
+   * crawler away; it is what lets the page ask `robotsFor` for its own metadata
+   * instead of writing `noindex` by hand, which is the habit step J.9 ended.
+   */
+  '/dev/admin': { follow: false },
 };
 
 /**
