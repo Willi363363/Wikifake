@@ -176,6 +176,18 @@ export interface Sample {
     readonly entry: number;
     readonly reach: number;
     readonly days: readonly number[];
+    /** The entry screen, day by day, beside `days`. */
+    readonly entryDays: readonly number[];
+    /** The day the counter was switched on. Nothing exists before it. */
+    readonly since: string;
+    /**
+     * Whether the chosen period reaches back past `since`.
+     *
+     * It matters because those days were not counted rather than empty: two
+     * periods straddling that date are not comparable, and a chart that draws
+     * zero there is drawing a measurement nobody took.
+     */
+    readonly beforeCounting: boolean;
   };
   readonly cost: {
     readonly spend: number;
@@ -230,6 +242,7 @@ export function sampleFor(period: Period): Sample {
   const spend = Number((BASE.cost.spend * period.scale).toFixed(2));
   const generated = at(BASE.content.generated);
   const activeInRange = at(BASE.players.activeInRange);
+  const landingDays = series(period.buckets, Math.max(4, Math.round(landing / 12)));
 
   return {
     period,
@@ -266,7 +279,10 @@ export function sampleFor(period: Period): Sample {
       landing,
       entry,
       reach: entry / landing,
-      days: series(period.buckets, Math.max(4, Math.round(landing / 12))),
+      days: landingDays,
+      entryDays: landingDays.map((day) => Math.max(1, Math.round(day * 0.41))),
+      since: '4 August 2026',
+      beforeCounting: period.scale > 2,
     },
     cost: {
       spend,

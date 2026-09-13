@@ -2,19 +2,20 @@
 
 // The lab: one page at a time, in the panel it will live in.
 //
-// The rail is settled, Overview is settled, Players is settled. Activation is
+// The rail is settled, and so are Overview, Players and Activation. Arrivals is
 // the page under review, so it is the one with a switcher — and the period bar
-// now sits above all of them, because it always belonged to the panel rather
-// than to a page.
+// sits above all of them, because it always belonged to the panel rather than
+// to a page.
 import { useMemo, useState } from 'react';
 
+import { ActivationFunnel } from './page-activation.js';
 import {
-  ACTIVATION_LAYOUTS,
-  ActivationFunnel,
-  ActivationLosses,
-  ActivationSteps,
-  type ActivationLayout,
-} from './page-activation.js';
+  ARRIVALS_LAYOUTS,
+  ArrivalsDigest,
+  ArrivalsStep,
+  ArrivalsTrend,
+  type ArrivalsLayout,
+} from './page-arrivals.js';
 import { Digest } from './page-overview.js';
 import { PlayersDigest } from './page-players.js';
 import { PeriodBar } from './period-bar.js';
@@ -27,7 +28,7 @@ import { DEFAULT_PERIOD, sampleFor, type Period } from './sample-data.js';
 const PHONE_WIDTH = 380;
 
 /** The page the switcher is for. The others render what was chosen, or wait. */
-const UNDER_REVIEW = 'activation';
+const UNDER_REVIEW = 'traffic';
 
 function chip(selected: boolean): string {
   return selected
@@ -36,8 +37,8 @@ function chip(selected: boolean): string {
 }
 
 export function RailLab() {
-  const [layout, setLayout] = useState<ActivationLayout>(
-    ACTIVATION_LAYOUTS[0] as ActivationLayout,
+  const [layout, setLayout] = useState<ArrivalsLayout>(
+    ARRIVALS_LAYOUTS[0] as ArrivalsLayout,
   );
   const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD);
   const [activeId, setActiveId] = useState(UNDER_REVIEW);
@@ -55,21 +56,21 @@ export function RailLab() {
   return (
     <div className="flex min-h-dvh flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-3">
-        <h1 className="m-0 text-2xl font-extrabold text-ink">Activation lab</h1>
+        <h1 className="m-0 text-2xl font-extrabold text-ink">Arrivals lab</h1>
         <p className="m-0 max-w-prose text-sm text-muted">
-          The rail, Overview and Players are settled — open them in the rail. Three
-          arrangements of Activation, which is four counts and the three gaps between
-          them: they disagree about whether the subject is the steps or the losses. The
-          period above the page moves every figure that has a date, and the values are
-          sample data, not a database.
+          The rail, Overview, Players and Activation are settled — open them in the rail.
+          Three arrangements of Arrivals, the most misreadable page here: two counts and a
+          ratio, and not one of them is a number of people. They differ on how hard they
+          work to stop that misreading. The period above the page moves every figure that
+          has a date, and the values are sample data, not a database.
         </p>
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-[10px] tracking-[0.14em] text-muted uppercase">
-          Activation
+          Arrivals
         </span>
-        {ACTIVATION_LAYOUTS.map((candidate) => (
+        {ARRIVALS_LAYOUTS.map((candidate) => (
           <button
             key={candidate.id}
             type="button"
@@ -166,17 +167,21 @@ export function RailLab() {
           <div className="flex-1 p-5">
             {activeId === 'overview' ? <Digest data={data} /> : null}
             {activeId === 'players' ? <PlayersDigest data={data} /> : null}
+            {activeId === 'activation' ? <ActivationFunnel data={data} /> : null}
             {activeId === UNDER_REVIEW ? (
               <>
-                {layout.id === 'funnel' ? <ActivationFunnel data={data} /> : null}
-                {layout.id === 'losses' ? <ActivationLosses data={data} /> : null}
-                {layout.id === 'steps' ? <ActivationSteps data={data} /> : null}
+                {layout.id === 'digest' ? <ArrivalsDigest data={data} /> : null}
+                {layout.id === 'step' ? <ArrivalsStep data={data} /> : null}
+                {layout.id === 'trend' ? <ArrivalsTrend data={data} /> : null}
               </>
             ) : null}
-            {['overview', 'players', UNDER_REVIEW].includes(activeId) ? null : (
+            {['overview', 'players', 'activation', UNDER_REVIEW].includes(
+              activeId,
+            ) ? null : (
               <p className="m-0 pt-16 text-center text-sm text-muted">
                 <span className="font-bold text-ink">{active?.label}</span> gets its own
-                round of this. Overview, Players and Activation are drawn so far.
+                round of this. Overview, Players, Activation and Arrivals are drawn so
+                far.
               </p>
             )}
           </div>

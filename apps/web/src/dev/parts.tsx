@@ -160,3 +160,55 @@ export function Into({ label }: { readonly label: string }) {
     </span>
   );
 }
+
+/**
+ * Two measures, day by day, side by side.
+ *
+ * Paired rather than stacked: landing and entry are not parts of a whole —
+ * the entry screen is reachable from a bookmark without passing through the
+ * landing at all, which is also why reach can exceed 100 %.
+ */
+export function PairedBars({
+  first,
+  second,
+  height = 'h-40',
+}: {
+  readonly first: readonly number[];
+  readonly second: readonly number[];
+  readonly height?: string;
+}) {
+  const top = Math.max(...first, ...second, 1);
+  return (
+    <div className={`flex items-end gap-1.5 ${height}`}>
+      {first.map((value, at) => (
+        <div
+          key={`${String(at)}-${String(value)}`}
+          // `h-full` and not only `items-end`: the bars below are sized as a
+          // percentage, and a percentage of an auto-height parent is zero.
+          className="flex h-full min-w-0 flex-1 items-end gap-px"
+        >
+          <div
+            className="min-w-0 flex-1 border-3 border-line-strong bg-accent-line"
+            style={{ height: `${String(Math.round((value / top) * 100))}%` }}
+          />
+          <div
+            className="min-w-0 flex-1 border-3 border-line-strong bg-accent"
+            style={{
+              height: `${String(Math.round(((second[at] ?? 0) / top) * 100))}%`,
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** What a swatch in a chart stands for. */
+export function Key({ fill, label }: { readonly fill: string; readonly label: string }) {
+  return (
+    <span className="flex items-center gap-2">
+      <span className={`size-3 border-2 border-line-strong ${fill}`} />
+      <span className="text-[12.5px] text-ink-2">{label}</span>
+    </span>
+  );
+}
