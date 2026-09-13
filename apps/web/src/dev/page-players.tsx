@@ -9,7 +9,7 @@
 // the list shows a **pseudonym, never an address** (E.3.3). And the list is
 // cumulative — the period chooses nothing about it — so every layout says so
 // where the list is, not in a footnote.
-import { count, percent, SAMPLE, type Player } from './sample-data.js';
+import { count, percent, type Player, type Sample } from './sample-data.js';
 import { CARD, Figure, LABEL, PANEL, Sparkline, Tile } from './parts.js';
 
 export type PlayersLayoutId = 'digest' | 'halves' | 'roster';
@@ -106,8 +106,8 @@ function Cumulative() {
 }
 
 /** P1 — the shape Overview has. Four figures, then the list. */
-export function PlayersDigest() {
-  const { players } = SAMPLE;
+export function PlayersDigest({ data }: { readonly data: Sample }) {
+  const { players } = data;
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -188,8 +188,8 @@ function Step({
 }
 
 /** P2 — two questions, two halves. */
-export function PlayersHalves() {
-  const { players } = SAMPLE;
+export function PlayersHalves({ data }: { readonly data: Sample }) {
+  const { players } = data;
   const whole = players.accounts;
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_1.35fr]">
@@ -241,8 +241,8 @@ export function PlayersHalves() {
 }
 
 /** P3 — the list is the page. */
-export function PlayersRoster() {
-  const { players } = SAMPLE;
+export function PlayersRoster({ data }: { readonly data: Sample }) {
+  const { players } = data;
   return (
     <div className="flex flex-col gap-4">
       <section

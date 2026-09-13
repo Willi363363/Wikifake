@@ -1,30 +1,33 @@
 'use client';
 
-// The lab: one page at a time, in the rail it will live in.
+// The lab: one page at a time, in the panel it will live in.
 //
-// The rail is settled and so is Overview. Players is the page under review, so
-// it is the one with a switcher; every page already decided renders what was
-// chosen, and the ones still waiting say so.
-import { useState } from 'react';
+// The rail is settled, Overview is settled, Players is settled. Activation is
+// the page under review, so it is the one with a switcher — and the period bar
+// now sits above all of them, because it always belonged to the panel rather
+// than to a page.
+import { useMemo, useState } from 'react';
 
-import { Digest } from './page-overview.js';
 import {
-  PLAYERS_LAYOUTS,
-  PlayersDigest,
-  PlayersHalves,
-  PlayersRoster,
-  type PlayersLayout,
-} from './page-players.js';
+  ACTIVATION_LAYOUTS,
+  ActivationFunnel,
+  ActivationLosses,
+  ActivationSteps,
+  type ActivationLayout,
+} from './page-activation.js';
+import { Digest } from './page-overview.js';
+import { PlayersDigest } from './page-players.js';
+import { PeriodBar } from './period-bar.js';
 import { Rail } from './rail.js';
 import { RailIcon } from './rail-icon.js';
 import { allItems } from './rail-models.js';
-import { SAMPLE } from './sample-data.js';
+import { DEFAULT_PERIOD, sampleFor, type Period } from './sample-data.js';
 
 /** The narrow frame. 380px, because the repository measures screens at 360. */
 const PHONE_WIDTH = 380;
 
-/** The page the switcher is for. The others render or wait. */
-const UNDER_REVIEW = 'players';
+/** The page the switcher is for. The others render what was chosen, or wait. */
+const UNDER_REVIEW = 'activation';
 
 function chip(selected: boolean): string {
   return selected
@@ -33,15 +36,16 @@ function chip(selected: boolean): string {
 }
 
 export function RailLab() {
-  const [layout, setLayout] = useState<PlayersLayout>(
-    PLAYERS_LAYOUTS[0] as PlayersLayout,
+  const [layout, setLayout] = useState<ActivationLayout>(
+    ACTIVATION_LAYOUTS[0] as ActivationLayout,
   );
+  const [period, setPeriod] = useState<Period>(DEFAULT_PERIOD);
   const [activeId, setActiveId] = useState(UNDER_REVIEW);
   const [narrow, setNarrow] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
+  const data = useMemo(() => sampleFor(period), [period]);
   const active = allItems().find((item) => item.id === activeId) ?? allItems()[0];
-  const onPlayers = activeId === UNDER_REVIEW;
 
   function select(id: string): void {
     setActiveId(id);
@@ -51,20 +55,21 @@ export function RailLab() {
   return (
     <div className="flex min-h-dvh flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-3">
-        <h1 className="m-0 text-2xl font-extrabold text-ink">Players lab</h1>
+        <h1 className="m-0 text-2xl font-extrabold text-ink">Activation lab</h1>
         <p className="m-0 max-w-prose text-sm text-muted">
-          The rail is settled, and so is Overview — open it in the rail to see it. Three
-          arrangements of the Players page, drawn from the same figures, so what is being
-          compared is which of its two questions it treats as the page. Every figure
-          exists in a reader today; the values are sample data, not a database.
+          The rail, Overview and Players are settled — open them in the rail. Three
+          arrangements of Activation, which is four counts and the three gaps between
+          them: they disagree about whether the subject is the steps or the losses. The
+          period above the page moves every figure that has a date, and the values are
+          sample data, not a database.
         </p>
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-[10px] tracking-[0.14em] text-muted uppercase">
-          Players
+          Activation
         </span>
-        {PLAYERS_LAYOUTS.map((candidate) => (
+        {ACTIVATION_LAYOUTS.map((candidate) => (
           <button
             key={candidate.id}
             type="button"
@@ -125,7 +130,7 @@ export function RailLab() {
       <div
         className="relative flex overflow-hidden border-3 border-line-strong bg-bg shadow-md"
         style={{
-          height: 900,
+          height: 940,
           width: narrow ? PHONE_WIDTH : '100%',
           maxWidth: '100%',
         }}
@@ -151,29 +156,27 @@ export function RailLab() {
                 <span className="sr-only">Sections</span>
               </button>
             ) : null}
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="truncate text-xl font-extrabold text-ink">
-                {active?.label}
-              </span>
-              <span className="truncate font-mono text-[11px] text-muted">
-                {SAMPLE.range.label}
-              </span>
-            </div>
+            <span className="truncate text-xl font-extrabold text-ink">
+              {active?.label}
+            </span>
           </div>
 
+          <PeriodBar period={period} onChoose={setPeriod} />
+
           <div className="flex-1 p-5">
-            {activeId === 'overview' ? <Digest /> : null}
-            {onPlayers ? (
+            {activeId === 'overview' ? <Digest data={data} /> : null}
+            {activeId === 'players' ? <PlayersDigest data={data} /> : null}
+            {activeId === UNDER_REVIEW ? (
               <>
-                {layout.id === 'digest' ? <PlayersDigest /> : null}
-                {layout.id === 'halves' ? <PlayersHalves /> : null}
-                {layout.id === 'roster' ? <PlayersRoster /> : null}
+                {layout.id === 'funnel' ? <ActivationFunnel data={data} /> : null}
+                {layout.id === 'losses' ? <ActivationLosses data={data} /> : null}
+                {layout.id === 'steps' ? <ActivationSteps data={data} /> : null}
               </>
             ) : null}
-            {activeId === 'overview' || onPlayers ? null : (
+            {['overview', 'players', UNDER_REVIEW].includes(activeId) ? null : (
               <p className="m-0 pt-16 text-center text-sm text-muted">
                 <span className="font-bold text-ink">{active?.label}</span> gets its own
-                round of this. Overview and Players are drawn so far.
+                round of this. Overview, Players and Activation are drawn so far.
               </p>
             )}
           </div>
