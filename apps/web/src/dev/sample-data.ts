@@ -1,4 +1,4 @@
-// The figures the three Overview layouts are drawn with.
+// The figures the lab is drawn with — Overview, Players, and the six to come.
 //
 // **Sample data, and the lab says so on screen.** Real numbers would need a
 // database and a session, and this route has neither by design — but a layout
@@ -25,6 +25,20 @@ export interface Service {
   readonly ms: number;
 }
 
+/**
+ * A row of the most-active list — `ActivePlayer`, field for field.
+ *
+ * **A pseudonym, never an email**, which is E.3.3's promise and holds on a
+ * mockup as firmly as on a screen: a layout drawn with addresses is a layout
+ * somebody will build with addresses.
+ */
+export interface Player {
+  readonly displayName: string;
+  readonly gamesFinished: number;
+  readonly gamesPlayed: number;
+  readonly lastSeen: string;
+}
+
 export const SAMPLE = {
   range: { label: 'This month', from: '15 August', to: '13 September 2026' },
 
@@ -35,6 +49,51 @@ export const SAMPLE = {
     activeToday: 73,
     activeThisWeek: 312,
     activeInRange: 596,
+    /**
+     * New accounts per day over the range, oldest first.
+     *
+     * Sums to the funnel's `created` deliberately: two fields of one sample
+     * that disagree are a mockup arguing with itself, and somebody will read a
+     * meaning into the gap.
+     */
+    newPerDay: [4, 7, 5, 9, 6, 8, 10, 7, 11, 9, 12, 8] as readonly number[],
+    /**
+     * The ten names the panel shows — `selectMostActive`, ordered by rounds
+     * finished. Cumulative totals with no date: the period does not move them,
+     * and every layout below has to say so.
+     */
+    mostActive: [
+      { displayName: 'Cassiopée', gamesFinished: 184, gamesPlayed: 201, lastSeen: '2 h' },
+      {
+        displayName: 'Marmotte du Vercors',
+        gamesFinished: 167,
+        gamesPlayed: 179,
+        lastSeen: '5 h',
+      },
+      { displayName: 'Aristide', gamesFinished: 142, gamesPlayed: 158, lastSeen: '1 d' },
+      { displayName: 'Pivoine', gamesFinished: 118, gamesPlayed: 140, lastSeen: '1 d' },
+      {
+        displayName: 'Grande Ourse',
+        gamesFinished: 97,
+        gamesPlayed: 103,
+        lastSeen: '3 d',
+      },
+      { displayName: 'Théodule', gamesFinished: 91, gamesPlayed: 112, lastSeen: '3 d' },
+      {
+        displayName: 'Belle de nuit',
+        gamesFinished: 84,
+        gamesPlayed: 90,
+        lastSeen: '6 d',
+      },
+      { displayName: 'Ortolan', gamesFinished: 76, gamesPlayed: 95, lastSeen: '6 d' },
+      { displayName: 'Ficelle', gamesFinished: 71, gamesPlayed: 78, lastSeen: '8 d' },
+      {
+        displayName: 'Vent d\u2019autan',
+        gamesFinished: 64,
+        gamesPlayed: 88,
+        lastSeen: '12 d',
+      },
+    ] as readonly Player[],
   },
 
   activation: {

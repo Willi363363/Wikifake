@@ -2,7 +2,7 @@
 //
 // Shared deliberately: three layouts that also drew their own tiles would be
 // three designs, and what is being compared is the arrangement.
-import { percent, type FunnelStep, type Service } from './overview-data.js';
+import { percent, type FunnelStep, type Service } from './sample-data.js';
 
 export const CARD = 'border-3 border-line-strong bg-surface shadow-md';
 export const PANEL = 'border-3 border-line bg-bg';

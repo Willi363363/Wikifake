@@ -1,21 +1,30 @@
 'use client';
 
-// The lab: the rail is settled, the Overview page is not.
+// The lab: one page at a time, in the rail it will live in.
 //
-// Three arrangements of the same figures, switchable, with the chosen rail
-// beside them so each is judged where it will actually sit. Only Overview is
-// drawn: the other seven pages say so when you open them, and get their own
-// round of this.
+// The rail is settled and so is Overview. Players is the page under review, so
+// it is the one with a switcher; every page already decided renders what was
+// chosen, and the ones still waiting say so.
 import { useState } from 'react';
 
-import { Briefing, Console, Digest, LAYOUTS, type Layout } from './overview-layouts.js';
+import { Digest } from './page-overview.js';
+import {
+  PLAYERS_LAYOUTS,
+  PlayersDigest,
+  PlayersHalves,
+  PlayersRoster,
+  type PlayersLayout,
+} from './page-players.js';
 import { Rail } from './rail.js';
 import { RailIcon } from './rail-icon.js';
 import { allItems } from './rail-models.js';
-import { SAMPLE } from './overview-data.js';
+import { SAMPLE } from './sample-data.js';
 
 /** The narrow frame. 380px, because the repository measures screens at 360. */
 const PHONE_WIDTH = 380;
+
+/** The page the switcher is for. The others render or wait. */
+const UNDER_REVIEW = 'players';
 
 function chip(selected: boolean): string {
   return selected
@@ -24,13 +33,15 @@ function chip(selected: boolean): string {
 }
 
 export function RailLab() {
-  const [layout, setLayout] = useState<Layout>(LAYOUTS[0] as Layout);
-  const [activeId, setActiveId] = useState('overview');
+  const [layout, setLayout] = useState<PlayersLayout>(
+    PLAYERS_LAYOUTS[0] as PlayersLayout,
+  );
+  const [activeId, setActiveId] = useState(UNDER_REVIEW);
   const [narrow, setNarrow] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const active = allItems().find((item) => item.id === activeId) ?? allItems()[0];
-  const onOverview = activeId === 'overview';
+  const onPlayers = activeId === UNDER_REVIEW;
 
   function select(id: string): void {
     setActiveId(id);
@@ -40,27 +51,27 @@ export function RailLab() {
   return (
     <div className="flex min-h-dvh flex-col gap-6 px-4 py-8">
       <header className="flex flex-col gap-3">
-        <h1 className="m-0 text-2xl font-extrabold text-ink">Overview lab</h1>
+        <h1 className="m-0 text-2xl font-extrabold text-ink">Players lab</h1>
         <p className="m-0 max-w-prose text-sm text-muted">
-          The rail is settled — eight pages, each group in its own block. Three
-          arrangements of the Overview page, drawn from the same figures, so what is being
-          compared is what each one puts first. Every figure below exists in a reader
-          today; the values are sample data, not a database.
+          The rail is settled, and so is Overview — open it in the rail to see it. Three
+          arrangements of the Players page, drawn from the same figures, so what is being
+          compared is which of its two questions it treats as the page. Every figure
+          exists in a reader today; the values are sample data, not a database.
         </p>
       </header>
 
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-[10px] tracking-[0.14em] text-muted uppercase">
-          Overview
+          Players
         </span>
-        {LAYOUTS.map((candidate) => (
+        {PLAYERS_LAYOUTS.map((candidate) => (
           <button
             key={candidate.id}
             type="button"
             aria-pressed={candidate.id === layout.id}
             onClick={() => {
               setLayout(candidate);
-              setActiveId('overview');
+              setActiveId(UNDER_REVIEW);
             }}
             className={chip(candidate.id === layout.id)}
           >
@@ -145,22 +156,24 @@ export function RailLab() {
                 {active?.label}
               </span>
               <span className="truncate font-mono text-[11px] text-muted">
-                {onOverview ? SAMPLE.range.label : active?.route}
+                {SAMPLE.range.label}
               </span>
             </div>
           </div>
 
           <div className="flex-1 p-5">
-            {onOverview ? (
+            {activeId === 'overview' ? <Digest /> : null}
+            {onPlayers ? (
               <>
-                {layout.id === 'digest' ? <Digest /> : null}
-                {layout.id === 'briefing' ? <Briefing /> : null}
-                {layout.id === 'console' ? <Console /> : null}
+                {layout.id === 'digest' ? <PlayersDigest /> : null}
+                {layout.id === 'halves' ? <PlayersHalves /> : null}
+                {layout.id === 'roster' ? <PlayersRoster /> : null}
               </>
-            ) : (
+            ) : null}
+            {activeId === 'overview' || onPlayers ? null : (
               <p className="m-0 pt-16 text-center text-sm text-muted">
                 <span className="font-bold text-ink">{active?.label}</span> gets its own
-                round of this. Only Overview is drawn so far.
+                round of this. Overview and Players are drawn so far.
               </p>
             )}
           </div>
