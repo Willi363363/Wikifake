@@ -11,7 +11,7 @@
 // that silently left them alone would be a control that lied about two thirds
 // of a screen.
 import { useFormatter, useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { Link, usePathname } from '../i18n/navigation.js';
 
 import { PRESETS, type Preset, type Range } from './range.js';
 
@@ -21,6 +21,10 @@ export interface RangeChooserProps {
 
 export function RangeChooser({ range }: RangeChooserProps) {
   const t = useTranslations('admin.range');
+  // K.1 split the panel into eight routes, so the period has to come back to
+  // the page it was chosen on. It used to be `/admin` in the markup, which
+  // sent anybody changing the period on a section back to the way in.
+  const here = usePathname();
   const format = useFormatter();
 
   return (
@@ -32,7 +36,7 @@ export function RangeChooser({ range }: RangeChooserProps) {
         {PRESETS.map((preset: Preset) => (
           <Link
             key={preset}
-            href={`/admin?range=${preset}`}
+            href={`${here}?range=${preset}`}
             aria-current={preset === range.preset ? 'page' : undefined}
             // A chosen tab is a fill carrying `on-fill`; the rest are washes
             // carrying `ink`. Never a fill used as a text colour.

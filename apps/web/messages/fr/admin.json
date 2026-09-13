@@ -164,5 +164,16 @@
     "allTime": "Tout compris, quelle que soit la période : ce sont des totaux cumulés sans date.",
     "live": "En direct, quelle que soit la période.",
     "cohort": "La période choisit qui s’est inscrit, pas quand ils ont joué."
+  },
+  "nav": {
+    "label": "Sections",
+    "close": "Fermer les sections",
+    "readOnly": "Lecture seule",
+    "overview": "Vue d’ensemble",
+    "groups": {
+      "audience": "Audience",
+      "game": "Le jeu",
+      "system": "Système"
+    }
   }
 }

@@ -6,7 +6,23 @@
 // And the sentence under them, which is the honest half of this step — it says
 // **which sections the range moves**, because two of them cannot honour it.
 import { cleanup, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+import type * as Navigation from '../i18n/navigation.js';
+
+/*
+ * The page the chooser is on — K.1.
+ *
+ * It used to write `/admin` into every link, which was right while the panel
+ * was one page and wrong the moment it became eight: changing the period on
+ * a section sent you back to the way in. The component reads the path now, so
+ * the test has to supply one, and `at` is what each case is standing on.
+ */
+let at = '/admin';
+vi.mock('../i18n/navigation.js', async () => {
+  const real = await vi.importActual<typeof Navigation>('../i18n/navigation.js');
+  return { ...real, usePathname: () => at };
+});
 
 import { RangeChooser } from './range-chooser.js';
 import { rangeFrom } from './range.js';
@@ -14,6 +30,7 @@ import { render, renderIn } from '../i18n/testing.js';
 
 afterEach(() => {
   cleanup();
+  at = '/admin';
 });
 
 const THURSDAY = Date.UTC(2026, 8, 10, 15, 0, 0);
@@ -29,6 +46,24 @@ describe('I.8 — the chooser', () => {
     expect(screen.getByRole('link', { name: '7 days' }).getAttribute('href')).toBe(
       '/admin?range=7d',
     );
+  });
+
+  it('comes back to the page the period was chosen on', () => {
+    // The half K.1 added, and the one a hardcoded `/admin` got wrong: a
+    // period is a property of the panel, but a link is a property of a page.
+    at = '/admin/cost';
+
+    render(<RangeChooser range={rangeFrom('30d', THURSDAY)} />);
+
+    for (const [name, preset] of [
+      ['7 days', '7d'],
+      ['90 days', '90d'],
+      ['All time', 'all'],
+    ] as const) {
+      expect(screen.getByRole('link', { name }).getAttribute('href')).toBe(
+        `/admin/cost?range=${preset}`,
+      );
+    }
   });
 
   it('announces the chosen one rather than only colouring it', () => {

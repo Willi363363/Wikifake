@@ -164,5 +164,16 @@
     "allTime": "All-time, whatever the range: these are running totals with no date on them.",
     "live": "Live, whatever the range.",
     "cohort": "The range picks who signed up, not when they played."
+  },
+  "nav": {
+    "label": "Sections",
+    "close": "Close the sections",
+    "readOnly": "Read only",
+    "overview": "Overview",
+    "groups": {
+      "audience": "Audience",
+      "game": "The game",
+      "system": "System"
+    }
   }
 }

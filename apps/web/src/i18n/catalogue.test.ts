@@ -104,6 +104,13 @@ describe('11.6 — French is translated, not copied', () => {
     'admin.games.modes.solo',
     'admin.games.noRounds',
     'admin.health.columns.service',
+    // K.1's rail. `Audience` is a French word with the same spelling and the
+    // same meaning, and `Sections` is the plural of one — the label a screen
+    // reader is given for the navigation itself. `nav.groups.game` and
+    // `nav.groups.system` are translated, which is what says these two are a
+    // coincidence of spelling rather than an untranslated block.
+    'admin.nav.groups.audience',
+    'admin.nav.label',
     // The em dash the arrivals section prints when there is nothing to divide,
     // which is punctuation in both languages — `admin.games.noRounds` above is
     // the same character for the same reason.

@@ -1,102 +1,73 @@
-// `/admin` — step I.1.
+// `/admin` — the way in, and from K.1 the Overview page.
 //
-// The shell, the gate, and — since I.2 — the health section. I.3 to I.7 add the
-// rest, and each arrives as one more call between the gate and the list of what
-// is still to come.
+// It kept its address on purpose: anybody with the old one in a bookmark lands
+// somewhere that still makes sense. What changed is that it is no longer *the
+// panel* — the seven sections have addresses of their own now, and this page
+// is the summary that decides which of them to open.
+//
+// K.3 replaces the body below with the digest the owner chose. Until then it
+// shows the sections rather than pretending to be one, because a page that
+// lies about being finished is worse than a page that says it is not.
 //
 // **No redirect anywhere in this file.** Every other gated page in this
 // application sends somebody somewhere — `/sign-in`, `/sign-up`,
-// `/choose-a-name` — and each of those redirects is an answer: *this page exists
-// and you are not allowed on it yet*. Here that answer is the thing being
-// withheld, so `requireAdmin` raises a 404 and the page simply never renders.
+// `/choose-a-name` — and each of those redirects is an answer: *this page
+// exists and you are not allowed on it yet*. Here that answer is the thing
+// being withheld, so `requireAdmin` raises a 404 and the page never renders.
 import type { Metadata } from 'next';
-
-import { robotsFor } from '../../../src/indexing.js';
 import { getTranslations } from 'next-intl/server';
 
+import { requireAdmin } from '../../../src/admin/gate.js';
 import { HealthSection } from '../../../src/admin/health-screen.js';
 import { readHealth } from '../../../src/admin/health.js';
-import { ActivationSection } from '../../../src/admin/activation-screen.js';
-import { readActivation } from '../../../src/admin/activation.js';
-import { ContentSection } from '../../../src/admin/content-screen.js';
-import { RangeChooser } from '../../../src/admin/range-chooser.js';
-import { rangeFrom } from '../../../src/admin/range.js';
-import { readContent } from '../../../src/admin/content.js';
-import { CostSection } from '../../../src/admin/cost-screen.js';
-import { rateFrom, readCost } from '../../../src/admin/cost.js';
-import { GamesSection } from '../../../src/admin/games-screen.js';
-import { readGames } from '../../../src/admin/games.js';
-import { TrafficSection } from '../../../src/admin/traffic-screen.js';
-import { readTraffic } from '../../../src/admin/traffic.js';
-import { PlayersSection } from '../../../src/admin/players-screen.js';
-import { readPlayers } from '../../../src/admin/players.js';
-import { requireAdmin } from '../../../src/admin/gate.js';
+import { SectionGlyph } from '../../../src/admin/section-icon.js';
+import { GROUPS } from '../../../src/admin/sections.js';
 import { db } from '../../../src/game/wiring.js';
+import { Link } from '../../../src/i18n/navigation.js';
+import { robotsFor } from '../../../src/indexing.js';
 
-/** Not content, and not a page any crawler should hold or index. */
 export const metadata: Metadata = { robots: robotsFor('/admin') };
 
 /** Never prerendered: it reads a cookie and answers differently per request. */
 export const dynamic = 'force-dynamic';
 
-export default async function AdminPage({
-  searchParams,
-}: {
-  readonly searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
+export default async function AdminPage() {
   await requireAdmin();
   const t = await getTranslations('admin');
-
-  // I.8 — the range comes from the address, so it is bookmarkable and
-  // shareable. An array is what Next gives for a repeated parameter; the first
-  // wins, and anything unrecognised falls back to the default rather than
-  // refusing: a panel is not a form.
-  const asked = (await searchParams)['range'];
-  const range = rangeFrom(Array.isArray(asked) ? asked[0] : asked, Date.now());
-  // `Date.now()` here rather than inside the read path: a route is where a real
-  // clock is allowed to come from, which is the split every feature in this
-  // repository makes.
-  const players = await readPlayers({ db: db() }, range, Date.now());
-  const activation = await readActivation({ db: db() }, range);
-  const games = await readGames({ db: db() }, range);
-  const traffic = await readTraffic({ db: db() }, range);
-  const cost = await readCost(
-    {
-      db: db(),
-      // Read here rather than inside: a route is where a real environment is
-      // allowed to come from.
-      inputCostPerMTok: rateFrom(process.env['MODEL_INPUT_COST_PER_MTOK']),
-      outputCostPerMTok: rateFrom(process.env['MODEL_OUTPUT_COST_PER_MTOK']),
-    },
-    range,
-  );
-  const content = await readContent({ db: db() }, range);
   const health = await readHealth({
-    db: db(),
     // Read here rather than inside: a route is where a real environment is
-    // allowed to come from, which is the same split `Date.now()` gets
-    // everywhere else in this repository.
+    // allowed to come from.
+    db: db(),
     realtimeUrl: process.env['NEXT_PUBLIC_REALTIME_URL'],
   });
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4 py-10">
-      <h1 className="text-3xl text-ink">{t('title')}</h1>
-      <p className="mt-2 max-w-prose text-sm text-muted">{t('lead')}</p>
-
-      <RangeChooser range={range} />
+    <div className="flex flex-col gap-6">
+      <p className="m-0 max-w-prose text-sm text-muted">{t('lead')}</p>
 
       <HealthSection health={health} />
-      <PlayersSection players={players} />
-      <ActivationSection activation={activation} />
-      <GamesSection games={games} />
-      {/* Step J.4b — the one section about people who are not players yet, so
-          it sits after the rounds and before what they cost. */}
-      <TrafficSection traffic={traffic} />
-      <CostSection cost={cost} />
-      <ContentSection content={content} />
 
-      <p className="mt-8 text-sm text-muted">{t('readOnly')}</p>
-    </main>
+      <nav
+        aria-label={t('nav.label')}
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3"
+      >
+        {GROUPS.flatMap((group) => group.sections)
+          .filter((section) => section.route !== '/admin')
+          .map((section) => (
+            <Link
+              key={section.route}
+              href={section.route}
+              className="flex min-h-11 items-center gap-3 border-3 border-line-strong bg-surface px-4 py-4 text-ink shadow-md"
+            >
+              <SectionGlyph name={section.icon} size={20} />
+              <span className="min-w-0 flex-1 truncate text-base font-bold">
+                {t(section.key)}
+              </span>
+            </Link>
+          ))}
+      </nav>
+
+      <p className="m-0 max-w-prose text-sm text-muted">{t('readOnly')}</p>
+    </div>
   );
 }
