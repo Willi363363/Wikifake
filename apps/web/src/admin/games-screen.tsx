@@ -54,7 +54,7 @@ function ModeCard({ row, filled }: { readonly row: ModeRow; readonly filled: boo
       </div>
 
       <div
-        className={`grid grid-cols-2 gap-4 border-t-3 pt-4 ${
+        className={`grid grid-cols-2 gap-4 border-t pt-4 ${
           filled ? 'border-line-strong' : 'border-line'
         }`}
       >
@@ -73,7 +73,7 @@ function ModeCard({ row, filled }: { readonly row: ModeRow; readonly filled: boo
       {/* The rate as a length, under the figure that already says it in words:
           a bar nobody can read a number off is decoration, and decoration that
           repeats a fact is how a card is scanned rather than parsed. */}
-      <div aria-hidden className="flex h-3 border-3 border-line-strong bg-bg">
+      <div aria-hidden className="flex h-3 overflow-hidden rounded-sm bg-bg">
         <span
           className="h-full bg-danger"
           style={{ width: `${String(Math.round((row.abandonRate ?? 0) * 100))}%` }}

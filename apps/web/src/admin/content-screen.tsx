@@ -84,7 +84,7 @@ export function ContentSection({ content }: ContentSectionProps) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b-3 border-line-strong">
+                  <tr className="border-b border-line-strong">
                     <th scope="col" className={`${LABEL} px-2 py-2 text-left`}>
                       {t('columns.topic')}
                     </th>
@@ -151,7 +151,7 @@ export function ContentSection({ content }: ContentSectionProps) {
             note={of(content.failures.topicFailed, content.failures.topicCalls)}
           />
 
-          <p className="m-0 mt-auto max-w-prose border-t-3 border-line pt-3 text-[11.5px] leading-relaxed text-muted">
+          <p className="m-0 mt-auto max-w-prose border-t border-line pt-3 text-[11.5px] leading-relaxed text-muted">
             {t('topicFailures', {
               count: content.failures.topicFailed,
               calls: content.failures.topicCalls,

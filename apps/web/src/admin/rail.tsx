@@ -18,9 +18,11 @@ import { GROUPS, type Group, type Section } from './sections.js';
 
 const ENTRY =
   'flex min-h-11 w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors';
-const ACTIVE = 'border-3 border-line-strong bg-accent font-bold text-on-fill shadow-sm';
-const IDLE =
-  'border-3 border-transparent font-medium text-ink-2 hover:border-line-strong hover:bg-bg-grain hover:text-ink';
+// L.7 repainted these and moved none of them. The idle entry carried a
+// transparent 3px border so that hovering did not reflow the rail by three
+// pixels; with no border on either state there is nothing to reserve room for.
+const ACTIVE = 'rounded-lg bg-accent font-bold text-on-fill';
+const IDLE = 'rounded-lg font-medium text-ink-2 hover:bg-bg-grain hover:text-ink';
 const HEADING = 'px-3 py-2 font-mono text-[10px] tracking-[0.14em] text-muted uppercase';
 
 function Entries({
@@ -66,9 +68,9 @@ function Nav({
   return (
     <nav
       aria-label={t('nav.label')}
-      className="flex h-full flex-col border-r-3 border-line-strong bg-surface"
+      className="flex h-full flex-col border-r border-line-strong bg-surface"
     >
-      <div className="flex flex-col gap-1 border-b-3 border-line-strong px-4 py-4">
+      <div className="flex flex-col gap-1 border-b border-line-strong px-4 py-4">
         <span className="font-mono text-base font-bold tracking-[0.06em] text-ink">
           WIKIFAKE
         </span>
@@ -82,8 +84,8 @@ function Nav({
           group.key === null ? (
             <Entries key="top" group={group} here={here} onFollow={onFollow} />
           ) : (
-            <div key={group.key} className="border-3 border-line bg-bg">
-              <span className={`${HEADING} block border-b-3 border-line`}>
+            <div key={group.key} className="rounded-lg border border-line bg-bg">
+              <span className={`${HEADING} block border-b border-line`}>
                 {t(group.key)}
               </span>
               <div className="p-1.5">
@@ -94,7 +96,7 @@ function Nav({
         )}
       </div>
 
-      <p className="m-0 border-t-3 border-line-strong px-4 py-3 font-mono text-[10px] tracking-[0.1em] text-muted uppercase">
+      <p className="m-0 border-t border-line-strong px-4 py-3 font-mono text-[10px] tracking-[0.1em] text-muted uppercase">
         {t('nav.readOnly')}
       </p>
     </nav>
@@ -130,7 +132,7 @@ export function RailDrawer() {
         onClick={() => {
           setOpen(!open);
         }}
-        className="flex size-11 shrink-0 items-center justify-center border-3 border-line-strong bg-accent text-on-fill shadow-sm lg:hidden"
+        className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-accent text-on-fill lg:hidden"
       >
         <SectionGlyph name="grid" size={18} />
         <span className="sr-only">{t('nav.label')}</span>

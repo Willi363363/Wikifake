@@ -134,7 +134,7 @@ export function OverviewSection({
           ) : (
             <Sparkline columns={arrivals} height="h-28" />
           )}
-          <div className="flex items-center justify-between border-t-3 border-line pt-3">
+          <div className="flex items-center justify-between border-t border-line pt-3">
             <span className="text-[13px] text-ink-2">{t('traffic.landing')}</span>
             <span className="font-mono text-sm font-bold tabular-nums text-ink">
               <Count value={traffic.landing} />

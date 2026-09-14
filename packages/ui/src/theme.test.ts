@@ -230,12 +230,22 @@ describe('6.1 — the tokens', () => {
       }
     });
 
-    // 3px, and it is a token so that twenty components do not each carry the
-    // number. L.6 took it off every screen of the game and out of every
-    // primitive; the admin panel still reads it, and L.7 is where it and this
-    // assertion go together.
-    it('names the structural border width, until L.7 retires it', () => {
-      expect(theme.get('--border-width-3')).toBe('3px');
+    /*
+     * There was an assertion here: *names the structural border width*, holding
+     * `--border-width-3` to 3px. It was the width track A framed everything at,
+     * and every primitive read it.
+     *
+     * L.6 took it off the game's screens and L.7 off the admin panel, which left
+     * a token with no reader. It is gone rather than kept as a spelling nobody
+     * uses, and this is what stands in its place: **no width token at all.** A
+     * direction that separates by surface has one border width, and it is
+     * Tailwind's own hairline — a second one declared here would be the first
+     * step back towards a frame.
+     */
+    it('declares no border width of its own', () => {
+      expect(
+        [...theme.keys()].filter((name) => name.startsWith('--border-width-')),
+      ).toEqual([]);
     });
 
     it('names the breakpoints and the viewport floor', () => {

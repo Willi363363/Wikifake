@@ -175,20 +175,6 @@
     Consolas, monospace;
 
   /*
-   * The structural border, as a width — and it is on its way out.
-   *
-   * 3px everywhere track A meant something by it, which was everywhere. J2 does
-   * not frame a tile: a surface separates by being a different surface, and L.6
-   * took `border-3` off every screen of the game and out of every primitive.
-   *
-   * The token survives this step because the admin panel still reads it, and
-   * L.7 is the step that repaints the admin panel. Retiring it here would have
-   * meant repainting eight admin routes inside the step that was supposed to
-   * leave them alone. It goes with the last `border-3` in L.7.
-   */
-  --border-width-3: 3px;
-
-  /*
    * The corners. A scale, because the direction now has one.
    *
    * They were all zero, and the comment said "square, because the direction
