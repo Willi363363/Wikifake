@@ -244,7 +244,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
       ) : null}
 
       {room.phase !== 'lobby' ? null : (
-        <div className="border-3 border-line-strong bg-surface p-6 shadow-md">
+        <div className="rounded-xl bg-surface p-6">
           <PlayerList players={room.players} />
 
           <Separator className="my-5" />
@@ -301,7 +301,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
             // sends a host-only message sees this rather than a dead screen.
             <p
               role="alert"
-              className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+              className="mt-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink text-center"
             >
               {refusal}
             </p>
@@ -309,7 +309,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
           {transportRefusal === null ? null : (
             <p
               role="alert"
-              className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+              className="mt-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink text-center"
             >
               {transportRefusal}
             </p>

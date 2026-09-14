@@ -1,6 +1,6 @@
 // The exemption, as an assertion.
 //
-// `01-art-direction.md` says the brutalist grammar applies to the chassis and
+// `01-art-direction.md` says the chassis carries the grammar and
 // never to the article being judged. That is a sentence, and a sentence is what
 // erodes: the reading sheet will sit next to loud components for the life of
 // this project, and "make it match" is a reasonable-sounding request that would
@@ -44,7 +44,7 @@ describe('B.7 — the reading sheet', () => {
    * The three the direction forbids here.
    *
    * `border-` and `shadow-` are checked as prefixes rather than exact classes,
-   * so `border-3`, `border-line-strong` and `shadow-md` all fail — and so does
+   * so any width, `border-line-strong` and `shadow-md` all fail — and so does
    * whichever spelling somebody reaches for next.
    */
   it('carries no border and no shadow of its own', () => {

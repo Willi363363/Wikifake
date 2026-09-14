@@ -6,16 +6,18 @@
 // tidy-up:
 //
 //   - **It was illegible in the place it mattered most.** On the primary button
-//     it composited #ffe14d against the page and the black text with it, so a
+//     it composited the fill against the page and the text on it with it, so a
 //     `Submitted` in the round's top bar read as grey on cream.
 //   - **Nothing could measure it.** `CONTRAST_PAIRS` measures two declared
 //     tokens; an opacity composite is neither of them, and WCAG 1.4.3 exempts a
 //     disabled control, so no audit called it either. It was invisible to every
 //     check this repository has.
 //
-// The replacement is the direction's own vocabulary — a flat fill, a collapsed
-// shadow, text a step down — and both colours are tokens, so the state is now a
-// row of the audit (`muted` on `bg-grain`, 6.52 and 7.05).
+// The replacement is a flat recessed fill, no lift and text a step down. Both
+// colours are tokens, so the state is a row of the audit rather than a composite
+// (`muted` on `bg-grain`, 5.51 and 5.74). It outlived the direction that wrote
+// it: L.6 replaced the button around it and changed nothing here, because the
+// rule was never about the frame.
 //
 // This file is what stops the fade coming back. It is a scan rather than a
 // render: the defect is a class in the source, visible without a browser, and

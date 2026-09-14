@@ -80,10 +80,7 @@ export function SoloGame({ topic }: SoloGameProps) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 text-center">
         <h1 className="text-2xl text-ink">{t('title')}</h1>
-        <p
-          role="alert"
-          className="border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink"
-        >
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink">
           {topic === null || topic === '' ? t('errors.noTopic') : t('errors.badTopic')}
         </p>
         <Back />
@@ -102,10 +99,7 @@ export function SoloGame({ topic }: SoloGameProps) {
           {valid}
         </h1>
         {/* The refusal is the server's sentence, shown as received. */}
-        <p
-          role="alert"
-          className="border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink"
-        >
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink">
           {refusal}
         </p>
         <Back />

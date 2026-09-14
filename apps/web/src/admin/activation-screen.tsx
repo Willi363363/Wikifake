@@ -79,7 +79,7 @@ export function ActivationSection({ activation }: ActivationSectionProps) {
           }))}
         />
 
-        <dl className="m-0 grid gap-x-6 gap-y-2 border-t-3 border-line pt-3 sm:grid-cols-2">
+        <dl className="m-0 grid gap-x-6 gap-y-2 border-t border-line pt-3 sm:grid-cols-2">
           {activation.funnel.map((one) => (
             <div key={one.name} className="flex min-w-0 flex-col">
               <dt className="text-[12px] font-bold text-ink-2">

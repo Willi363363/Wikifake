@@ -35,7 +35,7 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
         role="toolbar"
         aria-label={t('items.barAria')}
         aria-orientation="horizontal"
-        className="flex max-w-full items-center gap-2 overflow-x-auto border-3 border-line-strong bg-surface px-3 py-2 shadow-lg"
+        className="flex max-w-full items-center gap-2 overflow-x-auto rounded-xl bg-surface px-3 py-2 shadow-lg"
       >
         <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
           {t('items.barLabel')}
@@ -65,11 +65,12 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
                   ? t('items.cardAria', { name, blurb })
                   : t('items.cardAriaTargeted', { name, blurb })
               }
-              // The card carries the structural border and the hard offset, and
-              // the hover is the direction's: the shadow collapses and the card
-              // moves the shadow's own 4px into it. What was here — rise a
-              // pixel, *gain* a shadow — is the previous identity's lift, and
-              // this direction floats nothing, so it cannot raise one.
+              // The card is a tile on a bar, and a tile on a bar does not
+              // lift: the bar is already the thing over the page, and nine
+              // cards each rising a pixel is a row that ripples. So the hover
+              // is a fill — the same answer the secondary button gives, and
+              // `border-accent-line` would have been an edge in a fill colour,
+              // which `fills.test.ts` refuses for a reason of its own.
               //
               // The state is the fill. `border-accent` on `bg-accent-soft` was
               // a yellow border on a yellow wash, which is the colour-on-colour
@@ -77,14 +78,14 @@ export function ItemBar({ hand, pending, locked, onPick }: ItemBarProps) {
               // alone, against the same black edge as at rest.
               className={cn(
                 'flex min-w-[4.5rem] flex-col items-center gap-1 px-3 py-2',
-                'border-3 border-line-strong shadow-md',
-                'transition-[transform,box-shadow] duration-150 motion-reduce:transition-none',
-                'enabled:hover:translate-x-1 enabled:hover:translate-y-1 enabled:hover:shadow-none',
+                'rounded-lg border border-line-strong',
+                'transition-colors duration-150 motion-reduce:transition-none',
+                'enabled:hover:bg-bg-grain',
                 'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
-                // Flat fill, collapsed shadow, withdrawn text — the button
+                // Flat recessed fill and withdrawn text — the button
                 // primitive's disabled style, spelled here because this tile
                 // is not a `Button`.
-                'disabled:bg-bg-grain disabled:text-muted disabled:shadow-none',
+                'disabled:bg-bg-grain disabled:text-muted',
                 inFlight ? 'bg-accent-soft' : 'bg-surface',
               )}
             >

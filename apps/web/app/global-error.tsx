@@ -49,8 +49,8 @@ export default function GlobalError({
           // Archivo on the document through the root layout, and this component
           // *replaces* that layout. Naming Archivo here would be naming a face
           // this page has no way to load.
-          background: '#fffcf2',
-          color: '#000000',
+          background: '#eef1f6',
+          color: '#111827',
           fontFamily: 'system-ui, -apple-system, Segoe UI, Roboto, sans-serif',
         }}
       >
@@ -65,7 +65,7 @@ export default function GlobalError({
           WikiFake could not start
         </h1>
         <p
-          style={{ margin: 0, maxWidth: '34rem', fontSize: '0.875rem', color: '#57544b' }}
+          style={{ margin: 0, maxWidth: '34rem', fontSize: '0.875rem', color: '#515c6b' }}
         >
           The page failed before it could load anything, so this message is in English
           whatever language you were reading in.
@@ -81,10 +81,10 @@ export default function GlobalError({
             // accent. It read `#1f574d` with white text — correct for the teal
             // it was, and 1.30:1 the moment the accent became #ffe14d.
             borderRadius: 0,
-            border: '3px solid #000000',
-            boxShadow: '4px 4px 0 #000000',
-            background: '#ffe14d',
-            color: '#000000',
+            border: '1px solid #94a3b8',
+            boxShadow: 'none',
+            background: '#2557e6',
+            color: '#ffffff',
             fontSize: '0.875rem',
             fontWeight: 700,
             cursor: 'pointer',
@@ -93,7 +93,7 @@ export default function GlobalError({
           Reload
         </button>
         {error.digest === undefined ? null : (
-          <p style={{ margin: 0, fontSize: '0.75rem', color: '#6f6b60' }}>
+          <p style={{ margin: 0, fontSize: '0.75rem', color: '#6d798a' }}>
             Reference: {error.digest}
           </p>
         )}

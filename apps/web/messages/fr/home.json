@@ -26,5 +26,11 @@
         "clock": "Chaque seconde restant au chrono"
       }
     }
+  },
+  "nav": {
+    "profile": "Profil",
+    "menu": "Menu",
+    "close": "Fermer le menu",
+    "backToGame": "Retour au jeu"
   }
 }

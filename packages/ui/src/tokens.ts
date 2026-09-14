@@ -25,7 +25,11 @@ export const COLOUR_TOKENS: readonly ColourToken[] = [
   { name: 'bg-grain', group: 'surface', role: 'a deeper ground, behind the page' },
   { name: 'surface', group: 'surface', role: 'a card, a panel, the reading sheet' },
   { name: 'line', group: 'surface', role: 'an internal divider, inside a card' },
-  { name: 'line-strong', group: 'surface', role: 'the structural 3px border' },
+  {
+    name: 'line-strong',
+    group: 'surface',
+    role: 'a firmer edge — a field, a table rule',
+  },
 
   { name: 'ink', group: 'text', role: 'what is being read' },
   { name: 'ink-2', group: 'text', role: 'secondary text, still read' },
@@ -48,37 +52,44 @@ export const COLOUR_TOKENS: readonly ColourToken[] = [
 ];
 
 /**
- * The tokens that are the same colour in both palettes.
+ * The tokens that are the same colour in both palettes. There are none.
  *
- * A fill does not change when the theme does — a yellow button is that yellow
- * on a dark page — and `on-fill` is black on either ground because the colour
- * underneath it is. Everything else inverts, and `theme.test.ts` holds both
- * halves of that: these must match between the palettes, and nothing else may.
+ * Track A had a list here, and the reason was sound for the palette it had: a
+ * yellow button is that yellow on a dark page, so the fills and the black on
+ * them did not move. J2's accent is a blue, and #2557e6 on a #141b26 card
+ * measures 2.95 — a fill that stayed put would be a fill half the site could
+ * not read. So L.3 emptied the list rather than argue with it.
+ *
+ * It stays exported, and empty is the assertion: `theme.test.ts` reads it to
+ * mean *every colour must differ between the palettes*, and a token somebody
+ * forgets to translate fails there.
  */
-export const THEME_INDEPENDENT: readonly string[] = [
-  'on-fill',
-  'accent',
-  'accent-line',
-  'bronze',
-  'green',
-  'warn',
-  'danger',
-];
+export const THEME_INDEPENDENT: readonly string[] = [];
 
 /**
- * The elevations — a distance, not a blur.
+ * The elevations — light, and used sparingly.
  *
- * Each is a solid block of `--color-line-strong` at an offset: `sm` on a chip,
- * `md` on a button or a card, `lg` on a dialog. Nothing in this direction
- * floats, so nothing is blurred.
+ * Track A's were a solid block of `--color-line-strong` at an offset, because
+ * that direction drew a raised object as the same object shifted. J2 separates
+ * a tile by making it a different surface, so most of the interface asks for no
+ * elevation at all. What is left for a shadow to say is *I am over the page* —
+ * true of a dialog and of a menu, false of a card.
+ *
+ * Each is restated in `.dark`: a shadow is light, and a near-black haze that
+ * separates a white card from a grey page is invisible on #0b0f17.
  */
 export const SHADOW_TOKENS: readonly string[] = ['sm', 'md', 'lg'];
 
 /**
- * The corners. `sm` to `xl` are all zero — the direction is square.
+ * The corners — a scale with a job per step, since L.6.
  *
- * `token` is the one exception it grants, at 4px, and it belongs to the
- * paragraph token and to nothing else. It is a token rather than a literal so
- * that the exception is findable: one grep says where the direction bends.
+ * They were all zero while the direction was square. `sm` is a chip, `md` a
+ * control, `lg` a panel, `xl` a tile or a dialog, and a screen picks the role
+ * rather than the number.
+ *
+ * `token` stays separate at 4px. It is no longer an exception — the direction
+ * rounds everything now — but it is still a corner that belongs to the
+ * paragraph mark rather than to this scale, so rounding the tiles further must
+ * not round the marks inside the prose.
  */
 export const RADIUS_TOKENS: readonly string[] = ['sm', 'md', 'lg', 'xl', 'token'];

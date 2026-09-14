@@ -34,12 +34,15 @@ describe('C.5 — the rows carry the order they assemble in', () => {
   it('gives the order to the rows and not to the frame', () => {
     const view = renderIn('en', <Scoreboard />);
 
-    // The frame and its shadow are there from the first row. A shadow that
-    // animated would be a shadow doing decoration, which is the one thing the
-    // direction says the grammar is not.
+    // The frame is whole from the first row: it is the card the rows arrive
+    // into, so its surface and its corner are static and only the rows stagger.
+    // L.6 took the shadow this used to name off the card — a shadow in J2 says
+    // *over the page*, and a scoreboard is in it — so the assertion names what
+    // is left rather than dropping the check.
     const frame = view.container.querySelector('dl');
     expect(frame?.style.getPropertyValue('--row')).toBe('');
-    expect(frame?.className).toContain('shadow-md');
+    expect(frame?.className).toContain('bg-surface');
+    expect(frame?.className).toContain('rounded-xl');
   });
 });
 

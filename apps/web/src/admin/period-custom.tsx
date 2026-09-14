@@ -22,9 +22,9 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 const FIELD =
-  'flex min-h-11 w-full items-center border-3 border-line-strong bg-surface px-3 font-mono text-sm text-ink shadow-sm';
+  'flex min-h-11 w-full items-center rounded-md border border-line-strong bg-surface px-3 font-mono text-sm text-ink';
 const LABEL = 'font-mono text-[10px] tracking-[0.12em] text-muted uppercase';
-const BUTTON = 'min-h-11 border-3 border-line-strong px-4 text-sm';
+const BUTTON = 'min-h-11 rounded-lg border border-line-strong px-4 text-sm';
 
 /** Whole days between two `YYYY-MM-DD`, both ends counted. */
 function daysBetween(from: string, to: string): number {
@@ -94,11 +94,11 @@ export function CustomPeriod({ chosen, from, to, today, className }: CustomPerio
             role="dialog"
             aria-modal="true"
             aria-label={t('title')}
-            className="flex w-full max-w-lg flex-col border-3 border-line-strong bg-surface shadow-lg"
+            className="flex w-full max-w-lg flex-col rounded-xl bg-surface shadow-lg"
           >
             <input type="hidden" name="range" value="custom" />
 
-            <div className="flex items-start justify-between gap-4 border-b-3 border-line-strong p-4">
+            <div className="flex items-start justify-between gap-4 border-b border-line-strong p-4">
               <div className="flex flex-col gap-1">
                 <h2 className="m-0 text-lg font-extrabold text-ink">{t('title')}</h2>
                 <p className="m-0 text-xs text-muted">{t('lead')}</p>
@@ -109,7 +109,7 @@ export function CustomPeriod({ chosen, from, to, today, className }: CustomPerio
                   setOpen(false);
                 }}
                 aria-label={t('close')}
-                className="flex size-11 shrink-0 items-center justify-center border-3 border-line-strong bg-surface text-ink"
+                className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-surface text-ink"
               >
                 <svg
                   width="16"
@@ -160,7 +160,7 @@ export function CustomPeriod({ chosen, from, to, today, className }: CustomPerio
               </label>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-4 border-t-3 border-line-strong bg-bg p-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-t border-line-strong bg-bg p-4">
               <span className="font-mono text-xs text-muted">
                 {backwards
                   ? t('backwards')
@@ -179,7 +179,7 @@ export function CustomPeriod({ chosen, from, to, today, className }: CustomPerio
                 <button
                   type="submit"
                   disabled={backwards}
-                  className={`${BUTTON} bg-accent font-bold text-on-fill shadow-sm disabled:pointer-events-none disabled:bg-bg-grain disabled:text-muted disabled:shadow-none`}
+                  className={`${BUTTON} bg-accent font-bold text-on-fill disabled:pointer-events-none disabled:bg-bg-grain disabled:text-muted disabled:shadow-none`}
                 >
                   {t('apply')}
                 </button>

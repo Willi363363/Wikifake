@@ -170,8 +170,25 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
     needs: 'large',
   },
 
-  // The fills. Same colour in both palettes, so these five measure the same on
-  // either ground — which is the point of `on-fill` existing.
+  /*
+   * The accent as a *text* colour — added by L.4.
+   *
+   * The brutalist direction forbade this outright: its accent was a saturated
+   * yellow fill that measured 2.95:1 as text, and `fills.test.ts` exists
+   * because thirty-two screens used it that way anyway. J2's accent is a link
+   * blue, and a link that is not coloured is not a link — so the use is allowed
+   * and these two rows are the price of allowing it.
+   *
+   * Declaring them is the whole point. The old rule was enforced by a scan with
+   * no number behind it; this is a number, and it fails the day somebody
+   * lightens the accent to make a button prettier.
+   */
+  { fg: 'accent', bg: 'surface', use: 'a link on a card', needs: 'AA' },
+  { fg: 'accent', bg: 'bg', use: 'a link on the page', needs: 'AA' },
+
+  // The fills. Each moves between the palettes now — J2 writes both themes
+  // together and its accent inverts — so these five measure differently on
+  // either ground, which `contrast.test.ts` asserts from the other side.
   { fg: 'on-fill', bg: 'accent', use: 'the primary button', needs: 'AA' },
   {
     fg: 'on-fill',

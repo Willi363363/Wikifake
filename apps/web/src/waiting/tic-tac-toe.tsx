@@ -178,7 +178,7 @@ export function TicTacToe() {
             // frame somebody forgot to finish.
             className={cn(
               'flex size-14 items-center justify-center text-xl',
-              'border-3 border-line-strong text-ink',
+              'rounded-lg border border-line-strong text-ink',
               'transition-colors motion-reduce:transition-none',
               'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
               'disabled:cursor-default enabled:hover:bg-accent-soft',

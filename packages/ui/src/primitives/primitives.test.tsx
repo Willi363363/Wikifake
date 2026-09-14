@@ -78,8 +78,8 @@ describe('6.2 — the primitives', () => {
     });
 
     /*
-     * The collapse is the direction's own motion, so it answers to the
-     * preference directly rather than through `motion.ts`.
+     * The hover is the direction's own motion, so it answers to the preference
+     * directly rather than through `motion.ts`.
      *
      * That list types the *game's* effects — a flash, a displacement — and
      * switches off what is hazardous. A hover transition is neither, and it is
@@ -94,12 +94,16 @@ describe('6.2 — the primitives', () => {
       );
     });
 
-    // And what it animates is named, so a colour or a size added later cannot
-    // join the transition by accident and make the collapse a fade.
-    it('transitions only what the collapse moves', () => {
+    // And what it animates is named, so a property added later cannot join the
+    // transition by accident. The list grew by one at L.6: the secondary button
+    // answers its hover with a fill rather than a lift, so the colour is part of
+    // the gesture now instead of being the thing kept out of it. A size is still
+    // not in it, and that is the part worth holding — an animated width is a
+    // control that moves the page around it.
+    it('transitions only what the hover moves', () => {
       render(<Button>Start</Button>);
       expect(screen.getByRole('button').className).toContain(
-        'transition-[transform,box-shadow]',
+        'transition-[transform,box-shadow,background-color]',
       );
     });
 

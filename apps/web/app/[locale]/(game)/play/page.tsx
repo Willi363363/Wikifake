@@ -21,7 +21,9 @@
 // signed-in player what they will be called instead of asking. The guarantee
 // itself is the ticket route's; this is what keeps the screen honest about it.
 import { requirePseudonym } from '../../../../src/account/gate.js';
-import { LobbyEntry } from '../../../../src/lobby/entry.js';
+import { db } from '../../../../src/game/wiring.js';
+import { Dashboard } from '../../../../src/lobby/dashboard.js';
+import { readHome } from '../../../../src/lobby/home.js';
 import { PageView } from '../../../../src/traffic/page-view.js';
 
 /** Never prerendered: it reads a cookie and answers differently per player. */
@@ -30,9 +32,23 @@ export const dynamic = 'force-dynamic';
 export default async function PlayPage() {
   const viewer = await requirePseudonym();
 
+  // L.6 — the four reads the dashboard draws, composed in one place. The clock
+  // is a parameter everywhere in this codebase and a route is where a real one
+  // is allowed to come from, which is why `Date.now()` is here and not inside.
+  //
+  // A guest gets a board and nothing else: `readHome` is handed no identity, so
+  // there is no query keyed by one. That is the same shape as the null it
+  // returns — an absence rather than a row of zeroes.
+  const home = await readHome(
+    { db: db() },
+    viewer.kind === 'account' ? (viewer.userId ?? null) : null,
+    Date.now(),
+  );
+
   return (
     <>
-      <LobbyEntry
+      <Dashboard
+        home={home}
         signedIn={viewer.kind === 'account'}
         {...(viewer.pseudonym === undefined ? {} : { pseudonym: viewer.pseudonym })}
       />

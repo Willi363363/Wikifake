@@ -47,7 +47,7 @@ export function ThemeVote({
   };
 
   return (
-    <div className="border-3 border-line-strong bg-surface p-6 shadow-md">
+    <div className="rounded-xl bg-surface p-6">
       <h2 className="text-center text-lg text-ink">{t('title')}</h2>
       <p className="mt-1 text-center text-sm text-muted">{t('subtitle')}</p>
 
@@ -99,7 +99,7 @@ export function ThemeVote({
       {wrong === null ? null : (
         <p
           role="alert"
-          className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+          className="mt-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink text-center"
         >
           {wrong}
         </p>

@@ -81,7 +81,7 @@ export function FlagReport({
     return (
       <div
         role="status"
-        className="border-3 border-line-strong bg-bg-grain p-4"
+        className="rounded-xl bg-bg-grain p-4"
         aria-label={t('report.resultAria')}
       >
         <p className="flex flex-wrap items-center gap-2">
@@ -118,7 +118,7 @@ export function FlagReport({
   }
 
   return (
-    <form onSubmit={submit} className="border-3 border-line-strong bg-bg-grain p-4">
+    <form onSubmit={submit} className="rounded-xl bg-bg-grain p-4">
       <p className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
         {t('paragraphTag', { number: capture.paragraphIndex })}
       </p>
@@ -173,7 +173,7 @@ export function FlagReport({
             onChange={(event) => {
               setSources(event.target.value);
             }}
-            className="w-full resize-none border-3 border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
+            className="w-full resize-none rounded-md border border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
           />
         </div>
       </div>
@@ -195,7 +195,7 @@ export function FlagReport({
       {refusal === null ? null : (
         <p
           role="alert"
-          className="mt-3 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink"
+          className="mt-3 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink"
         >
           {refusal}
         </p>

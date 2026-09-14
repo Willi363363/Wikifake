@@ -39,7 +39,7 @@ function ServiceCard({ reading }: { readonly reading: Reading }) {
 
       <div className="flex items-center gap-3">
         <span
-          className={`size-6 shrink-0 border-3 border-line-strong ${
+          className={`size-6 shrink-0 rounded-md border border-line-strong ${
             reading.up ? 'bg-green' : 'bg-danger'
           }`}
         />
@@ -84,8 +84,8 @@ export function HealthSection({ health }: HealthSectionProps) {
       <p
         className={
           health.sameCommit === false
-            ? 'm-0 border-3 border-line-strong bg-danger-soft px-4 py-3 text-sm text-ink'
-            : 'm-0 border-3 border-line px-4 py-3 text-sm text-ink-2'
+            ? 'm-0 rounded-lg bg-danger-soft px-4 py-3 text-sm text-ink'
+            : 'm-0 rounded-lg border border-line px-4 py-3 text-sm text-ink-2'
         }
         {...(health.sameCommit === false ? { role: 'alert' as const } : {})}
       >

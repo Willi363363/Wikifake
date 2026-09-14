@@ -55,7 +55,7 @@ export function GameLauncher() {
               onClick={() => {
                 setView({ at: 'playing', id: game.id });
               }}
-              className="flex flex-col items-center gap-1 border-3 border-line-strong bg-surface px-3 py-4 outline-none transition-colors hover:bg-accent-soft focus-visible:ring-[3px] focus-visible:ring-accent-line"
+              className="flex flex-col items-center gap-1 rounded-xl bg-surface px-3 py-4 outline-none transition-colors hover:bg-accent-soft focus-visible:ring-[3px] focus-visible:ring-accent-line"
             >
               <span aria-hidden="true" className="text-lg text-ink">
                 {game.icon}

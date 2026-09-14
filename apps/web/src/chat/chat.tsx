@@ -102,15 +102,16 @@ export function ChatDock() {
           setOpen(true);
         }}
         aria-label={unread === 0 ? t('open') : t('openUnread', { count: unread })}
-        // The handle is a structural object, so it takes the structural edge:
-        // `border-3 border-line-strong` rather than the 1px beige it wore,
-        // which against a 3px page read as a torn-off strip. `rounded-l-xl`
-        // went with it — the token resolves to 0 in this direction, so the
-        // class only said something the direction denies.
+        // The handle is a tab: rounded on the side that shows, square against
+        // the edge it is attached to. `rounded-l-xl` said nothing while the
+        // radius scale was pinned at zero and says it again now that L.6 gave
+        // the scale numbers.
         //
-        // No shadow either. It is pinned to `right-0`, so a 4px offset falls
-        // off the viewport on one side and hangs a stray bar under the other.
-        className="fixed top-1/2 right-0 z-40 flex h-28 -translate-y-1/2 items-center gap-2 border-3 border-r-0 border-line-strong bg-surface px-2 outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
+        // It keeps an elevation, unlike almost everything else, because it is
+        // one of the few objects on the site that genuinely is over the page —
+        // and a blurred shadow, unlike track A's offset, does not hang a stray
+        // bar off the viewport on the side it is pinned to.
+        className="fixed top-1/2 right-0 z-40 flex h-28 -translate-y-1/2 items-center gap-2 rounded-l-xl bg-surface px-2 shadow-lg outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
       >
         <span className="font-mono text-[11px] tracking-[0.1em] text-ink uppercase [writing-mode:vertical-rl] [transform:rotate(180deg)]">
           {t('tab')}
@@ -128,17 +129,16 @@ export function ChatDock() {
   return (
     <aside
       aria-label={t('title')}
-      // The one edge this panel has against the page is a structural one, and
-      // it was a 1px beige hairline. The width is spelled the long way for the
-      // reason `packages/ui/src/token/paragraph-token.tsx` records at length:
-      // `border-l-3` emits no rule at all, while `border-3` and the other three
-      // sides resolve. A class that looks right and draws nothing.
+      // One edge against the page, at `line-strong`, and it is a hairline
+      // since L.6 — the 3px it carried was the width of a direction that framed
+      // everything. It keeps an edge at all because a full-height panel flush
+      // with the viewport has no corner to round and no room to cast: the
+      // surface step alone would leave it floating against the page with
+      // nothing to say where one ends.
       //
-      // The shadow is gone rather than widened: the panel is pinned to
-      // `inset-y-0 right-0`, so its offset lands off the viewport on every side
-      // it has. The `border-b`/`border-t` below stay 1px `line` — those are
-      // dividers inside the card, which is exactly what that token is for.
-      className="fixed inset-y-0 right-0 z-40 flex w-full max-w-sm flex-col border-l-3 border-line-strong bg-surface"
+      // The `border-b`/`border-t` below stay at `line` — those are dividers
+      // inside the card, which is exactly what that token is for.
+      className="fixed inset-y-0 right-0 z-40 flex w-full max-w-sm flex-col border-l border-line-strong bg-surface"
     >
       <header className="flex items-center justify-between gap-2 border-b border-line px-4 py-3">
         <h2 className="text-base text-ink">{t('title')}</h2>
@@ -204,7 +204,7 @@ export function ChatDock() {
           rows={2}
           aria-label={t('inputAria')}
           placeholder={t('inputPlaceholder')}
-          className="w-full resize-none border-3 border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
+          className="w-full resize-none rounded-md border border-line-strong bg-bg px-3 py-2 text-sm text-ink outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
         />
         <div className="mt-1 flex items-baseline justify-between gap-2">
           <span className="text-[11px] text-muted">{t('sendHint')}</span>
@@ -217,7 +217,7 @@ export function ChatDock() {
         {wrong === null ? null : (
           <p
             role="alert"
-            className="mt-2 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink"
+            className="mt-2 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink"
           >
             {wrong}
           </p>

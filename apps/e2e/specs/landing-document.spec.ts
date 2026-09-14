@@ -130,7 +130,13 @@ async function readsAsADocument(page: Page): Promise<void> {
 
   // Both ways in, and the licence notice that quoting Wikipedia obliges — it
   // sits outside the stage precisely so that it survives every path here.
-  const ways = page.getByRole('link', { name: 'Play' });
+  //
+  // Scoped to `main` since L.4, which gave the site a navigation bar: there is a
+  // third link named *Play* on every page of it now, and counting it here would
+  // make this assertion about the chassis rather than about the document. What
+  // it holds is unchanged — the landing offers its way in twice, above the fold
+  // and under the scoreboard.
+  const ways = page.locator('main').getByRole('link', { name: 'Play' });
   await expect(ways).toHaveCount(2);
   await expect(ways.first()).toBeVisible();
   await expect(ways.last()).toBeVisible();

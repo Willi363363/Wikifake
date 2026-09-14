@@ -34,10 +34,7 @@ export function FlagPanel({
   if (captures.length === 0) return null;
 
   return (
-    <section
-      aria-label={t('panel.title')}
-      className="border-3 border-line-strong bg-surface p-6 shadow-md"
-    >
+    <section aria-label={t('panel.title')} className="rounded-xl bg-surface p-6">
       <h2 className="text-sm text-ink">{t('panel.title')}</h2>
       <p className="mt-1 text-xs text-muted">{t('panel.description')}</p>
 
@@ -59,7 +56,7 @@ export function FlagPanel({
                 }}
               />
             ) : (
-              <div className="flex flex-wrap items-center gap-3 border-3 border-line-strong bg-bg-grain px-3 py-2">
+              <div className="flex flex-wrap items-center gap-3 rounded-xl bg-bg-grain px-3 py-2">
                 <span className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
                   {t('paragraphTag', { number: capture.paragraphIndex })}
                 </span>
