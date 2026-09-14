@@ -117,6 +117,11 @@ describe('11.6 — French is translated, not copied', () => {
     // reader is given for the navigation itself. `nav.groups.game` and
     // `nav.groups.system` are translated, which is what says these two are a
     // coincidence of spelling rather than an untranslated block.
+    // L.1's navigation. `Menu` is the same word in French, and it is the one
+    // the interface has always used for a menu — `nav.close` and `nav.profile`
+    // beside it are translated, which is what says this is a shared spelling
+    // rather than an untranslated block.
+    'home.nav.menu',
     'admin.nav.groups.audience',
     'admin.nav.label',
     // K.4's rank column. `#` is a symbol, and a symbol is the same in every
