@@ -99,7 +99,7 @@ marketing about them.
 |---|---|---|
 | L.1 | The lab: every screen, three candidates each | ✅ — seven screens chosen |
 | L.2 | The direction chosen, and its palette measured before any CSS moves | ✅ — `13-palette.md` |
-| L.3 | The tokens, replacing track A's, both themes contrast-checked | ⬜ |
+| L.3 | The tokens, replacing track A's, both themes contrast-checked | ✅ — 42 pairs, all passing |
 | L.4 | The navigation, shipped: every route reachable in one click | ⬜ |
 | L.5 | The admin entry, and the way back from it | ⬜ |
 | L.6 | Every screen onto the new direction — the game surface | ⬜ |

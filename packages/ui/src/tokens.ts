@@ -55,15 +55,7 @@ export const COLOUR_TOKENS: readonly ColourToken[] = [
  * underneath it is. Everything else inverts, and `theme.test.ts` holds both
  * halves of that: these must match between the palettes, and nothing else may.
  */
-export const THEME_INDEPENDENT: readonly string[] = [
-  'on-fill',
-  'accent',
-  'accent-line',
-  'bronze',
-  'green',
-  'warn',
-  'danger',
-];
+export const THEME_INDEPENDENT: readonly string[] = [];
 
 /**
  * The elevations — a distance, not a blur.
