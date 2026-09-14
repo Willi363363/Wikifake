@@ -17,13 +17,18 @@
 // and cannot be translated at all, which is how `"🔎 INDICE"` came to be French
 // text living inside a stylesheet.
 //
-// Step B.8 gave the states the brutalist grammar and left the prose alone,
-// which is the whole of `01-art-direction.md`'s exemption in one component:
-// **the text is calm, the act of marking it is loud.** At rest there is no
-// border, no fill and no shadow — only the crosshair says the paragraph can be
-// marked. Marked, it takes the structural border and a wash.
+// Step B.8 gave the states their own grammar and left the prose alone, which is
+// the whole of `01-art-direction.md`'s exemption in one component: **the text is
+// calm, the act of marking it is loud.** At rest there is no border, no fill and
+// no shadow — only the crosshair says the paragraph can be marked. Marked, it
+// takes an edge and a wash.
 //
-// The border is `border-3 border-transparent` at rest rather than absent, so
+// L.6 took that edge from 3px to 2. The exemption is why: the mark has to be
+// loud enough to be unmistakable and quiet enough to sit inside prose somebody
+// is reading closely, and 3px was the width of a direction that framed
+// everything. Nothing else about the states moved.
+//
+// The border is `border-2 border-transparent` at rest rather than absent, so
 // that the box is the same size before and after: a border that appears on
 // hover and reflows the paragraph under the cursor is a paragraph that is hard
 // to click and impossible to read while choosing.
@@ -40,7 +45,7 @@ import { isInteractive, TOKEN_LABELS, type TokenState } from './state.js';
 
 export const tokenVariants = cva(
   cn(
-    'relative block w-full rounded-token border-3 px-1 py-0.5 text-left',
+    'relative block w-full rounded-token border-2 px-1 py-0.5 text-left',
     // Wikipedia prose carries chemical names, German compounds and bare URLs.
     // Without this a single word decides the width of the page, and at 360 CSS
     // pixels that is a page which scrolls sideways.
@@ -158,10 +163,13 @@ export function ParagraphToken({
         // a full-width element carrying only a left border — so the scanner
         // reads across the paragraph without ever covering it. Step B.9.
         //
-        // `border-l-3`, spelled plainly, and there is a story in that.
+        // `border-l-2` since L.6. It was the 3px width before that, from
+        // `--border-width-3`, which L.7 retires — and the old class is not named
+        // here for the reason the last paragraph of this comment gives. There is
+        // a story in the spelling.
         //
         // It was written the long way — an arbitrary-value spelling of the same
-        // width — on a 2026-09-06 finding that `border-l-3` "emits no rule at
+        // width — on a 2026-09-06 finding that the plain class "emits no rule at
         // all" while the other three sides resolve. **The finding was wrong**,
         // and the correction is in `06-structural-debt.md`: the class emits,
         // and always did at this version. It was measured while the
@@ -177,7 +185,7 @@ export function ParagraphToken({
           aria-hidden
           className="pointer-events-none absolute inset-0 overflow-hidden rounded-token"
         >
-          <span className="absolute inset-y-0 left-0 w-full border-l-3 border-bronze animate-scan-sweep" />
+          <span className="absolute inset-y-0 left-0 w-full border-l-2 border-bronze animate-scan-sweep" />
         </span>
       ) : null}
 

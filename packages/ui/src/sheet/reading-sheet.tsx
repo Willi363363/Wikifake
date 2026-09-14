@@ -1,17 +1,20 @@
 // The reading surface: the one place on the site that looks like nothing.
 //
-// `plans/product/01-art-direction.md` exempts the article's prose from the
-// brutalist grammar, and this component is how that exemption is enforced by
-// construction rather than by discipline. It owns the measure, the line height
-// and the prose colours, and it carries no border, no shadow and no accent.
+// `plans/product/01-art-direction.md` exempts the article's prose from whatever
+// grammar the site is wearing, and this component is how that exemption is
+// enforced by construction rather than by discipline. It owns the measure, the
+// line height and the prose colours, and it carries no border, no shadow and no
+// accent. It has now survived two directions without a line of it changing,
+// which is the strongest thing that can be said for it.
 //
 // The reason is not taste. The player's task is to detect a factual anomaly in
 // prose, and every unit of visual noise around that prose is noise they have to
-// filter before they can do the thing the game is for. A paragraph in a 3px box
-// with a yellow fill is a paragraph nobody reads carefully.
+// filter before they can do the thing the game is for. A paragraph in a framed,
+// tinted, shadowed box is a paragraph nobody reads carefully — and that is as
+// true of a soft card as it was of a 3px one.
 //
-// The chassis around it stays loud, and so does the act of marking a paragraph
-// — that contrast is the design rather than a compromise in it.
+// The chassis around it carries the direction, and so does the act of marking a
+// paragraph — that contrast is the design rather than a compromise in it.
 //
 // **It does declare a ground.** "No fill" means no accent, not no colour: a
 // surface whose background is whatever it happens to sit on is a surface whose
@@ -19,7 +22,7 @@
 // `surface` — 21.00:1 light, 15.51:1 dark, the widest margin in the palette,
 // and it is the one place that margin is spent on purpose.
 //
-// Anybody who later wants the article in a yellow box has to delete this
+// Anybody who later wants the article in a coloured box has to delete this
 // component to do it, and the deletion shows up in a review. That is the point.
 import type { ElementType, HTMLAttributes, ReactNode } from 'react';
 

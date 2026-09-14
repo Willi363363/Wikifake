@@ -36,13 +36,16 @@ export function Progress({ className, value, max, ...props }: ProgressProps) {
       value={filled}
       max={ceiling}
       className={cn(
-        'h-2 w-full overflow-hidden rounded-none border-3 border-line-strong bg-surface',
+        // L.6: the 3px frame is gone and the bar is a rounded track. At 8px
+        // tall the frame was most of the object — it left two pixels of fill to
+        // read a clock by.
+        'h-2 w-full overflow-hidden rounded-full bg-bg-grain',
         className,
       )}
       {...props}
     >
       <Indicator
-        className="h-full rounded-none bg-accent transition-[width] duration-600 ease-[cubic-bezier(.2,.6,.2,1)] motion-reduce:transition-none"
+        className="h-full rounded-full bg-accent transition-[width] duration-600 ease-[cubic-bezier(.2,.6,.2,1)] motion-reduce:transition-none"
         style={{ width: `${String((filled / ceiling) * 100)}%` }}
       />
     </Root>

@@ -99,16 +99,17 @@ describe('6.1 — the tokens', () => {
     });
 
     /*
-     * This assertion used to read: *answers differently — a token repeated is a
-     * token forgotten*, with no exceptions. The brutalist direction broke it on
-     * purpose, and the fix is to state the new rule rather than to drop the old
-     * check.
+     * This assertion originally read: *answers differently — a token repeated is
+     * a token forgotten*, with no exceptions. Track A's fills broke it on
+     * purpose — a yellow button is that yellow on a dark page — and the list
+     * named the ones allowed to repeat.
      *
-     * A fill is the same colour on either ground — a yellow button is that
-     * yellow on a dark page — and `on-fill` is black on either ground because
-     * what it sits on is. Everything else still has to move, so the protection
-     * the original assertion bought is intact: a ground or a wash nobody
-     * translated fails here exactly as it did before.
+     * L.3 emptied the list, so the original rule is back in full: **no colour
+     * may be the same in both palettes.** J2's accent is a blue, and a blue that
+     * did not move would measure 2.95 on a dark card. The assertion is left
+     * expressed in terms of the list rather than rewritten, because the list is
+     * what a future direction would reopen, and the reasoning belongs beside it
+     * in `tokens.ts`.
      */
     const independent = THEME_INDEPENDENT.map((name) => `--color-${name}`);
 
@@ -129,29 +130,54 @@ describe('6.1 — the tokens', () => {
     });
 
     /*
-     * This used to require the dark palette to restate every elevation, and it
-     * was right to: phase 6's shadows were a haze of near-black that vanished
-     * on a dark ground, so dark needed its own.
+     * This required the dark palette to have **no** elevation of its own, and
+     * it was right for track A: a solid block of `--color-line-strong` at an
+     * offset inverts because that token does, so restating it would have been
+     * one line saying the same thing twice.
      *
-     * The brutalist elevations are a solid block of `--color-line-strong` at an
-     * offset, and that token already inverts — so restating them would be
-     * copying a line that says the same thing twice. What has to stay true is
-     * the *shape*: an elevation expressed as a literal colour would silently
-     * stop inverting, and that is what this now catches.
+     * L.6 replaced those with light. Light does not invert through a border
+     * colour — the near-black haze that separates a white card from a grey page
+     * is nothing at all on #0b0f17 — so the rule turns over: every elevation is
+     * restated, and restated *differently*. This is phase 6's original
+     * requirement coming back with the shadows that needed it.
      */
-    it('needs no elevation of its own, because they invert through a token', () => {
+    it('restates every elevation, and none of them the same twice', () => {
       for (const level of SHADOW_TOKENS) {
-        expect(theme.get(`--shadow-${level}`)).toContain('var(--color-line-strong)');
-        expect(dark.has(`--shadow-${level}`)).toBe(false);
+        const light = theme.get(`--shadow-${level}`);
+        const night = dark.get(`--shadow-${level}`);
+        expect(light, `--shadow-${level} is missing from the theme`).toBeDefined();
+        expect(night, `--shadow-${level} is missing from the dark palette`).toBeDefined();
+        expect(comparable(night ?? '')).not.toBe(comparable(light ?? ''));
       }
     });
 
-    // A blur radius is the thing this direction does not do. Written as an
-    // assertion because "no blurred shadow" is exactly the kind of rule that
-    // erodes one convenient exception at a time.
-    it('blurs nothing', () => {
+    /*
+     * The mirror of the rule it replaces.
+     *
+     * Track A asserted `/^\d+px \d+px 0 /` — a hard offset, no blur — because a
+     * blurred shadow was the thing that direction did not do. J2 does not do
+     * the frame at an offset, and a hard shadow is exactly how one comes back:
+     * it is the only elevation that reads as an edge rather than as light.
+     *
+     * So both halves are checked, in both palettes: a blur radius that is not
+     * zero, and no `0` in the position a hard offset puts it.
+     */
+    it('blurs every elevation, in both palettes', () => {
+      // A length CSS accepts in an offset: `0` is unitless, the rest carry px.
+      const OFFSET = String.raw`(?:0|-?\d+px)`;
+      const BLURRED = new RegExp(`${OFFSET}\\s+${OFFSET}\\s+[1-9]\\d*px`);
+
       for (const level of SHADOW_TOKENS) {
-        expect(theme.get(`--shadow-${level}`)).toMatch(/^\d+px \d+px 0 /);
+        for (const [palette, declared] of [
+          ['light', theme.get(`--shadow-${level}`) ?? ''],
+          ['dark', dark.get(`--shadow-${level}`) ?? ''],
+        ] as const) {
+          // Every layer of it, not only the first: a two-layer shadow whose
+          // second layer is a hard offset is a frame with a glow in front of it.
+          for (const layer of declared.split(/,(?![^(]*\))/)) {
+            expect(layer.trim(), `--shadow-${level} in ${palette}`).toMatch(BLURRED);
+          }
+        }
       }
     });
 
@@ -205,8 +231,10 @@ describe('6.1 — the tokens', () => {
     });
 
     // 3px, and it is a token so that twenty components do not each carry the
-    // number. The primitives read it in step B.6.
-    it('names the structural border width', () => {
+    // number. L.6 took it off every screen of the game and out of every
+    // primitive; the admin panel still reads it, and L.7 is where it and this
+    // assertion go together.
+    it('names the structural border width, until L.7 retires it', () => {
       expect(theme.get('--border-width-3')).toBe('3px');
     });
 
