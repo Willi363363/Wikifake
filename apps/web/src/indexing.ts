@@ -124,6 +124,23 @@ export const UNINDEXED_ROUTES: Readonly<Record<string, { follow: boolean }>> = {
    * already right.
    */
   '/admin': { follow: false },
+  /*
+   * The panel's seven sections — step K.1.
+   *
+   * Each one is `noindex, nofollow` for the same reason `/admin` is: they lead
+   * only further into what the panel knows, and there is nothing down there
+   * for anybody who is not already an admin. They are listed rather than
+   * matched on a prefix because `indexing.test.ts` walks the routes that
+   * exist, and a section added without a line here should fail that walk
+   * rather than inherit an answer nobody gave.
+   */
+  '/admin/health': { follow: false },
+  '/admin/players': { follow: false },
+  '/admin/activation': { follow: false },
+  '/admin/games': { follow: false },
+  '/admin/traffic': { follow: false },
+  '/admin/cost': { follow: false },
+  '/admin/content': { follow: false },
 };
 
 /**

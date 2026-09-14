@@ -1,15 +1,29 @@
-// The date range every section is read through — step I.8.
+// The date range every section is read through — steps I.8 and K.2.
 //
 // Two halves: what a query string becomes, and whether the sections actually
-// honour it. The second matters more — a range control that moved nothing
+// honour it. The second matters more — a period control that moved nothing
 // would be a control that lied about the whole screen — so the second describe
 // runs each read path against a real Postgres with rows on both sides of a
 // boundary.
+//
+// **K.2 replaced rolling windows with calendar ones**, and the first half is
+// rewritten rather than deleted: every claim I.8 made about a range is still a
+// claim about this one, and three of them — the end of today, the default for
+// nonsense, and the absence of a bound for all-time — are the reason the pages
+// below it can be simple.
 import { game, llmCall, participant, playerStats, profile, user } from '@wikifake/db';
 import { MS_PER_DAY } from '@wikifake/domain';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { isAllTime, rangeFrom, windowOf, DEFAULT_PRESET, PRESETS } from './range.js';
+import {
+  dayOf,
+  isAllTime,
+  lastDayOf,
+  rangeFrom,
+  windowOf,
+  DEFAULT_PRESET,
+  PRESETS,
+} from './range.js';
 import { readActivation } from './activation.js';
 import { readContent } from './content.js';
 import { readCost } from './cost.js';
@@ -19,37 +33,64 @@ import { openWebTestDatabase, webTestDatabaseUrl } from '../testing/database.js'
 import type { TestDatabase } from '@wikifake/db/testing';
 
 const url = webTestDatabaseUrl();
-/** A Thursday, mid-afternoon UTC. */
+/** A Thursday, mid-afternoon UTC. 7 September 2026 was the Monday before it. */
 const THURSDAY = Date.UTC(2026, 8, 10, 15, 0, 0);
 /** Midnight after that Thursday, which is where every range ends. */
 const END = Date.UTC(2026, 8, 11, 0, 0, 0);
+/** No dates asked for — what every preset link produces. */
+const NO_DAYS = { from: undefined, to: undefined };
 
-describe('I.8 — what a query string becomes', () => {
-  it('defaults to a month when nothing is asked for', () => {
+describe('K.2 — what a query string becomes', () => {
+  it('defaults to this month when nothing is asked for', () => {
     const range = rangeFrom(undefined, THURSDAY);
 
     expect(range.preset).toBe(DEFAULT_PRESET);
-    expect(range.toMs - range.fromMs).toBe(30 * MS_PER_DAY);
+    expect(range.fromMs).toBe(Date.UTC(2026, 8, 1));
   });
 
   it('ends at the end of today, not at this instant', () => {
-    // A player who finished a round ten minutes ago is in "the last seven
-    // days". A bound of *now* would leave them out, and would make the same
-    // page show different numbers on each refresh.
-    expect(rangeFrom('7d', THURSDAY).toMs).toBe(END);
-    expect(rangeFrom('7d', THURSDAY).toMs).toBeGreaterThan(THURSDAY);
+    // A player who finished a round ten minutes ago is in "this week". A bound
+    // of *now* would leave them out, and would make the same page show
+    // different numbers on each refresh.
+    for (const preset of PRESETS) {
+      expect(rangeFrom(preset, THURSDAY).toMs).toBe(END);
+    }
+    expect(END).toBeGreaterThan(THURSDAY);
   });
 
-  it('gives each preset the width it says', () => {
-    for (const [preset, days] of [
-      ['7d', 7],
-      ['30d', 30],
-      ['90d', 90],
+  it('starts each preset where its calendar period starts', () => {
+    // The whole of K.2's decision, in one table. A rolling window would put
+    // `week` seven days before Thursday; a calendar one puts it on Monday.
+    for (const [preset, from] of [
+      ['24h', Date.UTC(2026, 8, 10)],
+      ['week', Date.UTC(2026, 8, 7)],
+      ['month', Date.UTC(2026, 8, 1)],
+      ['year', Date.UTC(2026, 0, 1)],
     ] as const) {
       const range = rangeFrom(preset, THURSDAY);
-      expect(range.toMs - range.fromMs).toBe(days * MS_PER_DAY);
+      expect(range.fromMs).toBe(from);
       expect(range.preset).toBe(preset);
     }
+  });
+
+  it('starts a week on Monday, which is the week a quest already uses', () => {
+    // One clock, or a player finishing a daily quest at 00:30 UTC and a panel
+    // counting their week are being measured on two of them.
+    const monday = Date.UTC(2026, 8, 7, 0, 0, 0);
+
+    expect(rangeFrom('week', monday).fromMs).toBe(monday);
+    expect(rangeFrom('week', monday - 1).fromMs).toBe(Date.UTC(2026, 7, 31));
+  });
+
+  it('makes this month two days long on the 2nd, and says so by being short', () => {
+    // The cost of calendar periods, asserted rather than regretted: "this
+    // month" is not thirty days, and the bar prints the dates it covers so
+    // nobody compares two of them blind.
+    const second = Date.UTC(2026, 8, 2, 9, 0, 0);
+    const range = rangeFrom('month', second);
+
+    expect(range.fromMs).toBe(Date.UTC(2026, 8, 1));
+    expect(range.toMs - range.fromMs).toBe(2 * MS_PER_DAY);
   });
 
   it('treats all-time as the absence of a bound, not a very wide one', () => {
@@ -59,24 +100,82 @@ describe('I.8 — what a query string becomes', () => {
 
     expect(isAllTime(all)).toBe(true);
     expect(windowOf(all)).toBeNull();
-    expect(windowOf(rangeFrom('7d', THURSDAY))).not.toBeNull();
+    expect(windowOf(rangeFrom('week', THURSDAY))).not.toBeNull();
   });
 
-  it('shows a month for anything it does not recognise', () => {
+  it('shows the default for anything it does not recognise', () => {
     // A panel is not a form: a mistyped query string should show a month, not
-    // a 400. And the chooser must highlight what is *actually* being shown, so
-    // the preset comes back as the default's name rather than as the typo.
-    for (const asked of ['', 'yesterday', '7', '30d ', 'ALL']) {
+    // a 400. And the bar must highlight what is *actually* being shown, so the
+    // preset comes back as the default's name rather than as the typo.
+    for (const asked of ['', 'yesterday', '7d', '30d', 'ALL', 'week ']) {
       const range = rangeFrom(asked, THURSDAY);
       expect(range.preset).toBe(DEFAULT_PRESET);
-      expect(range.toMs - range.fromMs).toBe(30 * MS_PER_DAY);
+      expect(range.fromMs).toBe(Date.UTC(2026, 8, 1));
     }
   });
 
-  it('offers every preset the chooser draws', () => {
+  it('offers every preset the bar draws', () => {
     for (const preset of PRESETS) {
       expect(rangeFrom(preset, THURSDAY).preset).toBe(preset);
     }
+  });
+});
+
+describe('K.2 — a custom period, from two dates', () => {
+  const custom = (from: string | undefined, to: string | undefined) =>
+    rangeFrom('custom', THURSDAY, { from, to });
+
+  it('counts both ends, which is what a date picker means', () => {
+    // `to` is a day that counts, so the window runs to the midnight after it.
+    // A half-open window ending *at* the 9th would silently drop a whole day.
+    const range = custom('2026-09-01', '2026-09-09');
+
+    expect(range.preset).toBe('custom');
+    expect(range.fromMs).toBe(Date.UTC(2026, 8, 1));
+    expect(range.toMs).toBe(Date.UTC(2026, 8, 10));
+    expect(lastDayOf(range)).toBe('2026-09-09');
+  });
+
+  it('covers one day when both dates are the same day', () => {
+    const range = custom('2026-09-09', '2026-09-09');
+
+    expect(range.toMs - range.fromMs).toBe(MS_PER_DAY);
+  });
+
+  it('clamps a future end to the end of today rather than refusing it', () => {
+    // Asking for everything up to next March is asking for everything up to
+    // now, and that is what it gets.
+    expect(custom('2026-09-01', '2027-03-01').toMs).toBe(END);
+  });
+
+  it('falls back to the default for a pair that is not a pair of days', () => {
+    // Every one of these is a link somebody edited by hand. The panel shows a
+    // month and names a month, rather than claiming a period it is not showing.
+    for (const [from, to] of [
+      ['2026-09-09', undefined],
+      [undefined, '2026-09-09'],
+      ['2026-09-09', '2026-09-01'],
+      ['09/09/2026', '2026-09-10'],
+      ['2026-02-31', '2026-09-10'],
+      ['yesterday', 'today'],
+    ] as const) {
+      const range = custom(from, to);
+      expect(range.preset).toBe(DEFAULT_PRESET);
+      expect(range.fromMs).toBe(Date.UTC(2026, 8, 1));
+    }
+  });
+
+  it('ignores two dates on a preset, because a preset is not a pair', () => {
+    // `?range=week&from=…` is a stale link, not a custom period: the preset
+    // wins, and nothing about the week moves.
+    expect(
+      rangeFrom('week', THURSDAY, { from: '2020-01-01', to: '2020-02-01' }).fromMs,
+    ).toBe(Date.UTC(2026, 8, 7));
+  });
+
+  it('spells a day the way a date input and the address both do', () => {
+    expect(dayOf(THURSDAY)).toBe('2026-09-10');
+    expect(lastDayOf(rangeFrom('week', THURSDAY))).toBe('2026-09-10');
   });
 });
 
@@ -152,8 +251,9 @@ describe.skipIf(url === null)('I.8 — the sections honour it', () => {
     await activity('ancient', THURSDAY - 60 * MS_PER_DAY);
   }
 
-  const week = () => rangeFrom('7d', THURSDAY);
-  const all = () => rangeFrom('all', THURSDAY);
+  // Monday to Thursday: `recent` is inside it and `ancient` is two months out.
+  const week = () => rangeFrom('week', THURSDAY);
+  const all = () => rangeFrom('all', THURSDAY, NO_DAYS);
 
   it('narrows the games section', async () => {
     await both();
@@ -220,7 +320,7 @@ describe.skipIf(url === null)('I.8 — the sections honour it', () => {
     ]);
   });
 
-  it('includes a row on the range’s last day, and excludes its end', async () => {
+  it('includes a row on the period’s last day, and excludes its end', async () => {
     // Half-open, like every window here: `from <= at < to`. A round at the
     // very end of the last day is in; the first instant of the next day is not.
     await activity('lastDay', END - 1);

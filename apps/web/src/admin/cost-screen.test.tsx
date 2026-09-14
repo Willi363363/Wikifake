@@ -1,10 +1,16 @@
 /** @vitest-environment jsdom */
 
-// What the model has cost — step I.6, on the screen.
+// What the model has cost — step K.9, on the screen.
 //
-// The ordinary state of this section is **tokens plus an explanation**, because
-// no rate is configured by default. That has to read as a deliberate answer
-// rather than as a broken figure, and it is what most of these cases check.
+// Amended when the section became the digest. The ordinary state of this page
+// is still **tokens plus an explanation**, because no rate is configured by
+// default, and that has to read as a deliberate answer rather than as a broken
+// figure — which is what most of these cases check.
+//
+// K.9 adds two claims of its own. Each row carries what it cost, computed by
+// `spendOf` in the reader rather than multiplied again on the screen; and the
+// **rate is printed where the money is**, because a number whose rate is not
+// beside it is a number nobody can check.
 import { cleanup, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -25,6 +31,7 @@ function view(over: Partial<CostView> = {}): CostView {
         failed: 1,
         inputTokens: 12_000,
         outputTokens: 8_000,
+        spend: null,
       },
       {
         day: '2026-09-11',
@@ -32,6 +39,7 @@ function view(over: Partial<CostView> = {}): CostView {
         failed: 0,
         inputTokens: 30_000,
         outputTokens: 20_000,
+        spend: null,
       },
     ],
     byKind: [
@@ -41,6 +49,7 @@ function view(over: Partial<CostView> = {}): CostView {
         failed: 0,
         inputTokens: 2_000,
         outputTokens: 400,
+        spend: null,
       },
       {
         kind: 'falsification',
@@ -48,6 +57,7 @@ function view(over: Partial<CostView> = {}): CostView {
         failed: 1,
         inputTokens: 40_000,
         outputTokens: 27_600,
+        spend: null,
       },
     ],
     totals: {
@@ -59,6 +69,7 @@ function view(over: Partial<CostView> = {}): CostView {
       gamesGenerated: 20,
       players: 35,
     },
+    rate: null,
     spend: null,
     perGame: null,
     perPlayer: null,
@@ -67,7 +78,7 @@ function view(over: Partial<CostView> = {}): CostView {
   };
 }
 
-describe('I.6 — with no rate configured', () => {
+describe('K.9 — with no rate configured', () => {
   it('says why there is no money on the page', () => {
     render(<CostSection cost={view()} />);
 
@@ -78,14 +89,28 @@ describe('I.6 — with no rate configured', () => {
   it('shows an em dash for every money figure, and tokens anyway', () => {
     render(<CostSection cost={view()} />);
 
-    expect(screen.getAllByText('—')).toHaveLength(3);
+    // Five now: the three unit figures, plus the cost column on each of the
+    // two rows — the rows are priced through the same function as the total,
+    // so they go absent together rather than one of them inventing a zero.
+    expect(screen.getAllByText('—')).toHaveLength(5);
     // Tokens per game needs no rate, so it is there regardless.
     expect(screen.getByText('3.5K')).not.toBeNull();
   });
+
+  it('charts tokens rather than money, and names the curve for what it is', () => {
+    render(<CostSection cost={view()} />);
+
+    expect(screen.getByText('Tokens per day')).not.toBeNull();
+    expect(screen.queryByText('Spend per day')).toBeNull();
+    expect(
+      screen.getByText(/Money is a multiplication a deployment opts into/),
+    ).not.toBeNull();
+  });
 });
 
-describe('I.6 — with a rate configured', () => {
+describe('K.9 — with a rate configured', () => {
   const priced = view({
+    rate: { inputPerMTok: 0.215, outputPerMTok: 1.29 },
     spend: 12.5,
     perGame: 0.625,
     perPlayer: 0.357,
@@ -96,20 +121,34 @@ describe('I.6 — with a rate configured', () => {
     render(<CostSection cost={priced} />);
 
     expect(screen.getByText('12.5')).not.toBeNull();
-    expect(screen.getByText('0.63')).not.toBeNull();
+    expect(screen.getByText('0.625')).not.toBeNull();
     expect(screen.getByText(/Priced with the configured rate/)).not.toBeNull();
-    expect(screen.queryByText('—')).toBeNull();
   });
 
   it('says what each figure is divided by', () => {
     render(<CostSection cost={priced} />);
 
     expect(screen.getByText('42 calls')).not.toBeNull();
-    expect(screen.getByText('20 generated')).not.toBeNull();
+    expect(
+      screen.getByText(/20 rounds generated is what the per-round figure/),
+    ).not.toBeNull();
+  });
+
+  it('prints the rate the figures were priced at, beside the money', () => {
+    // A number whose rate is not on the screen with it is a number nobody can
+    // check — and this one changes whenever a provider's price list does.
+    render(<CostSection cost={priced} />);
+
+    expect(
+      screen.getByText(
+        '0.215 in / 1.29 out per million tokens, from the two environment variables.',
+      ),
+    ).not.toBeNull();
+    expect(screen.getByText('Spend per day')).not.toBeNull();
   });
 });
 
-describe('I.6 — the two things that would understate the spend', () => {
+describe('K.9 — the two things that would understate the spend', () => {
   it('says how many calls failed and still cost tokens', () => {
     render(<CostSection cost={view()} />);
 
@@ -134,7 +173,7 @@ describe('I.6 — the two things that would understate the spend', () => {
   });
 });
 
-describe('I.6 — the tables', () => {
+describe('K.9 — the curve and the table', () => {
   it('lists the kinds in the order a round calls them', () => {
     render(<CostSection cost={view()} />);
 
@@ -143,11 +182,14 @@ describe('I.6 — the tables', () => {
     expect(rows[2]).toContain('falsification');
   });
 
-  it('lists a day per day', () => {
+  it('draws a column per day, each readable as a figure and not only a height', () => {
+    // I.6 listed the days as rows. The digest draws them, so each column
+    // carries the day and the number it stands for rather than a length alone.
     render(<CostSection cost={view()} />);
 
-    expect(screen.getByText('2026-09-10')).not.toBeNull();
-    expect(screen.getByText('2026-09-11')).not.toBeNull();
+    expect(
+      screen.getAllByTitle(/2026-09/).map((bar) => bar.getAttribute('title')),
+    ).toEqual(['2026-09-10 · 20000', '2026-09-11 · 50000']);
   });
 
   it('says so when there is nothing at all', () => {
@@ -159,7 +201,8 @@ describe('I.6 — the tables', () => {
   it('says the same things in French', () => {
     renderIn('fr', <CostSection cost={view()} />);
 
-    expect(screen.getByText('Coût')).not.toBeNull();
+    expect(screen.getAllByText('Coût').length).toBeGreaterThan(0);
     expect(screen.getByText(/Aucun tarif par jeton/)).not.toBeNull();
+    expect(screen.getByText('Jetons par jour')).not.toBeNull();
   });
 });

@@ -1,6 +1,11 @@
 /** @vitest-environment jsdom */
 
-// Which articles are drawn, and what generation costs — step I.7, on screen.
+// Which articles are drawn, and what generation costs — step K.8, on screen.
+//
+// Amended when the section became the digest. Both of I.7's claims survive it,
+// and so does the promise the article titles carry — `lang="fr"`, because the
+// game reads fr.wikipedia.org and a screen reader saying *Chat* in an English
+// voice is saying a different word.
 //
 // Two claims: **the cache hit rate leads**, because it decides the cost
 // section above it, and **the two kinds of failure are kept apart**, because a
@@ -40,26 +45,29 @@ function view(over: Partial<ContentView> = {}): ContentView {
   };
 }
 
-describe('I.7 — the figures', () => {
+describe('K.8 — the figures', () => {
   it('leads with the cache hit rate, and says what it decides', () => {
     render(<ContentSection content={view()} />);
 
     expect(screen.getByText('75%')).not.toBeNull();
     expect(screen.getByText(/hundred rounds and a hundred generations/)).not.toBeNull();
+    expect(screen.getByText('150 of 200 rounds')).not.toBeNull();
   });
 
-  it('shows generated against rounds played', () => {
+  it('shows generated as the denominator the cost page divides by', () => {
     render(<ContentSection content={view()} />);
 
     expect(screen.getByText('50')).not.toBeNull();
-    expect(screen.getByText('of 200 rounds')).not.toBeNull();
+    expect(screen.getByText('rounds the model wrote')).not.toBeNull();
   });
 
   it('shows the generation failure rate against the calls it is of', () => {
     render(<ContentSection content={view()} />);
 
-    expect(screen.getByText('5%')).not.toBeNull();
-    expect(screen.getByText('of 60 calls')).not.toBeNull();
+    // Twice on purpose: once as a headline figure, once in the card that keeps
+    // it apart from the topic failures it must not be folded into.
+    expect(screen.getAllByText('5%')).toHaveLength(2);
+    expect(screen.getAllByText('3 of 60 calls')).toHaveLength(2);
   });
 
   it('says topic failures apart, and calls them ordinary', () => {
@@ -97,20 +105,25 @@ describe('I.7 — the figures', () => {
       />,
     );
 
-    expect(screen.getAllByText('—')).toHaveLength(2);
+    // Four: the cache rate, and the falsification rate in both the places it
+    // appears, and the topic rate beside it.
+    expect(screen.getAllByText('—')).toHaveLength(4);
     expect(screen.queryByText('0%')).toBeNull();
-    expect(screen.getByText('No rounds played yet.')).not.toBeNull();
+    expect(screen.getAllByText('No rounds played yet.').length).toBeGreaterThan(0);
   });
 });
 
-describe('I.7 — the topic list', () => {
+describe('K.8 — the topic list', () => {
   it('shows each article with its rounds and its cache hits', () => {
     render(<ContentSection content={view()} />);
 
     const rows = screen.getAllByRole('row').map((row) => row.textContent);
     expect(rows[1]).toContain('Chat');
     expect(rows[1]).toContain('40');
-    expect(rows[1]).toContain('39');
+    // The share and not the count: a topic played forty times with thirty-nine
+    // cache hits and one played twice with two are the same cache, and only
+    // the ratio says so.
+    expect(rows[1]).toContain('97.5%');
     expect(rows[2]).toContain('Chien');
   });
 
@@ -131,8 +144,10 @@ describe('I.7 — the topic list', () => {
   it('says the same things in French', () => {
     renderIn('fr', <ContentSection content={view()} />);
 
-    expect(screen.getByText('Contenu')).not.toBeNull();
+    // The page's own name is the chassis heading now (`page-heading.tsx`), so
+    // what this asserts is the body.
     expect(screen.getByText('Taux de cache')).not.toBeNull();
+    expect(screen.getByText('Quand la génération a échoué')).not.toBeNull();
     expect(screen.getByText(/n’est pas une panne/)).not.toBeNull();
   });
 });
