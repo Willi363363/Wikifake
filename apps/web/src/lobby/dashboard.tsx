@@ -158,9 +158,13 @@ export function Dashboard({ home, signedIn, pseudonym }: DashboardProps) {
               <p className="m-0 mt-2 text-sm leading-relaxed text-ink-2">
                 {t('keepLead')}
               </p>
+              {/* `/sign-in` and not `/sign-up`, and the wording is the entry
+                  screen's own: that link served both, and a returning player
+                  who is signed out has no other way back in now that the
+                  entry's list of links is part of the navigation bar. */}
               <p className="m-0 mt-auto pt-3 text-sm">
                 <Link
-                  href={signedIn ? '/profile' : '/sign-up'}
+                  href={signedIn ? '/profile' : '/sign-in'}
                   className="text-accent underline"
                 >
                   {signedIn ? t('profile') : t('keepCta')}

@@ -84,7 +84,9 @@ describe('L.6 — the home a first visitor sees', () => {
   it('keeps every tile, and offers the account in the one that has nothing', () => {
     render(<Dashboard home={EMPTY} signedIn={false} />);
 
-    expect(screen.getByRole('link', { name: 'Create an account' })).not.toBeNull();
+    expect(
+      screen.getByRole('link', { name: 'Create an account, or sign in' }),
+    ).not.toBeNull();
     expect(screen.getByRole('link', { name: 'All the boards' })).not.toBeNull();
     // Still the way in, for somebody who has never played: the tile is the form.
     expect(screen.getByRole('tab', { name: 'Solo' })).not.toBeNull();
@@ -93,7 +95,9 @@ describe('L.6 — the home a first visitor sees', () => {
   it('sends a signed-in player with no rounds to their profile instead', () => {
     render(<Dashboard home={EMPTY} signedIn pseudonym="Zoe" />);
 
-    expect(screen.queryByRole('link', { name: 'Create an account' })).toBeNull();
+    expect(
+      screen.queryByRole('link', { name: 'Create an account, or sign in' }),
+    ).toBeNull();
     expect(screen.getByRole('link', { name: 'Your profile' })).not.toBeNull();
   });
 
