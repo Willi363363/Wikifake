@@ -67,8 +67,10 @@ DATABASE_URL='<the production one>' pnpm migrate
 gh pr create --base main --head staging --title 'Promote staging: <what is in it>'
 
 # 3 — after the merge, realign, which is a fast-forward since main descends
-#     from staging.
-git switch staging && git merge --ff-only origin/main && git push
+#     from staging. The push needs --no-verify, and that is a defect:
+#     ../current-state/08-toolchain-debt.md says why, and whether step 3 is
+#     needed at all when the promotion was merged rather than squashed.
+git switch staging && git merge --ff-only origin/main && git push --no-verify
 ```
 
 **Code before schema is an outage**: the deployment answers on the new commit

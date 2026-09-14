@@ -168,3 +168,30 @@ followed costs a realignment branch and a bypass. The second is one line in
 `is_promotion`'s caller: treat `main → staging` as documented too, since every
 commit in it was checked when it entered `staging`.
 
+## The promotion's last step is a push the guard refuses
+
+Found on 2026-09-14, by doing it: #266 merged, and step 3 would not run.
+
+`../method/01-git-flow.md` ends the promotion with `git switch staging && git
+merge --ff-only origin/main && git push`. The merge is fine. The push is a
+direct push to `staging`, so `.githooks/pre-push` hands it to
+`scripts/checks.sh push staging`, whose `check_protected` answers
+*"staging is protected: no direct commit or push, human or agent"*.
+
+**The documented last step of the documented procedure cannot be run as
+written.** `--no-verify` is what gets past it, and it is what was used; the push
+is a fast-forward, so nothing is rewritten. It lands at all only because the
+ruleset's `pull_request` rule on `staging` is advisory for the owner — the
+bypass actor `../method/03-infrastructure.md` describes.
+
+**An agent cannot do it even so**: `.claude/settings.json` denies
+`git push origin staging:*`, and that deny list is the only thing that stops an
+agent at all.
+
+**Three ways out, and the last may be the right one.** Teach `checks.sh push` to
+allow a push to `staging` whose sha is `origin/main` and is a fast-forward — the
+realign and nothing else. Or write `--no-verify` into the procedure, which is
+honest and teaches the wrong habit. Or drop the step: a promotion that is
+*merged* rather than squashed leaves `staging` an ancestor of `main` already, so
+the next one merges cleanly without it. The realign only ever repaired what a
+squash broke, which is the entry above.
