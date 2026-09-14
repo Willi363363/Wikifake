@@ -68,10 +68,7 @@ export function Debrief({
   const missed = Math.max(0, totalFakes - breakdown.truePositives);
 
   return (
-    <section
-      aria-label={t('debrief.aria')}
-      className="border-3 border-line-strong bg-surface p-6 shadow-md"
-    >
+    <section aria-label={t('debrief.aria')} className="rounded-xl bg-surface p-6">
       <AnimatedRanking
         standings={standings}
         {...(stages === undefined ? {} : { stages })}

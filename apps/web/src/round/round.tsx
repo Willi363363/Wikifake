@@ -37,7 +37,7 @@ import { isSelfCast } from './item-labels.js';
 import { ItemTarget } from './item-target.js';
 import { ItemToasts } from './item-toasts.js';
 import type { ItemsState } from './items.js';
-import { RoundTopBar } from './top-bar.js';
+import { RoundControls } from './controls.js';
 import { verdictsFor, type Verdict } from './verdicts.js';
 import { useTimers } from '../timers.js';
 
@@ -212,96 +212,102 @@ export function Round({
   };
 
   return (
+    // R3 — the article and the controls are two columns of one grid at `lg`, and
+    // a single column with a fixed bar under it below that. `pb-28` is the room
+    // the bar takes on a phone: a footer the controls sit on top of is a licence
+    // notice nobody can read, and C6.1 requires that one to be visible.
     <div className="min-h-dvh">
-      <RoundTopBar
-        topic={article.topic}
-        secondsLeft={left}
-        marked={marked.length}
-        total={article.totalFakes}
-        submitted={submitted}
-        busy={busy}
-        hintsUsed={hints.hintsUsed}
-        hintsJammed={hints.blocked}
-        onSubmit={() => {
-          onSubmit(marked);
-        }}
-        onUnsubmit={onUnsubmit}
-        onOpenBrief={() => {
-          setBriefing(true);
-        }}
-        onOpenIntel={() => {
-          setIntel(true);
-        }}
-      />
-
-      <main className="mx-auto max-w-4xl space-y-5 px-4 py-6">
-        {/* Above the article, not over it. The current debrief is a fixed
+      <main className="mx-auto grid max-w-6xl gap-6 px-4 py-6 pb-28 sm:px-8 lg:grid-cols-[1fr_300px] lg:pb-6">
+        <div className="flex min-w-0 flex-col gap-5">
+          {/* Above the article, not over it. The current debrief is a fixed
             full-screen modal, which covers the CC BY-SA attribution that C6.1
             requires to stay visible *after* the round as well as during it. */}
-        {debrief === undefined || flags === undefined ? null : (
-          <FlagPanel
-            captures={flags.captures}
-            articleTitle={article.topic}
-            articleUrl={article.wikipediaUrl}
-            roomCode={roomCode}
-            onDrop={flags.drop}
-          />
-        )}
+          {debrief === undefined || flags === undefined ? null : (
+            <FlagPanel
+              captures={flags.captures}
+              articleTitle={article.topic}
+              articleUrl={article.wikipediaUrl}
+              roomCode={roomCode}
+              onDrop={flags.drop}
+            />
+          )}
 
-        {debrief === undefined ? null : (
-          <Debrief
-            breakdown={debrief.breakdown}
-            score={debrief.score}
-            totalFakes={article.totalFakes}
-            solution={debrief.solution}
-            standings={debrief.standings}
-            {...(debrief.stages === undefined ? {} : { stages: debrief.stages })}
-            onwardLabel={debrief.onwardLabel}
-            onOnward={debrief.onOnward}
-          />
-        )}
+          {debrief === undefined ? null : (
+            <Debrief
+              breakdown={debrief.breakdown}
+              score={debrief.score}
+              totalFakes={article.totalFakes}
+              solution={debrief.solution}
+              standings={debrief.standings}
+              {...(debrief.stages === undefined ? {} : { stages: debrief.stages })}
+              onwardLabel={debrief.onwardLabel}
+              onOnward={debrief.onOnward}
+            />
+          )}
 
-        <ArticleCard
-          article={article}
-          marked={marked}
-          hinted={hints.hintedParagraphs}
-          scanned={items?.scanned ?? EMPTY}
-          distortions={effects?.distortions ?? NOTHING}
-          verdicts={verdicts}
-          locked={submitted || busy || ended}
-          marker={marker}
-          markStyle={markStyle}
-          onToggle={toggle}
+          <ArticleCard
+            article={article}
+            marked={marked}
+            hinted={hints.hintedParagraphs}
+            scanned={items?.scanned ?? EMPTY}
+            distortions={effects?.distortions ?? NOTHING}
+            verdicts={verdicts}
+            locked={submitted || busy || ended}
+            marker={marker}
+            markStyle={markStyle}
+            onToggle={toggle}
+          />
+
+          {refusal === null ? null : (
+            <p
+              role="alert"
+              className="mt-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+            >
+              {refusal}
+            </p>
+          )}
+
+          {items?.refusal === undefined || items.refusal === null ? null : (
+            // D6 — an item the server would not let land. Said rather than
+            // dropped: an item that vanishes without a word is indistinguishable
+            // from a lost frame, which is exactly what the current server does.
+            <p
+              role="alert"
+              className="mt-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+            >
+              {items.refusal}
+            </p>
+          )}
+
+          {submitted && !ended ? (
+            <p aria-live="polite" className="mt-4 text-center text-sm text-muted">
+              {t('status.answerWithServer')}
+            </p>
+          ) : null}
+
+          <RoundFooter />
+        </div>
+
+        <RoundControls
+          topic={article.topic}
+          secondsLeft={left}
+          marked={marked.length}
+          total={article.totalFakes}
+          submitted={submitted}
+          busy={busy}
+          hintsUsed={hints.hintsUsed}
+          hintsJammed={hints.blocked}
+          onSubmit={() => {
+            onSubmit(marked);
+          }}
+          onUnsubmit={onUnsubmit}
+          onOpenBrief={() => {
+            setBriefing(true);
+          }}
+          onOpenIntel={() => {
+            setIntel(true);
+          }}
         />
-
-        {refusal === null ? null : (
-          <p
-            role="alert"
-            className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
-          >
-            {refusal}
-          </p>
-        )}
-
-        {items?.refusal === undefined || items.refusal === null ? null : (
-          // D6 — an item the server would not let land. Said rather than
-          // dropped: an item that vanishes without a word is indistinguishable
-          // from a lost frame, which is exactly what the current server does.
-          <p
-            role="alert"
-            className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
-          >
-            {items.refusal}
-          </p>
-        )}
-
-        {submitted && !ended ? (
-          <p aria-live="polite" className="mt-4 text-center text-sm text-muted">
-            {t('status.answerWithServer')}
-          </p>
-        ) : null}
-
-        <RoundFooter />
       </main>
 
       {/* During the round only: reporting a real error is not something to do

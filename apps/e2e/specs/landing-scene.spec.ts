@@ -80,8 +80,15 @@ test.describe('C.4 — the collision', () => {
     // this a collision rather than a dissolve.
     expect(under?.beat).toBe(1);
     expect(over?.beat).toBe(1);
-    expect(under?.head).toBe(0);
-    expect(over?.head).toBe(0);
+
+    // *Gone*, not *exactly zero*, and the difference is the scroll position.
+    // `scrollTo` rounds to the pixel, so the scene stands a fraction either side
+    // of the halfway mark depending on what is above the stage — L.4's
+    // navigation bar moved it by a hair and one of these came back at 0.0035.
+    // A heading at three thousandths of an opacity is not on the screen; a test
+    // that reads that as a failure is measuring the rounding.
+    expect(under?.head).toBeLessThan(0.02);
+    expect(over?.head).toBeLessThan(0.02);
 
     // Level with each other, and closing. The beats drift three rems against
     // the scroll and the sheets cancel exactly that, or the two would pass at

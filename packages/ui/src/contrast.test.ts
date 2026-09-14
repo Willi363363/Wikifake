@@ -97,35 +97,29 @@ const at = (results: readonly { fg: string; bg: string; ratio: number }[], key: 
  */
 const PINNED: Readonly<Record<string, readonly [number, number]>> = {
   // pair                            light   dark
-  'ink on bg': [20.46, 16.86],
-  'ink on surface': [21.0, 15.51],
-  'ink on bg-grain': [18.08, 15.82],
-  'ink-2 on bg': [13.59, 12.26],
-  'ink-2 on surface': [13.95, 11.28],
-  'muted on bg': [7.37, 7.52],
-  'muted on surface': [7.57, 6.92],
-  'muted on bg-grain': [6.52, 7.05],
-  // `muted-2` is held to three rather than four and a half because the
-  // palette's own role line declares it large text only. That is the floor
-  // `CONTRAST_PAIRS` gives it, and it is not a discount taken here.
-  'muted-2 on bg': [5.18, 5.14],
-  'muted-2 on surface': [5.32, 4.73],
-
-  'on-fill on accent': [16.13, 16.13],
-  'on-fill on accent-line': [13.65, 13.65],
-  'on-fill on bronze': [10.45, 10.45],
-  'on-fill on green': [12.52, 12.52],
-  'on-fill on warn': [11.48, 11.48],
-  // The tightest pair in the palette, at ×1.54 of its target. `danger` is the
-  // darkest fill, and darkening it further to look more alarming is the change
-  // that breaks this row first.
-  'on-fill on danger': [6.94, 6.94],
-
-  'ink on accent-soft': [19.31, 11.4],
-  'ink on bronze-soft': [17.43, 13.27],
-  'ink on green-soft': [18.46, 12.73],
-  'ink on warn-soft': [17.96, 12.36],
-  'ink on danger-soft': [16.76, 14.26],
+  'ink on bg': [15.67, 16.3],
+  'ink on surface': [17.74, 14.7],
+  'ink on bg-grain': [14.4, 15.11],
+  'ink-2 on bg': [10.16, 12.94],
+  'ink-2 on surface': [11.51, 11.66],
+  'muted on bg': [6.0, 6.19],
+  'muted on surface': [6.79, 5.58],
+  'muted on bg-grain': [5.51, 5.74],
+  'muted-2 on bg': [3.9, 4.69],
+  'muted-2 on surface': [4.42, 4.23],
+  'accent on surface': [5.86, 6.1],
+  'accent on bg': [5.17, 6.77],
+  'on-fill on accent': [5.86, 6.95],
+  'on-fill on accent-line': [5.47, 10.59],
+  'on-fill on bronze': [5.18, 8.71],
+  'on-fill on green': [6.52, 11.31],
+  'on-fill on warn': [6.27, 11.8],
+  'on-fill on danger': [6.47, 7.12],
+  'ink on accent-soft': [14.15, 12.82],
+  'ink on bronze-soft': [14.4, 12.61],
+  'ink on green-soft': [14.7, 12.21],
+  'ink on warn-soft': [15.27, 11.86],
+  'ink on danger-soft': [13.83, 13.3],
 };
 
 describe('the maths', () => {
@@ -229,12 +223,24 @@ describe('6.6 — the audit', () => {
       expect(at(dark, key)?.ratio).toBeCloseTo(inDark, 2);
     });
 
-    // The fills are the same colour in both palettes, so their ratios are the
-    // same number twice. Stated as its own assertion because it is a design
-    // decision, and a decision that quietly stopped holding should fail.
-    it('measures each fill identically in both palettes', () => {
+    /*
+     * Track L reversed this one, and the reversal is the direction's whole
+     * point rather than a slip.
+     *
+     * The brutalist palette used one set of fills on both grounds — a yellow
+     * button is that yellow on a dark page — so the five `on-fill` rows were
+     * the same number twice. J2 has a light theme and a dark theme written
+     * together, and its accent inverts between them: a blue dark enough to
+     * carry white on paper is a blue that disappears on near-black. So every
+     * fill moves, `on-fill` moves with it, and **no token repeats at all**.
+     *
+     * The assertion therefore becomes the opposite one, and it is worth as
+     * much: a fill that stopped moving is a fill somebody translated in one
+     * palette and forgot in the other.
+     */
+    it('measures every fill differently in the two palettes', () => {
       for (const [key, [inLight, inDark]] of Object.entries(PINNED)) {
-        if (key.startsWith('on-fill on ')) expect(inLight).toBe(inDark);
+        if (key.startsWith('on-fill on ')) expect(inLight).not.toBe(inDark);
       }
     });
   });

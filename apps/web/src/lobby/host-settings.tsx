@@ -78,19 +78,18 @@ export function HostSettings({
         onClick={() => {
           onWithItemsChange(!withItems);
         }}
-        // `border-3`, not the 1px `border` it carried: the colour beside it is
-        // `line-strong` in both states, so this read as a black hairline on a
-        // page whose every other box is 3px.
+        // No edge at all since L.6, in either state: the two fills are a
+        // wash and the card's own surface, which is the whole vocabulary a
+        // switch needs. The border it used to carry was the page's width, and
+        // the page no longer has one.
         className={[
-          'flex w-full items-center justify-between border-3 px-3.5 py-2.5',
+          'flex w-full items-center justify-between rounded-lg px-3.5 py-2.5',
           'text-sm transition-colors outline-none',
           'focus-visible:ring-[3px] focus-visible:ring-accent-line focus-visible:ring-offset-2 focus-visible:ring-offset-bg',
           // The same disabled vocabulary as the button primitive: the fill
           // goes flat and the text withdraws, and nothing is diluted.
           'disabled:pointer-events-none disabled:bg-bg-grain disabled:text-muted',
-          withItems
-            ? 'border-line-strong bg-accent-soft text-ink'
-            : 'border-line-strong bg-surface text-ink-2',
+          withItems ? 'bg-accent-soft text-ink' : 'bg-bg-grain text-ink-2',
         ].join(' ')}
       >
         <span>{t('playWithItems')}</span>
@@ -103,7 +102,7 @@ export function HostSettings({
         >
           <span
             className={[
-              'absolute top-[3px] size-3.5 rounded-full bg-surface shadow-sm transition-[left]',
+              'absolute top-[3px] size-3.5 rounded-full bg-surface transition-[left]',
               withItems ? 'left-[19px]' : 'left-[3px]',
             ].join(' ')}
           />

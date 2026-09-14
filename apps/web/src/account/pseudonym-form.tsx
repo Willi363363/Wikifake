@@ -112,7 +112,7 @@ export function PseudonymForm({ next = '/play', attempted = '' }: PseudonymFormP
         // `role="alert"`, so a screen reader is told rather than left to notice.
         <p
           role="alert"
-          className="border-3 border-line-strong bg-danger-soft px-3 py-2 text-center text-sm text-ink"
+          className="rounded-lg bg-danger-soft px-3 py-2 text-center text-sm text-ink"
         >
           {error}
         </p>

@@ -19,7 +19,7 @@ import { DEFAULT_LOCALE } from '../src/i18n/locales.js';
 import { ICON_SIZES } from '../src/brand/mark.js';
 
 /** `--color-bg`: the paper, which is what a splash screen should be. */
-const BACKGROUND = '#fffcf2';
+const BACKGROUND = '#eef1f6';
 
 /**
  * `--color-accent`: the browser chrome, which is chassis rather than reading
@@ -28,7 +28,7 @@ const BACKGROUND = '#fffcf2';
  * The direction's one exemption is the surface an article is read on, and a
  * status bar is not it. Everything structural in this game is the yellow.
  */
-const THEME = '#ffe14d';
+const THEME = '#2557e6';
 
 /**
  * The sizes a manifest is for.

@@ -32,11 +32,11 @@ export function LiveRanking({ standings }: LiveRankingProps) {
   return (
     <aside
       aria-label={t('liveRanking.aria')}
-      className="fixed bottom-3 left-3 z-30 w-[min(17rem,calc(100vw-1.5rem))] overflow-hidden border-3 border-line-strong bg-surface shadow-md"
+      className="fixed bottom-3 left-3 z-30 w-[min(17rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl bg-surface shadow-lg"
     >
       <Button
         variant="ghost"
-        className="w-full justify-between rounded-none border-0"
+        className="w-full justify-between"
         aria-expanded={open}
         onClick={() => {
           setOpen((was) => !was);

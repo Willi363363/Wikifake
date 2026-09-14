@@ -1,8 +1,12 @@
 // The document every page is rendered into.
 //
-// The first one: until now this application served routes and no pages at all.
-// What it carries is deliberately minimal — the screens are phases 7 and 8, and
-// a layout that started deciding navigation would be deciding them here.
+// It used to carry no navigation on purpose: *"a layout that started deciding
+// navigation would be deciding the screens here"*, written when there were no
+// screens to decide. There are ten now, and step L.4 measured what the restraint
+// cost — three clicks to the shop, an underlined word in a paragraph as the only
+// path, and no way at all to reach the panel. So the bar lives here, in the one
+// surface every screen shares, beside the language switch that has always been
+// here for the same reason.
 //
 // `lang` follows the interface locale — step 11.5, and the amendment of C6.3.
 // The attribute was pinned to `"fr"` from the legacy stack until this step,
@@ -16,9 +20,11 @@ import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
+import { adminHere } from '../../src/admin/gate.js';
 import { messagesFor } from '../../src/i18n/catalogue.js';
 import { LocaleSwitch } from '../../src/i18n/locale-switch.js';
 import { LegalLinks } from '../../src/legal/links.js';
+import { SiteNav } from '../../src/nav/site-nav.js';
 import { LOCALES, type Locale } from '../../src/i18n/locales.js';
 import { absolute, localePath, siteOrigin } from '../../src/indexing.js';
 
@@ -162,6 +168,11 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }) {
   const locale = await localeFrom(params);
+  // Step L.5 — asked on the server, so a non-admin is handed no element rather
+  // than a hidden one. I.1's decision is that nothing announces the panel to
+  // somebody who cannot open it, and `hidden` announces it to anybody who reads
+  // the source.
+  const isAdmin = await adminHere();
 
   return (
     <html lang={locale} className={`${archivo.variable} ${jetbrainsMono.variable}`}>
@@ -171,6 +182,7 @@ export default async function RootLayout({
             inherits the locale and the messages from `src/i18n/request.ts`,
             so the request configuration stays the single source of both. */}
         <NextIntlClientProvider>
+          <SiteNav isAdmin={isAdmin} />
           {children}
           {/* Step 11.3 — the explicit switch, in the one surface every screen
               shares. Not navigation between screens (the restraint above

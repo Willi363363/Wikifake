@@ -141,7 +141,7 @@ export function MemoryCards() {
               // card and a face-down one differed by a hairline's hue.
               className={cn(
                 'flex size-12 items-center justify-center text-lg',
-                'border-3 border-line-strong',
+                'rounded-lg border border-line-strong',
                 'transition-colors motion-reduce:transition-none',
                 'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
                 card.matched

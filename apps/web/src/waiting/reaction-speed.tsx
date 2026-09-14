@@ -98,7 +98,7 @@ export function ReactionSpeed() {
           type="button"
           onClick={early}
           aria-label={t('reaction.fieldLabel')}
-          className="size-full border-3 border-line-strong bg-bg-grain outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
+          className="size-full rounded-xl bg-bg-grain outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
         />
         {phase === 'target' ? (
           <button
@@ -110,7 +110,7 @@ export function ReactionSpeed() {
             // this direction does not have, and a colour-on-colour border it
             // refuses. What has to be true of a target is that it appears and
             // that it is unmistakable; the fill does both.
-            className="absolute size-9 -translate-x-1/2 -translate-y-1/2 border-3 border-line-strong bg-accent outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
+            className="absolute size-9 -translate-x-1/2 -translate-y-1/2 rounded-lg bg-accent outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line"
             style={{ left: `${String(spot.x)}%`, top: `${String(spot.y)}%` }}
           />
         ) : null}

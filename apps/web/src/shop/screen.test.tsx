@@ -166,14 +166,28 @@ describe('H.7 — the catalogue is the only source of a name', () => {
     expect(screen.getByRole('link', { name: 'See your quests' })).not.toBeNull();
   });
 
-  it('groups the rows under a heading and a lead per slot', () => {
+  /*
+   * This asserted a heading and a lead *per slot*, when the shop was three
+   * stacked sections. L.6 made it one grid — the owner's S2 — so the heading
+   * per slot is gone and the check has to move rather than be deleted.
+   *
+   * It moves to the two things the rearrangement could have quietly dropped:
+   * every slot is still named, and every sentence that was under a heading is
+   * still on the page. The second is the one that mattered — the room's
+   * exception is a rule about how the game behaves, and it lived in a lead.
+   */
+  it('names every slot, and still says what each one changes', () => {
     render(<ShopScreen shop={shop()} />);
 
-    for (const heading of ['Marker', 'Mark style', 'Frame']) {
-      expect(screen.getByRole('heading', { name: heading, level: 2 })).not.toBeNull();
+    for (const slot of ['Marker', 'Mark style', 'Frame']) {
+      // Twice over: once in the block that says what the three kinds are, and
+      // once as the label on each card of that slot.
+      expect(screen.getAllByText(slot).length).toBeGreaterThan(1);
     }
     // The room's exception, said on the screen rather than left to be found.
     expect(screen.getByText(/In a room the game picks/)).not.toBeNull();
+    expect(screen.getByText(/How a paragraph you have marked is drawn/)).not.toBeNull();
+    expect(screen.getByText(/border round your name/)).not.toBeNull();
   });
 });
 

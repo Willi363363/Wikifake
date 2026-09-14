@@ -87,5 +87,22 @@
     "ready": "ready",
     "waiting": "waiting",
     "away": "away"
+  },
+  "home": {
+    "title": "Your game",
+    "what": "A real Wikipedia article, with facts quietly rewritten. Find them before the clock runs out.",
+    "how": "Mark the paragraphs you think were altered. You score for what you catch and lose for what you accuse wrongly.",
+    "free": "No account needed to play. Sign up when you want your rounds kept.",
+    "board": "Top of all time",
+    "boardEmpty": "Nobody has finished a room round yet.",
+    "allBoards": "All the boards",
+    "allQuests": "All your quests",
+    "finished": "Rounds finished",
+    "average": "Average score",
+    "lastRounds": "What you played",
+    "keepTitle": "Keep what you play",
+    "keepLead": "An account keeps your scores, your streak and the quests you have finished. The rounds you have already played come with you.",
+    "keepCta": "Create an account, or sign in",
+    "profile": "Your profile"
   }
 }

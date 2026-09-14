@@ -74,12 +74,13 @@ export function FlagCapture({
                   onClick={() => {
                     setChosen(number);
                   }}
-                  // Same edge whatever is chosen — `border-3 border-line-strong`
-                  // rather than a 1px `border` that was beige at rest and
-                  // yellow-on-yellow once picked. The wash says which one.
+                  // Same edge whatever is chosen, at `line-strong`. The wash
+                  // says which one is picked; an edge that changed colour with
+                  // the state would be saying it twice, and it used to say it
+                  // as a fill on a wash of the same hue — legible neither way.
                   className={cn(
                     'w-full px-3 py-2 text-left text-[13px] leading-snug',
-                    'border-3 border-line-strong',
+                    'rounded-lg border border-line-strong',
                     'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
                     chosen === number
                       ? 'bg-accent-soft text-ink'

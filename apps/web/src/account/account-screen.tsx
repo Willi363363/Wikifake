@@ -50,7 +50,7 @@ export function AccountScreen({ mode, providers }: AccountScreenProps) {
       <h1 className="text-center text-3xl text-ink">{t(`${mode}Title`)}</h1>
       <p className="mt-2 text-center text-sm text-muted">{t(`${mode}Lead`)}</p>
 
-      <div className="mt-8 border-3 border-line-strong bg-surface p-6 shadow-md">
+      <div className="mt-8 rounded-xl bg-surface p-6">
         <CredentialsForm mode={mode} />
 
         {providers.length === 0 ? null : (

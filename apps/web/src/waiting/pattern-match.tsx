@@ -160,7 +160,7 @@ export function PatternMatch() {
             aria-pressed={chosen.has(at)}
             aria-label={t('pattern.square', { number: at + 1 })}
             className={cn(
-              'size-12 border-3 border-line-strong',
+              'size-12 rounded-lg border border-line-strong',
               'transition-colors motion-reduce:transition-none',
               'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
               'enabled:hover:bg-accent-soft',

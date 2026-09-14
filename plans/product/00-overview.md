@@ -7,6 +7,10 @@ second thing.**
 The goal, in one sentence: *a game people come back to, built so that it could
 be handed to somebody else — or sold — without an apology.*
 
+**The request this answers is `00-brief.md`** — the owner's own words, kept
+verbatim and in French. Read it when a decision below looks arbitrary; most of
+them are answers to a sentence on that page.
+
 ## The two rules of this effort
 
 1. **Nothing is monetised before the rest is clean.** No advertising, no real

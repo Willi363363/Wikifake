@@ -48,6 +48,10 @@ export const CRAWLERS_KEPT_OUT = [
   '/room/',
   '/solo',
   '/gallery',
+  // `/dev` was here for track L, kept out as a prefix so that a second bench
+  // under it inherited the decision. L.8 deleted the bench, and the prefix went
+  // with it — that was the arrangement: the lab dies with the decision, not
+  // after it.
 ] as const;
 
 /**

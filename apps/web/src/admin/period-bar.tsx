@@ -25,8 +25,8 @@ import { CustomPeriod } from './period-custom.js';
 import { dayOf, rangeFrom, PRESETS, type Range } from './range.js';
 
 const CHIP =
-  'flex min-h-11 items-center border-3 border-line-strong px-3 py-2 text-[13px] whitespace-nowrap';
-const ON = `${CHIP} bg-accent font-bold text-on-fill shadow-sm`;
+  'flex min-h-11 items-center rounded-lg border border-line-strong px-3 py-2 text-[13px] whitespace-nowrap';
+const ON = `${CHIP} bg-accent font-bold text-on-fill`;
 const OFF = `${CHIP} bg-surface font-medium text-ink`;
 
 export interface PeriodBarProps {
@@ -59,7 +59,7 @@ export function PeriodBar({ nowMs }: PeriodBarProps) {
   });
 
   return (
-    <div className="flex flex-col gap-2 border-b-3 border-line-strong bg-surface px-4 py-3 sm:px-6">
+    <div className="flex flex-col gap-2 border-b border-line-strong bg-surface px-4 py-3 sm:px-6">
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-[10px] tracking-[0.14em] text-muted uppercase">
           {t('label')}

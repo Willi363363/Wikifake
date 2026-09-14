@@ -110,7 +110,7 @@ export function CostSection({ cost }: CostSectionProps) {
             <Sparkline columns={columns} height="h-40" />
           )}
 
-          <p className="m-0 mt-auto border-t-3 border-line pt-3 font-mono text-[11px] leading-relaxed text-muted">
+          <p className="m-0 mt-auto border-t border-line pt-3 font-mono text-[11px] leading-relaxed text-muted">
             {cost.rate === null
               ? t('noRateNames')
               : t('rateIs', {
@@ -130,7 +130,7 @@ export function CostSection({ cost }: CostSectionProps) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b-3 border-line-strong">
+                <tr className="border-b border-line-strong">
                   <th scope="col" className={`${LABEL} px-2 py-2 text-left`}>
                     {t('columns.kind')}
                   </th>
@@ -186,7 +186,7 @@ export function CostSection({ cost }: CostSectionProps) {
             </table>
           </div>
 
-          <div className="flex flex-col gap-1.5 border-t-3 border-line pt-3">
+          <div className="flex flex-col gap-1.5 border-t border-line pt-3">
             {/* A failure still spends: the tokens went to the model either way,
                 and hiding them would understate exactly the spend worth
                 cutting. */}

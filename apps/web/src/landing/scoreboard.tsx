@@ -42,7 +42,7 @@ export function Scoreboard() {
   const points = new Intl.NumberFormat(locale, { signDisplay: 'exceptZero' });
 
   return (
-    <dl className="mt-6 border-3 border-line-strong bg-surface shadow-md">
+    <dl className="mt-6 rounded-xl bg-surface">
       {OUTCOMES.map(({ key, points: value }, index) => (
         <div
           key={key}
@@ -50,7 +50,7 @@ export function Scoreboard() {
           // it into a slice of the beat; the frame and its shadow are there from
           // the first row, and what fills it arrives one line at a time.
           style={{ '--row': index } as CSSProperties}
-          className="landing-scoreboard__row flex items-baseline justify-between gap-4 border-b-3 border-line last:border-b-0 px-4 py-3"
+          className="landing-scoreboard__row flex items-baseline justify-between gap-4 border-b border-line last:border-b-0 px-4 py-3"
         >
           <dt className="text-sm text-ink">{t(key)}</dt>
           {/* Tabular figures so the column lines up: four rows of digits that

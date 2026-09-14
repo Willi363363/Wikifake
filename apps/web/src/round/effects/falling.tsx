@@ -63,7 +63,7 @@ export function Blizzard() {
       <p className="absolute inset-0 flex items-center justify-center">
         {/* Same reason as `screen.tsx`: an overlay has no measurable ground, so
             the announcement carries its own. `on-fill` on `accent` is 16.13. */}
-        <span className="border-3 border-line-strong bg-accent px-6 py-3 font-mono text-7xl font-black text-on-fill">
+        <span className="rounded-lg bg-accent px-6 py-3 font-mono text-7xl font-black text-on-fill">
           {t('effects.blizzard.amount', { seconds: FREEZE_TIME_SECONDS })}
         </span>
       </p>

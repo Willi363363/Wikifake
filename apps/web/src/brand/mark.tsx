@@ -34,8 +34,8 @@ import type { ReactElement } from 'react';
  * each one to the token it copies, because a duplication nobody checks is how
  * the crash page wore the previous palette through an entire redesign.
  */
-const ACCENT = '#ffe14d';
-const ON_FILL = '#000000';
+const ACCENT = '#2557e6';
+const ON_FILL = '#ffffff';
 
 /**
  * The sizes drawn, and the ids they are served under.

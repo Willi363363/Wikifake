@@ -51,7 +51,7 @@ function OneStep({ traffic }: TrafficSectionProps) {
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-full items-center border-3 border-line-strong bg-accent-line px-4">
+          <div className="flex h-12 w-full items-center rounded-lg bg-accent-line px-4">
             <span className="truncate text-sm font-bold text-ink">{t('landing')}</span>
           </div>
           <span className="w-20 shrink-0 text-right font-mono text-xl font-bold tabular-nums text-ink">
@@ -65,7 +65,7 @@ function OneStep({ traffic }: TrafficSectionProps) {
 
         <div className="flex items-center gap-4">
           <div
-            className="flex h-12 items-center border-3 border-line-strong bg-accent px-4"
+            className="flex h-12 items-center rounded-lg bg-accent px-4"
             style={{ width: `max(9rem, ${String(width)}%)` }}
           >
             <span className="truncate text-sm font-bold text-ink">{t('entry')}</span>
@@ -144,7 +144,7 @@ export function TrafficSection({ traffic }: TrafficSectionProps) {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b-3 border-line-strong">
+                  <tr className="border-b border-line-strong">
                     <th scope="col" className={`${LABEL} px-2 py-2 text-left`}>
                       {t('columns.day')}
                     </th>

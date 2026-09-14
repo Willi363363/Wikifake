@@ -49,8 +49,10 @@ export function DialogContent({ className, children, ...props }: DialogContentPr
     <Portal>
       <Overlay
         className={cn(
-          // Opaque enough to separate, with no blur: the direction has no haze,
-          // and a blurred scrim is the most expensive way to draw one.
+          // Opaque enough to separate, with no blur. Not a rule about the
+          // direction any more — a backdrop filter over a whole viewport is the
+          // most expensive thing a phone can be asked to paint, and the scrim
+          // already does the separating.
           'fixed inset-0 z-50 bg-ink/70',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
         )}
@@ -59,7 +61,9 @@ export function DialogContent({ className, children, ...props }: DialogContentPr
         className={cn(
           'fixed top-1/2 left-1/2 z-50 w-[calc(100vw-2rem)] max-w-md',
           '-translate-x-1/2 -translate-y-1/2',
-          'rounded-none border-3 border-line-strong bg-surface p-6 shadow-lg',
+          // The one place `shadow-lg` earns its keep: a dialog genuinely is
+          // over the page, which is the only thing an elevation says in J2.
+          'rounded-xl bg-surface p-6 shadow-lg',
           'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
           className,
         )}
@@ -69,7 +73,7 @@ export function DialogContent({ className, children, ...props }: DialogContentPr
         <Close
           aria-label="Close"
           className={cn(
-            'absolute top-4 right-4 rounded-none p-1 text-muted transition-colors',
+            'absolute top-4 right-4 rounded-md p-1 text-muted transition-colors',
             'motion-reduce:transition-none hover:bg-bg-grain hover:text-ink',
             'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
           )}

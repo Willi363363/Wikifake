@@ -43,7 +43,25 @@ const WEB = join(HERE, '..');
  * `on-fill` is not among them: it is the text colour *for* a fill, and it is
  * the answer rather than the problem.
  */
-const FILLS = ['accent', 'accent-line', 'bronze', 'green', 'warn', 'danger'];
+const FILLS = ['accent-line', 'bronze', 'green', 'warn', 'danger'];
+
+/*
+ * `accent` left this list at step L.4, and it is the one exception worth
+ * spelling out.
+ *
+ * The rule was written against a saturated yellow that measured 2.95:1 as text
+ * — unreadable, in a palette where it was everywhere. J2's accent is a link
+ * blue, and a link that is not coloured is not a link.
+ *
+ * **The permission was bought, not assumed.** `accent on surface` and `accent
+ * on bg` are declared rows of `CONTRAST_PAIRS` now, pinned at 5.86/6.10 and
+ * 5.17/6.77, so the use is guarded by a number instead of by a scan with no
+ * number behind it. The day somebody lightens the accent to make a button
+ * prettier, `contrast.test.ts` fails — which is more than this scan ever did.
+ *
+ * The other five stay. They are verdict fills, and a verdict is a block of
+ * colour rather than a coloured word.
+ */
 
 function sourcesIn(directory: string): { path: string; text: string }[] {
   return readdirSync(directory).flatMap((name) => {
@@ -143,7 +161,9 @@ describe('D — a fill is not a text colour', () => {
   // Guards the guard. A scan whose pattern no longer matches anything, in any
   // form, is a scan that would pass on a screen written entirely in fills.
   it('would notice, if there were something to notice', () => {
-    const bad = 'className="bg-accent-soft text-accent border-green/25 text-surface"';
+    // `text-bronze` rather than `text-accent`: the accent left the list at L.4
+    // and a self-check written against a permitted class would pass on nothing.
+    const bad = 'className="bg-accent-soft text-bronze border-green/25 text-surface"';
     const caught = [
       ...FILLS.filter((fill) =>
         new RegExp(String.raw`\btext-${fill}(?![\w-])`).test(bad),
@@ -151,7 +171,7 @@ describe('D — a fill is not a text colour', () => {
       ...FILLS.filter((fill) => new RegExp(String.raw`\bborder-${fill}/\d`).test(bad)),
       ...(/\btext-surface(?![\w-])/.test(bad) ? ['surface'] : []),
     ];
-    expect(caught).toEqual(['accent', 'green', 'surface']);
+    expect(caught).toEqual(['bronze', 'green', 'surface']);
   });
 });
 
@@ -209,12 +229,21 @@ describe('D — the grammar, where the fill scan cannot look', () => {
   });
 
   /*
-   * The hover that lifts.
+   * The hover that lifts — and L.6 turned this rule inside out without
+   * weakening it.
    *
-   * "The shadow collapses and the element shifts 2px into it. Nothing else
-   * moves." The item bar did the reverse — rise a pixel, *gain* a `shadow-md`
-   * — which is the previous identity's lift and glow, kept because a sweep
-   * looking for colours has no reason to read a transform.
+   * It was written when the direction lifted nothing: the shadow collapsed and
+   * the element shifted into it, and the item bar doing the reverse was a
+   * screen wearing the identity before that one. J2 does lift — a button rests
+   * flat and rises a pixel on hover — so "nothing lifts" is no longer the rule
+   * it is enforcing.
+   *
+   * What it enforces now is **where the lift is written**. It scans `apps/web`
+   * and nothing else, so the gesture is allowed exactly once, in
+   * `buttonVariants`, and a screen that grows its own is caught here. That is
+   * the property that mattered all along: one hover, declared in the design
+   * system, rather than a transform per screen that no sweep for colours would
+   * ever read.
    */
   it('never lifts on hover', () => {
     expect(offenders(/hover:-translate-y-/)).toEqual([]);
@@ -245,6 +274,6 @@ describe('D — the grammar, where the fill scan cannot look', () => {
     );
 
     expect(stripped?.text).not.toContain('text-white');
-    expect(stripped?.text).toContain('border-3 border-line-strong');
+    expect(stripped?.text).toContain('rounded-sm bg-surface');
   });
 });

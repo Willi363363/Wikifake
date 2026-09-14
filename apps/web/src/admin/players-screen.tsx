@@ -97,7 +97,7 @@ export function PlayersSection({ players }: PlayersSectionProps) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b-3 border-line-strong">
+                <tr className="border-b border-line-strong">
                   <th scope="col" className={`${LABEL} px-2 py-2 text-left`}>
                     {t('columns.rank')}
                   </th>

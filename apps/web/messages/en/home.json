@@ -26,5 +26,11 @@
         "clock": "Each second still on the clock"
       }
     }
+  },
+  "nav": {
+    "profile": "Profile",
+    "menu": "Menu",
+    "close": "Close the menu",
+    "backToGame": "Back to the game"
   }
 }

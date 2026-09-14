@@ -17,8 +17,8 @@
 import { useFormatter } from 'next-intl';
 import type { ReactNode } from 'react';
 
-export const CARD = 'border-3 border-line-strong bg-surface shadow-md';
-export const PANEL = 'border-3 border-line bg-bg';
+export const CARD = 'rounded-xl bg-surface';
+export const PANEL = 'rounded-lg border border-line bg-bg';
 export const LABEL = 'font-mono text-[10px] tracking-[0.12em] text-muted uppercase';
 
 /**
@@ -70,7 +70,7 @@ export function Tile({
 }) {
   return (
     <div
-      className={`flex flex-col gap-1.5 border-3 border-line-strong p-4 shadow-md ${
+      className={`flex flex-col gap-1.5 rounded-lg border border-line-strong p-4 ${
         filled ? 'bg-accent' : 'bg-surface'
       }`}
     >
@@ -134,7 +134,7 @@ export function Sparkline({
         <div
           key={column.label}
           title={`${column.label} · ${String(column.value)}`}
-          className="min-w-0 flex-1 border-3 border-line-strong bg-accent-line"
+          className="min-w-0 flex-1 bg-accent-line"
           // A zero-height bar is invisible, and invisible reads as missing: the
           // floor is two pixels so a day with nothing in it is still a day.
           style={{
@@ -168,7 +168,7 @@ export function Funnel({ bars }: { readonly bars: readonly Bar[] }) {
         <li key={bar.label} className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
             <div
-              className={`flex h-9 items-center border-3 border-line-strong px-3 ${
+              className={`flex h-9 items-center rounded-lg border border-line-strong px-3 ${
                 at === 0
                   ? 'bg-accent'
                   : at === bars.length - 1
@@ -227,12 +227,12 @@ export function PairedBars({
         >
           <div
             title={`${column.label} · ${String(column.value)}`}
-            className="min-w-0 flex-1 border-3 border-line-strong bg-accent-line"
+            className="min-w-0 flex-1 bg-accent-line"
             style={{ height: tall(column.value) }}
           />
           <div
             title={`${column.label} · ${String(second[at]?.value ?? 0)}`}
-            className="min-w-0 flex-1 border-3 border-line-strong bg-accent"
+            className="min-w-0 flex-1 bg-accent"
             style={{ height: tall(second[at]?.value ?? 0) }}
           />
         </div>

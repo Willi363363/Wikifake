@@ -1,6 +1,19 @@
 'use client';
 
-// The first screen: play alone, open a room, or join one.
+// Play alone, open a room, or join one — the largest tile of the home.
+//
+// **L.6 made it a tile rather than a screen.** It was a centred card on an
+// otherwise empty page, with the brand above it and two links under it; the
+// owner's dashboard puts it in a grid beside the figures, so this component
+// stopped owning a `<main>` and owns the tile. `home.tsx` is the page.
+//
+// It is the accent block, and it is two rows and two columns wide, because *Play
+// is the largest tile* is the decision the arrangement was chosen for: it earns
+// the eye by area and position rather than by glowing.
+//
+// Everything on the fill carries `on-fill`, which is a measured pair. The fields
+// are `surface`, so what a player types is `ink` on white in both palettes — an
+// input tinted to match the tile would be a field whose text nothing measured.
 //
 // Three things change from the current one, and only one of them is visual.
 //
@@ -16,9 +29,8 @@
 // And the screen is built from the design system rather than from forty inline
 // style objects, which is what makes it work in both palettes and at 360 px.
 import { decode, playerName, roomCode, topicLabel } from '@wikifake/protocol';
-import { Badge, Button, cn, Input, Label, Separator } from '@wikifake/ui';
+import { Button, cn, Input } from '@wikifake/ui';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useId, useState, type FormEvent } from 'react';
 
@@ -46,15 +58,6 @@ function complaint(
 
 export interface LobbyEntryProps {
   /**
-   * Whether the browser is carrying a real account, as opposed to a guest.
-   *
-   * Decided on the server — `play/page.tsx` — because a client component cannot
-   * read a session without asking for it, and a screen that flickered from
-   * "Create an account" to "Your profile" after hydration would be one that
-   * looks broken to everybody who already has one.
-   */
-  readonly signedIn?: boolean;
-  /**
    * The name this player is shown under in a room — step E.3.3.
    *
    * Present exactly when an account has chosen one, so its presence is what
@@ -71,7 +74,7 @@ export interface LobbyEntryProps {
   readonly pseudonym?: string;
 }
 
-export function LobbyEntry({ signedIn = false, pseudonym }: LobbyEntryProps) {
+export function LobbyEntry({ pseudonym }: LobbyEntryProps) {
   const t = useTranslations('lobby.entry');
   const router = useRouter();
   const ids = useId();
@@ -174,8 +177,12 @@ export function LobbyEntry({ signedIn = false, pseudonym }: LobbyEntryProps) {
   // would be collecting a value the server is about to overrule.
   const nicknameField =
     pseudonym === undefined ? (
-      <div className="space-y-1.5">
-        <Label htmlFor={`${ids}-nickname`}>{t('nicknameLabel')}</Label>
+      <div className="flex flex-col gap-1.5">
+        {/* Not the design system's `Label`, which is `ink`: this one sits on
+            the accent fill, where `on-fill` is the measured pair. */}
+        <label htmlFor={`${ids}-nickname`} className="text-[13px] font-medium">
+          {t('nicknameLabel')}
+        </label>
         <Input
           id={`${ids}-nickname`}
           value={nickname}
@@ -187,141 +194,143 @@ export function LobbyEntry({ signedIn = false, pseudonym }: LobbyEntryProps) {
         />
       </div>
     ) : (
-      <p className="text-sm text-muted">
+      <p className="m-0 text-sm">
         {t.rich('playingAs', {
-          name: () => <span className="font-mono text-ink">{pseudonym}</span>,
+          name: () => <span className="font-mono font-semibold">{pseudonym}</span>,
         })}
       </p>
     );
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10">
-      <h1 className="text-center text-3xl text-ink">{t('brand')}</h1>
-      <p className="mt-2 text-center text-sm text-muted">{t('tagline')}</p>
+    <section className="flex flex-col gap-5 rounded-xl bg-accent p-6 text-on-fill sm:col-span-2 sm:row-span-2">
+      <p className="m-0 text-[15px] leading-snug font-medium">{t('tagline')}</p>
 
-      <div className="mt-8 border-3 border-line-strong bg-surface p-6 shadow-md">
-        {/* A tablist, not three buttons that happen to look like one: the roles
-            are what let a keyboard move between them. */}
-        <div role="tablist" aria-label={t('tabsLabel')} className="flex gap-2">
-          {TABS.map((tab) => (
-            <Button
-              key={tab}
-              role="tab"
-              aria-selected={mode === tab}
-              variant={mode === tab ? 'primary' : 'ghost'}
-              className="flex-1"
-              onClick={() => {
-                setMode(tab);
-                setError(null);
-              }}
-            >
-              {t(`tabs.${tab}`)}
-            </Button>
-          ))}
-        </div>
-
-        <Separator className="my-5" />
-
-        {mode === 'solo' ? (
-          <form onSubmit={startSolo} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor={`${ids}-topic`}>{t('topicLabel')}</Label>
-              {/* The topic is a fr.wikipedia.org subject — the placeholder is
-                  an example of one ("Chat"), identical in every locale, and
-                  what the player types is French data, not interface copy.
-                  Hence `lang="fr"` on the field, whatever the interface. */}
-              <Input
-                id={`${ids}-topic`}
-                value={topic}
-                lang="fr"
-                placeholder={t('topicPlaceholder')}
-                onChange={(event) => {
-                  setTopic(event.target.value);
-                }}
-              />
-            </div>
-            <Button type="submit" variant="primary" size="lg" className="w-full">
-              {t('playSolo')}
-            </Button>
-          </form>
-        ) : null}
-
-        {mode === 'host' ? (
-          <form
-            onSubmit={(event) => {
-              void host(event);
+      {/* A tablist, not three buttons that happen to look like one: the roles
+          are what let a keyboard move between them. */}
+      <div role="tablist" aria-label={t('tabsLabel')} className="flex gap-2">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            role="tab"
+            aria-selected={mode === tab}
+            onClick={() => {
+              setMode(tab);
+              setError(null);
             }}
-            className="space-y-4"
-          >
-            {nicknameField}
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              className="w-full"
-              disabled={busy}
-            >
-              {busy ? t('opening') : t('openRoom')}
-            </Button>
-          </form>
-        ) : null}
-
-        {mode === 'join' ? (
-          <form onSubmit={join} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor={`${ids}-code`}>{t('roomCodeLabel')}</Label>
-              <Input
-                id={`${ids}-code`}
-                value={code}
-                maxLength={6}
-                autoComplete="off"
-                // Upper-cased as it is typed, so `a1b2c3` is a room rather than
-                // a 404. The server's codes are upper-case by construction.
-                className="uppercase"
-                onChange={(event) => {
-                  setCode(event.target.value.toUpperCase());
-                }}
-              />
-            </div>
-            {nicknameField}
-            <Button type="submit" variant="primary" size="lg" className="w-full">
-              {t('joinSubmit')}
-            </Button>
-          </form>
-        ) : null}
-
-        {error === null ? null : (
-          // `role="alert"`, so it is announced rather than merely displayed —
-          // the current one is a red paragraph and nothing else.
-          <p
-            role="alert"
             className={cn(
-              'mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center',
+              'flex-1 rounded-md px-3 py-1.5 text-[13px] font-semibold',
+              'transition-colors outline-none motion-reduce:transition-none',
+              'focus-visible:ring-[3px] focus-visible:ring-accent-line focus-visible:ring-offset-2 focus-visible:ring-offset-accent',
+              // The chosen one is a surface on the fill; the others are the fill
+              // with the text on it. Never a border — there are none here.
+              mode === tab
+                ? 'bg-surface text-ink'
+                : 'text-on-fill hover:bg-bg-grain hover:text-ink',
             )}
           >
-            {error}
-          </p>
-        )}
+            {t(`tabs.${tab}`)}
+          </button>
+        ))}
       </div>
 
-      {/* Step E.5 — the one link to the account area, on the one screen every
-          player passes through. A profile nothing points at is a profile nobody
-          opens, and this is the screen somebody lands on after signing in. */}
-      <p className="mt-6 flex flex-wrap justify-center gap-4 text-center text-sm text-muted">
-        <Link href={signedIn ? '/profile' : '/sign-in'} className="text-ink underline">
-          {t(signedIn ? 'profile' : 'account')}
-        </Link>
-        {/* Step G.5 — beside the account link rather than behind it: a board is
-            the one screen this effort added that is nobody's in particular, and
-            a guest who has never signed in is exactly who it is for. */}
-        <Link href="/leaderboard" className="text-ink underline">
-          {t('leaderboard')}
-        </Link>
-      </p>
+      {mode === 'solo' ? (
+        <form onSubmit={startSolo} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor={`${ids}-topic`} className="text-[13px] font-medium">
+              {t('topicLabel')}
+            </label>
+            {/* The topic is a fr.wikipedia.org subject — the placeholder is
+                an example of one ("Chat"), identical in every locale, and
+                what the player types is French data, not interface copy.
+                Hence `lang="fr"` on the field, whatever the interface. */}
+            <Input
+              id={`${ids}-topic`}
+              value={topic}
+              lang="fr"
+              placeholder={t('topicPlaceholder')}
+              onChange={(event) => {
+                setTopic(event.target.value);
+              }}
+            />
+          </div>
+          <Submit label={t('playSolo')} />
+        </form>
+      ) : null}
 
-      <p className="mt-6 text-center">
-        <Badge tone="accent">{t('serverAuthoritative')}</Badge>
-      </p>
-    </main>
+      {mode === 'host' ? (
+        <form
+          onSubmit={(event) => {
+            void host(event);
+          }}
+          className="flex flex-col gap-4"
+        >
+          {nicknameField}
+          <Submit label={busy ? t('opening') : t('openRoom')} disabled={busy} />
+        </form>
+      ) : null}
+
+      {mode === 'join' ? (
+        <form onSubmit={join} className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor={`${ids}-code`} className="text-[13px] font-medium">
+              {t('roomCodeLabel')}
+            </label>
+            <Input
+              id={`${ids}-code`}
+              value={code}
+              maxLength={6}
+              autoComplete="off"
+              // Upper-cased as it is typed, so `a1b2c3` is a room rather than
+              // a 404. The server's codes are upper-case by construction.
+              className="uppercase"
+              onChange={(event) => {
+                setCode(event.target.value.toUpperCase());
+              }}
+            />
+          </div>
+          {nicknameField}
+          <Submit label={t('joinSubmit')} />
+        </form>
+      ) : null}
+
+      {error === null ? null : (
+        // `role="alert"`, so it is announced rather than merely displayed —
+        // the current one is a red paragraph and nothing else.
+        <p
+          role="alert"
+          className="m-0 rounded-lg bg-danger-soft px-3 py-2 text-center text-sm text-ink"
+        >
+          {error}
+        </p>
+      )}
+
+      {/* Last, and small: the guarantee is reassurance rather than an
+          instruction, and on the largest tile of the page it was competing with
+          the thing the tile is for. */}
+      <p className="m-0 mt-auto text-[11.5px]">{t('serverAuthoritative')}</p>
+    </section>
+  );
+}
+
+/**
+ * The one control that starts something, on the accent tile.
+ *
+ * `default` rather than `primary`: the primary variant *is* the accent, and an
+ * accent button on an accent tile is a rectangle you find by hovering. The
+ * recessed ground reads as a raised control against the fill, which is the same
+ * inversion the tile itself is built on.
+ */
+function Submit({
+  label,
+  disabled,
+}: {
+  readonly label: string;
+  readonly disabled?: boolean;
+}) {
+  return (
+    <Button type="submit" size="lg" className="w-full" disabled={disabled ?? false}>
+      {label}
+    </Button>
   );
 }

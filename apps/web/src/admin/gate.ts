@@ -37,12 +37,42 @@ export interface Admin {
  * the anonymous plugin deletes that row when they sign up, so an admin guest is
  * an admin who disappears. Nobody should grant one.
  */
-export async function requireAdmin(): Promise<Admin> {
+/**
+ * The admin behind this request, or **null** — the one lookup both callers use.
+ *
+ * Private on purpose. A boolean is safe for the navigation, which renders an
+ * entry or renders nothing, and unsafe for a page, which would have to remember
+ * to branch on it — so the two public functions differ in what they do with the
+ * same answer, and neither re-asks the question. Track I's exit gate counts the
+ * lookups a page load costs, and this is one.
+ */
+async function adminBehind(): Promise<Admin | null> {
   const session = await auth().api.getSession({ headers: await headers() });
 
-  if (session === null) notFound();
-  if (session.user.isAnonymous === true) notFound();
-  if (!(await isAdmin(db(), session.user.id))) notFound();
+  if (session === null) return null;
+  if (session.user.isAnonymous === true) return null;
+  if (!(await isAdmin(db(), session.user.id))) return null;
 
   return { userId: session.user.id };
+}
+
+export async function requireAdmin(): Promise<Admin> {
+  const admin = await adminBehind();
+  if (admin === null) notFound();
+  return admin;
+}
+
+/**
+ * Whether this request is an admin's, as a boolean — step L.5.
+ *
+ * The navigation needs the question answered without the answer ending the
+ * render, which is the one thing `requireAdmin` deliberately cannot do.
+ *
+ * **What it is used for is what makes it safe.** The bar renders the entry or
+ * renders nothing at all: a non-admin receives no element, not a hidden one, so
+ * I.1's decision still holds — nothing announces the panel to somebody who
+ * cannot open it.
+ */
+export async function adminHere(): Promise<boolean> {
+  return (await adminBehind()) !== null;
 }

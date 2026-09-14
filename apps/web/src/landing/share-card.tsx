@@ -34,14 +34,14 @@ import { EXCERPT, SHARE_AFTER, SHARE_BEFORE } from './excerpt.js';
  */
 export const CARD_SIZE = { width: 1200, height: 630 } as const;
 
-/** The palette, from `plans/product/01-palette.md`'s light values. */
-const INK = '#000000';
-const PAPER = '#fffcf2';
+/** The palette, from `plans/product/13-palette.md`'s light values. */
+const INK = '#111827';
+const PAPER = '#eef1f6';
 const SURFACE = '#ffffff';
-const ACCENT = '#ffe14d';
-const GREEN = '#5fe08b';
-const ON_FILL = '#000000';
-const MUTED = '#57544b';
+const ACCENT = '#2557e6';
+const GREEN = '#136c34';
+const ON_FILL = '#ffffff';
+const MUTED = '#515c6b';
 
 /** The structural border and its offset, multiplied to the canvas — see above. */
 const BORDER = 8;
@@ -137,9 +137,9 @@ export function ShareCard({ question, tagline }: ShareCardProps): ReactElement {
               reading sheet a player has to read several hundred words of and a
               saturated block there is noise. A card is looked at for half a
               second, at 360 CSS pixels wide in a chat client, where
-              `#dbf7e6` on white is nothing at all. `green` is the debrief's
+              `green-soft` on white is nothing at all. `green` is the debrief's
               verdict chip, which is a flat fill in the direction's own words,
-              and `on-fill` is the black it measures at 12.52:1 against.
+              and `on-fill` is the white it measures at 6.52:1 against.
 
               The falsified value is what is marked. A card showing the true
               one demonstrates nothing. */}
