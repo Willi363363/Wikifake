@@ -18,13 +18,13 @@
 // This whole directory dies at L.8, with the decision it exists to inform.
 import { useState } from 'react';
 
-import { CandidateAcid } from './candidate-acid.js';
-import { CandidateCoral } from './candidate-coral.js';
-import { CandidateNeon } from './candidate-neon.js';
+import { CandidateEncyclopedia } from './candidate-encyclopedia.js';
+import { CandidateQuiz } from './candidate-quiz.js';
+import { CandidateSwiss } from './candidate-swiss.js';
 import { useCopy } from './copy.js';
 import type { Theme } from './tone.js';
 
-type Which = 'neon' | 'coral' | 'acid';
+type Which = 'quiz' | 'encyclopedia' | 'swiss';
 
 interface Option {
   readonly id: Which;
@@ -37,25 +37,25 @@ interface Option {
 /** The bench's own chrome is English: it is not the product. */
 const OPTIONS: readonly Option[] = [
   {
-    id: 'neon',
-    name: 'D — electric violet',
-    nav: 'deepest dark of the three',
-    bet: 'Dark and vivid at full strength. One violet, one cyan used once, and a play button that glows.',
-    risk: 'The palette every launch page has worn since 2023 — current, and possibly anonymous.',
+    id: 'quiz',
+    name: 'G — the quiz genre',
+    nav: 'Duolingo, Kahoot, Quizlet',
+    bet: 'A decade of mobile evidence behind it. Chunky buttons with a solid bottom edge, high contrast, one confident green. Depth you could press, not light you cannot locate.',
+    risk: 'It reads as for children, and this game is about catching a liar in an encyclopaedia.',
   },
   {
-    id: 'coral',
-    name: 'E — warm coral',
-    nav: 'the most air of the three',
-    bet: 'Vivid without electric. One hot orange, enormous margins, and the headline given a whole screen.',
-    risk: 'Warmth reads as friendly, and this game is about catching a liar.',
+    id: 'encyclopedia',
+    name: 'H — the encyclopaedia, borrowed',
+    nav: 'the reference the game already reads',
+    bet: 'The only direction that could belong to this game and no other: a serif column, the link blue everyone knows, a rule under the title — and exactly one modern object, the play button.',
+    risk: 'It reads as a document, and a document is not obviously a game.',
   },
   {
-    id: 'acid',
-    name: 'F — acid lime',
-    nav: 'the most graphic of the three',
-    bet: 'One colour so loud it can only be used once. Everything else is black, white and a grey.',
-    risk: 'A second state — a warning, a timer — has nowhere to go.',
+    id: 'swiss',
+    name: 'I — grotesk, grid, one flat colour',
+    nav: 'the house style of designed sites',
+    bet: 'Sixty years old and still everywhere: an enormous neutral grotesk, a grid you can see, one colour that is never shaded. Templates decorate; this refuses to.',
+    risk: 'Cold, and a streak or a reward has nowhere to land.',
   },
 ];
 
@@ -89,7 +89,7 @@ function Switch({
 }
 
 export function Lab() {
-  const [which, setWhich] = useState<Which>('neon');
+  const [which, setWhich] = useState<Which>('quiz');
   const [theme, setTheme] = useState<Theme>('dark');
   const [isAdmin, setIsAdmin] = useState(false);
   const [onAdminPage, setOnAdminPage] = useState(false);
@@ -98,12 +98,12 @@ export function Lab() {
 
   const chosen = OPTIONS.find((one) => one.id === which) as Option;
   const body =
-    which === 'neon' ? (
-      <CandidateNeon copy={copy} theme={theme} onAdminPage={onAdminPage} />
-    ) : which === 'coral' ? (
-      <CandidateCoral copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    which === 'quiz' ? (
+      <CandidateQuiz copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'encyclopedia' ? (
+      <CandidateEncyclopedia copy={copy} theme={theme} onAdminPage={onAdminPage} />
     ) : (
-      <CandidateAcid copy={copy} theme={theme} onAdminPage={onAdminPage} />
+      <CandidateSwiss copy={copy} theme={theme} onAdminPage={onAdminPage} />
     );
 
   return (

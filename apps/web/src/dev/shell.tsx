@@ -27,7 +27,10 @@ export interface ShellProps {
 
 export function Shell({ copy, tone, onAdminPage, menuId, children }: ShellProps) {
   return (
-    <div style={{ background: tone.bg, color: tone.ink }} className="min-h-full">
+    <div
+      style={{ background: tone.bg, color: tone.ink, fontFamily: tone.font }}
+      className="min-h-full"
+    >
       <header
         style={{ borderColor: tone.line }}
         className="flex items-center gap-4 border-b px-5 py-4 sm:px-10"

@@ -27,6 +27,14 @@ export interface Tone {
   readonly onAccent: string;
   /** A second vivid colour, used once per screen at most. */
   readonly second: string;
+  /**
+   * The face, as a CSS stack.
+   *
+   * A stack and not a loaded file: a bench that pulls three web fonts is a
+   * bench measuring the network. Every family named here is on the machine
+   * already, and L.3 chooses the real one once a direction is settled.
+   */
+  readonly font: string;
 }
 
 export type Theme = 'light' | 'dark';
