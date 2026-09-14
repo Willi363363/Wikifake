@@ -23,21 +23,35 @@ them are answers to a sentence on that page.
 
 ## The tracks
 
-| # | Track | State | Depends on | File |
-|---|---|---|---|---|
-| A | Art direction — the DA itself | ✅ done | — | `01-art-direction.md` |
-| B | Design system — the DA in code | ⬜ not started | A | `02-design-system.md` |
-| C | Landing — the scroll scene | ⬜ not started | A, B | `03-landing.md` |
-| D | Game surface — the DA on the screens | ⬜ not started | B | `04-game-surface.md` |
-| E | Accounts and player stats | ⬜ not started | — | `05-accounts.md` |
-| F | Quests | ⬜ not started | E | `06-quests.md` |
-| G | Leaderboards | ⬜ not started | E | `07-leaderboards.md` |
-| H | Economy — coins and shop | ⬜ not started | E, F | `08-economy.md` |
-| I | Admin panel | ⬜ not started | E | `09-admin.md` |
-| J | SEO, legal and polish | ⬜ not started | A | `10-seo-and-legal.md` |
+| # | Track | Depends on | File |
+|---|---|---|---|
+| A | Art direction — the DA itself | — | `01-art-direction.md` |
+| B | Design system — the DA in code | A | `02-design-system.md` |
+| C | Landing — the scroll scene | A, B | `03-landing.md` |
+| D | Game surface — the DA on the screens | B | `04-game-surface.md` |
+| E | Accounts and player stats | — | `05-accounts.md` |
+| F | Quests | E | `06-quests.md` |
+| G | Leaderboards | E | `07-leaderboards.md` |
+| H | Economy — coins and shop | E, F | `08-economy.md` |
+| I | Admin panel | E | `09-admin.md` |
+| J | SEO, legal and polish | A | `10-seo-and-legal.md` |
+| K | The admin panel, page by page | I | `12-admin-pages.md` |
+| L | The interface, again | — | `13-ui-overhaul.md` |
 
 `plans/README.md` carries the state of this table. It is not duplicated here —
 this file describes the tracks, that one says where they stand.
+
+**It used to carry a `State` column all the same**, and by the time L was
+finished it said *not started* about nine tracks that were in production. That
+is what a second copy of a fact does: the sentence above was true and the table
+beside it was not, and a reader had no way to tell which to believe. The column
+is gone rather than corrected, because correcting it would only reset the clock
+on the same drift.
+
+**L depends on nothing, and that is worth reading twice.** It replaced A's
+output rather than building on it — the owner's judgement on eight months of
+work — so the dependency column says what it means: a track can be the one that
+undoes another.
 
 ## Why A comes first, and what it blocks
 
