@@ -18,7 +18,7 @@
 // This whole directory dies at L.8, with the decision it exists to inform.
 import { useState } from 'react';
 
-import { AdminOverview, AdminRail, AdminTabs } from './admin-variants.js';
+import { AdminRepainted } from './admin-variants.js';
 import { BoardPinned, BoardPlain, BoardPodium } from './board-variants.js';
 import { ProfileFigures, ProfileHeadline, ProfileHistory } from './profile-variants.js';
 import { QuestsColumns, QuestsReady, QuestsTiles } from './quest-variants.js';
@@ -44,9 +44,7 @@ type Which =
   | 'figures'
   | 'headline'
   | 'history'
-  | 'rail'
-  | 'tabs'
-  | 'overview';
+  | 'repainted';
 
 interface Option {
   readonly page: Page;
@@ -181,27 +179,11 @@ const OPTIONS: readonly Option[] = [
   },
   {
     page: 'admin',
-    id: 'rail',
-    name: 'A1 \u2014 the rail stays, under the site bar',
-    nav: 'two navigations, nested',
-    bet: 'Track K chose the rail and it works: seven sections always in view, and you never lose your place moving between them.',
-    risk: 'Two navigations on one screen, and the rail vanishes on a phone \u2014 which is where the panel is least usable already.',
-  },
-  {
-    page: 'admin',
-    id: 'tabs',
-    name: 'A2 \u2014 sections as tabs',
-    nav: 'one navigation only',
-    bet: 'The site bar is the only navigation, and the sections are a row of chips under it that scrolls sideways. Nothing nested, nothing hidden in a menu inside a menu.',
-    risk: 'Seven chips is a row nobody reads to the end, and the last sections are effectively further away.',
-  },
-  {
-    page: 'admin',
-    id: 'overview',
-    name: 'A3 \u2014 the overview is the way in',
-    nav: 'no permanent section nav',
-    bet: 'You open the panel with a question. The figures answer most of them, and the sections are destinations at the bottom rather than a rail you carry everywhere.',
-    risk: 'Moving between two sections means going back through the overview every time.',
+    id: 'repainted',
+    name: 'The panel, repainted',
+    nav: 'nothing moved',
+    bet: 'Track K designed this page by page hours ago \u2014 the boxed groups, the eight routes, the period bar, the digest. Only the palette changes.',
+    risk: 'None to weigh: there is no choice here, which is why there is one mockup instead of three.',
   },
 ];
 
@@ -291,12 +273,8 @@ export function Lab() {
       <ProfileHeadline copy={copy} theme={theme} onAdminPage={onAdminPage} />
     ) : which === 'history' ? (
       <ProfileHistory copy={copy} theme={theme} onAdminPage={onAdminPage} />
-    ) : which === 'rail' ? (
-      <AdminRail copy={copy} theme={theme} onAdminPage={onAdminPage} />
-    ) : which === 'tabs' ? (
-      <AdminTabs copy={copy} theme={theme} onAdminPage={onAdminPage} />
     ) : (
-      <AdminOverview copy={copy} theme={theme} onAdminPage={onAdminPage} />
+      <AdminRepainted copy={copy} theme={theme} onAdminPage={onAdminPage} />
     );
 
   return (
@@ -323,7 +301,7 @@ export function Lab() {
                             ? 'pinned'
                             : one === 'profile'
                               ? 'headline'
-                              : 'rail',
+                              : 'repainted',
                   );
                 }}
                 className={`${one === page ? ON : OFF} mr-1`}

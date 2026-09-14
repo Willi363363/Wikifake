@@ -1,17 +1,21 @@
 'use client';
 
-// The admin panel, three arrangements — step L.1, round ten.
+// The admin panel, repainted and not redesigned — step L.1, round ten.
 //
-// **The question this page asks is not about colour.** Track K gave the panel a
-// rail down the left and eight routes; the owner now wants a bar across the top
-// on every screen. Two navigations on one screen is a decision, not a detail,
-// and these three take it three different ways.
+// **There is nothing to choose here, so there is one mockup.** The owner built
+// this panel page by page a few hours ago — the rail in boxed groups, the eight
+// routes, the period bar, the digest — and asked for exactly one thing from
+// track L: the colours.
 //
-// The figures are track K's own, unchanged: the panel reads, it never writes,
-// and nothing here invents a measurement. What moves is where a reader stands.
+// So this is track K's own structure, wearing J2. The rail keeps its three
+// boxed groups with Overview outside them, the period bar keeps its five
+// calendar presets and the custom one, the digest keeps its four figures, its
+// funnel and its line of health. Not a control moved.
 //
-// **The way back is on all three**, because it is half the owner's request. A
-// panel you can enter and not leave is a panel people close with the tab.
+// **That constraint has a useful consequence.** If nothing but the palette
+// changes, `players-screen.test.tsx` and its seven siblings keep passing
+// untouched — and a green suite is then the proof that no UX changed, rather
+// than a claim somebody has to be believed about.
 import { Shell } from './shell.js';
 import type { Copy } from './copy.js';
 import { ADMIN } from './sample.js';
@@ -21,9 +25,15 @@ import type { Theme, Tone } from './tone.js';
 export interface AdminProps {
   readonly copy: Copy;
   readonly theme: Theme;
-  /** The lab's own switch, so the way back can be seen from here. */
   readonly onAdminPage: boolean;
 }
+
+/** Track K's grouping, unchanged: Overview alone, then three boxed groups. */
+const GROUPS = [
+  { key: 'audience', sections: [0, 1, 2] },
+  { key: 'game', sections: [3, 4] },
+  { key: 'system', sections: [5, 6] },
+];
 
 function Tile({
   label,
@@ -68,193 +78,167 @@ function Tile({
   );
 }
 
-function Figures({ copy, tone }: { readonly copy: Copy; readonly tone: Tone }) {
-  const share = `${String(Math.round(ADMIN.soloShare * 100))}%`;
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <Tile tone={tone} label={copy.adminAccounts} value={String(ADMIN.accounts)} />
-      <Tile
-        tone={tone}
-        label={copy.adminActiveToday}
-        value={String(ADMIN.activeToday)}
-        note={`${String(ADMIN.activeThisWeek)} / 7 j`}
-      />
-      <Tile
-        tone={tone}
-        label={copy.adminRounds}
-        value={String(ADMIN.rounds)}
-        note={`${share} solo`}
-      />
-      <Tile
-        tone={tone}
-        filled
-        label={copy.adminSpend}
-        value={String(ADMIN.spend)}
-        note={String(ADMIN.perRound)}
-      />
-    </div>
-  );
-}
-
-function Funnel({ copy, tone }: { readonly copy: Copy; readonly tone: Tone }) {
+export function AdminRepainted({ copy, theme, onAdminPage }: AdminProps) {
+  const tone = J2[theme];
   const top = ADMIN.funnel[0]?.count ?? 1;
-  return (
-    <section style={{ background: tone.surface }} className="rounded-2xl p-5">
-      <h2 className="m-0 mb-3 text-[15px] font-bold">{copy.adminActivation}</h2>
-      <ol className="m-0 flex list-none flex-col gap-2 p-0">
-        {ADMIN.funnel.map((step) => (
-          <li key={step.step} className="flex items-center gap-3">
-            <span
-              style={{
-                background: tone.accent,
-                color: tone.onAccent,
-                width: `${String(Math.max(30, (step.count / top) * 100))}%`,
-              }}
-              className="flex h-8 items-center rounded-lg px-3 text-[13px] font-semibold"
-            >
-              <span className="truncate">{copy.adminStep(step.step)}</span>
-            </span>
-            <span className="text-[14px] font-bold tabular-nums">{step.count}</span>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}
+  const share = `${String(Math.round(ADMIN.soloShare * 100))}%`;
 
-function Health({ copy, tone }: { readonly copy: Copy; readonly tone: Tone }) {
   return (
-    <section
-      style={{ background: tone.surface }}
-      className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl p-5"
-    >
-      {ADMIN.services.map((service) => (
-        <span key={service.name} className="flex items-center gap-2">
-          <span
-            style={{ background: service.up ? '#16A34A' : '#DC2626' }}
-            className="size-2.5 rounded-full"
-          />
-          <span className="text-[13px]">{copy.adminService(service.name)}</span>
-          {service.ms > 0 ? (
-            <span style={{ color: tone.muted }} className="text-[11.5px] tabular-nums">
-              {service.ms} ms
-            </span>
-          ) : null}
-        </span>
-      ))}
-      <span style={{ color: tone.muted }} className="text-[11.5px]">
-        {copy.adminSameCommit}
-      </span>
-    </section>
-  );
-}
-
-/** A1 — the rail stays, under the site bar. Two navigations, nested. */
-export function AdminRail({ copy, theme, onAdminPage }: AdminProps) {
-  const tone = J2[theme];
-  return (
-    <Shell copy={copy} tone={tone} onAdminPage={onAdminPage} menuId="a1-menu">
-      <main className="mx-auto flex max-w-6xl gap-4 px-4 py-5 sm:px-8 sm:py-8">
+    <Shell copy={copy} tone={tone} onAdminPage={onAdminPage} menuId="admin-menu">
+      <div className="flex">
+        {/* K.1's rail: boxed groups, Overview outside all three. */}
         <nav
           aria-label={copy.adminTitle}
-          style={{ background: tone.surface }}
-          className="hidden w-52 shrink-0 flex-col gap-0.5 rounded-2xl p-3 lg:flex"
+          className="hidden w-60 shrink-0 flex-col gap-3 p-4 lg:flex"
         >
-          {ADMIN.sections.map((section, at) => (
-            <a
-              key={section.route}
-              href="#"
-              style={
-                at === 0
-                  ? { background: tone.accent, color: tone.onAccent }
-                  : { color: tone.muted }
-              }
-              className="rounded-lg px-3 py-2.5 text-[13.5px] font-medium"
-            >
-              {copy.adminSection(section.key)}
-            </a>
-          ))}
-        </nav>
+          <a
+            href="#"
+            style={{ background: tone.accent, color: tone.onAccent }}
+            className="rounded-xl px-3 py-2.5 text-[13.5px] font-semibold"
+          >
+            {copy.adminOverview}
+          </a>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-4">
-          <Figures copy={copy} tone={tone} />
-          <Funnel copy={copy} tone={tone} />
-          <Health copy={copy} tone={tone} />
-        </div>
-      </main>
-    </Shell>
-  );
-}
-
-/** A2 — no rail. The sections become a row of tabs under the site bar. */
-export function AdminTabs({ copy, theme, onAdminPage }: AdminProps) {
-  const tone = J2[theme];
-  return (
-    <Shell copy={copy} tone={tone} onAdminPage={onAdminPage} menuId="a2-menu">
-      <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 sm:px-8 sm:py-8">
-        {/* One navigation on the screen, and it scrolls sideways rather than
-            collapsing: seven names do not fit a phone, and a menu inside a menu
-            is how somebody loses their place. */}
-        <nav
-          aria-label={copy.adminTitle}
-          className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1"
-        >
-          {ADMIN.sections.map((section, at) => (
-            <a
-              key={section.route}
-              href="#"
-              style={
-                at === 0
-                  ? { background: tone.accent, color: tone.onAccent }
-                  : { background: tone.surface, color: tone.muted }
-              }
-              className="shrink-0 rounded-full px-4 py-2 text-[13.5px] font-medium whitespace-nowrap"
-            >
-              {copy.adminSection(section.key)}
-            </a>
-          ))}
-        </nav>
-
-        <Figures copy={copy} tone={tone} />
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <Funnel copy={copy} tone={tone} />
-          <Health copy={copy} tone={tone} />
-        </div>
-      </main>
-    </Shell>
-  );
-}
-
-/** A3 — no permanent section nav at all: the overview is the way in. */
-export function AdminOverview({ copy, theme, onAdminPage }: AdminProps) {
-  const tone = J2[theme];
-  return (
-    <Shell copy={copy} tone={tone} onAdminPage={onAdminPage} menuId="a3-menu">
-      <main className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 sm:px-8 sm:py-8">
-        <Figures copy={copy} tone={tone} />
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <Funnel copy={copy} tone={tone} />
-          <Health copy={copy} tone={tone} />
-        </div>
-
-        {/* The sections as destinations rather than as a rail. The panel is
-            opened to answer a question, and the question decides the page. */}
-        <nav
-          aria-label={copy.adminTitle}
-          className="grid gap-3 sm:grid-cols-3 lg:grid-cols-4"
-        >
-          {ADMIN.sections.map((section) => (
-            <a
-              key={section.route}
-              href="#"
+          {GROUPS.map((group) => (
+            <div
+              key={group.key}
               style={{ background: tone.surface }}
-              className="rounded-2xl px-4 py-4 text-[14px] font-semibold"
+              className="rounded-2xl p-2"
             >
-              {copy.adminSection(section.key)} →
-            </a>
+              <span
+                style={{ color: tone.muted }}
+                className="block px-2 py-1.5 text-[10.5px] tracking-[0.12em] uppercase"
+              >
+                {copy.adminGroups.find((one) => one.key === group.key)?.label}
+              </span>
+              {group.sections.map((at) => (
+                <a
+                  key={ADMIN.sections[at]?.route}
+                  href="#"
+                  style={{ color: tone.muted }}
+                  className="block rounded-lg px-2 py-2 text-[13.5px]"
+                >
+                  {copy.adminSection(ADMIN.sections[at]?.key ?? '')}
+                </a>
+              ))}
+            </div>
           ))}
+
+          <span
+            style={{ color: tone.muted }}
+            className="mt-auto px-2 text-[10.5px] tracking-[0.1em] uppercase"
+          >
+            {copy.adminReadOnly}
+          </span>
         </nav>
-      </main>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          {/* K.2's period bar: five calendar presets, and the custom one. */}
+          <div
+            style={{ background: tone.surface }}
+            className="flex flex-wrap items-center gap-2 px-4 py-3 sm:px-6"
+          >
+            <span
+              style={{ color: tone.muted }}
+              className="text-[10.5px] tracking-[0.12em] uppercase"
+            >
+              {copy.adminPeriod}
+            </span>
+            {copy.adminPresets.map((preset, at) => (
+              <a
+                key={preset.id}
+                href="#"
+                style={
+                  at === 2
+                    ? { background: tone.accent, color: tone.onAccent }
+                    : { background: tone.bg, color: tone.muted }
+                }
+                className="rounded-full px-3 py-1.5 text-[13px] whitespace-nowrap"
+              >
+                {preset.label}
+              </a>
+            ))}
+          </div>
+
+          <main className="flex flex-col gap-4 p-4 sm:p-6">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              <Tile
+                tone={tone}
+                label={copy.adminAccounts}
+                value={String(ADMIN.accounts)}
+              />
+              <Tile
+                tone={tone}
+                label={copy.adminActiveToday}
+                value={String(ADMIN.activeToday)}
+                note={`${String(ADMIN.activeThisWeek)} / 7 j`}
+              />
+              <Tile
+                tone={tone}
+                label={copy.adminRounds}
+                value={String(ADMIN.rounds)}
+                note={`${share} solo`}
+              />
+              <Tile
+                tone={tone}
+                filled
+                label={copy.adminSpend}
+                value={String(ADMIN.spend)}
+                note={String(ADMIN.perRound)}
+              />
+            </div>
+
+            <section style={{ background: tone.surface }} className="rounded-2xl p-5">
+              <h2 className="m-0 mb-3 text-[15px] font-bold">{copy.adminActivation}</h2>
+              <ol className="m-0 flex list-none flex-col gap-2 p-0">
+                {ADMIN.funnel.map((step) => (
+                  <li key={step.step} className="flex items-center gap-3">
+                    <span
+                      style={{
+                        background: tone.accent,
+                        color: tone.onAccent,
+                        width: `${String(Math.max(30, (step.count / top) * 100))}%`,
+                      }}
+                      className="flex h-8 items-center rounded-lg px-3 text-[13px] font-semibold"
+                    >
+                      <span className="truncate">{copy.adminStep(step.step)}</span>
+                    </span>
+                    <span className="text-[14px] font-bold tabular-nums">
+                      {step.count}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+
+            <section
+              style={{ background: tone.surface }}
+              className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-2xl p-5"
+            >
+              {ADMIN.services.map((service) => (
+                <span key={service.name} className="flex items-center gap-2">
+                  <span
+                    style={{ background: service.up ? '#16A34A' : '#DC2626' }}
+                    className="size-2.5 rounded-full"
+                  />
+                  <span className="text-[13px]">{copy.adminService(service.name)}</span>
+                  {service.ms > 0 ? (
+                    <span
+                      style={{ color: tone.muted }}
+                      className="text-[11.5px] tabular-nums"
+                    >
+                      {service.ms} ms
+                    </span>
+                  ) : null}
+                </span>
+              ))}
+              <span style={{ color: tone.muted }} className="text-[11.5px]">
+                {copy.adminSameCommit}
+              </span>
+            </section>
+          </main>
+        </div>
+      </div>
     </Shell>
   );
 }

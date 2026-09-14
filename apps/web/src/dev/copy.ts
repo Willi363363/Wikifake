@@ -105,6 +105,11 @@ export interface Copy {
   readonly adminStep: (step: string) => string;
   readonly adminService: (name: string) => string;
   readonly adminSameCommit: string;
+  readonly adminGroups: readonly { readonly key: string; readonly label: string }[];
+  readonly adminOverview: string;
+  readonly adminReadOnly: string;
+  readonly adminPeriod: string;
+  readonly adminPresets: readonly { readonly id: string; readonly label: string }[];
 }
 
 export function useCopy(isAdmin: boolean): Copy {
@@ -214,6 +219,17 @@ export function useCopy(isAdmin: boolean): Copy {
     adminService: (name: string) =>
       admin(`health.services.${name}` as 'health.services.web'),
     adminSameCommit: admin('health.commitAgree'),
+    adminGroups: (['audience', 'game', 'system'] as const).map((key) => ({
+      key,
+      label: admin(`nav.groups.${key}`),
+    })),
+    adminOverview: admin('nav.overview'),
+    adminReadOnly: admin('nav.readOnly'),
+    adminPeriod: admin('range.label'),
+    adminPresets: (['24h', 'week', 'month', 'year', 'all'] as const).map((id) => ({
+      id,
+      label: admin(`range.presets.${id}`),
+    })),
     menu: home('nav.menu'),
     close: home('nav.close'),
     backToGame: home('nav.backToGame'),

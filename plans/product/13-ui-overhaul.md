@@ -79,6 +79,7 @@ three candidates each, every one built rather than described.
 | The direction | **J2** | Tiles with no hairline — a tile is separated by being a different surface. Flat blue, large figures, plenty of air. Light and dark written together |
 | The home | **A dense dashboard** | Nothing centred. The streak, the daily lot, the ranking and the last rounds all visible, with Play as the largest tile among them rather than a hero above them |
 | The navigation | **A bar at the top** | Every route one click away. Shipped shape still open; the bench has worn a slim bar with a full-screen phone menu since round four |
+| The admin panel | **Unchanged — repainted only** | Track K designed it page by page; nothing about its interface is reopened. The rail, the boxed groups, the eight routes, the period bar and the digests stay exactly as they are, and only the palette follows the new direction |
 | The profile | **P2 — one figure leads** | The average score, large: it is the only figure that says whether somebody is improving. Rounds played only says they kept playing |
 | The leaderboard | **B2 — your rank pinned on top** | The board answers "where am I" before it answers "who is winning": rank and score in a block above the list, your row still coloured in place |
 | The quests | **Q1 — today and the week, side by side** | Two lots kept apart, because they are different promises: a day is something you finish tonight, a week is something you are partway through |
@@ -101,8 +102,14 @@ marketing about them.
 | L.4 | The navigation, shipped: every route reachable in one click | ⬜ |
 | L.5 | The admin entry, and the way back from it | ⬜ |
 | L.6 | Every screen onto the new direction — the game surface | ⬜ |
-| L.7 | The admin panel onto it too: one direction, no exception | ⬜ |
+| L.7 | The admin panel **re-tokened**: the palette only, not one control moved | ⬜ |
 | L.8 | Retire the lab, and the `/dev` prefix with it | ⬜ |
+
+**L.7 has a test that proves it rather than a promise.** If nothing but the
+palette changes, `players-screen.test.tsx` and its seven siblings keep passing
+untouched — they assert the markup track K built. A green suite is then the
+evidence that no interface moved, instead of a claim somebody has to take on
+trust. Any one of them needing an edit is the signal that the step overreached.
 
 **L.2 is not a formality.** Track A measured forty contrast pairs before a line
 of CSS moved, and phase 6 — which did not — shipped a palette that looked right
