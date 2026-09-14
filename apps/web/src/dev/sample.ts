@@ -1,3 +1,5 @@
+import article from './article.json' with { type: 'json' };
+
 // The figures the dashboards are drawn with — step L.1, round four.
 //
 // **Sample data, and every field exists in a reader today.** `player_stats`
@@ -173,4 +175,31 @@ export const ADMIN = {
     { name: 'realtime', up: true, ms: 84 },
     { name: 'database', up: true, ms: 12 },
   ],
+};
+
+export interface Paragraph {
+  readonly text: string;
+  readonly marked: boolean;
+}
+
+/**
+ * A round in progress, on a real article.
+ *
+ * **The prose lives in `article.json` and not here**, and that is not tidiness.
+ * `language.test.ts` refuses French in the sources, and it is right to: it
+ * cannot tell interface copy from an encyclopaedia. The repository already has
+ * the distinction — the game reads fr.wikipedia.org, and *that is data, not our
+ * prose* — so the data goes in a data file and the scan keeps its teeth.
+ *
+ * One of these paragraphs has had a fact moved, and the mockup deliberately
+ * does not say which: nothing on that screen knows, which is what
+ * `brief.serverGradesNote` promises the player.
+ */
+export const ROUND = {
+  topic: article.topic,
+  total: 4,
+  altered: 2,
+  secondsLeft: 134,
+  hintsLeft: 2,
+  paragraphs: article.paragraphs as readonly Paragraph[],
 };

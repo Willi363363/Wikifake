@@ -110,6 +110,17 @@ export interface Copy {
   readonly adminReadOnly: string;
   readonly adminPeriod: string;
   readonly adminPresets: readonly { readonly id: string; readonly label: string }[];
+  /** The round, for the game-screen mockups. */
+  readonly source: string;
+  readonly modifiedTag: string;
+  readonly timeLeft: string;
+  readonly markedLabel: string;
+  readonly submit: string;
+  readonly briefTop: string;
+  readonly intel: string;
+  readonly alteredCount: (total: number) => string;
+  readonly gradesNote: string;
+  readonly paragraphNumber: (number: number) => string;
 }
 
 export function useCopy(isAdmin: boolean): Copy {
@@ -119,6 +130,7 @@ export function useCopy(isAdmin: boolean): Copy {
   const board = useTranslations('leaderboard');
   const admin = useTranslations('admin');
   const account = useTranslations('account');
+  const round = useTranslations('round');
 
   const label = (one: Destination): string => {
     if (one.zone === 'quests') return quests('title');
@@ -230,6 +242,16 @@ export function useCopy(isAdmin: boolean): Copy {
       id,
       label: admin(`range.presets.${id}`),
     })),
+    source: round('article.source'),
+    modifiedTag: round('article.modifiedTag'),
+    timeLeft: round('topBar.timeLeft'),
+    markedLabel: round('topBar.markedLabel'),
+    submit: round('topBar.submit'),
+    briefTop: round('topBar.brief'),
+    intel: round('topBar.intel'),
+    alteredCount: (total: number) => round('topBar.alteredCount', { total }),
+    gradesNote: round('brief.serverGradesNote'),
+    paragraphNumber: (number: number) => round('debrief.paragraphNumber', { number }),
     menu: home('nav.menu'),
     close: home('nav.close'),
     backToGame: home('nav.backToGame'),

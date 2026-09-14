@@ -1,0 +1,21 @@
+{
+  "topic": "Tour Eiffel",
+  "paragraphs": [
+    {
+      "text": "La tour Eiffel est une tour de fer puddlé de 330 mètres de hauteur située à Paris, à l'extrémité nord-ouest du parc du Champ-de-Mars en bordure de la Seine dans le 7e arrondissement.",
+      "marked": false
+    },
+    {
+      "text": "Construite en deux ans par Gustave Eiffel et ses collaborateurs pour l'Exposition universelle de Paris de 1912, et initialement nommée « tour de 300 mètres », ce monument est devenu le symbole de la capitale française.",
+      "marked": true
+    },
+    {
+      "text": "Sa hauteur a été plusieurs fois augmentée par l'installation de nombreuses antennes. Utilisée dans le passé pour de nombreuses expériences scientifiques, elle sert aujourd'hui d'émetteur de programmes radiophoniques et télévisés.",
+      "marked": false
+    },
+    {
+      "text": "Le monument est devenu le site culturel payant le plus visité au monde avec 7 millions de visiteurs estimés en 2023. Depuis son ouverture au public, elle a accueilli plus de 300 millions de personnes.",
+      "marked": true
+    }
+  ]
+}

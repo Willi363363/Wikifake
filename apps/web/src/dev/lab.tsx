@@ -19,6 +19,7 @@
 import { useState } from 'react';
 
 import { AdminRepainted } from './admin-variants.js';
+import { RoundBars, RoundFloating, RoundRail } from './round-variants.js';
 import { BoardPinned, BoardPlain, BoardPodium } from './board-variants.js';
 import { ProfileFigures, ProfileHeadline, ProfileHistory } from './profile-variants.js';
 import { QuestsColumns, QuestsReady, QuestsTiles } from './quest-variants.js';
@@ -27,7 +28,7 @@ import { VariantDense, VariantFlat, VariantQuiet } from './variants.js';
 import { useCopy } from './copy.js';
 import type { Theme } from './tone.js';
 
-type Page = 'home' | 'shop' | 'quests' | 'board' | 'profile' | 'admin';
+type Page = 'home' | 'shop' | 'quests' | 'board' | 'profile' | 'admin' | 'round';
 type Which =
   | 'quiet'
   | 'flat'
@@ -44,7 +45,10 @@ type Which =
   | 'figures'
   | 'headline'
   | 'history'
-  | 'repainted';
+  | 'repainted'
+  | 'bars'
+  | 'floating'
+  | 'railed';
 
 interface Option {
   readonly page: Page;
@@ -185,6 +189,30 @@ const OPTIONS: readonly Option[] = [
     bet: 'Track K designed this page by page hours ago \u2014 the boxed groups, the eight routes, the period bar, the digest. Only the palette changes.',
     risk: 'None to weigh: there is no choice here, which is why there is one mockup instead of three.',
   },
+  {
+    page: 'round',
+    id: 'bars',
+    name: 'R1 \u2014 a bar above, a bar below',
+    nav: 'nothing overlaps the prose',
+    bet: 'The clock has a place, the submit has a place, and neither ever covers a word. The safest arrangement for the one screen that must be readable.',
+    risk: 'Two bars eat vertical space on a phone, which is exactly where the article is already longest.',
+  },
+  {
+    page: 'round',
+    id: 'floating',
+    name: 'R2 \u2014 one floating pill',
+    nav: 'the page is the article',
+    bet: 'Clock, count and submit in one object that follows the reader. The screen is the article and almost nothing else.',
+    risk: 'It covers a strip of the page \u2014 and the strip it covers is prose somebody is trying to read.',
+  },
+  {
+    page: 'round',
+    id: 'railed',
+    name: 'R3 \u2014 a rail beside, a bar on a phone',
+    nav: 'the clock large where there is room',
+    bet: 'On a wide screen the margin is wasted, so the clock lives there, big. On a phone it collapses to a bar, because a rail has nowhere to be.',
+    risk: 'Two layouts to build and two to keep honest, for one screen.',
+  },
 ];
 
 const TAB = 'rounded-md px-3 py-1.5 text-[13px] transition-colors';
@@ -273,8 +301,14 @@ export function Lab() {
       <ProfileHeadline copy={copy} theme={theme} onAdminPage={onAdminPage} />
     ) : which === 'history' ? (
       <ProfileHistory copy={copy} theme={theme} onAdminPage={onAdminPage} />
-    ) : (
+    ) : which === 'repainted' ? (
       <AdminRepainted copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'bars' ? (
+      <RoundBars copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'floating' ? (
+      <RoundFloating copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : (
+      <RoundRail copy={copy} theme={theme} onAdminPage={onAdminPage} />
     );
 
   return (
@@ -283,33 +317,35 @@ export function Lab() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Which page is being drawn. The direction is settled, so the
               bench moves on to the screens one at a time. */}
-          {(['home', 'shop', 'quests', 'board', 'profile', 'admin'] as const).map(
-            (one) => (
-              <button
-                key={one}
-                type="button"
-                onClick={() => {
-                  setPage(one);
-                  setWhich(
-                    one === 'home'
-                      ? 'flat'
-                      : one === 'shop'
-                        ? 'grid'
-                        : one === 'quests'
-                          ? 'columns'
-                          : one === 'board'
-                            ? 'pinned'
-                            : one === 'profile'
-                              ? 'headline'
-                              : 'repainted',
-                  );
-                }}
-                className={`${one === page ? ON : OFF} mr-1`}
-              >
-                {one}
-              </button>
-            ),
-          )}
+          {(
+            ['home', 'shop', 'quests', 'board', 'profile', 'admin', 'round'] as const
+          ).map((one) => (
+            <button
+              key={one}
+              type="button"
+              onClick={() => {
+                setPage(one);
+                setWhich(
+                  one === 'home'
+                    ? 'flat'
+                    : one === 'shop'
+                      ? 'grid'
+                      : one === 'quests'
+                        ? 'columns'
+                        : one === 'board'
+                          ? 'pinned'
+                          : one === 'profile'
+                            ? 'headline'
+                            : one === 'admin'
+                              ? 'repainted'
+                              : 'bars',
+                );
+              }}
+              className={`${one === page ? ON : OFF} mr-1`}
+            >
+              {one}
+            </button>
+          ))}
           {OPTIONS.filter((one) => one.page === page).map((one) => (
             <button
               key={one.id}
