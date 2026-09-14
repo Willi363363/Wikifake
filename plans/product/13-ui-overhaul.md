@@ -79,6 +79,7 @@ three candidates each, every one built rather than described.
 | The direction | **J2** | Tiles with no hairline — a tile is separated by being a different surface. Flat blue, large figures, plenty of air. Light and dark written together |
 | The home | **A dense dashboard** | Nothing centred. The streak, the daily lot, the ranking and the last rounds all visible, with Play as the largest tile among them rather than a hero above them |
 | The navigation | **A bar at the top** | Every route one click away. Shipped shape still open; the bench has worn a slim bar with a full-screen phone menu since round four |
+| The round | **R3 — a rail beside, a bar on a phone** | The wide screen's margin is wasted anyway, so the clock lives there, large; on a phone it collapses to a bar. The article never moves and never changes colour |
 | The admin panel | **Unchanged — repainted only** | Track K designed it page by page; nothing about its interface is reopened. The rail, the boxed groups, the eight routes, the period bar and the digests stay exactly as they are, and only the palette follows the new direction |
 | The profile | **P2 — one figure leads** | The average score, large: it is the only figure that says whether somebody is improving. Rounds played only says they kept playing |
 | The leaderboard | **B2 — your rank pinned on top** | The board answers "where am I" before it answers "who is winning": rank and score in a block above the list, your row still coloured in place |
@@ -96,8 +97,8 @@ marketing about them.
 
 | # | Step | State |
 |---|---|---|
-| L.1 | The lab: three home pages, three directions, three navigations | 🔶 |
-| L.2 | The direction chosen, and its palette measured before any CSS moves | ⬜ |
+| L.1 | The lab: every screen, three candidates each | ✅ — seven screens chosen |
+| L.2 | The direction chosen, and its palette measured before any CSS moves | ✅ — `13-palette.md` |
 | L.3 | The tokens, replacing track A's, both themes contrast-checked | ⬜ |
 | L.4 | The navigation, shipped: every route reachable in one click | ⬜ |
 | L.5 | The admin entry, and the way back from it | ⬜ |
@@ -111,10 +112,12 @@ untouched — they assert the markup track K built. A green suite is then the
 evidence that no interface moved, instead of a claim somebody has to take on
 trust. Any one of them needing an edit is the signal that the step overreached.
 
-**L.2 is not a formality.** Track A measured forty contrast pairs before a line
-of CSS moved, and phase 6 — which did not — shipped a palette that looked right
-and failed seven pairs. The cost of measuring first was an hour; the cost of
-repairing afterwards was a session.
+**L.2 was not a formality, and it earned its hour.** Every pair passes AA, but
+`accent` on `surface` in the dark theme came out at 4.81 — ×1.07 of the
+threshold, where track A's tightest pair was ×1.54. A margin that thin fails the
+next time somebody darkens a tile by a shade, and nothing announces it. The
+measured alternative is in `13-palette.md`; the draft would have shipped without
+anybody noticing until it broke.
 
 ## The lab, and the rule it breaks on purpose
 
