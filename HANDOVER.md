@@ -12,8 +12,12 @@ shapes, the period rebuilt, the lab deleted.
 
 ## State at the pause
 
-- **Everything is on `feat/dev-rail-lab`, pull request #265, against
-  `staging`.** Four commits on top of yesterday's two.
+- **Track K is on `staging`**: pull request #265 is merged, so pre-production
+  carries the eight pages. `main` does not yet — the promotion is below.
+- **Pull request #264 is what is left**, and it is this file's neighbour: the
+  grant procedure in `09-admin-role.md`. It conflicted here because track K
+  replaced the handover wholesale; the conflict is resolved on its own branch,
+  towards this version, because the list below already puts the grant first.
 - `plans/README.md` marks track K done. `plans/product/12-admin-pages.md`
   carries the step table, and **K.9b is the one row no commit can tick** — see
   *Outstanding*.
@@ -72,9 +76,14 @@ today, and anything a hand-typed link can carry falls back to a month.
 
 1. **Grant the panel to `admin.wikifake@gmail.com`** — still not done, and it
    is what stands between this work and anybody seeing it. The `admin` table is
-   empty, so `/admin` answers 404 to everybody. Two statements in the Neon
-   console; `plans/product/09-admin-role.md` carries them and says why
-   `.env.local` cannot do it.
+   empty, so `/admin` answers 404 to everybody, the owner included.
+   `plans/product/09-admin-role.md`, *"Nobody holds the grant yet"*, carries the
+   order: **sign in through Google first**, because until the account exists the
+   insert matches nothing and says so by inserting nothing. Then the insert and
+   the read-back, in the Neon console. No redeploy: `isAdmin` is a lookup run on
+   every page load. And it says why nothing on this disk can do it —
+   `.env.local` describes the local containers, and production Postgres is Neon
+   with its connection string in Vercel.
 2. **Set the two cost rates in Vercel** — `MODEL_INPUT_COST_PER_MTOK=0.215` and
    `MODEL_OUTPUT_COST_PER_MTOK=1.29`. That is `gemini-3.1-flash-lite` at
    $0.25/$1.50 per million, converted at 0.861 USD→EUR on 13 September 2026 —
@@ -96,9 +105,14 @@ and **redeploy**, since it is inlined at build time; add the origin to
 `STAGING_DEPLOY_URL`; open a throwaway pull request and confirm nothing stays
 pending.
 
-**Then, at leisure:** promote `staging` to `main` — merged, never squashed;
-watch the arrivals section weekly; the chat rail covering a card border at
-360 px and the per-package Redis index (`10-test-debt.md`).
+**The promotion is the next thing worth doing.** `staging` is thirty-six commits
+ahead of `main`, and **no migration is outstanding in either direction** —
+checked over `packages/db/migrations/`, not assumed — so it is a pure code merge
+and step 1 of `01-git-flow.md`'s procedure is a no-op this time. Merged, never
+squashed.
+
+**Then, at leisure:** watch the arrivals section weekly; the chat rail covering
+a card border at 360 px and the per-package Redis index (`10-test-debt.md`).
 
 **Advertising stays deferred** — `11-deferred.md` carries the arithmetic, and
 AdSense wants a domain somebody owns.

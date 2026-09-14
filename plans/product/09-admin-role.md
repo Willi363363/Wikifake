@@ -88,6 +88,44 @@ A second sweep reads every source under `src/admin/` for `.insert(`, `.update(`,
 them. The exit gate's last line is *no write anywhere in the diff*, and a promise
 in a document is a promise the sixth section breaks.
 
+## Nobody holds the grant yet, and `.env.local` cannot give it
+
+The table is still empty in production on 2026-09-13, so the route answers 404
+to everybody — the owner included, which is the safe default working as
+designed. The first grant goes to `admin.wikifake@gmail.com`.
+
+**`.env.local` is not the credential, and it was checked rather than assumed.**
+It describes the local environment only: `DATABASE_URL` points at the `wf-pg`
+container and `BETTER_AUTH_URL` at `http://localhost`. Production Postgres is
+Neon (`current-state/04-deployment.md`) and its connection string lives in
+Vercel's environment variables, on no disk here.
+
+The order:
+
+1. Sign in on `https://wikifake.vercel.app/` with that address **through
+   Google**, as far as choosing a pseudonym. Until the account exists the
+   insert below matches nothing, and says so by inserting nothing.
+2. Neon console → SQL Editor, on the production branch:
+
+```sql
+insert into admin (user_id, note)
+select id, 'owner' from "user" where email = 'admin.wikifake@gmail.com';
+```
+
+3. Read it back, because the insert's silence is ambiguous and this is not:
+
+```sql
+select u.email, a.granted_at, a.note
+from admin a join "user" u on u.id = a.user_id;
+```
+
+No redeploy and no cache to clear: `isAdmin` is a lookup run on every page load,
+which is the same property that makes a `delete` take effect at once.
+
+**A grant made to a guest does nothing**, deliberately — the anonymous plugin
+deletes that row at sign-up, so the privilege would be attached to a browser
+rather than to a person. It has to be the Google account.
+
 ## Mutations that must go red
 
 - The admin check dropped; a guest let through; no session let through.
