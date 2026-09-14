@@ -44,6 +44,11 @@ export interface Copy {
   readonly coins: (count: number) => string;
   readonly progress: (done: number, target: number) => string;
   readonly reward: (count: number) => string;
+  /** What a visitor sees instead of figures they do not have yet. */
+  readonly keepTitle: string;
+  readonly keepLead: string;
+  readonly keepCta: string;
+  readonly guest: string;
 }
 
 export function useCopy(isAdmin: boolean): Copy {
@@ -88,6 +93,10 @@ export function useCopy(isAdmin: boolean): Copy {
     progress: (done: number, target: number) =>
       quests('progress', { progress: done, target }),
     reward: (count: number) => quests('reward', { count }),
+    keepTitle: account('keepRound.title'),
+    keepLead: account('keepRound.lead'),
+    keepCta: account('keepRound.cta'),
+    guest: account('playAsGuest'),
     menu: home('nav.menu'),
     close: home('nav.close'),
     backToGame: home('nav.backToGame'),

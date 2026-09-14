@@ -91,6 +91,7 @@ function Switch({
 export function Lab() {
   const [which, setWhich] = useState<Which>('bento');
   const [theme, setTheme] = useState<Theme>('dark');
+  const [signedIn, setSignedIn] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [onAdminPage, setOnAdminPage] = useState(false);
   const [phone, setPhone] = useState(false);
@@ -99,11 +100,26 @@ export function Lab() {
   const chosen = OPTIONS.find((one) => one.id === which) as Option;
   const body =
     which === 'bento' ? (
-      <CandidateBento copy={copy} theme={theme} onAdminPage={onAdminPage} />
+      <CandidateBento
+        copy={copy}
+        theme={theme}
+        signedIn={signedIn}
+        onAdminPage={onAdminPage}
+      />
     ) : which === 'feed' ? (
-      <CandidateFeed copy={copy} theme={theme} onAdminPage={onAdminPage} />
+      <CandidateFeed
+        copy={copy}
+        theme={theme}
+        signedIn={signedIn}
+        onAdminPage={onAdminPage}
+      />
     ) : (
-      <CandidateConsole copy={copy} theme={theme} onAdminPage={onAdminPage} />
+      <CandidateConsole
+        copy={copy}
+        theme={theme}
+        signedIn={signedIn}
+        onAdminPage={onAdminPage}
+      />
     );
 
   return (
@@ -139,6 +155,17 @@ export function Lab() {
               on={phone}
               onToggle={() => {
                 setPhone(!phone);
+              }}
+            />
+            {/* The two audiences a dashboard has to answer. A returning
+                player arrives with a streak and a ranking; somebody who has
+                just landed has neither, and a page that shows them zeroes is
+                a page that says the game is empty. */}
+            <Switch
+              label={signedIn ? 'has an account' : 'first visit'}
+              on={signedIn}
+              onToggle={() => {
+                setSignedIn(!signedIn);
               }}
             />
             <Switch

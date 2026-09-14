@@ -48,13 +48,97 @@ export const BENTO: Palette = {
 export interface CandidateProps {
   readonly copy: Copy;
   readonly theme: Theme;
+  /** A returning player, or somebody who has just landed. */
+  readonly signedIn: boolean;
   readonly onAdminPage: boolean;
 }
 
-export function CandidateBento({ copy, theme, onAdminPage }: CandidateProps) {
+export function CandidateBento({ copy, theme, signedIn, onAdminPage }: CandidateProps) {
   const tone = BENTO[theme];
   const card = 'rounded-xl border p-4';
   const edge = { background: tone.surface, borderColor: tone.line };
+
+  if (!signedIn) {
+    return (
+      <Shell copy={copy} tone={tone} onAdminPage={onAdminPage} menuId="j-menu">
+        <main className="mx-auto max-w-6xl px-4 py-5 sm:px-8 sm:py-8">
+          <div className="grid gap-3 sm:grid-cols-4">
+            {/* The same dominant tile, carrying the pitch instead of a streak
+                nobody has yet. Play is still the largest object on the page. */}
+            <a
+              href="#"
+              style={{ background: tone.accent, color: tone.onAccent }}
+              className="flex min-h-52 flex-col justify-between rounded-xl p-5 sm:col-span-2 sm:row-span-2"
+            >
+              <span className="text-[15px] leading-snug font-medium opacity-90">
+                {copy.question}
+              </span>
+              <span>
+                <span className="block text-[34px] leading-none font-bold tracking-[-0.02em]">
+                  {copy.play}
+                </span>
+                <span className="mt-2 block text-[12.5px] opacity-85">{copy.guest}</span>
+              </span>
+            </a>
+
+            <div style={edge} className={`${card} sm:col-span-2`}>
+              <p className="m-0 text-[13.5px] leading-[1.6]">{copy.description}</p>
+            </div>
+
+            {copy.beats.map((beat) => (
+              <div key={beat.title} style={edge} className={card}>
+                <h2 className="m-0 text-[13px] font-semibold">{beat.title}</h2>
+                <p
+                  style={{ color: tone.muted }}
+                  className="m-0 mt-1.5 text-[12px] leading-[1.6]"
+                >
+                  {beat.body}
+                </p>
+              </div>
+            ))}
+
+            <div style={edge} className={card}>
+              <span className="text-[13px] font-semibold">{copy.keepTitle}</span>
+              <p
+                style={{ color: tone.muted }}
+                className="m-0 mt-1.5 text-[12px] leading-[1.6]"
+              >
+                {copy.keepLead}
+              </p>
+              <a
+                href="#"
+                style={{ color: tone.accent }}
+                className="mt-2 inline-block text-[12.5px] font-semibold"
+              >
+                {copy.keepCta} →
+              </a>
+            </div>
+
+            {/* The one figure a visitor can be shown honestly: the board does
+                not need an account to exist. */}
+            <div style={edge} className={`${card} sm:col-span-2`}>
+              <span className="text-[13px] font-semibold">{copy.board}</span>
+              <ul className="m-0 mt-2.5 flex list-none flex-col gap-1.5 p-0">
+                {SAMPLE.board
+                  .filter((row) => row.you !== true)
+                  .map((row) => (
+                    <li key={row.name} className="flex items-baseline gap-3 text-[13px]">
+                      <span style={{ color: tone.muted }} className="w-5 tabular-nums">
+                        {row.place}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate">{row.name}</span>
+                      <span style={{ color: tone.muted }} className="tabular-nums">
+                        {row.rounds}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </div>
+        </main>
+      </Shell>
+    );
+  }
 
   return (
     <Shell copy={copy} tone={tone} onAdminPage={onAdminPage} menuId="j-menu">
