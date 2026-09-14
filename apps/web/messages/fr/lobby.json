@@ -87,5 +87,22 @@
     "ready": "prêt",
     "waiting": "en attente",
     "away": "absent"
+  },
+  "home": {
+    "title": "Votre partie",
+    "what": "Un vrai article de Wikipédia, dont des faits ont été discrètement réécrits. Trouvez-les avant la fin du chrono.",
+    "how": "Marquez les paragraphes qui vous semblent altérés. Vous marquez des points sur ce que vous repérez et en perdez sur ce que vous accusez à tort.",
+    "free": "Aucun compte n’est nécessaire pour jouer. Inscrivez-vous quand vous voudrez garder vos manches.",
+    "board": "Meilleurs de tous les temps",
+    "boardEmpty": "Personne n’a encore terminé de manche en salon.",
+    "allBoards": "Tous les classements",
+    "allQuests": "Toutes vos quêtes",
+    "finished": "Manches terminées",
+    "average": "Score moyen",
+    "lastRounds": "Ce que vous avez joué",
+    "keepTitle": "Gardez ce que vous jouez",
+    "keepLead": "Un compte conserve vos scores, votre série et les quêtes que vous avez terminées. Les manches déjà jouées vous suivent.",
+    "keepCta": "Créer un compte",
+    "profile": "Votre profil"
   }
 }
