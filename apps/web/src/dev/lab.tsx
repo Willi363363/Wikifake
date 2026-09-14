@@ -18,13 +18,11 @@
 // This whole directory dies at L.8, with the decision it exists to inform.
 import { useState } from 'react';
 
-import { CandidateBento } from './candidate-bento.js';
-import { CandidateConsole } from './candidate-console.js';
-import { CandidateFeed } from './candidate-feed.js';
+import { VariantDense, VariantFlat, VariantQuiet } from './variants.js';
 import { useCopy } from './copy.js';
 import type { Theme } from './tone.js';
 
-type Which = 'bento' | 'feed' | 'console';
+type Which = 'quiet' | 'flat' | 'dense';
 
 interface Option {
   readonly id: Which;
@@ -37,25 +35,25 @@ interface Option {
 /** The bench's own chrome is English: it is not the product. */
 const OPTIONS: readonly Option[] = [
   {
-    id: 'bento',
-    name: 'J — tiles of unequal size',
-    nav: 'play is the biggest tile',
-    bet: 'Play earns the eye by area and position rather than by glowing, and it sits among the things that make somebody open the site again.',
-    risk: 'Unequal tiles are a fashion of the last two years, and fashions date.',
+    id: 'quiet',
+    name: 'J1 — hairlines, deep green',
+    nav: 'the one you saw',
+    bet: 'Every tile is a card with a thin edge. Only Play carries colour, so the eye has exactly one place to land.',
+    risk: 'Quiet enough to be forgettable, which is the complaint that started this track.',
   },
   {
-    id: 'feed',
-    name: 'K — a column, and a sidebar',
-    nav: 'play is the first row',
-    bet: 'The oldest arrangement on the web and still the most used. A returning player does not need persuading, they need the fastest line to the next round.',
-    risk: 'It looks like software, and a first visitor sees numbers instead of a reason to start.',
+    id: 'flat',
+    name: 'J2 — no edges, flat blue, larger figures',
+    nav: 'the tiles are the structure',
+    bet: 'No hairline anywhere: a tile is separated by being a different surface. Bigger numbers, more air, more confident.',
+    risk: 'Without edges the grid can read as soft, and soft is where the last direction died.',
   },
   {
-    id: 'console',
-    name: 'L — tabular, dense',
-    nav: 'play is a bar, everything else a row',
-    bet: 'The register of things people keep open for years. No card has a shadow because no card exists: the page is a table.',
-    risk: 'Density is a taste, and it is not most peoples. Look at it on the phone first.',
+    id: 'dense',
+    name: 'J3 — tight radius, warm ink, red',
+    nav: 'more on one screen',
+    bet: 'Small radius, small type, tiles on the page rather than raised above it. A red that is never shaded. The most information per screen.',
+    risk: 'Dense is a taste, and the red competes with the accent a wrong answer will need.',
   },
 ];
 
@@ -89,7 +87,7 @@ function Switch({
 }
 
 export function Lab() {
-  const [which, setWhich] = useState<Which>('bento');
+  const [which, setWhich] = useState<Which>('quiet');
   const [theme, setTheme] = useState<Theme>('dark');
   const [signedIn, setSignedIn] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -99,22 +97,22 @@ export function Lab() {
 
   const chosen = OPTIONS.find((one) => one.id === which) as Option;
   const body =
-    which === 'bento' ? (
-      <CandidateBento
+    which === 'quiet' ? (
+      <VariantQuiet
         copy={copy}
         theme={theme}
         signedIn={signedIn}
         onAdminPage={onAdminPage}
       />
-    ) : which === 'feed' ? (
-      <CandidateFeed
+    ) : which === 'flat' ? (
+      <VariantFlat
         copy={copy}
         theme={theme}
         signedIn={signedIn}
         onAdminPage={onAdminPage}
       />
     ) : (
-      <CandidateConsole
+      <VariantDense
         copy={copy}
         theme={theme}
         signedIn={signedIn}
