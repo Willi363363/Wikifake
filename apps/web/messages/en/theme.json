@@ -1,0 +1,8 @@
+{
+  "label": "Appearance",
+  "names": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  }
+}

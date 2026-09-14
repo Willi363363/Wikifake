@@ -3,7 +3,7 @@
 
 # REST — the round
 
-8 routes a browser calls while a round is being
+9 routes a browser calls while a round is being
 played. A `GET` takes no body. The account and the shop are in
 `rest-account.md`; the probes and the cron in `rest-operations.md`.
 
@@ -136,3 +136,14 @@ played. A `GET` takes no body. The account and the shop are in
 **Response**
 
 - `counted` — boolean
+
+## `POST /api/theme`
+
+**Request**
+
+- `theme` — `"system"` | `"light"` | `"dark"`
+- `next` — string
+
+**Response**
+
+- unknown
