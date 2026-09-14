@@ -11,7 +11,6 @@ import { rangeAsked, type AskedFor } from '../../../../src/admin/asked-range.js'
 import { CostSection } from '../../../../src/admin/cost-screen.js';
 import { rateFrom, readCost } from '../../../../src/admin/cost.js';
 import { requireAdmin } from '../../../../src/admin/gate.js';
-import { RangeChooser } from '../../../../src/admin/range-chooser.js';
 import { db } from '../../../../src/game/wiring.js';
 import { robotsFor } from '../../../../src/indexing.js';
 
@@ -39,10 +38,5 @@ export default async function CostPage({
     range,
   );
 
-  return (
-    <>
-      <RangeChooser range={range} />
-      <CostSection cost={cost} />
-    </>
-  );
+  return <CostSection cost={cost} />;
 }

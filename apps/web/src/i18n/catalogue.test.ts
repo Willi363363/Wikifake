@@ -111,6 +111,11 @@ describe('11.6 — French is translated, not copied', () => {
     // coincidence of spelling rather than an untranslated block.
     'admin.nav.groups.audience',
     'admin.nav.label',
+    // K.2's shortest preset. `24 h` is a number and a symbol, and the SI
+    // symbol for an hour is `h` in both languages — the other four presets
+    // are translated, which is what says this one is a unit rather than an
+    // untranslated row.
+    'admin.range.presets.24h',
     // The em dash the arrivals section prints when there is nothing to divide,
     // which is punctuation in both languages — `admin.games.noRounds` above is
     // the same character for the same reason.

@@ -152,18 +152,30 @@
   "range": {
     "label": "Période",
     "presets": {
-      "7d": "7 jours",
-      "30d": "30 jours",
-      "90d": "90 jours",
-      "all": "Tout",
-      "custom": "Sur mesure"
+      "24h": "24 h",
+      "week": "Cette semaine",
+      "month": "Ce mois-ci",
+      "year": "Cette année",
+      "all": "Tout"
     },
     "covering": "Du {from} au {to}, inclus.",
     "coveringAll": "Tout depuis la première manche.",
-    "whatItMoves": "Elle agit sur les sections joueurs, activation, manches, coût et contenu. La santé est une sonde en direct, et la liste des plus assidus vient de totaux cumulés sans date — les deux le disent là où ils apparaissent.",
+    "whatItMoves": "La période agit sur les chiffres des joueurs, de l’activation, des manches, du coût et du contenu. La santé est une sonde en direct, la liste des plus assidus vient de totaux cumulés sans date, et « aujourd’hui » reste aujourd’hui quoi qu’on choisisse — chacun le dit là où il apparaît.",
     "allTime": "Tout compris, quelle que soit la période : ce sont des totaux cumulés sans date.",
     "live": "En direct, quelle que soit la période.",
-    "cohort": "La période choisit qui s’est inscrit, pas quand ils ont joué."
+    "cohort": "La période choisit qui s’est inscrit, pas quand ils ont joué.",
+    "custom": {
+      "open": "Sur mesure…",
+      "title": "Période sur mesure",
+      "lead": "Les deux bornes sont comprises. La période reste dans l’adresse : elle peut donc être mise en favori et partagée.",
+      "from": "Du",
+      "to": "Au",
+      "days": "{count, plural, one {# jour sélectionné} other {# jours sélectionnés}}",
+      "backwards": "La première date est postérieure à la seconde.",
+      "apply": "Appliquer",
+      "cancel": "Annuler",
+      "close": "Fermer"
+    }
   },
   "nav": {
     "label": "Sections",

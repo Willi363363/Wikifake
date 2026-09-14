@@ -58,7 +58,7 @@ lift it from, so no step starts by deciding anything.
 | # | Step | From the lab | State |
 |---|---|---|---|
 | K.1 | Eight routes, the rail, the gate on each, indexing decisions | `rail.tsx`, `rail-models.ts` | ✅ |
-| K.2 | The period bar, shared, with the custom dialog | `period-bar.tsx` | ⬜ |
+| K.2 | The period bar, shared, with the custom dialog | `period-bar.tsx` | ✅ |
 | K.3 | Overview — digest | `page-overview.tsx` | ⬜ |
 | K.4 | Players — digest | `page-players.tsx`, `PlayersDigest` | ⬜ |
 | K.5 | Activation — funnel | `page-activation.tsx` | ⬜ |
@@ -89,25 +89,32 @@ K.3 to K.10 are the same four moves, and none of them is a decision:
    and its seven siblings assert the markup of the body being replaced: they
    are rewritten against the new one, never skipped and never deleted.
 
-## What K.2 has to get right
+## What K.2 decided
 
-It is the step the other eight lean on, and it carries the one thing the lab
-proved by being wrong first.
+It was the step the other eight lean on, and it held the track's two open
+questions. Both were put to the owner and both were answered.
 
-- **The period stays in the query string**, as I.8 made it. `RangeChooser`
-  already follows the page it is on (K.1); K.2 replaces its look, not its
-  contract.
-- **The presets change.** The owner asked for `24 h · this week · this month ·
-  this year · all · custom`. Those are **calendar** periods and `range.ts` is
-  **rolling** (7/30/90 days). The two are not the same question, and that is a
-  decision to take before the code: `rangeFrom` and `PRESETS` change with it,
-  and `range.test.ts` moves with them.
-- **The custom dialog is a mockup, not a date picker.** In the lab its two
-  dates are fixed and Apply selects one hard-coded range. K.2 is where it
-  becomes real, or where it is cut and `custom` leaves `Preset`.
-- **Three figures must keep ignoring it.** `activeToday` and `activeThisWeek`
-  are fixed windows, `mostActive` is cumulative, health is a live probe. The
-  bar says so once for the whole panel so that no page repeats it.
+- **The presets are calendar periods** — `24 h · this week · this month · this
+  year · all`. I.8 shipped rolling windows (7/30/90 days) and the two are not
+  the same question: *this month* on the 2nd is two days of data and *30 days*
+  never is. Rolling windows are the comparable ones; calendar periods are the
+  ones people actually ask each other about. The cost is that two periods are
+  uneven, and the bar prints the days it covers so nobody compares them blind.
+  A test asserts the short month rather than regretting it.
+- **The custom period is real.** A `GET` form with two native date inputs and a
+  hidden `range=custom`, submitting to the page it is on — so it produces the
+  same kind of address a preset link does, bookmarkable and shareable, with no
+  router call and no server action. Both ends count, a backwards pair cannot be
+  applied, a future end is clamped to today, and anything a hand-typed link can
+  carry falls back to the default rather than refusing.
+- **The period stays in the query string**, as I.8 made it, and the bar follows
+  the page it is on — K.2 replaced the look, not the contract.
+- **It moved into the chassis.** `layout.tsx` renders it once, above all eight
+  pages, rather than each page rendering its own; a control per page is how two
+  screens come to disagree about what "this month" meant.
+- **Three figures keep ignoring it.** `activeToday` and `activeThisWeek` are
+  fixed windows, `mostActive` is cumulative, health is a live probe. The bar
+  says so once for the whole panel so that no page repeats it.
 
 ## Entry conditions, and what they cost
 

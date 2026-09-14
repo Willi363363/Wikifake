@@ -1,9 +1,10 @@
 // The probes — step K.1.
 //
 // The one section the period does not reach: three probes run when the page
-// loads, and a probe has no history to filter. So no `RangeChooser` here, and
-// no `searchParams` to read — the absence is the honest answer rather than a
-// control that would do nothing.
+// loads, and a probe has no history to filter. So no `searchParams` to read
+// here — and the period bar above says, once for the whole panel, that a live
+// probe is live whatever the period. The absence is the honest answer rather
+// than a control that would do nothing.
 //
 // **No redirect, and `requireAdmin` before anything else.** `gate.test.ts`
 // walks every page under this tree and holds both.

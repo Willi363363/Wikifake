@@ -150,20 +150,32 @@
     }
   },
   "range": {
-    "label": "Range",
+    "label": "Period",
     "presets": {
-      "7d": "7 days",
-      "30d": "30 days",
-      "90d": "90 days",
-      "all": "All time",
-      "custom": "Custom"
+      "24h": "24 h",
+      "week": "This week",
+      "month": "This month",
+      "year": "This year",
+      "all": "All"
     },
     "covering": "{from} to {to}, inclusive.",
     "coveringAll": "Everything since the first round.",
-    "whatItMoves": "It moves the players, activation, games, cost and content sections. Health is a live probe, and the most active list is built from running totals with no date on them — both say so where they appear.",
-    "allTime": "All-time, whatever the range: these are running totals with no date on them.",
-    "live": "Live, whatever the range.",
-    "cohort": "The range picks who signed up, not when they played."
+    "whatItMoves": "The period moves the players, activation, rounds, cost and content figures. Health is a live probe, the most active list is built from running totals with no date on them, and “today” is today whatever is chosen — each says so where it appears.",
+    "allTime": "All-time, whatever the period: these are running totals with no date on them.",
+    "live": "Live, whatever the period.",
+    "cohort": "The period picks who signed up, not when they played.",
+    "custom": {
+      "open": "Custom…",
+      "title": "Custom period",
+      "lead": "Both ends included. The period stays in the address, so it can be bookmarked and shared.",
+      "from": "From",
+      "to": "To",
+      "days": "{count, plural, one {# day selected} other {# days selected}}",
+      "backwards": "The first date is after the second.",
+      "apply": "Apply",
+      "cancel": "Cancel",
+      "close": "Close"
+    }
   },
   "nav": {
     "label": "Sections",

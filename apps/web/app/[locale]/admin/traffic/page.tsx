@@ -10,7 +10,6 @@ import type { Metadata } from 'next';
 
 import { rangeAsked, type AskedFor } from '../../../../src/admin/asked-range.js';
 import { requireAdmin } from '../../../../src/admin/gate.js';
-import { RangeChooser } from '../../../../src/admin/range-chooser.js';
 import { TrafficSection } from '../../../../src/admin/traffic-screen.js';
 import { readTraffic } from '../../../../src/admin/traffic.js';
 import { db } from '../../../../src/game/wiring.js';
@@ -30,10 +29,5 @@ export default async function TrafficPage({
   const range = await rangeAsked(searchParams);
   const view = await readTraffic({ db: db() }, range);
 
-  return (
-    <>
-      <RangeChooser range={range} />
-      <TrafficSection traffic={view} />
-    </>
-  );
+  return <TrafficSection traffic={view} />;
 }

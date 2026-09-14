@@ -87,6 +87,16 @@ describe.skipIf(url === null)('I.6 — what the model has cost', () => {
     await store.close();
   });
 
+  /**
+   * A round, **pinned to `NOW` like every other fixture here**.
+   *
+   * It used to leave `startedAt` to the column default, which is `now()`, while
+   * the window below ends at `NOW + 1 day`. That worked until the day the wall
+   * clock passed 12 September 2026 and then failed three cases on its own, in
+   * a diff that had not touched this file — a test measuring the machine's date
+   * rather than the code. The clock is a parameter here as it is everywhere
+   * else in this repository.
+   */
   async function round(
     over: { cached?: boolean; players?: number } = {},
   ): Promise<string> {
@@ -100,6 +110,7 @@ describe.skipIf(url === null)('I.6 — what the model has cost', () => {
         totalFakes: 1,
         timeLimit: 300,
         fromCache: over.cached ?? false,
+        startedAt: new Date(NOW),
       })
       .returning({ id: game.id });
     const gameId = (row as { id: string }).id;

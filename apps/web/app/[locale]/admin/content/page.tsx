@@ -10,7 +10,6 @@ import type { Metadata } from 'next';
 
 import { rangeAsked, type AskedFor } from '../../../../src/admin/asked-range.js';
 import { requireAdmin } from '../../../../src/admin/gate.js';
-import { RangeChooser } from '../../../../src/admin/range-chooser.js';
 import { ContentSection } from '../../../../src/admin/content-screen.js';
 import { readContent } from '../../../../src/admin/content.js';
 import { db } from '../../../../src/game/wiring.js';
@@ -30,10 +29,5 @@ export default async function ContentPage({
   const range = await rangeAsked(searchParams);
   const view = await readContent({ db: db() }, range);
 
-  return (
-    <>
-      <RangeChooser range={range} />
-      <ContentSection content={view} />
-    </>
-  );
+  return <ContentSection content={view} />;
 }
