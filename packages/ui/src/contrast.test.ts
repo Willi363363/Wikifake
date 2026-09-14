@@ -107,6 +107,8 @@ const PINNED: Readonly<Record<string, readonly [number, number]>> = {
   'muted on bg-grain': [5.51, 5.74],
   'muted-2 on bg': [3.9, 4.69],
   'muted-2 on surface': [4.42, 4.23],
+  'accent on surface': [5.86, 6.1],
+  'accent on bg': [5.17, 6.77],
   'on-fill on accent': [5.86, 6.95],
   'on-fill on accent-line': [5.47, 10.59],
   'on-fill on bronze': [5.18, 8.71],

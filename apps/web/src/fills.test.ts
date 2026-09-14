@@ -43,7 +43,25 @@ const WEB = join(HERE, '..');
  * `on-fill` is not among them: it is the text colour *for* a fill, and it is
  * the answer rather than the problem.
  */
-const FILLS = ['accent', 'accent-line', 'bronze', 'green', 'warn', 'danger'];
+const FILLS = ['accent-line', 'bronze', 'green', 'warn', 'danger'];
+
+/*
+ * `accent` left this list at step L.4, and it is the one exception worth
+ * spelling out.
+ *
+ * The rule was written against a saturated yellow that measured 2.95:1 as text
+ * — unreadable, in a palette where it was everywhere. J2's accent is a link
+ * blue, and a link that is not coloured is not a link.
+ *
+ * **The permission was bought, not assumed.** `accent on surface` and `accent
+ * on bg` are declared rows of `CONTRAST_PAIRS` now, pinned at 5.86/6.10 and
+ * 5.17/6.77, so the use is guarded by a number instead of by a scan with no
+ * number behind it. The day somebody lightens the accent to make a button
+ * prettier, `contrast.test.ts` fails — which is more than this scan ever did.
+ *
+ * The other five stay. They are verdict fills, and a verdict is a block of
+ * colour rather than a coloured word.
+ */
 
 function sourcesIn(directory: string): { path: string; text: string }[] {
   return readdirSync(directory).flatMap((name) => {
@@ -143,7 +161,9 @@ describe('D — a fill is not a text colour', () => {
   // Guards the guard. A scan whose pattern no longer matches anything, in any
   // form, is a scan that would pass on a screen written entirely in fills.
   it('would notice, if there were something to notice', () => {
-    const bad = 'className="bg-accent-soft text-accent border-green/25 text-surface"';
+    // `text-bronze` rather than `text-accent`: the accent left the list at L.4
+    // and a self-check written against a permitted class would pass on nothing.
+    const bad = 'className="bg-accent-soft text-bronze border-green/25 text-surface"';
     const caught = [
       ...FILLS.filter((fill) =>
         new RegExp(String.raw`\btext-${fill}(?![\w-])`).test(bad),
@@ -151,7 +171,7 @@ describe('D — a fill is not a text colour', () => {
       ...FILLS.filter((fill) => new RegExp(String.raw`\bborder-${fill}/\d`).test(bad)),
       ...(/\btext-surface(?![\w-])/.test(bad) ? ['surface'] : []),
     ];
-    expect(caught).toEqual(['accent', 'green', 'surface']);
+    expect(caught).toEqual(['bronze', 'green', 'surface']);
   });
 });
 
