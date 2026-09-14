@@ -79,6 +79,21 @@ export interface Copy {
   readonly yourRank: (rank: number) => string;
   readonly soloNote: string;
   readonly openRoom: string;
+  /** The profile, for the page mockups. */
+  readonly accuracy: string;
+  readonly abandoned: string;
+  readonly breakdown: (found: number, missed: number, wrong: number) => string;
+  readonly onAStreak: (count: number) => string;
+  readonly since: (date: string) => string;
+  readonly profileQuests: string;
+  readonly profileShop: string;
+  readonly signOut: string;
+  readonly dataTitle: string;
+  readonly exportLead: string;
+  readonly exportLink: string;
+  readonly deleteLead: string;
+  readonly deleteStart: string;
+  readonly emailPrivate: (email: string) => string;
 }
 
 export function useCopy(isAdmin: boolean): Copy {
@@ -161,6 +176,21 @@ export function useCopy(isAdmin: boolean): Copy {
     yourRank: (rank: number) => board('yourRank', { rank }),
     soloNote: board('soloNote'),
     openRoom: board('play'),
+    accuracy: account('profile.accuracy'),
+    abandoned: account('profile.gamesAbandoned'),
+    breakdown: (found: number, missed: number, wrong: number) =>
+      account('profile.breakdown', { found, missed, wrong }),
+    onAStreak: (count: number) => account('profile.onAStreak', { count }),
+    since: (date: string) => account('profile.since', { date }),
+    profileQuests: account('profile.quests'),
+    profileShop: account('profile.shop'),
+    signOut: account('profile.signOut'),
+    dataTitle: account('data.title'),
+    exportLead: account('data.exportLead'),
+    exportLink: account('data.exportLink'),
+    deleteLead: account('data.deleteLead'),
+    deleteStart: account('data.deleteStart'),
+    emailPrivate: (email: string) => account('profile.emailPrivate', { email }),
     menu: home('nav.menu'),
     close: home('nav.close'),
     backToGame: home('nav.backToGame'),

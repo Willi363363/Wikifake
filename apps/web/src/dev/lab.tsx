@@ -19,13 +19,14 @@
 import { useState } from 'react';
 
 import { BoardPinned, BoardPlain, BoardPodium } from './board-variants.js';
+import { ProfileFigures, ProfileHeadline, ProfileHistory } from './profile-variants.js';
 import { QuestsColumns, QuestsReady, QuestsTiles } from './quest-variants.js';
 import { ShopGrid, ShopRows, ShopWorn } from './shop-variants.js';
 import { VariantDense, VariantFlat, VariantQuiet } from './variants.js';
 import { useCopy } from './copy.js';
 import type { Theme } from './tone.js';
 
-type Page = 'home' | 'shop' | 'quests' | 'board';
+type Page = 'home' | 'shop' | 'quests' | 'board' | 'profile';
 type Which =
   | 'quiet'
   | 'flat'
@@ -38,7 +39,10 @@ type Which =
   | 'tiles'
   | 'plain'
   | 'pinned'
-  | 'podium';
+  | 'podium'
+  | 'figures'
+  | 'headline'
+  | 'history';
 
 interface Option {
   readonly page: Page;
@@ -147,6 +151,30 @@ const OPTIONS: readonly Option[] = [
     bet: 'Three cards for the top three, list below. It is the convention, and conventions are read without being learned.',
     risk: 'It celebrates three people the reader is not, and pushes their own row further down.',
   },
+  {
+    page: 'profile',
+    id: 'figures',
+    name: 'P1 \u2014 six figures, then the history',
+    nav: 'the dashboard grammar again',
+    bet: 'The same tiles as the home page, so there is nothing new to learn. Every figure the profile has, laid out flat.',
+    risk: 'Six equal tiles say the six numbers matter equally, and accuracy matters more than the rest put together.',
+  },
+  {
+    page: 'profile',
+    id: 'headline',
+    name: 'P2 \u2014 one figure leads',
+    nav: 'the number that means progress',
+    bet: 'Average score is the only figure that says whether somebody is getting better. Rounds played only says they kept playing.',
+    risk: 'A bad average is the first thing you see, every time, which is a discouraging way to open a profile.',
+  },
+  {
+    page: 'profile',
+    id: 'history',
+    name: 'P3 \u2014 history first, figures beside',
+    nav: 'what you did, not what you are',
+    bet: 'The rounds are the page and the totals are context. A profile is a log before it is a scoreboard.',
+    risk: 'The figures are pushed into a rail, and on a phone a rail is simply the bottom.',
+  },
 ];
 
 const TAB = 'rounded-md px-3 py-1.5 text-[13px] transition-colors';
@@ -227,8 +255,14 @@ export function Lab() {
       <BoardPlain copy={copy} theme={theme} onAdminPage={onAdminPage} />
     ) : which === 'pinned' ? (
       <BoardPinned copy={copy} theme={theme} onAdminPage={onAdminPage} />
-    ) : (
+    ) : which === 'podium' ? (
       <BoardPodium copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'figures' ? (
+      <ProfileFigures copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'headline' ? (
+      <ProfileHeadline copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : (
+      <ProfileHistory copy={copy} theme={theme} onAdminPage={onAdminPage} />
     );
 
   return (
@@ -237,7 +271,7 @@ export function Lab() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Which page is being drawn. The direction is settled, so the
               bench moves on to the screens one at a time. */}
-          {(['home', 'shop', 'quests', 'board'] as const).map((one) => (
+          {(['home', 'shop', 'quests', 'board', 'profile'] as const).map((one) => (
             <button
               key={one}
               type="button"
@@ -250,7 +284,9 @@ export function Lab() {
                       ? 'grid'
                       : one === 'quests'
                         ? 'columns'
-                        : 'plain',
+                        : one === 'board'
+                          ? 'pinned'
+                          : 'figures',
                 );
               }}
               className={`${one === page ? ON : OFF} mr-1`}
