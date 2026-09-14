@@ -63,12 +63,14 @@ function Chooser({
           key={option.key}
           href={option.href}
           aria-current={option.current ? 'page' : undefined}
-          // A chosen tab is a fill carrying `on-fill`; the rest are washes
-          // carrying `ink`. Never a fill used as a text colour — `fills.test.ts`.
+          // A chosen tab is a fill carrying `on-fill`; the rest are the
+          // recessed ground carrying `ink`. Never a fill used as a text colour
+          // — `fills.test.ts`. Both take the same corner, because two tabs in
+          // a row that round differently read as two kinds of control.
           className={
             option.current
-              ? 'border-3 border-line-strong bg-accent px-2 py-1 text-xs font-bold text-on-fill'
-              : 'border-3 border-line-strong bg-surface px-2 py-1 text-xs text-ink'
+              ? 'rounded-md bg-accent px-2 py-1 text-xs font-bold text-on-fill'
+              : 'rounded-md bg-bg-grain px-2 py-1 text-xs text-ink'
           }
         >
           {option.text}
@@ -127,7 +129,7 @@ export function BoardScreen({ board }: BoardScreenProps) {
          * over. Hiding them in the markup would be a promise; not having them is
          * a fact.
          */
-        <div className="mt-8 border-3 border-line-strong bg-surface p-6 text-center shadow-md">
+        <div className="mt-8 rounded-xl bg-surface p-6 text-center">
           {board.players === 0 ? (
             <p className="text-base text-ink">{t('empty')}</p>
           ) : (
@@ -160,10 +162,10 @@ export function BoardScreen({ board }: BoardScreenProps) {
           </p>
         </div>
       ) : (
-        <div className="mt-8 overflow-x-auto border-3 border-line-strong bg-surface shadow-md">
+        <div className="mt-8 overflow-x-auto rounded-xl bg-surface">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b-3 border-line-strong">
+              <tr className="border-b border-line-strong">
                 <th scope="col" className="px-3 py-2 text-left text-muted">
                   {t('columns.rank')}
                 </th>
@@ -220,8 +222,8 @@ export function BoardScreen({ board }: BoardScreenProps) {
           Nothing at all when they are on it: their row is marked above, and a
           second block repeating it would say the same thing twice. */}
       {board.around.length === 0 ? null : (
-        <div className="mt-4 border-3 border-line-strong bg-surface shadow-md">
-          <p className="border-b-3 border-line-strong px-3 py-2 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
+        <div className="mt-4 rounded-xl bg-surface">
+          <p className="border-b border-line-strong px-3 py-2 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
             {t('yourRank', { rank: board.own?.rank ?? 0 })}
           </p>
           <table className="w-full text-sm">

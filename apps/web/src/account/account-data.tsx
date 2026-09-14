@@ -52,7 +52,7 @@ export function AccountData({ pseudonym }: AccountDataProps) {
   };
 
   return (
-    <section className="mt-8 border-3 border-line-strong bg-surface p-6 shadow-md">
+    <section className="mt-8 rounded-xl bg-surface p-6">
       <h2 className="text-lg text-ink">{t('title')}</h2>
 
       <p className="mt-3 text-sm text-muted">{t('exportLead')}</p>
@@ -122,7 +122,7 @@ export function AccountData({ pseudonym }: AccountDataProps) {
       {error === null ? null : (
         <p
           role="alert"
-          className="mt-3 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink"
+          className="mt-3 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink"
         >
           {error}
         </p>

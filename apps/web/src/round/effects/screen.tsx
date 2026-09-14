@@ -95,7 +95,7 @@ export function Lightning() {
 
             The number is the rule's (`STEAL_AMOUNT`), not the sheet's: a copy
             here is a copy a balance change leaves lying. */}
-        <span className="border-3 border-line-strong bg-danger px-6 py-3 text-on-fill font-mono text-6xl font-black">
+        <span className="rounded-lg bg-danger px-6 py-3 text-on-fill font-mono text-6xl font-black">
           {t('effects.lightning.amount', { points: STEAL_AMOUNT })}
         </span>
       </p>

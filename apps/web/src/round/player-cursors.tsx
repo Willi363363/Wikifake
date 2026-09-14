@@ -93,7 +93,7 @@ export function PlayerCursors({ cursors }: PlayerCursorsProps) {
             // colour passes on that fill. Moving the colour to a swatch is what
             // makes the pair measurable at all, and it keeps the identity: the
             // arrow above is still filled with it.
-            className="-ml-1 flex translate-y-3 items-center gap-1 border-3 border-line-strong bg-surface px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-[0.08em] whitespace-nowrap text-ink"
+            className="-ml-1 flex translate-y-3 items-center gap-1 rounded-sm bg-surface px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-[0.08em] whitespace-nowrap text-ink"
           >
             <span
               aria-hidden="true"

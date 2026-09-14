@@ -110,12 +110,12 @@ export function ArticleCard({
   return (
     <article
       className={cn(
-        'border-3 border-line-strong bg-surface px-5 py-6 shadow-md sm:px-10 sm:py-8',
+        'rounded-xl bg-surface px-5 py-6 sm:px-10 sm:py-8',
         'transition-[filter,transform] duration-300',
         [...distortions].map((distortion) => DISTORTED[distortion]),
       )}
     >
-      <header className="flex flex-wrap items-center gap-3 border-b-3 border-line-strong pb-3 font-mono text-[10px] font-bold tracking-[0.12em] text-muted uppercase">
+      <header className="flex flex-wrap items-center gap-3 border-b border-line-strong pb-3 font-mono text-[10px] font-bold tracking-[0.12em] text-muted uppercase">
         <span>{t('article.source')}</span>
         <span aria-hidden="true" className="h-3 w-px bg-line-strong" />
         <span>{t('article.modifiedTag')}</span>

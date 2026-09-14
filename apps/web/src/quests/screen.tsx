@@ -67,7 +67,7 @@ function QuestRow({ quest }: { readonly quest: LiveQuest }) {
   return (
     // A wash carries `ink`, never a fill — `fills.test.ts`. Square corners, the
     // structural border, and the hard shadow: the direction's, unchanged.
-    <li className="border-3 border-line-strong bg-surface p-4 shadow-md">
+    <li className="rounded-xl bg-surface p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-medium text-ink">
           {t(`rules.${quest.ruleId}`, { target: quest.target })}

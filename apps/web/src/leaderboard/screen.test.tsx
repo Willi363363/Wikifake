@@ -9,6 +9,7 @@
 //
 // Whether the *rows* are right is `packages/db`'s suite, and whether the plan
 // holds at volume is its volume test. Neither is re-asserted here.
+import { FRAMES } from '@wikifake/ui';
 import { cleanup, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -437,6 +438,10 @@ describe('H.6 — the frame a player is wearing', () => {
       />,
     );
 
-    expect(screen.getByText('Zoe').className).toContain('border-3');
+    // Read out of the design system rather than spelled again: the width of a
+    // bought frame is the cosmetic's business, and L.6 moved it from 3px to 2.
+    // A test that restated the number would have had to be edited for a change
+    // it is not measuring.
+    expect(screen.getByText('Zoe').className).toBe(FRAMES.FRAME_NOTCHED);
   });
 });

@@ -229,12 +229,21 @@ describe('D — the grammar, where the fill scan cannot look', () => {
   });
 
   /*
-   * The hover that lifts.
+   * The hover that lifts — and L.6 turned this rule inside out without
+   * weakening it.
    *
-   * "The shadow collapses and the element shifts 2px into it. Nothing else
-   * moves." The item bar did the reverse — rise a pixel, *gain* a `shadow-md`
-   * — which is the previous identity's lift and glow, kept because a sweep
-   * looking for colours has no reason to read a transform.
+   * It was written when the direction lifted nothing: the shadow collapsed and
+   * the element shifted into it, and the item bar doing the reverse was a
+   * screen wearing the identity before that one. J2 does lift — a button rests
+   * flat and rises a pixel on hover — so "nothing lifts" is no longer the rule
+   * it is enforcing.
+   *
+   * What it enforces now is **where the lift is written**. It scans `apps/web`
+   * and nothing else, so the gesture is allowed exactly once, in
+   * `buttonVariants`, and a screen that grows its own is caught here. That is
+   * the property that mattered all along: one hover, declared in the design
+   * system, rather than a transform per screen that no sweep for colours would
+   * ever read.
    */
   it('never lifts on hover', () => {
     expect(offenders(/hover:-translate-y-/)).toEqual([]);
@@ -265,6 +274,6 @@ describe('D — the grammar, where the fill scan cannot look', () => {
     );
 
     expect(stripped?.text).not.toContain('text-white');
-    expect(stripped?.text).toContain('border-3 border-line-strong');
+    expect(stripped?.text).toContain('rounded-sm bg-surface');
   });
 });

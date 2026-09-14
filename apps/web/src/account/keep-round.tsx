@@ -53,10 +53,7 @@ export function KeepRound() {
     // A wash carries `ink`, never a fill — `fills.test.ts`. The structural
     // border and the hard shadow are the direction's, and the corners stay
     // square.
-    <section
-      aria-label={t('aria')}
-      className="mt-6 border-3 border-line-strong bg-accent-soft p-4 shadow-md"
-    >
+    <section aria-label={t('aria')} className="mt-6 rounded-lg bg-accent-soft p-4">
       <h3 className="text-sm font-medium text-ink">{t('title')}</h3>
       <p className="mt-1 text-sm text-ink-2">{t('lead')}</p>
       <Link

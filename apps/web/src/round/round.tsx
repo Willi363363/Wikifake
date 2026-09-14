@@ -277,7 +277,7 @@ export function Round({
         {refusal === null ? null : (
           <p
             role="alert"
-            className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+            className="mt-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink text-center"
           >
             {refusal}
           </p>
@@ -289,7 +289,7 @@ export function Round({
           // from a lost frame, which is exactly what the current server does.
           <p
             role="alert"
-            className="mt-4 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink text-center"
+            className="mt-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink text-center"
           >
             {items.refusal}
           </p>

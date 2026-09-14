@@ -49,7 +49,7 @@ function Preview({ item }: { readonly item: StockItem }) {
     return (
       <span
         aria-hidden
-        className="inline-block size-5 border-3 border-line-strong"
+        className="inline-block size-5 rounded-md border border-line-strong"
         style={{ backgroundColor: markerColourFor(item.id) ?? undefined }}
       />
     );
@@ -78,7 +78,7 @@ function ItemRow({ item }: { readonly item: StockItem }) {
   const action = actionFor(item);
 
   return (
-    <li className="flex flex-wrap items-center gap-3 border-3 border-line-strong bg-surface px-3 py-2 shadow-md">
+    <li className="flex flex-wrap items-center gap-3 rounded-xl bg-surface px-3 py-2">
       <Preview item={item} />
       <span className="text-sm text-ink">{t(`names.${item.id}`)}</span>
 

@@ -37,7 +37,7 @@ function Stat({ label, value }: { readonly label: string; readonly value: string
     // the hard offset. Found by looking at the screen: six bordered boxes with
     // nothing under them read as a table, and every other card on the site sits
     // a little proud of the page.
-    <div className="border-3 border-line-strong bg-surface px-4 py-3 shadow-md">
+    <div className="rounded-xl bg-surface px-4 py-3">
       <dt className="text-xs tracking-wide text-muted uppercase">{label}</dt>
       {/* Mono and tabular, so a column of figures lines up — the same reason the
           scoreboard of the landing uses it. */}
@@ -65,7 +65,7 @@ export function Profile({ pseudonym, email, stats }: ProfileProps) {
       </p>
 
       {stats === null ? (
-        <div className="mt-8 border-3 border-line-strong bg-surface p-6 text-center shadow-md">
+        <div className="mt-8 rounded-xl bg-surface p-6 text-center">
           <p className="text-base text-ink">{t('empty')}</p>
           <p className="mt-4">
             <Link href="/play" className="text-ink underline">
@@ -103,7 +103,7 @@ export function Profile({ pseudonym, email, stats }: ProfileProps) {
 
           {stats.currentStreak === 0 ? null : (
             <p className="mt-3 text-center">
-              <span className="inline-block border-3 border-line-strong bg-accent px-3 py-1 text-sm font-semibold text-on-fill">
+              <span className="inline-block rounded-md bg-accent px-3 py-1 text-sm font-semibold text-on-fill">
                 {/* A fill carries `on-fill`, never `ink`: the one hard colour
                     rule of `01-art-direction.md`. */}
                 {t('onAStreak', { count: stats.currentStreak })}

@@ -117,7 +117,7 @@ export function ItemButton({ cosmeticId, slot, action }: ItemButtonProps) {
         // A wash with `ink` on it, never a fill used as a text colour.
         <p
           role="alert"
-          className="mt-2 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink"
+          className="mt-2 rounded-lg bg-danger-soft px-3 py-2 text-sm text-ink"
         >
           {refused}
         </p>

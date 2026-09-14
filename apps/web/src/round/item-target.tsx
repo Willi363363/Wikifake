@@ -79,12 +79,13 @@ export function ItemTarget({ item, rivals, onConfirm, onCancel }: ItemTargetProp
                   onClick={() => {
                     setChosen(rival);
                   }}
-                  // `border-3 border-line-strong`, at rest and chosen alike:
-                  // the width was Tailwind's 1px, and the chosen state drew a
-                  // yellow border on a yellow wash. The choice is the fill.
+                  // The same edge at rest and chosen alike, at `line-strong`.
+                  // The choice is the fill: a border that changed with the
+                  // state drew a fill colour on a wash of the same hue, which
+                  // is a state said twice and read neither time.
                   className={cn(
                     'flex w-full items-center gap-3 px-4 py-2.5 text-left',
-                    'border-3 border-line-strong text-ink',
+                    'rounded-lg border border-line-strong text-ink',
                     'transition-colors motion-reduce:transition-none',
                     'outline-none focus-visible:ring-[3px] focus-visible:ring-accent-line',
                     chosen === rival ? 'bg-accent-soft' : 'bg-surface hover:bg-bg-grain',
