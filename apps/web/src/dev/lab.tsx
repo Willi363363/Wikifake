@@ -18,15 +18,27 @@
 // This whole directory dies at L.8, with the decision it exists to inform.
 import { useState } from 'react';
 
+import { BoardPinned, BoardPlain, BoardPodium } from './board-variants.js';
 import { QuestsColumns, QuestsReady, QuestsTiles } from './quest-variants.js';
 import { ShopGrid, ShopRows, ShopWorn } from './shop-variants.js';
 import { VariantDense, VariantFlat, VariantQuiet } from './variants.js';
 import { useCopy } from './copy.js';
 import type { Theme } from './tone.js';
 
-type Page = 'home' | 'shop' | 'quests';
+type Page = 'home' | 'shop' | 'quests' | 'board';
 type Which =
-  'quiet' | 'flat' | 'dense' | 'rows' | 'grid' | 'worn' | 'columns' | 'ready' | 'tiles';
+  | 'quiet'
+  | 'flat'
+  | 'dense'
+  | 'rows'
+  | 'grid'
+  | 'worn'
+  | 'columns'
+  | 'ready'
+  | 'tiles'
+  | 'plain'
+  | 'pinned'
+  | 'podium';
 
 interface Option {
   readonly page: Page;
@@ -111,6 +123,30 @@ const OPTIONS: readonly Option[] = [
     bet: 'The same tiles as the dashboard: one quest, one tile, the fraction big. Nothing new to learn from one page to the next.',
     risk: 'Five tiles of equal weight say every quest matters equally, and they do not.',
   },
+  {
+    page: 'board',
+    id: 'plain',
+    name: 'B1 \u2014 filters, then one list',
+    nav: 'you are highlighted where you are',
+    bet: 'The simplest honest shape. Your row is coloured in place, so the distance between you and the top is the thing you read.',
+    risk: 'At rank 40 you are off screen, and the page answers nothing until you scroll.',
+  },
+  {
+    page: 'board',
+    id: 'pinned',
+    name: 'B2 \u2014 your rank pinned on top',
+    nav: 'the answer first',
+    bet: 'A board you have to scroll to find yourself in has failed at the thing you opened it for. Rank and score in a blue block, list underneath.',
+    risk: 'It says your number twice, and the duplication is the first thing a designer will want to cut.',
+  },
+  {
+    page: 'board',
+    id: 'podium',
+    name: 'B3 \u2014 a podium, then the rest',
+    nav: 'the shape a ranking usually wears',
+    bet: 'Three cards for the top three, list below. It is the convention, and conventions are read without being learned.',
+    risk: 'It celebrates three people the reader is not, and pushes their own row further down.',
+  },
 ];
 
 const TAB = 'rounded-md px-3 py-1.5 text-[13px] transition-colors';
@@ -185,8 +221,14 @@ export function Lab() {
       <QuestsColumns copy={copy} theme={theme} onAdminPage={onAdminPage} />
     ) : which === 'ready' ? (
       <QuestsReady copy={copy} theme={theme} onAdminPage={onAdminPage} />
-    ) : (
+    ) : which === 'tiles' ? (
       <QuestsTiles copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'plain' ? (
+      <BoardPlain copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'pinned' ? (
+      <BoardPinned copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : (
+      <BoardPodium copy={copy} theme={theme} onAdminPage={onAdminPage} />
     );
 
   return (
@@ -195,13 +237,21 @@ export function Lab() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Which page is being drawn. The direction is settled, so the
               bench moves on to the screens one at a time. */}
-          {(['home', 'shop', 'quests'] as const).map((one) => (
+          {(['home', 'shop', 'quests', 'board'] as const).map((one) => (
             <button
               key={one}
               type="button"
               onClick={() => {
                 setPage(one);
-                setWhich(one === 'home' ? 'flat' : one === 'shop' ? 'grid' : 'columns');
+                setWhich(
+                  one === 'home'
+                    ? 'flat'
+                    : one === 'shop'
+                      ? 'grid'
+                      : one === 'quests'
+                        ? 'columns'
+                        : 'plain',
+                );
               }}
               className={`${one === page ? ON : OFF} mr-1`}
             >

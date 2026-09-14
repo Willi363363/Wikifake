@@ -121,3 +121,23 @@ export const QUESTS = {
     },
   ] as readonly Quest[],
 };
+
+export interface BoardRow {
+  readonly rank: number;
+  readonly name: string;
+  readonly score: number;
+  readonly when: string;
+  readonly you?: boolean;
+}
+
+/** One board, as `selectBoard` hands it over: ranked, with the reader in it. */
+export const BOARD: readonly BoardRow[] = [
+  { rank: 1, name: 'Cassiopée', score: 4820, when: '2 h' },
+  { rank: 2, name: 'Aristide', score: 4515, when: '1 j' },
+  { rank: 3, name: 'Pivoine', score: 4390, when: '3 h' },
+  { rank: 4, name: 'Ortolan', score: 3980, when: '5 h' },
+  { rank: 5, name: 'Ficelle', score: 3745, when: '2 j' },
+  { rank: 6, name: 'Belle de nuit', score: 3610, when: '1 j' },
+  { rank: 7, name: 'Théodule', score: 3402, when: '2 h', you: true },
+  { rank: 8, name: 'Grande Ourse', score: 3155, when: '4 j' },
+];

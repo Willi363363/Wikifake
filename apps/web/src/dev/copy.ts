@@ -69,6 +69,16 @@ export interface Copy {
   readonly locked: string;
   readonly playRound: string;
   readonly rule: (id: string, target: number) => string;
+  /** The leaderboard, for the page mockups. */
+  readonly boardLead: string;
+  readonly periodLabel: string;
+  readonly regionLabel: string;
+  readonly periodNames: readonly { readonly id: string; readonly label: string }[];
+  readonly regionNames: readonly { readonly id: string; readonly label: string }[];
+  readonly column: (id: string) => string;
+  readonly yourRank: (rank: number) => string;
+  readonly soloNote: string;
+  readonly openRoom: string;
 }
 
 export function useCopy(isAdmin: boolean): Copy {
@@ -136,6 +146,21 @@ export function useCopy(isAdmin: boolean): Copy {
     playRound: quests('play'),
     rule: (id: string, target: number) =>
       quests(`rules.${id}` as 'rules.DAILY_FINISH_ROUNDS', { target }),
+    boardLead: board('lead'),
+    periodLabel: board('periodLabel'),
+    regionLabel: board('regionLabel'),
+    periodNames: (['daily', 'weekly', 'allTime'] as const).map((id) => ({
+      id,
+      label: board(`periods.${id}`),
+    })),
+    regionNames: (['world', 'europe', 'americas', 'other'] as const).map((id) => ({
+      id,
+      label: board(`regions.${id}`),
+    })),
+    column: (id: string) => board(`columns.${id}` as 'columns.rank'),
+    yourRank: (rank: number) => board('yourRank', { rank }),
+    soloNote: board('soloNote'),
+    openRoom: board('play'),
     menu: home('nav.menu'),
     close: home('nav.close'),
     backToGame: home('nav.backToGame'),
