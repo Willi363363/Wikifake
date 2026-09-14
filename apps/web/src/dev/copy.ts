@@ -94,6 +94,17 @@ export interface Copy {
   readonly deleteLead: string;
   readonly deleteStart: string;
   readonly emailPrivate: (email: string) => string;
+  /** The admin panel, for the page mockups. */
+  readonly adminSection: (key: string) => string;
+  readonly adminLead: string;
+  readonly adminAccounts: string;
+  readonly adminActiveToday: string;
+  readonly adminRounds: string;
+  readonly adminSpend: string;
+  readonly adminActivation: string;
+  readonly adminStep: (step: string) => string;
+  readonly adminService: (name: string) => string;
+  readonly adminSameCommit: string;
 }
 
 export function useCopy(isAdmin: boolean): Copy {
@@ -191,6 +202,18 @@ export function useCopy(isAdmin: boolean): Copy {
     deleteLead: account('data.deleteLead'),
     deleteStart: account('data.deleteStart'),
     emailPrivate: (email: string) => account('profile.emailPrivate', { email }),
+    adminSection: (key: string) => admin(key as 'players.title'),
+    adminLead: admin('lead'),
+    adminAccounts: admin('players.accounts'),
+    adminActiveToday: admin('players.activeToday'),
+    adminRounds: admin('games.title'),
+    adminSpend: admin('cost.spend'),
+    adminActivation: admin('activation.activation'),
+    adminStep: (step: string) =>
+      admin(`activation.steps.${step}` as 'activation.steps.created'),
+    adminService: (name: string) =>
+      admin(`health.services.${name}` as 'health.services.web'),
+    adminSameCommit: admin('health.commitAgree'),
     menu: home('nav.menu'),
     close: home('nav.close'),
     backToGame: home('nav.backToGame'),

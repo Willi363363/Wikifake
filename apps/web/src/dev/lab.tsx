@@ -18,6 +18,7 @@
 // This whole directory dies at L.8, with the decision it exists to inform.
 import { useState } from 'react';
 
+import { AdminOverview, AdminRail, AdminTabs } from './admin-variants.js';
 import { BoardPinned, BoardPlain, BoardPodium } from './board-variants.js';
 import { ProfileFigures, ProfileHeadline, ProfileHistory } from './profile-variants.js';
 import { QuestsColumns, QuestsReady, QuestsTiles } from './quest-variants.js';
@@ -26,7 +27,7 @@ import { VariantDense, VariantFlat, VariantQuiet } from './variants.js';
 import { useCopy } from './copy.js';
 import type { Theme } from './tone.js';
 
-type Page = 'home' | 'shop' | 'quests' | 'board' | 'profile';
+type Page = 'home' | 'shop' | 'quests' | 'board' | 'profile' | 'admin';
 type Which =
   | 'quiet'
   | 'flat'
@@ -42,7 +43,10 @@ type Which =
   | 'podium'
   | 'figures'
   | 'headline'
-  | 'history';
+  | 'history'
+  | 'rail'
+  | 'tabs'
+  | 'overview';
 
 interface Option {
   readonly page: Page;
@@ -175,6 +179,30 @@ const OPTIONS: readonly Option[] = [
     bet: 'The rounds are the page and the totals are context. A profile is a log before it is a scoreboard.',
     risk: 'The figures are pushed into a rail, and on a phone a rail is simply the bottom.',
   },
+  {
+    page: 'admin',
+    id: 'rail',
+    name: 'A1 \u2014 the rail stays, under the site bar',
+    nav: 'two navigations, nested',
+    bet: 'Track K chose the rail and it works: seven sections always in view, and you never lose your place moving between them.',
+    risk: 'Two navigations on one screen, and the rail vanishes on a phone \u2014 which is where the panel is least usable already.',
+  },
+  {
+    page: 'admin',
+    id: 'tabs',
+    name: 'A2 \u2014 sections as tabs',
+    nav: 'one navigation only',
+    bet: 'The site bar is the only navigation, and the sections are a row of chips under it that scrolls sideways. Nothing nested, nothing hidden in a menu inside a menu.',
+    risk: 'Seven chips is a row nobody reads to the end, and the last sections are effectively further away.',
+  },
+  {
+    page: 'admin',
+    id: 'overview',
+    name: 'A3 \u2014 the overview is the way in',
+    nav: 'no permanent section nav',
+    bet: 'You open the panel with a question. The figures answer most of them, and the sections are destinations at the bottom rather than a rail you carry everywhere.',
+    risk: 'Moving between two sections means going back through the overview every time.',
+  },
 ];
 
 const TAB = 'rounded-md px-3 py-1.5 text-[13px] transition-colors';
@@ -261,8 +289,14 @@ export function Lab() {
       <ProfileFigures copy={copy} theme={theme} onAdminPage={onAdminPage} />
     ) : which === 'headline' ? (
       <ProfileHeadline copy={copy} theme={theme} onAdminPage={onAdminPage} />
-    ) : (
+    ) : which === 'history' ? (
       <ProfileHistory copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'rail' ? (
+      <AdminRail copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'tabs' ? (
+      <AdminTabs copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : (
+      <AdminOverview copy={copy} theme={theme} onAdminPage={onAdminPage} />
     );
 
   return (
@@ -271,29 +305,33 @@ export function Lab() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Which page is being drawn. The direction is settled, so the
               bench moves on to the screens one at a time. */}
-          {(['home', 'shop', 'quests', 'board', 'profile'] as const).map((one) => (
-            <button
-              key={one}
-              type="button"
-              onClick={() => {
-                setPage(one);
-                setWhich(
-                  one === 'home'
-                    ? 'flat'
-                    : one === 'shop'
-                      ? 'grid'
-                      : one === 'quests'
-                        ? 'columns'
-                        : one === 'board'
-                          ? 'pinned'
-                          : 'figures',
-                );
-              }}
-              className={`${one === page ? ON : OFF} mr-1`}
-            >
-              {one}
-            </button>
-          ))}
+          {(['home', 'shop', 'quests', 'board', 'profile', 'admin'] as const).map(
+            (one) => (
+              <button
+                key={one}
+                type="button"
+                onClick={() => {
+                  setPage(one);
+                  setWhich(
+                    one === 'home'
+                      ? 'flat'
+                      : one === 'shop'
+                        ? 'grid'
+                        : one === 'quests'
+                          ? 'columns'
+                          : one === 'board'
+                            ? 'pinned'
+                            : one === 'profile'
+                              ? 'headline'
+                              : 'rail',
+                  );
+                }}
+                className={`${one === page ? ON : OFF} mr-1`}
+              >
+                {one}
+              </button>
+            ),
+          )}
           {OPTIONS.filter((one) => one.page === page).map((one) => (
             <button
               key={one.id}

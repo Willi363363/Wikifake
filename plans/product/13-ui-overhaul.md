@@ -79,6 +79,7 @@ three candidates each, every one built rather than described.
 | The direction | **J2** | Tiles with no hairline — a tile is separated by being a different surface. Flat blue, large figures, plenty of air. Light and dark written together |
 | The home | **A dense dashboard** | Nothing centred. The streak, the daily lot, the ranking and the last rounds all visible, with Play as the largest tile among them rather than a hero above them |
 | The navigation | **A bar at the top** | Every route one click away. Shipped shape still open; the bench has worn a slim bar with a full-screen phone menu since round four |
+| The profile | **P2 — one figure leads** | The average score, large: it is the only figure that says whether somebody is improving. Rounds played only says they kept playing |
 | The leaderboard | **B2 — your rank pinned on top** | The board answers "where am I" before it answers "who is winning": rank and score in a block above the list, your row still coloured in place |
 | The quests | **Q1 — today and the week, side by side** | Two lots kept apart, because they are different promises: a day is something you finish tonight, a week is something you are partway through |
 | The shop | **S2 — one grid** | Ten items in one rhythm, the slot as a label, the price on every card. You see what your coins reach without choosing a slot first |

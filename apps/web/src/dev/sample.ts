@@ -141,3 +141,36 @@ export const BOARD: readonly BoardRow[] = [
   { rank: 7, name: 'Théodule', score: 3402, when: '2 h', you: true },
   { rank: 8, name: 'Grande Ourse', score: 3155, when: '4 j' },
 ];
+
+/** The admin panel's own figures — every one of them from a reader track I built. */
+export const ADMIN = {
+  sections: [
+    { key: 'traffic.title', route: '/admin/traffic' },
+    { key: 'players.title', route: '/admin/players' },
+    { key: 'activation.title', route: '/admin/activation' },
+    { key: 'games.title', route: '/admin/games' },
+    { key: 'content.title', route: '/admin/content' },
+    { key: 'cost.title', route: '/admin/cost' },
+    { key: 'health.title', route: '/admin/health' },
+  ],
+  accounts: 1284,
+  activeToday: 73,
+  activeThisWeek: 312,
+  rounds: 2941,
+  soloShare: 0.64,
+  spend: 4.17,
+  perRound: 0.0081,
+  activation: 0.59,
+  returnRate: 0.47,
+  funnel: [
+    { step: 'created', count: 96 },
+    { step: 'started', count: 75 },
+    { step: 'finished', count: 57 },
+    { step: 'returned', count: 27 },
+  ],
+  services: [
+    { name: 'web', up: true, ms: 0 },
+    { name: 'realtime', up: true, ms: 84 },
+    { name: 'database', up: true, ms: 12 },
+  ],
+};
