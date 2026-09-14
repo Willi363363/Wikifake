@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 L.1 under way — the candidates |
+| **State** | ✅ L.1 to L.8 done — the direction is shipped |
 | **Branch** | `feat/ui-overhaul-lab`, then one per step |
 | **Depends on** | nothing. It replaces track A's output |
 | **Delivers** | an art direction the owner likes, and a navigation that exists |
@@ -102,15 +102,52 @@ marketing about them.
 | L.3 | The tokens, replacing track A's, both themes contrast-checked | ✅ — 42 pairs, all passing |
 | L.4 | The navigation, shipped: every route reachable in one click | ✅ |
 | L.5 | The admin entry, and the way back from it | ✅ |
-| L.6 | Every screen onto the new direction — the game surface | ⬜ |
-| L.7 | The admin panel **re-tokened**: the palette only, not one control moved | ⬜ |
-| L.8 | Retire the lab, and the `/dev` prefix with it | ⬜ |
+| L.6 | Every screen onto the new direction — the game surface | ✅ |
+| L.7 | The admin panel **re-tokened**: the palette only, not one control moved | ✅ |
+| L.8 | Retire the lab, and the `/dev` prefix with it | ✅ |
 
 **L.7 has a test that proves it rather than a promise.** If nothing but the
 palette changes, `players-screen.test.tsx` and its seven siblings keep passing
 untouched — they assert the markup track K built. A green suite is then the
 evidence that no interface moved, instead of a claim somebody has to take on
 trust. Any one of them needing an edit is the signal that the step overreached.
+
+**L.7 kept its promise, and the diff is the evidence.** No file under
+`apps/web/src/admin/` ending in `.test.tsx` is in that commit, and 251 assertions
+about track K's markup pass untouched. Any one of them needing an edit would
+have meant a control had moved.
+
+## What L.6 had to decide that the lab did not
+
+Three things the mockups could not answer, because a mockup has no data and no
+forms. Each is a decision rather than a detail, so it is recorded here.
+
+- **The Play tile is the form, not a link to one.** The lab drew it as a block
+  saying *Play*; the real screen has to start a solo round, open a room or join
+  one. A tile that linked to a start screen would have added the click the whole
+  track exists to remove, so the tabs and the fields live on the accent block.
+  Its labels are `on-fill` and its inputs stay `surface` — a field tinted to
+  match the tile would be text nothing measures.
+- **`readHome` composes, and measures nothing.** The dashboard's four figures
+  come from `selectPlayerStats`, `readLiveQuests`, `readBoard` and
+  `selectGameHistory`, all of which some other screen already reads. Every field
+  is nullable and none defaults to nought: a tile saying `0` under *average
+  score* tells somebody they are bad at the game rather than that they have not
+  played it.
+- **The round's controls are one element, not two.** R3 is a rail on a wide
+  screen and a bar on a phone, and the obvious implementation — render both,
+  hide one by width — puts two clocks and two Submit buttons in the document.
+  One node changes position and direction at `lg`; only the topic and the
+  altered-count badge drop on a phone, and both are said elsewhere.
+
+**Three guards changed, and each was replaced rather than removed.**
+`theme.test.ts` required the dark palette to restate no elevation and to blur
+nothing — both true of a shadow drawn as a frame at an offset, both false of
+light — so it now requires every elevation restated and every layer blurred, in
+both palettes. `fills.test.ts` forbade a hover that lifts; it scans `apps/web`
+and not the design system, so it now forbids a *screen* growing its own, and the
+gesture is allowed exactly once in `buttonVariants`. The `--border-width-3`
+assertion is replaced by one that forbids a border-width token at all.
 
 **L.2 was not a formality, and it earned its hour.** Every pair passes AA, but
 `accent` on `surface` in the dark theme came out at 4.81 — ×1.07 of the
@@ -119,15 +156,15 @@ next time somebody darkens a tile by a shade, and nothing announces it. The
 measured alternative is in `13-palette.md`; the draft would have shipped without
 anybody noticing until it broke.
 
-## The lab, and the rule it breaks on purpose
+## The lab, and the rule it broke on purpose
 
-K.12 deleted `src/dev/` eleven hours ago, with the sentence *"a mockup left in a
-repository is read as a specification by the next person"*. This track builds
-another one. The sentence still holds, and L.8 is what honours it: the lab dies
-with the decision, not after it.
+K.12 deleted `src/dev/` the day before this track started, with the sentence
+*"a mockup left in a repository is read as a specification by the next person"*.
+This track built another one. The sentence held, and L.8 is what honoured it:
+the lab died with the decision, not after it — `src/dev/`, `/dev/home` and the
+`/dev` prefix in `CRAWLERS_KEPT_OUT` are gone in the same commit.
 
-It is ungated because it reads nothing and renders a constant, and `/dev` goes
-back into `CRAWLERS_KEPT_OUT` so nothing under it is crawled.
+It was ungated while it lived, because it read nothing and rendered a constant.
 
 **Every string comes from the catalogue, even in the lab.** `language.test.ts`
 refuses French in the sources, and a mockup drawn on invented copy is a mockup

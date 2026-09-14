@@ -48,11 +48,10 @@ export const CRAWLERS_KEPT_OUT = [
   '/room/',
   '/solo',
   '/gallery',
-  // The scratch prefix, back for track L. Kept out as a prefix rather than
-  // route by route, so a second bench added under it inherits the decision
-  // instead of needing one — and so that deleting the prefix at L.8 deletes
-  // the exemption with it.
-  '/dev',
+  // `/dev` was here for track L, kept out as a prefix so that a second bench
+  // under it inherited the decision. L.8 deleted the bench, and the prefix went
+  // with it — that was the arrangement: the lab dies with the decision, not
+  // after it.
 ] as const;
 
 /**
@@ -146,14 +145,6 @@ export const UNINDEXED_ROUTES: Readonly<Record<string, { follow: boolean }>> = {
   '/admin/traffic': { follow: false },
   '/admin/cost': { follow: false },
   '/admin/content': { follow: false },
-  /*
-   * The interface bench — a scratch route with no data on it.
-   *
-   * `/dev` is already in `CRAWLERS_KEPT_OUT`, so this entry is not what keeps a
-   * crawler away; it is what lets the page ask `robotsFor` for its own metadata
-   * instead of writing `noindex` by hand, which is the habit step J.9 ended.
-   */
-  '/dev/home': { follow: false },
 };
 
 /**
