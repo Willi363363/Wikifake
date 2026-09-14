@@ -134,3 +134,37 @@ one is a release step that runs `drizzle-kit migrate` against the production
 `DATABASE_URL` before the deployment is promoted, and it needs a place to hold
 that secret that is not a laptop. Recorded here until there is one.
 
+## A promotion blocked by an already-merged commit
+
+`03-infrastructure.md` has cited this entry since 2026-08-30. **It did not
+exist**, which is its own small lesson about a register: a pointer is not a
+record. Written on 2026-09-11, the evening it happened again and end to end.
+
+**The symptom comes in two parts, and neither names the cause.** A promotion
+pull request, green on every check including the three deploy probes, refused by
+GitHub as `CONFLICTING`. Then the branch opened to unblock it — `main` merged
+into `staging`, one conflicted file, resolved — refused by `Does this PR follow
+the rules?` with `non-conforming subject: "Promote staging: the env loader
+reaches the db commands (#179)"`, a commit nobody in that pull request wrote.
+
+**The cause is a squash, six days earlier.** #179 was squashed into `main`
+rather than merged, so `main` stopped being a descendant of `staging` and the
+merge base fell back to `c81dc2f` — a hundred commits and a week away. Two
+things follow: the promotion conflicts on the one file both branches have
+touched since (`HANDOVER.md`), and the branch that realigns them carries
+`main`'s own promotion commit into its range, where `checks.sh commit-range`
+reads a subject written before the convention and refuses it.
+
+**The check is right and is exempted in only one direction.** `is_promotion`
+lets `staging → main` through — *"commit messages are already checked on PRs to
+staging"* — and nothing says the same about `main → staging`, which is the same
+batch of commits travelling back. Tonight's way out was the bypass, which
+`03-infrastructure.md` names as the situation the bypass exists for: `gh pr
+merge --admin` on a pull request whose diff is empty.
+
+**Two durable fixes, and the first is free.** *Merge a promotion, never squash
+it* — `01-git-flow.md` already says so in its table, and the day it is not
+followed costs a realignment branch and a bypass. The second is one line in
+`is_promotion`'s caller: treat `main → staging` as documented too, since every
+commit in it was checked when it entered `staging`.
+

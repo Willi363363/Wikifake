@@ -1,6 +1,6 @@
 {
   "title": "Boutique",
-  "lead": "Les pièces viennent du jeu — quelques-unes par manche, davantage avec les quêtes. Rien ici ne change une manche : ce que vous achetez, c'est votre allure.",
+  "lead": "Les pièces viennent du jeu — quelques-unes par manche, davantage avec les quêtes. Rien ici ne change une manche : ce que vous achetez, c’est votre allure.",
   "balance": "{count, plural, one {# pièce} other {# pièces}}",
   "price": "{count, plural, one {# pièce} other {# pièces}}",
   "slots": {
@@ -20,7 +20,7 @@
   "worn": "Porté",
   "takeOff": "Retirer",
   "tooDear": "Pas assez de pièces",
-  "default": "Rien — l'allure simple, qui est toujours la vôtre",
+  "default": "Rien — l’allure simple, qui est toujours la vôtre",
   "earn": "Jouer une manche",
   "quests": "Voir vos quêtes",
   "names": {
@@ -37,9 +37,9 @@
   },
   "errors": {
     "insufficient_coins": "Pas encore assez de pièces.",
-    "cosmetic_not_found": "Rien de tel n'est en vente.",
-    "cosmetic_not_owned": "Ce n'est pas à vous de porter.",
-    "session_not_found": "Créez un compte avant d'acheter.",
+    "cosmetic_not_found": "Rien de tel n’est en vente.",
+    "cosmetic_not_owned": "Ce n’est pas à vous de porter.",
+    "session_not_found": "Créez un compte avant d’acheter.",
     "unreachable": "Le serveur est injoignable. Réessayez."
   }
 }

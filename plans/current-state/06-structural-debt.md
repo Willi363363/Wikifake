@@ -99,61 +99,66 @@ change what those packages are allowed to put on the wire.
 Recorded during phase 11 because the zone work ran into it and could not fix it
 from where it stood.
 
-## `border-l-3` emits nothing, and the other three sides do
+## ~~`border-l-3` emits nothing~~ — the finding was wrong, 2026-09-11
 
-Measured on 2026-09-06, in one build, from one file Tailwind scans, with all
-four classes present in the source:
+**`border-l-3` emits a rule, and always did at this version.** The 2026-09-06
+entry said it emitted nothing while the other three sides resolved, filed it as
+a probable Tailwind bug, and left a `border-l-[length:var(--border-width-3)]`
+workaround in two files with comments telling nobody to simplify it back. This
+replaces it, because a register that keeps a wrong entry is worse than one that
+never had it.
+
+What a clean `next build` of this repository actually produces, Tailwind 4.3.3 —
+the version the lockfile pinned then and pins now:
 
 ```
-border-3     → border-width: var(--border-width-3)          ✅
-border-r-3   → border-right-width: var(--border-width-3)    ✅
-border-t-3   → border-top-width: var(--border-width-3)      ✅
-border-b-3   → border-bottom-width: var(--border-width-3)   ✅
-border-l-3   → (no rule at all)                             ❌
+.border-l-3,.border-l-\[length\:var\(--border-width-3\)\]{
+  border-left-style: var(--tw-border-style);
+  border-left-width: var(--border-width-3)
+}
 ```
 
-**Why this is worth a register entry rather than a shrug.** The failure is
-silent in every direction it can be. Nothing errors, nothing warns, the class
-stays in the markup, the build succeeds, review passes — and the border is
-simply not drawn. The one place it was used, the scanner line of the paragraph
-token, would have been an animation nobody could see moving, which is the
-hardest kind of absence to notice: there is no gap where it should be, because
-a line that was never there leaves no gap.
+**The rule was there and the search was not.** Lightning CSS merges rules whose
+declarations are identical, so the two spellings share one selector list — and
+the workaround was on the same element as the class it was working around.
+Searching the built stylesheet for `.border-l-3{`, with the brace, finds
+nothing: the built rule has a comma there. The other three sides had no
+workaround beside them, so their rules stood alone and matched.
 
-It was found by reading the built stylesheet, not by looking at the page.
+Confirmed twice over. Tailwind's own compiler, handed `border-l-3` against this
+repository's `globals.css`, emits the same declarations as the other three
+sides; and a `next build` with `.next` deleted and no arbitrary-value class left
+anywhere in the tree emits `.border-l-3` on its own.
 
-**What we do about it.** The workaround is
-`border-l-[length:var(--border-width-3)]`, which works and keeps the number in
-the token. It is in `packages/ui/src/token/paragraph-token.tsx`, with a comment
-saying why, so nobody simplifies it back.
+**Both files are simplified back**, and the token keeps the number.
 
-**What we have not done.** Understood it. `--border-width-3` is a theme token
-rather than one of Tailwind's own scale values, and the left side behaving
-differently from the other three points at the framework rather than at us —
-but that is a hypothesis, not a diagnosis. Reproducing it in a bare Tailwind
-project is what would turn this into an upstream bug report, and nobody has.
+**The general lesson, corrected.** The old one — read the built stylesheet
+rather than trusting a class name — still holds. What it was missing is that
+*reading* a built stylesheet is its own skill: it has been minified, and a
+minifier merges, reorders and rewrites. Match the whole selector list, not a
+name and a brace. The first grep of this investigation made the same mistake the
+original finding did, which is how the mistake got understood.
 
-**The general lesson, which outlives this particular class.** A utility class
-that generates nothing is indistinguishable from one that generates correctly,
-in the source, in a diff and in a review. Where a class carries something
-structural — a border that is the design, a colour that is a contrast pair —
-read the built stylesheet once rather than trusting the name.
+## ~~`disabled:opacity-40`~~ — closed on 2026-09-11
 
-## `disabled:opacity-40` is a translucency the direction otherwise forbids
+`buttonVariants` faded a disabled button to 40%, and on the primary button that
+composited `#ffe14d` against the page and the black text with it: `Submitted` in
+the round's top bar read as grey on cream, recognisably off and only just
+legible. **Nothing could measure it** — `CONTRAST_PAIRS` measures two declared
+tokens, an opacity composite is neither of them, and WCAG 1.4.3 exempts a
+disabled control, so no audit called it either. It was invisible to every check
+this repository has, which is why it survived a whole track that looked at it.
 
-`buttonVariants` fades a disabled button to 40%. On the primary button that
-composites `#ffe14d` against the page and black text with it, so `Submitted` in
-the round's top bar and a not-yet-valid `Flag it` read as grey on cream —
-recognisably disabled, and only just legible.
+The fix is the one this entry predicted: the direction's own vocabulary, a flat
+fill and a collapsed shadow, text a step down. `muted` on `bg-grain` is now a
+row of the audit at 6.52 and 7.05, so the state that could not be measured is
+measured on every run.
 
-Nothing measures it: `CONTRAST_PAIRS` measures declared token pairs, and an
-opacity composite is neither of the two colours in one. WCAG 1.4.3 exempts a
-disabled control, so no audit calls it either.
-
-The answer is a disabled *style* rather than an opacity — the direction has one
-already, in that a flat fill and a collapsed shadow say "not now" without
-diluting anything. It belongs to `packages/ui`, which owns the variant and the
-gallery that pins it, so track D looked at it and left it.
+**It was five places, not one.** The entry said `buttonVariants`, because that
+is where it was found; the input, the label, the host's toggle and the item tile
+each spelled their own. That is the part worth keeping: a rule written once in a
+primitive is obeyed by whoever imports it and re-typed by everyone else.
+`primitives/disabled.test.ts` scans both trees for the next one.
 
 ## `margin-top: 0` on a stacked beat loses on specificity
 

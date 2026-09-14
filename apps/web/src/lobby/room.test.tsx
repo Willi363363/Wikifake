@@ -88,11 +88,11 @@ describe('7.3 — the waiting room', () => {
       mountRoom();
       deliver(roster(player('ada')));
 
-      await user.click(screen.getByRole('button', { name: "I'm ready" }));
+      await user.click(screen.getByRole('button', { name: 'I’m ready' }));
       expect(sent()).toContainEqual({ type: 'set_ready', ready: true });
 
       // Not flipped locally: the button changes when the roster does.
-      expect(screen.getByRole('button', { name: "I'm ready" })).not.toBeNull();
+      expect(screen.getByRole('button', { name: 'I’m ready' })).not.toBeNull();
       deliver(roster(player('ada', { ready: true })));
       expect(screen.getByRole('button', { name: 'Ready — cancel' })).not.toBeNull();
     });
@@ -200,7 +200,7 @@ describe('7.3 — the waiting room', () => {
       deliver({ type: 'error', code: 'not_host', message: 'only the host' });
       expect(screen.getByRole('alert')).not.toBeNull();
 
-      await user.click(screen.getByRole('button', { name: "I'm ready" }));
+      await user.click(screen.getByRole('button', { name: 'I’m ready' }));
       expect(screen.queryByRole('alert')).toBeNull();
     });
   });

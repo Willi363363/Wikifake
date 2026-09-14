@@ -31,12 +31,13 @@ are defined in `product/`, and their state is the table below.
 | B | Design system on the new direction | ✅ done — primitives, type, motion and the gallery | `product/02-design-system.md` |
 | C | Landing — the scroll scene | 🔶 C.1 to C.6 and C.8 done, C.7 awaiting a device | `product/03-landing.md` |
 | D | Game surface | ✅ done — every screen on the direction, 24 journeys unchanged | `product/04-game-surface.md` |
-| E | Accounts and player statistics | 🔶 every step built; E.1 awaiting credentials | `product/05-accounts.md` |
-| F | Quests | 🔶 all seven built; the cron awaits `CRON_SECRET` in Vercel | `product/06-quests.md` |
+| E | Accounts and player statistics | ✅ done — Google sign-in works in production | `product/05-accounts.md` |
+| F | Quests | ✅ done — seven steps, and the cron runs unattended | `product/06-quests.md` |
 | G | Leaderboards | ✅ done — world and regional, with thresholds | `product/07-leaderboards.md` |
 | H | Coins and the shop | ✅ done — the ledger, the shop, and no payment | `product/08-economy.md` |
 | I | Admin panel | ✅ done — read-only, six sections, one range | `product/09-admin.md` |
 | J | SEO, legal and polish | ✅ done — eleven steps, and a legal text nobody has read as a lawyer | `product/10-seo-and-legal.md` |
+| K | The admin panel, page by page | ✅ done — eight pages on the chosen shapes, the lab retired | `product/12-admin-pages.md` |
 
 What was deliberately left out of it, with the reasons, is in
 `product/11-deferred.md`.
@@ -59,7 +60,7 @@ previous one unless its file says otherwise.
 | 7 | Frontend — lobby and waiting room | ✅ **done** | `rewrite/phase-07-frontend-lobby.md` |
 | 8 | Frontend — the round | ✅ **done** | `rewrite/phase-08-frontend-round.md` |
 | 9 | Observability and CI/CD | ✅ **done** — both services probed, and the probe proved by hand | `rewrite/phase-09-observability-and-cicd.md` |
-| 10 | Cutover — removing the Python | ⚠️ **production runs the new stack**, multiplayer included — 10.10's dry run and the domain are what is left | `rewrite/phase-10-cutover.md` |
+| 10 | Cutover — removing the Python | ⚠️ **production runs the new stack**, multiplayer included — the domain is what is left | `rewrite/phase-10-cutover.md` |
 | 11 | Internationalisation | ✅ **done** — nine steps; the packages emit codes and the client says them (11.9). The French catalogue still awaits a human review | `rewrite/phase-11-i18n.md` |
 
 **This table is the only place that says where we stand.** It is updated when

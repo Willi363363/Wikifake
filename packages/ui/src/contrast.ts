@@ -155,6 +155,11 @@ export const CONTRAST_PAIRS: readonly ContrastPair[] = [
   { fg: 'ink-2', bg: 'surface', use: 'secondary text on a card', needs: 'AA' },
   { fg: 'muted', bg: 'bg', use: 'labels and captions on the page', needs: 'AA' },
   { fg: 'muted', bg: 'surface', use: 'labels and captions on a card', needs: 'AA' },
+  // The disabled control, which used to be unmeasurable. `disabled:opacity-40`
+  // composited a fill and its text against whatever was behind them, and a
+  // ratio against a colour nobody declared is a ratio nobody can check. The
+  // disabled style is two tokens, so it is a row like any other.
+  { fg: 'muted', bg: 'bg-grain', use: 'a disabled control', needs: 'AA' },
   // The palette's own role line says "large text only", so that is what it is
   // held to. It still has to clear three.
   { fg: 'muted-2', bg: 'bg', use: 'the most withdrawn text, large only', needs: 'large' },

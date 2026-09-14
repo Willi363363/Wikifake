@@ -27,7 +27,9 @@ export function Label({ className, ...props }: LabelProps) {
     <Root
       className={cn(
         'text-xs font-medium tracking-wide text-muted uppercase',
-        'peer-disabled:cursor-not-allowed peer-disabled:opacity-40',
+        // A label withdraws a step rather than fading: it is already `muted`,
+        // so the disabled state is the next token down and not 40% of this one.
+        'peer-disabled:cursor-not-allowed peer-disabled:text-muted-2',
         className,
       )}
       {...props}

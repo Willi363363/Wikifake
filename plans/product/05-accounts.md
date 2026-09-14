@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 every step built; E.1 awaiting credentials |
+| **State** | ✅ done — Google sign-in works in production, from a phone |
 | **Branch** | `feat/player-accounts` |
 | **Depends on** | — |
 | **Delivers** | sign-in that works in production, a profile, and per-player stats |
@@ -24,12 +24,17 @@ tables, and a guest's game already follows them into their account.
 needs `GOOGLE_OAUTH_CLIENT_ID` and `GOOGLE_OAUTH_CLIENT_SECRET` in the Vercel
 environment, and the redirect URI registered in the Google console. Zero lines.
 
-**E.1 is ⚠️ rather than ✅ for two reasons, both in `05-accounts-oauth.md`.** The
-credentials are a person's to create. And the step's exit line — sign in with
-Google, from a phone — needs a button, which is E.2: `better-auth`'s social flow
-is a `POST`, not a URL anybody can paste. What E.1 did ship is the guard on the
-variable those credentials depend on, `BETTER_AUTH_URL`, whose localhost default
-would otherwise send every player who signs in to their own machine, silently.
+**E.1 closed on 2026-09-11**, four days after the code was ready, and the gap is
+the point: it waited on a person with the Google console open, not on a commit.
+The credentials were created, the consent screen published — it asks for a
+privacy policy and terms, which track J had just shipped — and the exit line was
+met from a phone. What E.1 itself contributed is the guard on
+`BETTER_AUTH_URL`, whose localhost default would otherwise have sent every
+player who signed in to their own machine, silently.
+
+**It is registered against `wikifake.vercel.app`, because no domain is bought.**
+The day one is, the console gains a second redirect URI and two variables change
+with it; `05-accounts-oauth.md` carries the list.
 
 ## The data we ask for, and the reason it is this little
 
@@ -51,7 +56,7 @@ leaderboard or a shared score.
 
 | # | Step | State |
 |---|---|---|
-| E.1 | OAuth credentials in the environments, Google first | ⚠️ |
+| E.1 | OAuth credentials in the environments, Google first | ✅ |
 | E.2 | Sign-in and sign-up screens, on the direction | ✅ |
 | E.3.1 | The pseudonym is a row of its own, and no two accounts share one | ✅ |
 | E.3.2 | Every account chooses one, including one that arrived through Google | ✅ |

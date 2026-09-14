@@ -139,7 +139,7 @@ describe.skipIf(url === null)('J.4b — the arrivals section', () => {
     const now: Range = {
       fromMs: TODAY.getTime() - 7 * DAY_MS,
       toMs: TODAY.getTime(),
-      preset: '7d',
+      preset: 'custom',
     };
     expect((await readTraffic({ db: store.db }, now)).landing).toBe(1);
   });

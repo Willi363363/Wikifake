@@ -98,12 +98,36 @@ describe('11.6 — French is translated, not copied', () => {
     'admin.activation.noWhole',
     'admin.activation.title',
     'admin.content.columns.topic',
+    // K.8's figure for the call that writes the article. French spells the
+    // word the same, and the section is named around it the way `Activation`
+    // above is — the figure beside it, `topicEmpty`, is translated.
+    'admin.content.falsification',
     'admin.content.nothing',
     'admin.cost.noRate',
     'admin.games.columns.mode',
     'admin.games.modes.solo',
     'admin.games.noRounds',
-    'admin.health.columns.service',
+    // K.10's build strip. `Version` and `Commit` are the same word in French,
+    // and the second is the name of a git object rather than a noun anybody
+    // translates — `noCommit` and `modelLabel` beside them are translated.
+    'admin.health.commit',
+    'admin.health.version',
+    // K.1's rail. `Audience` is a French word with the same spelling and the
+    // same meaning, and `Sections` is the plural of one — the label a screen
+    // reader is given for the navigation itself. `nav.groups.game` and
+    // `nav.groups.system` are translated, which is what says these two are a
+    // coincidence of spelling rather than an untranslated block.
+    'admin.nav.groups.audience',
+    'admin.nav.label',
+    // K.4's rank column. `#` is a symbol, and a symbol is the same in every
+    // language — `admin.traffic.none` below is the same argument for an em
+    // dash. Every other column heading on that table is translated.
+    'admin.players.columns.rank',
+    // K.2's shortest preset. `24 h` is a number and a symbol, and the SI
+    // symbol for an hour is `h` in both languages — the other four presets
+    // are translated, which is what says this one is a unit rather than an
+    // untranslated row.
+    'admin.range.presets.24h',
     // The em dash the arrivals section prints when there is nothing to divide,
     // which is punctuation in both languages — `admin.games.noRounds` above is
     // the same character for the same reason.
@@ -153,5 +177,29 @@ describe('11.6 — French is translated, not copied', () => {
     }).sort();
 
     expect(identical).toEqual([...IDENTICAL_ON_PURPOSE].sort());
+  });
+
+  // The catalogue wrote both apostrophes: 116 French messages used `’` and 30
+  // used `'`, sometimes in neighbouring sentences of the same screen. Two
+  // reasons that is worth a test rather than a sweep nobody repeats.
+  //
+  // The visible one: a paragraph that mixes them looks like two people wrote
+  // it, and on `/privacy` that is the impression the page can least afford.
+  //
+  // The one that bites: **`'` is ICU's escape character.** `l'{name}` does not
+  // print an apostrophe followed by a value — the quote opens a literal and the
+  // placeholder is printed as written. Three messages already stood one
+  // apostrophe away from that, and none of them would have failed a test: they
+  // would have shown `{count}` to a player. `’` cannot escape anything, so
+  // typing the catalogue correctly removes the hazard rather than documenting
+  // it.
+  it.each(LOCALES)('%s types its apostrophes, and never ICU’s quote', (locale) => {
+    const straight = ZONES.flatMap((zone) =>
+      entriesOf(zoneFile(locale, zone))
+        .filter(([, message]) => typeof message === 'string' && message.includes("'"))
+        .map(([key]) => `${zone}.${key}`),
+    ).sort();
+
+    expect(straight).toEqual([]);
   });
 });

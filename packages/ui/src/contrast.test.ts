@@ -104,6 +104,7 @@ const PINNED: Readonly<Record<string, readonly [number, number]>> = {
   'ink-2 on surface': [13.95, 11.28],
   'muted on bg': [7.37, 7.52],
   'muted on surface': [7.57, 6.92],
+  'muted on bg-grain': [6.52, 7.05],
   // `muted-2` is held to three rather than four and a half because the
   // palette's own role line declares it large text only. That is the floor
   // `CONTRAST_PAIRS` gives it, and it is not a discount taken here.
