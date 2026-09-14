@@ -18,13 +18,15 @@
 // This whole directory dies at L.8, with the decision it exists to inform.
 import { useState } from 'react';
 
+import { QuestsColumns, QuestsReady, QuestsTiles } from './quest-variants.js';
 import { ShopGrid, ShopRows, ShopWorn } from './shop-variants.js';
 import { VariantDense, VariantFlat, VariantQuiet } from './variants.js';
 import { useCopy } from './copy.js';
 import type { Theme } from './tone.js';
 
-type Page = 'home' | 'shop';
-type Which = 'quiet' | 'flat' | 'dense' | 'rows' | 'grid' | 'worn';
+type Page = 'home' | 'shop' | 'quests';
+type Which =
+  'quiet' | 'flat' | 'dense' | 'rows' | 'grid' | 'worn' | 'columns' | 'ready' | 'tiles';
 
 interface Option {
   readonly page: Page;
@@ -84,6 +86,30 @@ const OPTIONS: readonly Option[] = [
     nav: 'the wardrobe before the till',
     bet: 'A shop you return to answers "what am I wearing" before "what can I buy". That panel leads, the catalogue follows as lists.',
     risk: 'It buries the prices, which is what brings somebody back to spend.',
+  },
+  {
+    page: 'quests',
+    id: 'columns',
+    name: 'Q1 \u2014 today and the week, side by side',
+    nav: 'two lots, two columns',
+    bet: 'The two periods are different promises and stay apart. A day is something you finish tonight; a week is something you are partway through.',
+    risk: 'On a phone the two columns stack, and the week ends up below the fold every time.',
+  },
+  {
+    page: 'quests',
+    id: 'ready',
+    name: 'Q2 \u2014 collectable first',
+    nav: 'coins before chores',
+    bet: 'A finished and unclaimed quest is coins sitting there. It goes in a blue block at the top, and everything still in progress goes underneath.',
+    risk: 'When nothing is ready the page opens on a list of chores, which is the worst version of it.',
+  },
+  {
+    page: 'quests',
+    id: 'tiles',
+    name: 'Q3 \u2014 tiles, like the home page',
+    nav: 'one grammar across the site',
+    bet: 'The same tiles as the dashboard: one quest, one tile, the fraction big. Nothing new to learn from one page to the next.',
+    risk: 'Five tiles of equal weight say every quest matters equally, and they do not.',
   },
 ];
 
@@ -153,8 +179,14 @@ export function Lab() {
       <ShopRows copy={copy} theme={theme} onAdminPage={onAdminPage} />
     ) : which === 'grid' ? (
       <ShopGrid copy={copy} theme={theme} onAdminPage={onAdminPage} />
-    ) : (
+    ) : which === 'worn' ? (
       <ShopWorn copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'columns' ? (
+      <QuestsColumns copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'ready' ? (
+      <QuestsReady copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : (
+      <QuestsTiles copy={copy} theme={theme} onAdminPage={onAdminPage} />
     );
 
   return (
@@ -163,13 +195,13 @@ export function Lab() {
         <div className="flex flex-wrap items-center gap-2">
           {/* Which page is being drawn. The direction is settled, so the
               bench moves on to the screens one at a time. */}
-          {(['home', 'shop'] as const).map((one) => (
+          {(['home', 'shop', 'quests'] as const).map((one) => (
             <button
               key={one}
               type="button"
               onClick={() => {
                 setPage(one);
-                setWhich(one === 'home' ? 'flat' : 'rows');
+                setWhich(one === 'home' ? 'flat' : one === 'shop' ? 'grid' : 'columns');
               }}
               className={`${one === page ? ON : OFF} mr-1`}
             >

@@ -62,6 +62,13 @@ export interface Copy {
   readonly slot: (id: string) => string;
   readonly slotLead: (id: string) => string;
   readonly itemName: (id: string) => string;
+  /** The quests, for the page mockups. */
+  readonly questsLead: string;
+  readonly claim: string;
+  readonly claimed: string;
+  readonly locked: string;
+  readonly playRound: string;
+  readonly rule: (id: string, target: number) => string;
 }
 
 export function useCopy(isAdmin: boolean): Copy {
@@ -122,6 +129,13 @@ export function useCopy(isAdmin: boolean): Copy {
     slot: (id: string) => shop(`slots.${id}` as 'slots.marker'),
     slotLead: (id: string) => shop(`slotLead.${id}` as 'slotLead.marker'),
     itemName: (id: string) => shop(`names.${id}` as 'names.MARKER_AMBER'),
+    questsLead: quests('lead'),
+    claim: quests('claim'),
+    claimed: quests('claimed'),
+    locked: quests('locked'),
+    playRound: quests('play'),
+    rule: (id: string, target: number) =>
+      quests(`rules.${id}` as 'rules.DAILY_FINISH_ROUNDS', { target }),
     menu: home('nav.menu'),
     close: home('nav.close'),
     backToGame: home('nav.backToGame'),

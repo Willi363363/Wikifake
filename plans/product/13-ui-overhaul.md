@@ -68,6 +68,26 @@ a slim bar that becomes a full-screen menu, C is a single dropdown. Choosing a
 direction and choosing a navigation are two decisions, and the grid is what
 keeps them from being made as one by accident.
 
+## What has been chosen
+
+Recorded here as well as in the code, because track K learned that a decision
+living only in a mockup is a decision that dies with the mockup. Five rounds,
+three candidates each, every one built rather than described.
+
+| Screen | Chosen | What it commits to |
+|---|---|---|
+| The direction | **J2** | Tiles with no hairline — a tile is separated by being a different surface. Flat blue, large figures, plenty of air. Light and dark written together |
+| The home | **A dense dashboard** | Nothing centred. The streak, the daily lot, the ranking and the last rounds all visible, with Play as the largest tile among them rather than a hero above them |
+| The navigation | **A bar at the top** | Every route one click away. Shipped shape still open; the bench has worn a slim bar with a full-screen phone menu since round four |
+| The shop | **S2 — one grid** | Ten items in one rhythm, the slot as a label, the price on every card. You see what your coins reach without choosing a slot first |
+
+**Four rounds were refused before J, and the reason is worth keeping.** Rounds
+one to three changed the palette three times and kept one skeleton — a centred
+headline, a sentence, a button, three numbered columns. That skeleton *is* the
+cliché the owner kept naming, and no colour rescued it. What broke the deadlock
+was changing the arrangement and showing the game's own figures instead of
+marketing about them.
+
 ## Steps
 
 | # | Step | State |

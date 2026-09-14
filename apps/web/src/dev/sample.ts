@@ -93,3 +93,31 @@ export const SHOP: readonly Slot[] = [
     ],
   },
 ];
+
+export interface Quest {
+  /** The catalogue key under `quests.rules`. */
+  readonly rule: string;
+  readonly target: number;
+  readonly done: number;
+  readonly reward: number;
+  readonly claimed: boolean;
+}
+
+/** A day's lot and a week's, as `quest_assignment` hands them over. */
+export const QUESTS = {
+  daily: [
+    { rule: 'DAILY_FINISH_ROUNDS', target: 3, done: 3, reward: 25, claimed: false },
+    { rule: 'DAILY_FIND_FALSIFICATIONS', target: 8, done: 5, reward: 30, claimed: false },
+    { rule: 'DAILY_UNAIDED_ROUND', target: 1, done: 1, reward: 20, claimed: true },
+  ] as readonly Quest[],
+  weekly: [
+    { rule: 'WEEKLY_FINISH_ROUNDS', target: 20, done: 11, reward: 120, claimed: false },
+    {
+      rule: 'WEEKLY_FIND_FALSIFICATIONS',
+      target: 50,
+      done: 34,
+      reward: 150,
+      claimed: false,
+    },
+  ] as readonly Quest[],
+};
