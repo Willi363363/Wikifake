@@ -59,8 +59,8 @@ lift it from, so no step starts by deciding anything.
 |---|---|---|---|
 | K.1 | Eight routes, the rail, the gate on each, indexing decisions | `rail.tsx`, `rail-models.ts` | ✅ |
 | K.2 | The period bar, shared, with the custom dialog | `period-bar.tsx` | ✅ |
-| K.3 | Overview — digest | `page-overview.tsx` | ⬜ |
-| K.4 | Players — digest | `page-players.tsx`, `PlayersDigest` | ⬜ |
+| K.3 | Overview — digest | `page-overview.tsx` | ✅ |
+| K.4 | Players — digest | `page-players.tsx`, `PlayersDigest` | ✅ |
 | K.5 | Activation — funnel | `page-activation.tsx` | ⬜ |
 | K.6 | Arrivals — digest and the one-step funnel | `page-arrivals.tsx` | ⬜ |
 | K.7 | Rounds — two modes | `page-rounds.tsx`, `RoundsModes` | ⬜ |

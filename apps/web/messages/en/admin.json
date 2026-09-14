@@ -2,6 +2,11 @@
   "title": "Admin",
   "lead": "Read-only. Every figure here traces to a query, and nothing on this page can change anything.",
   "readOnly": "Read-only, and the last section is built. Nothing here writes, and there is no action on this page — a panel that can act on data is a second application, with permissions, audit trails and a blast radius.",
+  "overview": {
+    "soloShare": "{share} solo",
+    "perRound": "{amount} a round",
+    "activationOf": "{share} of new accounts finish a round"
+  },
   "health": {
     "title": "Health",
     "up": "Up",
@@ -36,13 +41,15 @@
     "mostActive": "Most active",
     "nobody": "Nobody has finished a round yet.",
     "columns": {
+      "rank": "#",
       "player": "Player",
       "finished": "Finished",
       "started": "Started",
       "lastSeen": "Last seen"
     },
-    "activeInRange": "Active in range",
+    "activeInRange": "Active in period",
     "thisWeek": "{count} this week",
+    "shareOfAccounts": "{share} of accounts",
     "allTimeList": "All-time: rounds finished is a running total with no date on it."
   },
   "activation": {

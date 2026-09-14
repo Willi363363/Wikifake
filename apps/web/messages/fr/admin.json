@@ -2,6 +2,11 @@
   "title": "Administration",
   "lead": "En lecture seule. Chaque chiffre vient d’une requête, et rien sur cette page ne peut modifier quoi que ce soit.",
   "readOnly": "En lecture seule, et la dernière section est en place. Rien ici n’écrit, et aucune action n’est proposée — un panneau capable d’agir sur les données est une seconde application, avec ses permissions, ses journaux et son rayon d’action.",
+  "overview": {
+    "soloShare": "{share} en solo",
+    "perRound": "{amount} par manche",
+    "activationOf": "{share} des nouveaux comptes terminent une manche"
+  },
   "health": {
     "title": "Santé",
     "up": "En ligne",
@@ -36,6 +41,7 @@
     "mostActive": "Les plus assidus",
     "nobody": "Personne n’a encore terminé de manche.",
     "columns": {
+      "rank": "#",
       "player": "Joueur",
       "finished": "Terminées",
       "started": "Commencées",
@@ -43,6 +49,7 @@
     },
     "activeInRange": "Actifs sur la période",
     "thisWeek": "{count} cette semaine",
+    "shareOfAccounts": "{share} des comptes",
     "allTimeList": "Tout compris : les manches terminées sont un total cumulé sans date."
   },
   "activation": {
