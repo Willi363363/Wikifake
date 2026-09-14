@@ -66,6 +66,10 @@ function declarationsIn(css: string, opener: string): Map<string, string> {
 // below compare the light palette with itself and pass.
 const theme = declarationsIn(THEME, '@theme static {');
 const dark = declarationsIn(THEME, '.dark {');
+// L.9 — the same palette again, for a machine set to dark by a reader who has
+// chosen nothing. Found by its selector rather than by the media query, so the
+// two blocks are told apart by what they match and not by where they sit.
+const system = declarationsIn(THEME, ':root:not(.light):not(.dark) {');
 
 /** `rgba(24, 24, 27, 0.10)` and `rgba(24,24,27,.1)` are the same colour. */
 const comparable = (value: string): string =>
@@ -178,6 +182,27 @@ describe('6.1 — the tokens', () => {
             expect(layer.trim(), `--shadow-${level} in ${palette}`).toMatch(BLURRED);
           }
         }
+      }
+    });
+
+    /*
+     * L.9 — the copy, and why a copy is allowed to exist.
+     *
+     * `.dark` is a choice and the media query is the absence of one, and CSS
+     * has no way to apply one rule's body under a condition another rule is not
+     * under. So the declarations are written twice, and this is what makes that
+     * safe: a token added to one and forgotten in the other fails here rather
+     * than shipping a palette that is dark down one path and half-dark down the
+     * other.
+     *
+     * Name for name and value for value. `comparable` is what lets a reformat
+     * of one of them not count as a difference.
+     */
+    it('repeats itself exactly for a machine whose reader chose nothing', () => {
+      expect([...system.keys()].sort()).toEqual([...dark.keys()].sort());
+
+      for (const [name, value] of dark) {
+        expect(comparable(system.get(name) ?? ''), name).toBe(comparable(value));
       }
     });
 

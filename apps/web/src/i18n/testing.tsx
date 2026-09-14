@@ -28,6 +28,7 @@ import routesEn from '../../messages/en/routes.json';
 import languageEn from '../../messages/en/language.json';
 import seoEn from '../../messages/en/seo.json';
 import legalEn from '../../messages/en/legal.json';
+import themeEn from '../../messages/en/theme.json';
 import errorsFr from '../../messages/fr/errors.json';
 import homeFr from '../../messages/fr/home.json';
 import leaderboardFr from '../../messages/fr/leaderboard.json';
@@ -44,6 +45,7 @@ import routesFr from '../../messages/fr/routes.json';
 import languageFr from '../../messages/fr/language.json';
 import seoFr from '../../messages/fr/seo.json';
 import legalFr from '../../messages/fr/legal.json';
+import themeFr from '../../messages/fr/theme.json';
 import type { CatalogueMessages } from './catalogue.js';
 import { TIME_ZONE, type Locale } from './locales.js';
 
@@ -63,6 +65,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
     small: smallEn,
     routes: routesEn,
     language: languageEn,
+    theme: themeEn,
     seo: seoEn,
     legal: legalEn,
   },
@@ -80,6 +83,7 @@ const CATALOGUES: Record<Locale, CatalogueMessages> = {
     small: smallFr,
     routes: routesFr,
     language: languageFr,
+    theme: themeFr,
     seo: seoFr,
     legal: legalFr,
   },

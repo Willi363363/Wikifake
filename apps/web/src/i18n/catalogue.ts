@@ -23,6 +23,7 @@ import type admin from '../../messages/en/admin.json';
 import type quests from '../../messages/en/quests.json';
 import type shop from '../../messages/en/shop.json';
 import type round from '../../messages/en/round.json';
+import type theme from '../../messages/en/theme.json';
 import type waiting from '../../messages/en/waiting.json';
 import type { Locale } from './locales.js';
 
@@ -41,6 +42,7 @@ export const ZONES = [
   'small',
   'routes',
   'language',
+  'theme',
   'seo',
   'legal',
 ] as const;
@@ -68,6 +70,7 @@ export type CatalogueMessages = {
   small: typeof small;
   routes: typeof routes;
   language: typeof language;
+  theme: typeof theme;
   seo: typeof seo;
   legal: typeof legal;
 };

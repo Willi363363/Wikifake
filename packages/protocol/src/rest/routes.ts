@@ -40,6 +40,7 @@ import { recordViewRequest, recordViewResponse } from './traffic.js';
 import { healthResponse, pingResponse, usageResponse } from './health.js';
 import { createRoomRequest, createRoomResponse } from './rooms.js';
 import { claimQuestRequest, claimQuestResponse, questCronResponse } from './quests.js';
+import { chooseThemeRequest, chooseThemeResponse } from './theme.js';
 import { realtimeTicketRequest, realtimeTicketResponse } from './tickets.js';
 
 export interface Route {
@@ -165,6 +166,15 @@ export const ROUTES: readonly Route[] = [
     path: '/api/quests/claim',
     request: claimQuestRequest,
     response: claimQuestResponse,
+  },
+  {
+    // Step L.9. A form post, answered with a redirect and no body — the one
+    // route here that is neither JSON in nor JSON out, and `theme.ts` says why
+    // both halves of that are the point rather than a shortcut.
+    method: 'POST',
+    path: '/api/theme',
+    request: chooseThemeRequest,
+    response: chooseThemeResponse,
   },
   {
     // Step F.5. A `GET` that writes, which is Vercel's scheduler dictating the
