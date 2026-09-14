@@ -1,6 +1,11 @@
 /** @vitest-environment jsdom */
 
-// Activation and return — step I.4, on the screen.
+// Activation and return — step K.5, on the screen.
+//
+// Amended rather than rewritten when the section became the funnel page: every
+// claim I.4 made is still a claim about it, and where the shape moved a fact —
+// *of the step above* is a legend once now, not a phrase on four rows — the
+// case moved with it rather than being deleted.
 //
 // One claim carries most of these cases: **null is not nought per cent.** The
 // day before launch, a panel reading 0% on its headline figure would report a
@@ -18,6 +23,21 @@ afterEach(() => {
   cleanup();
 });
 
+/**
+ * What one tile says, label included.
+ *
+ * The funnel below repeats the same counts and the same shares — that is what a
+ * funnel *is* — so a bare `getByText('25%')` finds two elements and says
+ * nothing about which. Reading the tile through its label is what makes these
+ * cases about the four figures rather than about the page's text.
+ */
+function tile(label: string): string {
+  // The first match, because the tiles are the first thing on the page: a step
+  // name also appears inside its funnel bar and again in the definition list
+  // below it, and all three saying the same word is the point of the page.
+  return screen.getAllByText(label)[0]?.parentElement?.textContent ?? '';
+}
+
 function view(over: Partial<ActivationView> = {}): ActivationView {
   return {
     activation: 0.5,
@@ -32,12 +52,12 @@ function view(over: Partial<ActivationView> = {}): ActivationView {
   };
 }
 
-describe('I.4 — the two figures the track names', () => {
+describe('K.5 — the two figures the track names', () => {
   it('shows activation and return as percentages', () => {
     render(<ActivationSection activation={view()} />);
 
-    expect(screen.getByText('50%')).not.toBeNull();
-    expect(screen.getByText('25%')).not.toBeNull();
+    expect(tile('Activation')).toContain('50%');
+    expect(tile('Came back')).toContain('25%');
   });
 
   it('shows an em dash rather than 0% when there is no whole', () => {
@@ -56,8 +76,11 @@ describe('I.4 — the two figures the track names', () => {
       />,
     );
 
-    expect(screen.getAllByText('—')).toHaveLength(2);
+    // Six em dashes and not two: the two rates, and the share of the step
+    // above on each of the four funnel rows, which has no whole either.
+    expect(screen.getAllByText('—')).toHaveLength(6);
     expect(screen.queryByText('0%')).toBeNull();
+    expect(tile('Activation')).toContain('—');
   });
 
   it('keeps a real zero visible, which is not the same as no whole', () => {
@@ -65,7 +88,7 @@ describe('I.4 — the two figures the track names', () => {
 
     // A hundred and twenty accounts and nobody played is news, and it must not
     // look like the launch-day em dash.
-    expect(screen.getByText('0%')).not.toBeNull();
+    expect(tile('Activation')).toContain('0%');
   });
 
   it('says what each figure is of', () => {
@@ -76,7 +99,7 @@ describe('I.4 — the two figures the track names', () => {
   });
 });
 
-describe('I.4 — the funnel below', () => {
+describe('K.5 — the funnel below', () => {
   it('lists the four steps, in order, with their counts', () => {
     render(<ActivationSection activation={view()} />);
 
@@ -87,13 +110,28 @@ describe('I.4 — the funnel below', () => {
     expect(items[3]).toContain('15');
   });
 
-  it('shows a step against the one above it, and not the first', () => {
+  it('shows a step against the one above it, and the first against nothing', () => {
+    // K.5 names the two columns once, in a legend, rather than repeating "of
+    // the step above" on four rows — but the first step still has nothing
+    // above it, and an em dash is what that looks like.
     render(<ActivationSection activation={view()} />);
 
+    expect(screen.getByText(/share of the step above/)).not.toBeNull();
+
     const items = screen.getAllByRole('listitem').map((item) => item.textContent);
-    expect(items[0]).not.toContain('of the step above');
-    expect(items[1]).toContain('of the step above');
+    expect(items[0]).toContain('—');
     expect(items[1]).toContain('75%');
+    expect(items[2]).toContain('66.7%');
+  });
+
+  it('carries the two rates and the two counts as figures above it', () => {
+    // The shape the owner chose: the answer first, the working below it.
+    render(<ActivationSection activation={view()} />);
+
+    expect(tile('Accounts created')).toContain('120');
+    expect(tile('Accounts created')).toContain('in this period');
+    expect(tile('Finished a round')).toContain('60');
+    expect(tile('Finished a round')).toContain('15 came back');
   });
 
   it('explains what each step counts', () => {
@@ -113,19 +151,24 @@ describe('I.4 — the funnel below', () => {
     expect(screen.getByText(/not a cohort curve/)).not.toBeNull();
   });
 
-  it('draws the bars as decoration, not as information', () => {
-    // A length is not a fact a screen reader can read, and the percentage is
-    // already there in text.
-    const { container } = render(<ActivationSection activation={view()} />);
+  it('puts the step name inside its own bar, so a length is never the fact', () => {
+    // I.4 drew the bars `aria-hidden` and wrote the name beside them. K.5's
+    // bar carries the name, which is the same promise kept by a different
+    // shape: nothing here is readable only as a width.
+    render(<ActivationSection activation={view()} />);
 
-    const bars = container.querySelectorAll('div[aria-hidden="true"]');
-    expect(bars).toHaveLength(4);
+    const items = screen.getAllByRole('listitem').map((item) => item.textContent);
+    expect(items).toHaveLength(4);
+    for (const item of items) {
+      expect(item).not.toBe('');
+    }
   });
 
   it('says the same things in French', () => {
     renderIn('fr', <ActivationSection activation={view()} />);
 
-    expect(screen.getByText('Comptes créés')).not.toBeNull();
+    expect(screen.getAllByText('Comptes créés').length).toBeGreaterThan(0);
     expect(screen.getByText(/pas une courbe de cohorte/)).not.toBeNull();
+    expect(screen.getByText('L’entonnoir')).not.toBeNull();
   });
 });

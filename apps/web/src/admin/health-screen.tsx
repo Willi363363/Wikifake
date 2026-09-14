@@ -1,50 +1,68 @@
-// The health section — step I.2.
+// The probes — step K.10, the status board the owner chose.
 //
-// A table of readings, and one sentence above it that is the actual answer:
-// **do the two services agree about what is deployed.** Everything else on this
-// section is context for that line.
+// One card per service, big, then the commit agreement, then what this build
+// is. The two layouts it was chosen over — the table as the page, and the
+// deployment question first — are gone with the question they answered.
 //
-// No colour carries meaning on its own. Up and down are words as well as a
+// **The line this page exists for is the commit one.** The site being open
+// already answers whether it is up; what nothing else on the panel would notice
+// is a deployment that half succeeded, leaving the web app and the socket
+// server on different commits while the game keeps serving pages and the two
+// disagree about what the protocol is.
+//
+// **No colour carries meaning on its own.** Up and down are words as well as a
 // wash, because three states told apart by hue alone is three states nobody
 // colour-blind can tell apart — the paragraph token's own rule, and it applies
 // hardest on the screen somebody reads while something is broken.
 import { useFormatter, useTranslations } from 'next-intl';
 
 import type { HealthView, Reading } from './health.js';
+import { CARD, Figure, LABEL, PANEL } from './parts.js';
 
 export interface HealthSectionProps {
   readonly health: HealthView;
 }
 
-function ReadingRow({ reading }: { readonly reading: Reading }) {
+/** One service, given a card of its own. */
+function ServiceCard({ reading }: { readonly reading: Reading }) {
   const t = useTranslations('admin.health');
   const format = useFormatter();
 
   return (
-    <tr>
-      <td className="px-3 py-2 text-ink">{t(`services.${reading.name}`)}</td>
-      <td className="px-3 py-2">
+    <section
+      aria-label={t(`services.${reading.name}`)}
+      className={`${CARD} flex flex-col gap-3 p-5 ${
+        reading.up ? 'bg-green-soft' : 'bg-danger-soft'
+      }`}
+    >
+      <span className={LABEL}>{t(`services.${reading.name}`)}</span>
+
+      <div className="flex items-center gap-3">
         <span
-          className={
-            reading.up
-              ? 'border-3 border-line-strong bg-green-soft px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] text-ink uppercase'
-              : 'border-3 border-line-strong bg-danger-soft px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] text-ink uppercase'
-          }
-        >
+          className={`size-6 shrink-0 border-3 border-line-strong ${
+            reading.up ? 'bg-green' : 'bg-danger'
+          }`}
+        />
+        <span className="text-3xl leading-none font-extrabold text-ink">
           {reading.up ? t('up') : t('down')}
         </span>
-      </td>
+      </div>
+
       {/* The time it took to fail is the difference between refused and timed
-          out, so it is shown for a failure too. */}
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-muted">
-        {format.number(Math.round(reading.ms))} ms
-      </td>
-      <td className="px-3 py-2 font-mono text-xs text-muted">
+          out, so it is shown for a failure too. Nought means this process,
+          which answered by being the one rendering the page. */}
+      <span className="font-mono text-[12px] text-muted">
+        {reading.ms === 0
+          ? t('thisPage')
+          : t('answeredIn', { ms: format.number(Math.round(reading.ms)) })}
+      </span>
+
+      <span className="font-mono text-[11px] break-words text-muted">
         {reading.commit === undefined || reading.commit === ''
           ? reading.detail
           : `${reading.detail} · ${reading.commit.slice(0, 7)}`}
-      </td>
-    </tr>
+      </span>
+    </section>
   );
 }
 
@@ -52,26 +70,22 @@ export function HealthSection({ health }: HealthSectionProps) {
   const t = useTranslations('admin.health');
 
   return (
-    <section aria-labelledby="admin-health" className="mt-8">
-      <h2
-        id="admin-health"
-        className="font-mono text-xs tracking-[0.12em] text-muted uppercase"
-      >
-        {t('title')}
-      </h2>
-      {/* I.8 — a probe has no history to range over. Said here rather than
-          left to be noticed when the figures do not move. */}
-      <p className="mt-1 text-xs text-muted">{t('live')}</p>
+    <div className="flex flex-col gap-4">
+      <div className="grid gap-4 sm:grid-cols-3">
+        {health.readings.map((reading) => (
+          <ServiceCard key={reading.name} reading={reading} />
+        ))}
+      </div>
 
-      {/* The line this section exists for. Three states and three sentences:
-          agreeing, disagreeing, and not knowable — because "unknown" and
-          "disagreeing" are not the same news, and a page that showed the same
-          thing for both would be the page that hid a half-finished deploy. */}
+      {/* Three states and three sentences: agreeing, disagreeing, and not
+          knowable — because "unknown" and "disagreeing" are not the same news,
+          and a page that showed the same thing for both would be the page that
+          hid a half-finished deploy. */}
       <p
         className={
           health.sameCommit === false
-            ? 'mt-3 border-3 border-line-strong bg-danger-soft px-3 py-2 text-sm text-ink'
-            : 'mt-3 text-sm text-ink-2'
+            ? 'm-0 border-3 border-line-strong bg-danger-soft px-4 py-3 text-sm text-ink'
+            : 'm-0 border-3 border-line px-4 py-3 text-sm text-ink-2'
         }
         {...(health.sameCommit === false ? { role: 'alert' as const } : {})}
       >
@@ -82,38 +96,31 @@ export function HealthSection({ health }: HealthSectionProps) {
             : t('commitDisagree')}
       </p>
 
-      <div className="mt-3 overflow-x-auto border-3 border-line-strong bg-surface shadow-md">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b-3 border-line-strong">
-              <th scope="col" className="px-3 py-2 text-left text-muted">
-                {t('columns.service')}
-              </th>
-              <th scope="col" className="px-3 py-2 text-left text-muted">
-                {t('columns.state')}
-              </th>
-              <th scope="col" className="px-3 py-2 text-right text-muted">
-                {t('columns.took')}
-              </th>
-              <th scope="col" className="px-3 py-2 text-left text-muted">
-                {t('columns.says')}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {health.readings.map((reading) => (
-              <ReadingRow key={reading.name} reading={reading} />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <section
+        aria-label={t('thisBuild')}
+        className={`${PANEL} flex flex-wrap gap-x-10 gap-y-4 p-4`}
+      >
+        <Figure label={t('version')} value={health.identity.version} />
+        <Figure
+          label={t('commit')}
+          value={
+            health.identity.commitShort === ''
+              ? t('noCommit')
+              : health.identity.commitShort
+          }
+        />
+        {/* "Key configured" says a variable exists, not that the key works.
+            Only playing a round says that. */}
+        <Figure
+          label={t('modelLabel')}
+          value={health.identity.model}
+          note={health.identity.llmConfigured ? t('keySet') : t('noKey')}
+        />
+      </section>
 
-      <p className="mt-2 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-        {t('model', {
-          model: health.identity.model,
-          configured: health.identity.llmConfigured ? t('yes') : t('no'),
-        })}
+      <p className="m-0 max-w-prose text-[11.5px] leading-relaxed text-muted">
+        {t('live')}
       </p>
-    </section>
+    </div>
   );
 }

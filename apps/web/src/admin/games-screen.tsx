@@ -1,58 +1,85 @@
-// Rounds, and where they are lost — step I.5.
+// Rounds — step K.7, the two modes the owner chose.
 //
-// One table, a row per mode and a total. The abandon rate is the column worth
-// reading, and it is the one that needs its footnote said out loud: **it counts
-// only rounds that have ended**, because a seat in a round still running has
-// not abandoned anything.
+// A card each for solo and rooms, then one strip for both together. The two
+// layouts it was chosen over — the house digest, and the seat funnel as the
+// page — are gone with the question they answered.
 //
-// What this section cannot show is the track's *by screen*. The screens before
-// a round exists leave no row, so the split is by mode — where the two abandon
-// for different reasons, which is the more useful cut anyway.
-import { useFormatter, useTranslations } from 'next-intl';
+// **The comparison is the page.** Solo and rooms are not two slices of one
+// number: they are two games, with different abandon behaviour, and a table
+// that listed them as rows made the reader do the comparison the page exists
+// for. Two cards do it by being beside each other.
+//
+// **A seat is not a round**, and this page falls apart if the two are conflated.
+// A solo round has one seat, a room has as many as it had players, and the
+// abandon rate is a share of *seats in rounds that have ended* — a seat in a
+// round still running has abandoned nothing.
+//
+// **And it cannot be split by screen**, which is what track I asked for and
+// could not have: typing a topic, voting and waiting for generation leave no
+// row anywhere, so the split is by mode.
+import { useTranslations } from 'next-intl';
 
-import type { GamesView, ModeRow } from './games.js';
+import type { GamesView, Mode, ModeRow } from './games.js';
+import { CARD, Count, Figure, LABEL, PANEL, Percent } from './parts.js';
 
 export interface GamesSectionProps {
   readonly games: GamesView;
 }
 
-function Rate({ rate }: { readonly rate: number | null }) {
-  const format = useFormatter();
+/** One mode, given a card of its own. */
+function ModeCard({ row, filled }: { readonly row: ModeRow; readonly filled: boolean }) {
   const t = useTranslations('admin.games');
 
   return (
-    <>
-      {rate === null
-        ? t('noRounds')
-        : format.number(rate, { style: 'percent', maximumFractionDigits: 1 })}
-    </>
-  );
-}
+    <section
+      aria-label={t(`modes.${row.mode as Mode}`)}
+      className={`${CARD} flex flex-col gap-4 p-5 ${filled ? 'bg-accent' : ''}`}
+    >
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 className="m-0 text-xl font-bold text-ink">
+          {t(`modes.${row.mode as Mode}`)}
+        </h2>
+        <span className="font-mono text-[11px] text-muted">
+          {t('stillRunning', { count: row.open })}
+        </span>
+      </div>
 
-function Row({ row, total }: { readonly row: ModeRow; readonly total: boolean }) {
-  const t = useTranslations('admin.games');
-  const format = useFormatter();
-  const n = (value: number) => format.number(value);
+      <div className="flex flex-col gap-1">
+        <span className="text-4xl leading-none font-extrabold tabular-nums text-ink">
+          <Count value={row.rounds} />
+        </span>
+        <span className={filled ? `${LABEL} text-ink` : LABEL}>
+          {t('columns.rounds')}
+        </span>
+      </div>
 
-  return (
-    <tr className={total ? 'border-t-3 border-line-strong' : undefined}>
-      <td className="px-3 py-2 text-ink">{t(`modes.${row.mode}`)}</td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-ink">
-        {n(row.rounds)}
-      </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-muted">
-        {n(row.open)}
-      </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-muted">
-        {n(row.seats)}
-      </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-muted">
-        {n(row.abandoned)}
-      </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-ink">
-        <Rate rate={row.abandonRate} />
-      </td>
-    </tr>
+      <div
+        className={`grid grid-cols-2 gap-4 border-t-3 pt-4 ${
+          filled ? 'border-line-strong' : 'border-line'
+        }`}
+      >
+        <Figure
+          label={t('columns.seats')}
+          value={<Count value={row.seats} />}
+          note={t('submitted', { count: row.submitted })}
+        />
+        <Figure
+          label={t('columns.abandoned')}
+          value={<Percent share={row.abandonRate} nothing={t('noRounds')} />}
+          note={t('seats', { count: row.abandoned })}
+        />
+      </div>
+
+      {/* The rate as a length, under the figure that already says it in words:
+          a bar nobody can read a number off is decoration, and decoration that
+          repeats a fact is how a card is scanned rather than parsed. */}
+      <div aria-hidden className="flex h-3 border-3 border-line-strong bg-bg">
+        <span
+          className="h-full bg-danger"
+          style={{ width: `${String(Math.round((row.abandonRate ?? 0) * 100))}%` }}
+        />
+      </div>
+    </section>
   );
 }
 
@@ -60,59 +87,40 @@ export function GamesSection({ games }: GamesSectionProps) {
   const t = useTranslations('admin.games');
 
   return (
-    <section aria-labelledby="admin-games" className="mt-8">
-      <h2
-        id="admin-games"
-        className="font-mono text-xs tracking-[0.12em] text-muted uppercase"
+    <div className="flex flex-col gap-4">
+      <div className="grid gap-4 lg:grid-cols-2">
+        {games.rows.map((row, at) => (
+          <ModeCard key={row.mode} row={row} filled={at === 0} />
+        ))}
+      </div>
+
+      {/* The total is summed from the rows above rather than asked for
+          separately: a third query with its own `where` clause is a third
+          chance to disagree with the two it is a total of. */}
+      <section
+        aria-label={t('bothModes')}
+        className={`${PANEL} flex flex-wrap items-center gap-x-10 gap-y-4 p-4`}
       >
-        {t('title')}
-      </h2>
+        <span className={LABEL}>{t('bothModes')}</span>
+        <Figure
+          label={t('columns.rounds')}
+          value={<Count value={games.total.rounds} />}
+        />
+        <Figure label={t('columns.seats')} value={<Count value={games.total.seats} />} />
+        <Figure
+          label={t('abandonRate')}
+          value={<Percent share={games.total.abandonRate} nothing={t('noRounds')} />}
+        />
+      </section>
 
-      <div className="mt-3 border-3 border-line-strong bg-surface px-3 py-3 shadow-md">
-        <p className="font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-          {t('abandonRate')}
+      <section className={`${CARD} flex flex-col gap-2 p-5`}>
+        <p className="m-0 max-w-prose text-[12px] leading-relaxed text-ink-2">
+          {t('abandonWhy')}
         </p>
-        <p className="mt-1 font-mono text-3xl tabular-nums text-ink">
-          <Rate rate={games.total.abandonRate} />
+        <p className="m-0 max-w-prose text-[11.5px] leading-relaxed text-muted">
+          {t('caveat')}
         </p>
-        <p className="mt-1 text-xs text-muted">{t('abandonWhy')}</p>
-      </div>
-
-      <div className="mt-3 overflow-x-auto border-3 border-line-strong bg-surface shadow-md">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b-3 border-line-strong">
-              <th scope="col" className="px-3 py-2 text-left text-muted">
-                {t('columns.mode')}
-              </th>
-              <th scope="col" className="px-3 py-2 text-right text-muted">
-                {t('columns.rounds')}
-              </th>
-              <th scope="col" className="px-3 py-2 text-right text-muted">
-                {t('columns.open')}
-              </th>
-              <th scope="col" className="px-3 py-2 text-right text-muted">
-                {t('columns.seats')}
-              </th>
-              <th scope="col" className="px-3 py-2 text-right text-muted">
-                {t('columns.abandoned')}
-              </th>
-              <th scope="col" className="px-3 py-2 text-right text-muted">
-                {t('columns.rate')}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {games.rows.map((row) => (
-              <Row key={row.mode} row={row} total={false} />
-            ))}
-            <Row row={games.total} total />
-          </tbody>
-        </table>
-      </div>
-
-      {/* Both limits, said rather than left to be inferred from the columns. */}
-      <p className="mt-3 max-w-prose text-xs text-muted">{t('caveat')}</p>
-    </section>
+      </section>
+    </div>
   );
 }

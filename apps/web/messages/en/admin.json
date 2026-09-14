@@ -1,28 +1,33 @@
 {
   "title": "Admin",
   "lead": "Read-only. Every figure here traces to a query, and nothing on this page can change anything.",
-  "readOnly": "Read-only, and the last section is built. Nothing here writes, and there is no action on this page — a panel that can act on data is a second application, with permissions, audit trails and a blast radius.",
+  "readOnly": "A panel that can act on data is a second application, with permissions, audit trails and a blast radius. Nothing in this one writes: a test reads every source behind it and fails on an insert, an update, a delete or a POST.",
+  "overview": {
+    "soloShare": "{share} solo",
+    "perRound": "{amount} a round",
+    "activationOf": "{share} of new accounts finish a round"
+  },
   "health": {
     "title": "Health",
     "up": "Up",
     "down": "Down",
-    "yes": "yes",
-    "no": "no",
     "services": {
       "web": "Web app",
       "realtime": "Realtime service",
       "database": "Database"
     },
-    "columns": {
-      "service": "Service",
-      "state": "State",
-      "took": "Took",
-      "says": "Says"
-    },
+    "thisPage": "answering — this page",
+    "answeredIn": "answered in {ms} ms",
+    "thisBuild": "This build",
+    "version": "Version",
+    "commit": "Commit",
+    "noCommit": "not from git",
+    "modelLabel": "Model",
+    "keySet": "key configured",
+    "noKey": "no key configured",
     "commitAgree": "Both services are running the same commit.",
     "commitDisagree": "The two services are running different commits — a deploy is half-finished, or one of them failed.",
     "commitUnknown": "Cannot tell whether the two agree: one is down, or neither was deployed from git.",
-    "model": "Model {model} · key configured: {configured}",
     "live": "Live, whatever the range: a probe has no history."
   },
   "players": {
@@ -36,13 +41,15 @@
     "mostActive": "Most active",
     "nobody": "Nobody has finished a round yet.",
     "columns": {
+      "rank": "#",
       "player": "Player",
       "finished": "Finished",
       "started": "Started",
       "lastSeen": "Last seen"
     },
-    "activeInRange": "Active in range",
+    "activeInRange": "Active in period",
     "thisWeek": "{count} this week",
+    "shareOfAccounts": "{share} of accounts",
     "allTimeList": "All-time: rounds finished is a running total with no date on it."
   },
   "activation": {
@@ -52,7 +59,6 @@
     "activationWhy": "Of the accounts created, the share that finished a round.",
     "returnRate": "Came back",
     "returnWhy": "Of those who finished a round, the share active on a later day.",
-    "ofPrevious": "{name}of the step above: ",
     "steps": {
       "created": "Accounts created",
       "started": "Started a round",
@@ -65,14 +71,22 @@
       "finished": "Submitted at least one round. The gap above is rounds abandoned partway.",
       "returned": "Was active on a later day than their first. Two rounds in one sitting is not coming back."
     },
+    "funnelTitle": "The funnel",
+    "funnelLegend": "share of the step above · count",
+    "inThisPeriod": "in this period",
+    "cameBack": "{count, plural, =0 {nobody came back} one {# came back} other {# came back}}",
     "caveat": "\"Came back\" is a later day of activity, not a cohort curve: a return the next day and a return six months on look the same here, because nothing records per-day history.",
-    "cohort": "The range picks who signed up, not when they played — which is what an activation figure has always meant."
+    "cohort": "The period picks who signed up, not when they played — which is what an activation figure has always meant."
   },
   "games": {
     "title": "Games",
     "noRounds": "—",
     "abandonRate": "Abandon rate",
     "abandonWhy": "Of the seats in rounds that have ended, the share whose player never submitted.",
+    "bothModes": "Both modes",
+    "stillRunning": "{count, plural, =0 {none still running} one {# still running} other {# still running}}",
+    "submitted": "{count, plural, one {# submitted} other {# submitted}}",
+    "seats": "{count, plural, one {# seat} other {# seats}}",
     "modes": {
       "solo": "Solo",
       "multiplayer": "Rooms",
@@ -100,6 +114,15 @@
       "landing": "Landing",
       "entry": "Entry"
     },
+    "pageLoads": "page loads",
+    "reachShort": "of landing loads reached entry",
+    "countingSince": "Counting since",
+    "nothingBefore": "nothing exists before it",
+    "oneStep": "Landing → entry",
+    "oneStepWhy": "the one step this page is",
+    "lost": "{count, plural, =0 {every landing load reached the entry screen} one {# landing load did not reach the entry screen} other {# landing loads did not reach the entry screen}}",
+    "dayByDay": "Day by day",
+    "rows": "The rows",
     "empty": "Nothing was counted in this range.",
     "since": "Counting began on {day}. A range reaching further back covers days nobody was counting, so two ranges that straddle it are not comparable.",
     "never": "Nothing has been counted yet. Arrivals are counted from the day this shipped, so an empty panel here is what a new counter looks like.",
@@ -119,10 +142,20 @@
     "generated": "{count, plural, one {# generated} other {# generated}}",
     "failed": "{count, plural, one {# call failed and still cost tokens} other {# calls failed and still cost tokens}}",
     "withoutTokens": "{count, plural, one {# call reported no token count} other {# calls reported no token count}} — the totals above are missing them.",
+    "notPerServed": "not per round served",
+    "guestsIncluded": "guests included",
+    "inAndOut": "in and out",
+    "spendPerDay": "Spend per day",
+    "tokensPerDay": "Tokens per day",
+    "rateIs": "{input} in / {output} out per million tokens, from the two environment variables.",
+    "noRateNames": "No rate is configured, so this page reports tokens. Money is a multiplication a deployment opts into.",
+    "generatedDenominator": "{count, plural, one {# round generated} other {# rounds generated}} is what the per-round figure divides by — a cached round costs nothing to make.",
     "byKind": "By kind",
     "perDay": "Per day, last 30 days",
     "nothing": "No model calls recorded yet.",
     "columns": {
+      "cost": "Cost",
+      "tokens": "Tokens",
       "kind": "Kind",
       "calls": "Calls",
       "failed": "Failed",
@@ -141,6 +174,13 @@
     "failedGeneration": "Generation failed",
     "ofCalls": "of {count, plural, one {# call} other {# calls}}",
     "topicFailures": "{count, plural, =0 {No topic choice came back empty} one {# topic choice of {calls} came back empty} other {# topic choices of {calls} came back empty}} — a word Wikipedia has no article for is not a fault.",
+    "cachedOf": "{cached} of {games, plural, one {# round} other {# rounds}}",
+    "failedOf": "{failed} of {calls, plural, one {# call} other {# calls}}",
+    "modelWrote": "rounds the model wrote",
+    "mostPlayedIs": "most played: {topic}",
+    "whenWrong": "When generation went wrong",
+    "falsification": "Falsification",
+    "topicEmpty": "Topic came back empty",
     "topTopics": "Most played",
     "noTopics": "No rounds played yet.",
     "columns": {
@@ -150,19 +190,42 @@
     }
   },
   "range": {
-    "label": "Range",
+    "label": "Period",
     "presets": {
-      "7d": "7 days",
-      "30d": "30 days",
-      "90d": "90 days",
-      "all": "All time",
-      "custom": "Custom"
+      "24h": "24 h",
+      "week": "This week",
+      "month": "This month",
+      "year": "This year",
+      "all": "All"
     },
     "covering": "{from} to {to}, inclusive.",
     "coveringAll": "Everything since the first round.",
-    "whatItMoves": "It moves the players, activation, games, cost and content sections. Health is a live probe, and the most active list is built from running totals with no date on them — both say so where they appear.",
-    "allTime": "All-time, whatever the range: these are running totals with no date on them.",
-    "live": "Live, whatever the range.",
-    "cohort": "The range picks who signed up, not when they played."
+    "whatItMoves": "The period moves the players, activation, rounds, cost and content figures. Health is a live probe, the most active list is built from running totals with no date on them, and “today” is today whatever is chosen — each says so where it appears.",
+    "allTime": "All-time, whatever the period: these are running totals with no date on them.",
+    "live": "Live, whatever the period.",
+    "cohort": "The period picks who signed up, not when they played.",
+    "custom": {
+      "open": "Custom…",
+      "title": "Custom period",
+      "lead": "Both ends included. The period stays in the address, so it can be bookmarked and shared.",
+      "from": "From",
+      "to": "To",
+      "days": "{count, plural, one {# day selected} other {# days selected}}",
+      "backwards": "The first date is after the second.",
+      "apply": "Apply",
+      "cancel": "Cancel",
+      "close": "Close"
+    }
+  },
+  "nav": {
+    "label": "Sections",
+    "close": "Close the sections",
+    "readOnly": "Read only",
+    "overview": "Overview",
+    "groups": {
+      "audience": "Audience",
+      "game": "The game",
+      "system": "System"
+    }
   }
 }

@@ -1,11 +1,15 @@
 /** @vitest-environment jsdom */
 
-// The players section — step I.3.
+// Who is playing — step K.4, on the screen.
 //
-// It formats five figures and a short list, and the thing worth testing is the
-// **pairing**: a number on its own teaches nothing, which is the track's own
-// complaint about vanity metrics. Accounts beside guests, and ever-played
-// beside accounts, are the two pairs that make this section say something.
+// Amended rather than rewritten when the section became a page: every claim
+// I.3 made is still a claim about the digest, and two more arrive with it —
+// the shares are percentages now, and the list gained a rank column.
+//
+// The thing worth testing is still the **pairing**: a number on its own teaches
+// nothing, which is the track's own complaint about vanity metrics. Accounts
+// beside guests, and ever-played beside accounts, are the two pairs that make
+// this page say something.
 //
 // Whether the figures are *right* is `players.test.ts` against a real database.
 import { cleanup, screen } from '@testing-library/react';
@@ -49,7 +53,7 @@ function view(over: Partial<PlayersView> = {}): PlayersView {
   };
 }
 
-describe('I.3 — the figures, and what each is beside', () => {
+describe('K.4 — the figures, and what each is beside', () => {
   it('shows accounts with the guests kept apart', () => {
     // A guest is a `user` row too, so a panel that added them together would
     // report sign-ups that are not.
@@ -62,8 +66,10 @@ describe('I.3 — the figures, and what each is beside', () => {
   it('shows ever-played against the accounts it is a fraction of', () => {
     render(<PlayersSection players={view()} />);
 
+    // A share and not a raw denominator: K.4's tiles are read at a glance, and
+    // "of 120 accounts" makes the reader do the division the tile exists for.
     expect(screen.getByText('71')).not.toBeNull();
-    expect(screen.getByText('of 120 accounts')).not.toBeNull();
+    expect(screen.getByText('59.2% of accounts')).not.toBeNull();
   });
 
   it('says "no guests" rather than a bare zero', () => {
@@ -72,16 +78,31 @@ describe('I.3 — the figures, and what each is beside', () => {
     expect(screen.getByText('no guests')).not.toBeNull();
   });
 
-  it('shows today, and the range, with this week beside it', () => {
-    // I.8 — *seen since* is a range on `last_seen`, so this figure moves with
-    // the chooser. This week stays beside it as the fixed comparison.
+  it('shows today, and the period, with this week beside it', () => {
+    // *Seen since* is a range on `last_seen`, the one dated column
+    // `player_stats` has, so this figure moves with the bar. This week stays
+    // beside today as the fixed comparison neither of them moves.
     render(<PlayersSection players={view()} />);
 
     expect(screen.getByText('Active today')).not.toBeNull();
     expect(screen.getByText('9')).not.toBeNull();
-    expect(screen.getByText('Active in range')).not.toBeNull();
+    expect(screen.getByText('Active in period')).not.toBeNull();
     expect(screen.getByText('51')).not.toBeNull();
     expect(screen.getByText('34 this week')).not.toBeNull();
+  });
+
+  it('falls back to a count when there is no account to be a share of', () => {
+    // `shareOf`'s rule at the tile: dividing by nothing is not nought per cent,
+    // and a digest reading 0 % the day before launch would report a failure
+    // that has not happened.
+    render(
+      <PlayersSection
+        players={view({ accounts: 0, everPlayed: 0, activeInRange: 0, mostActive: [] })}
+      />,
+    );
+
+    expect(screen.queryByText(/0% of accounts/)).toBeNull();
+    expect(screen.getAllByText('of 0 accounts')).toHaveLength(2);
   });
 
   it('says the most-active list cannot honour the range', () => {
@@ -93,7 +114,7 @@ describe('I.3 — the figures, and what each is beside', () => {
   });
 });
 
-describe('I.3 — the most active', () => {
+describe('K.4 — the most active', () => {
   it('lists a pseudonym, and nothing else about a player', () => {
     // E.3.3's promise holds on the admin panel too.
     render(<PlayersSection players={view()} />);
@@ -108,9 +129,11 @@ describe('I.3 — the most active', () => {
     // have to compute it to notice it.
     render(<PlayersSection players={view()} />);
 
+    // Five columns now: K.4's digest numbers the rows, so the shape of the
+    // tail is readable without counting down the list.
     const cells = screen.getAllByRole('cell').map((cell) => cell.textContent);
-    expect(cells.slice(0, 3)).toEqual(['Ada', '28', '30']);
-    expect(cells.slice(4, 7)).toEqual(['Bob', '11', '40']);
+    expect(cells.slice(0, 4)).toEqual(['1', 'Ada', '28', '30']);
+    expect(cells.slice(5, 9)).toEqual(['2', 'Bob', '11', '40']);
   });
 
   it('says so when nobody has finished a round', () => {
@@ -121,10 +144,12 @@ describe('I.3 — the most active', () => {
   });
 
   it('says the same things in French', () => {
+    // The page's own name is the chassis heading now (`page-heading.tsx`), so
+    // what this asserts is the body: the figures and the list.
     renderIn('fr', <PlayersSection players={view()} />);
 
-    expect(screen.getByText('Joueurs')).not.toBeNull();
     expect(screen.getByText('43 invités en plus')).not.toBeNull();
     expect(screen.getByText('Les plus assidus')).not.toBeNull();
+    expect(screen.getByText('59,2 % des comptes')).not.toBeNull();
   });
 });
