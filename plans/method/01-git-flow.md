@@ -147,6 +147,23 @@ descends from it:
 git switch staging && git merge --ff-only origin/main && git push
 ```
 
+### When a promotion was squashed anyway
+
+Four times now, because GitHub's button remembers the last method you used and
+squash is the right one for every other kind of branch. The diagnosis is one
+line, and it is worth running before opening the next promotion:
+
+```bash
+git merge-base --is-ancestor origin/main origin/staging || echo 'realign first'
+```
+
+The repair is a branch that merges `main` into `staging` and a pull request back
+to `staging`. **That one has to be merged with a merge commit too** — a realign
+carries no content by construction (`git diff origin/staging` is empty
+afterwards, which is how you check it), so squashing it keeps the nothing and
+discards the second parent that was the entire point. It has been done twice in
+one day for that reason.
+
 ## Naming
 
 `<type>/<subject>`, lowercase, with a hyphen as word separator:
