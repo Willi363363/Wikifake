@@ -18,12 +18,13 @@
 // This whole directory dies at L.8, with the decision it exists to inform.
 import { useState } from 'react';
 
-import { CandidateDark } from './candidate-dark.js';
-import { CandidateEditorial } from './candidate-editorial.js';
-import { CandidateSober } from './candidate-sober.js';
+import { CandidateAcid } from './candidate-acid.js';
+import { CandidateCoral } from './candidate-coral.js';
+import { CandidateNeon } from './candidate-neon.js';
 import { useCopy } from './copy.js';
+import type { Theme } from './tone.js';
 
-type Which = 'dark' | 'editorial' | 'sober';
+type Which = 'neon' | 'coral' | 'acid';
 
 interface Option {
   readonly id: Which;
@@ -36,25 +37,25 @@ interface Option {
 /** The bench's own chrome is English: it is not the product. */
 const OPTIONS: readonly Option[] = [
   {
-    id: 'dark',
-    name: 'A — dark, dense, technical',
-    nav: 'persistent bar, scrolls sideways when narrow',
-    bet: 'The register of tools people keep open all day. One accent, nothing else coloured, everything legible at a glance.',
-    risk: 'A game that looks like a dashboard.',
+    id: 'neon',
+    name: 'D — electric violet',
+    nav: 'deepest dark of the three',
+    bet: 'Dark and vivid at full strength. One violet, one cyan used once, and a play button that glows.',
+    risk: 'The palette every launch page has worn since 2023 — current, and possibly anonymous.',
   },
   {
-    id: 'editorial',
-    name: 'B — light, spacious, editorial',
-    nav: 'slim bar, full-screen menu on a phone',
-    bet: 'The subject is an article, so the site reads like something you read. Typography carries the hierarchy.',
-    risk: 'Empty at phone width, where most players are.',
+    id: 'coral',
+    name: 'E — warm coral',
+    nav: 'the most air of the three',
+    bet: 'Vivid without electric. One hot orange, enormous margins, and the headline given a whole screen.',
+    risk: 'Warmth reads as friendly, and this game is about catching a liar.',
   },
   {
-    id: 'sober',
-    name: 'C — sober, near-neutral',
-    nav: 'one dropdown holding everything',
-    bet: 'The interface disappears behind the content. One blue, kept for actions.',
-    risk: 'Forgettable — the failure mode of "clean".',
+    id: 'acid',
+    name: 'F — acid lime',
+    nav: 'the most graphic of the three',
+    bet: 'One colour so loud it can only be used once. Everything else is black, white and a grey.',
+    risk: 'A second state — a warning, a timer — has nowhere to go.',
   },
 ];
 
@@ -88,7 +89,8 @@ function Switch({
 }
 
 export function Lab() {
-  const [which, setWhich] = useState<Which>('dark');
+  const [which, setWhich] = useState<Which>('neon');
+  const [theme, setTheme] = useState<Theme>('dark');
   const [isAdmin, setIsAdmin] = useState(false);
   const [onAdminPage, setOnAdminPage] = useState(false);
   const [phone, setPhone] = useState(false);
@@ -96,12 +98,12 @@ export function Lab() {
 
   const chosen = OPTIONS.find((one) => one.id === which) as Option;
   const body =
-    which === 'dark' ? (
-      <CandidateDark copy={copy} onAdminPage={onAdminPage} />
-    ) : which === 'editorial' ? (
-      <CandidateEditorial copy={copy} onAdminPage={onAdminPage} />
+    which === 'neon' ? (
+      <CandidateNeon copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'coral' ? (
+      <CandidateCoral copy={copy} theme={theme} onAdminPage={onAdminPage} />
     ) : (
-      <CandidateSober copy={copy} onAdminPage={onAdminPage} />
+      <CandidateAcid copy={copy} theme={theme} onAdminPage={onAdminPage} />
     );
 
   return (
@@ -122,6 +124,16 @@ export function Lab() {
           ))}
 
           <span className="ml-auto flex flex-wrap items-center gap-2">
+            {/* The theme is a switch and not a preference: the owner asked for
+                both modes, so both are part of the candidate rather than a
+                setting somebody remembers to check. */}
+            <Switch
+              label={theme === 'dark' ? 'dark' : 'light'}
+              on={theme === 'dark'}
+              onToggle={() => {
+                setTheme(theme === 'dark' ? 'light' : 'dark');
+              }}
+            />
             <Switch
               label="phone"
               on={phone}
