@@ -155,18 +155,21 @@ touched since (`HANDOVER.md`), and the branch that realigns them carries
 `main`'s own promotion commit into its range, where `checks.sh commit-range`
 reads a subject written before the convention and refuses it.
 
-**The check is right and is exempted in only one direction.** `is_promotion`
+**The check is right and was exempted in only one direction.** `is_promotion`
 lets `staging → main` through — *"commit messages are already checked on PRs to
-staging"* — and nothing says the same about `main → staging`, which is the same
-batch of commits travelling back. Tonight's way out was the bypass, which
-`03-infrastructure.md` names as the situation the bypass exists for: `gh pr
-merge --admin` on a pull request whose diff is empty.
+staging"* — and nothing said the same about the same commits travelling back.
+That night's way out was the bypass `03-infrastructure.md` names: `gh pr merge
+--admin` on a pull request whose diff is empty.
 
-**Two durable fixes, and the first is free.** *Merge a promotion, never squash
-it* — `01-git-flow.md` already says so in its table, and the day it is not
-followed costs a realignment branch and a bypass. The second is one line in
-`is_promotion`'s caller: treat `main → staging` as documented too, since every
-commit in it was checked when it entered `staging`.
+**A third time on 2026-09-14**, when #271 was squashed: same realign, same
+refusal, same bypass.
+
+**The second fix is in, and not the one predicted** — "treat `main → staging` as
+documented" keys on a head ref a realign branch has not got. `check_commit_range`
+excludes commits already reachable from `main` instead: one in production is not
+this pull request's. It narrowed that realign from four commits to one.
+
+**The first is still free and unapplied**: *merge a promotion, never squash it*.
 
 ## The promotion's last step is a push the guard refuses
 
