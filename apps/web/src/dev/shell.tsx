@@ -109,29 +109,3 @@ export function Shell({ copy, tone, onAdminPage, menuId, children }: ShellProps)
     </div>
   );
 }
-
-/** The three beats, in the airy rhythm all three candidates now share. */
-export function Beats({ copy, tone }: { readonly copy: Copy; readonly tone: Tone }) {
-  return (
-    <section className="mx-auto max-w-5xl px-5 pb-24 sm:px-10">
-      <ol className="m-0 grid list-none gap-10 p-0 sm:grid-cols-3 sm:gap-8">
-        {copy.beats.map((beat, at) => (
-          <li key={beat.title}>
-            <span
-              style={{ color: tone.accent }}
-              className="font-mono text-[12px] tracking-[0.14em]"
-            >
-              {String(at + 1).padStart(2, '0')}
-            </span>
-            <h2 className="mt-3 mb-2.5 text-[16px] leading-snug font-semibold">
-              {beat.title}
-            </h2>
-            <p style={{ color: tone.muted }} className="m-0 text-[14px] leading-[1.75]">
-              {beat.body}
-            </p>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}

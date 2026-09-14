@@ -18,13 +18,13 @@
 // This whole directory dies at L.8, with the decision it exists to inform.
 import { useState } from 'react';
 
-import { CandidateEncyclopedia } from './candidate-encyclopedia.js';
-import { CandidateQuiz } from './candidate-quiz.js';
-import { CandidateSwiss } from './candidate-swiss.js';
+import { CandidateBento } from './candidate-bento.js';
+import { CandidateConsole } from './candidate-console.js';
+import { CandidateFeed } from './candidate-feed.js';
 import { useCopy } from './copy.js';
 import type { Theme } from './tone.js';
 
-type Which = 'quiz' | 'encyclopedia' | 'swiss';
+type Which = 'bento' | 'feed' | 'console';
 
 interface Option {
   readonly id: Which;
@@ -37,25 +37,25 @@ interface Option {
 /** The bench's own chrome is English: it is not the product. */
 const OPTIONS: readonly Option[] = [
   {
-    id: 'quiz',
-    name: 'G — the quiz genre',
-    nav: 'Duolingo, Kahoot, Quizlet',
-    bet: 'A decade of mobile evidence behind it. Chunky buttons with a solid bottom edge, high contrast, one confident green. Depth you could press, not light you cannot locate.',
-    risk: 'It reads as for children, and this game is about catching a liar in an encyclopaedia.',
+    id: 'bento',
+    name: 'J — tiles of unequal size',
+    nav: 'play is the biggest tile',
+    bet: 'Play earns the eye by area and position rather than by glowing, and it sits among the things that make somebody open the site again.',
+    risk: 'Unequal tiles are a fashion of the last two years, and fashions date.',
   },
   {
-    id: 'encyclopedia',
-    name: 'H — the encyclopaedia, borrowed',
-    nav: 'the reference the game already reads',
-    bet: 'The only direction that could belong to this game and no other: a serif column, the link blue everyone knows, a rule under the title — and exactly one modern object, the play button.',
-    risk: 'It reads as a document, and a document is not obviously a game.',
+    id: 'feed',
+    name: 'K — a column, and a sidebar',
+    nav: 'play is the first row',
+    bet: 'The oldest arrangement on the web and still the most used. A returning player does not need persuading, they need the fastest line to the next round.',
+    risk: 'It looks like software, and a first visitor sees numbers instead of a reason to start.',
   },
   {
-    id: 'swiss',
-    name: 'I — grotesk, grid, one flat colour',
-    nav: 'the house style of designed sites',
-    bet: 'Sixty years old and still everywhere: an enormous neutral grotesk, a grid you can see, one colour that is never shaded. Templates decorate; this refuses to.',
-    risk: 'Cold, and a streak or a reward has nowhere to land.',
+    id: 'console',
+    name: 'L — tabular, dense',
+    nav: 'play is a bar, everything else a row',
+    bet: 'The register of things people keep open for years. No card has a shadow because no card exists: the page is a table.',
+    risk: 'Density is a taste, and it is not most peoples. Look at it on the phone first.',
   },
 ];
 
@@ -89,7 +89,7 @@ function Switch({
 }
 
 export function Lab() {
-  const [which, setWhich] = useState<Which>('quiz');
+  const [which, setWhich] = useState<Which>('bento');
   const [theme, setTheme] = useState<Theme>('dark');
   const [isAdmin, setIsAdmin] = useState(false);
   const [onAdminPage, setOnAdminPage] = useState(false);
@@ -98,12 +98,12 @@ export function Lab() {
 
   const chosen = OPTIONS.find((one) => one.id === which) as Option;
   const body =
-    which === 'quiz' ? (
-      <CandidateQuiz copy={copy} theme={theme} onAdminPage={onAdminPage} />
-    ) : which === 'encyclopedia' ? (
-      <CandidateEncyclopedia copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    which === 'bento' ? (
+      <CandidateBento copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'feed' ? (
+      <CandidateFeed copy={copy} theme={theme} onAdminPage={onAdminPage} />
     ) : (
-      <CandidateSwiss copy={copy} theme={theme} onAdminPage={onAdminPage} />
+      <CandidateConsole copy={copy} theme={theme} onAdminPage={onAdminPage} />
     );
 
   return (

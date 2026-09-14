@@ -32,6 +32,18 @@ export interface Copy {
   readonly close: string;
   readonly backToGame: string;
   readonly adminTitle: string;
+  /** The dashboard's own labels, all of them already in the catalogue. */
+  readonly board: string;
+  readonly quests: string;
+  readonly daily: string;
+  readonly weekly: string;
+  readonly streak: string;
+  readonly finished: string;
+  readonly average: string;
+  readonly best: string;
+  readonly coins: (count: number) => string;
+  readonly progress: (done: number, target: number) => string;
+  readonly reward: (count: number) => string;
 }
 
 export function useCopy(isAdmin: boolean): Copy {
@@ -40,6 +52,7 @@ export function useCopy(isAdmin: boolean): Copy {
   const shop = useTranslations('shop');
   const board = useTranslations('leaderboard');
   const admin = useTranslations('admin');
+  const account = useTranslations('account');
 
   const label = (one: Destination): string => {
     if (one.zone === 'quests') return quests('title');
@@ -63,6 +76,18 @@ export function useCopy(isAdmin: boolean): Copy {
       route: one.route,
       label: label(one),
     })),
+    board: board('title'),
+    quests: quests('title'),
+    daily: quests('daily'),
+    weekly: quests('weekly'),
+    streak: account('profile.bestStreak'),
+    finished: account('profile.gamesFinished'),
+    average: account('profile.averageScore'),
+    best: account('profile.bestScore'),
+    coins: (count: number) => shop('balance', { count }),
+    progress: (done: number, target: number) =>
+      quests('progress', { progress: done, target }),
+    reward: (count: number) => quests('reward', { count }),
     menu: home('nav.menu'),
     close: home('nav.close'),
     backToGame: home('nav.backToGame'),
