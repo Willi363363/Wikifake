@@ -59,7 +59,6 @@
     "activationWhy": "Of the accounts created, the share that finished a round.",
     "returnRate": "Came back",
     "returnWhy": "Of those who finished a round, the share active on a later day.",
-    "ofPrevious": "{name}of the step above: ",
     "steps": {
       "created": "Accounts created",
       "started": "Started a round",
@@ -72,14 +71,22 @@
       "finished": "Submitted at least one round. The gap above is rounds abandoned partway.",
       "returned": "Was active on a later day than their first. Two rounds in one sitting is not coming back."
     },
+    "funnelTitle": "The funnel",
+    "funnelLegend": "share of the step above · count",
+    "inThisPeriod": "in this period",
+    "cameBack": "{count, plural, =0 {nobody came back} one {# came back} other {# came back}}",
     "caveat": "\"Came back\" is a later day of activity, not a cohort curve: a return the next day and a return six months on look the same here, because nothing records per-day history.",
-    "cohort": "The range picks who signed up, not when they played — which is what an activation figure has always meant."
+    "cohort": "The period picks who signed up, not when they played — which is what an activation figure has always meant."
   },
   "games": {
     "title": "Games",
     "noRounds": "—",
     "abandonRate": "Abandon rate",
     "abandonWhy": "Of the seats in rounds that have ended, the share whose player never submitted.",
+    "bothModes": "Both modes",
+    "stillRunning": "{count, plural, =0 {none still running} one {# still running} other {# still running}}",
+    "submitted": "{count, plural, one {# submitted} other {# submitted}}",
+    "seats": "{count, plural, one {# seat} other {# seats}}",
     "modes": {
       "solo": "Solo",
       "multiplayer": "Rooms",
@@ -107,6 +114,15 @@
       "landing": "Landing",
       "entry": "Entry"
     },
+    "pageLoads": "page loads",
+    "reachShort": "of landing loads reached entry",
+    "countingSince": "Counting since",
+    "nothingBefore": "nothing exists before it",
+    "oneStep": "Landing → entry",
+    "oneStepWhy": "the one step this page is",
+    "lost": "{count, plural, =0 {every landing load reached the entry screen} one {# landing load did not reach the entry screen} other {# landing loads did not reach the entry screen}}",
+    "dayByDay": "Day by day",
+    "rows": "The rows",
     "empty": "Nothing was counted in this range.",
     "since": "Counting began on {day}. A range reaching further back covers days nobody was counting, so two ranges that straddle it are not comparable.",
     "never": "Nothing has been counted yet. Arrivals are counted from the day this shipped, so an empty panel here is what a new counter looks like.",

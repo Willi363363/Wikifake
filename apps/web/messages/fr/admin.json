@@ -59,7 +59,6 @@
     "activationWhy": "Parmi les comptes créés, la part qui a terminé une manche.",
     "returnRate": "Revenus",
     "returnWhy": "Parmi ceux qui ont terminé une manche, la part active un autre jour.",
-    "ofPrevious": "{name}de l’étape précédente : ",
     "steps": {
       "created": "Comptes créés",
       "started": "Ont commencé une manche",
@@ -72,6 +71,10 @@
       "finished": "Ont soumis au moins une manche. L’écart au-dessus, ce sont les manches abandonnées en route.",
       "returned": "Ont été actifs un jour plus tard que le premier. Deux manches d’affilée, ce n’est pas revenir."
     },
+    "funnelTitle": "L’entonnoir",
+    "funnelLegend": "part de l’étape au-dessus · nombre",
+    "inThisPeriod": "sur cette période",
+    "cameBack": "{count, plural, =0 {personne n’est revenu} one {# est revenu} other {# sont revenus}}",
     "caveat": "« Revenus » signifie un jour d’activité ultérieur, pas une courbe de cohorte : un retour le lendemain et un retour six mois après se ressemblent ici, faute d’historique jour par jour.",
     "cohort": "La période choisit qui s’est inscrit, pas quand ils ont joué — c’est ce qu’un taux d’activation a toujours voulu dire."
   },
@@ -80,6 +83,10 @@
     "noRounds": "—",
     "abandonRate": "Taux d’abandon",
     "abandonWhy": "Parmi les places dans les manches terminées, la part dont le joueur n’a jamais soumis.",
+    "bothModes": "Les deux modes",
+    "stillRunning": "{count, plural, =0 {aucune en cours} one {# en cours} other {# en cours}}",
+    "submitted": "{count, plural, one {# soumise} other {# soumises}}",
+    "seats": "{count, plural, one {# place} other {# places}}",
     "modes": {
       "solo": "Solo",
       "multiplayer": "Salons",
@@ -107,6 +114,15 @@
       "landing": "Accueil",
       "entry": "Saisie"
     },
+    "pageLoads": "chargements de page",
+    "reachShort": "des arrivées sur la page d’accueil ont atteint l’entrée",
+    "countingSince": "Compté depuis",
+    "nothingBefore": "rien n’existe avant",
+    "oneStep": "Accueil → entrée",
+    "oneStepWhy": "la seule étape que cette page mesure",
+    "lost": "{count, plural, =0 {tous les chargements de l’accueil ont atteint l’écran d’entrée} one {# chargement de l’accueil n’a pas atteint l’écran d’entrée} other {# chargements de l’accueil n’ont pas atteint l’écran d’entrée}}",
+    "dayByDay": "Jour par jour",
+    "rows": "Les lignes",
     "empty": "Rien n’a été compté sur cette période.",
     "since": "Le décompte a commencé le {day}. Une période qui remonte plus loin couvre des jours que personne ne comptait : deux périodes à cheval sur cette date ne sont pas comparables.",
     "never": "Rien n’a encore été compté. Les arrivées sont comptées depuis la mise en ligne de cette fonction : un panneau vide, ici, c’est à quoi ressemble un compteur neuf.",

@@ -61,9 +61,9 @@ lift it from, so no step starts by deciding anything.
 | K.2 | The period bar, shared, with the custom dialog | `period-bar.tsx` | ✅ |
 | K.3 | Overview — digest | `page-overview.tsx` | ✅ |
 | K.4 | Players — digest | `page-players.tsx`, `PlayersDigest` | ✅ |
-| K.5 | Activation — funnel | `page-activation.tsx` | ⬜ |
-| K.6 | Arrivals — digest and the one-step funnel | `page-arrivals.tsx` | ⬜ |
-| K.7 | Rounds — two modes | `page-rounds.tsx`, `RoundsModes` | ⬜ |
+| K.5 | Activation — funnel | `page-activation.tsx` | ✅ |
+| K.6 | Arrivals — digest and the one-step funnel | `page-arrivals.tsx` | ✅ |
+| K.7 | Rounds — two modes | `page-rounds.tsx`, `RoundsModes` | ✅ |
 | K.8 | Content — digest | `page-content.tsx`, `ContentDigest` | ⬜ |
 | K.9 | Cost — digest, and the two rate variables in Vercel | `page-cost.tsx`, `CostDigest` | ⬜ |
 | K.10 | Health — status board | `page-health.tsx`, `HealthBoard` | ⬜ |

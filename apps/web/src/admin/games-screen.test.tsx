@@ -1,11 +1,15 @@
 /** @vitest-environment jsdom */
 
-// Rounds, and where they are lost — step I.5, on the screen.
+// Rounds, and where they are lost — step K.7, on the screen.
 //
-// The abandon rate is the column worth reading, so most of these cases are
-// about the two things that make it honest: **an em dash when no round has
-// ended**, and the footnote saying what the figure counts and what it cannot be
-// split by.
+// Amended when the table became two cards. Every claim I.5 made survives the
+// shape — the em dash when no round has ended, the two counts whose difference
+// explains the denominator, the footnote about what cannot be split by screen —
+// and one is added: **the comparison is the page**, so solo and rooms have to
+// be two regions a reader can tell apart rather than two rows.
+//
+// The abandon rate is still the figure worth reading, so most of these cases
+// are about what makes it honest.
 import { cleanup, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
@@ -68,13 +72,15 @@ function view(over: Partial<GamesView> = {}): GamesView {
   };
 }
 
-describe('I.5 — the rate, and the table under it', () => {
+describe('K.7 — the rate, and the two cards it is split across', () => {
   it('leads with the overall abandon rate', () => {
     render(<GamesSection games={view()} />);
 
-    expect(screen.getAllByText('26.2%').length).toBeGreaterThan(0);
-    // Both the headline's own explanation and the footnote say it, which is
-    // the point: the denominator is the thing a reader must not guess at.
+    expect(screen.getByRole('region', { name: 'Both modes' }).textContent).toContain(
+      '26.2%',
+    );
+    // Both the rate's own explanation and the footnote say what it is a share
+    // of, which is the point: the denominator is what a reader must not guess.
     expect(screen.getAllByText(/rounds that have ended/)).toHaveLength(2);
   });
 
@@ -89,27 +95,42 @@ describe('I.5 — the rate, and the table under it', () => {
       />,
     );
 
-    expect(screen.getAllByText('—')).toHaveLength(4);
+    // Three em dashes: one on each mode card, one on the strip for both. The
+    // fourth in I.5's table was the `all` row, which is now that strip.
+    expect(screen.getAllByText('—')).toHaveLength(3);
     expect(screen.queryByText('0%')).toBeNull();
   });
 
-  it('gives every mode a row, and a total below them', () => {
+  it('gives every mode a region of its own, and both a strip below them', () => {
+    // Two games, not two slices of one number: a table made the reader do the
+    // comparison the page exists for, and two cards do it by being beside each
+    // other. Named regions, so a screen reader gets the same split.
     render(<GamesSection games={view()} />);
 
-    const rows = screen.getAllByRole('row').map((r) => r.textContent);
-    expect(rows[1]).toContain('Solo');
-    expect(rows[2]).toContain('Rooms');
-    expect(rows[3]).toContain('All');
+    const named = screen
+      .getAllByRole('region')
+      .map((region) => region.getAttribute('aria-label'));
+    expect(named).toEqual(['Solo', 'Rooms', 'Both modes']);
   });
 
   it('shows rounds still open apart from seats counted', () => {
     // The two numbers whose difference explains why the denominator is what it
-    // is: three rounds are still running and contribute no seats.
+    // is: two solo rounds are still running and contribute no seats.
     render(<GamesSection games={view()} />);
 
-    const solo = screen.getAllByRole('row')[1]?.textContent;
+    const solo = screen.getByRole('region', { name: 'Solo' }).textContent ?? '';
     expect(solo).toContain('40');
-    expect(solo).toContain('38');
+    expect(solo).toContain('2 still running');
+    expect(solo).toContain('30 submitted');
+  });
+
+  it('keeps each mode’s rate on its own card, never averaged into one', () => {
+    // 21.1% and 33.3% are different games. A page that showed only the 26.2%
+    // they average to would hide the fact the page is for.
+    render(<GamesSection games={view()} />);
+
+    expect(screen.getByRole('region', { name: 'Solo' }).textContent).toContain('21.1%');
+    expect(screen.getByRole('region', { name: 'Rooms' }).textContent).toContain('33.3%');
   });
 
   it('says what the rate counts, and what it cannot be split by', () => {
@@ -125,7 +146,8 @@ describe('I.5 — the rate, and the table under it', () => {
     renderIn('fr', <GamesSection games={view()} />);
 
     expect(screen.getByText('Taux d’abandon')).not.toBeNull();
-    expect(screen.getByText('Salons')).not.toBeNull();
+    expect(screen.getAllByText('Salons').length).toBeGreaterThan(0);
+    expect(screen.getByText('Les deux modes')).not.toBeNull();
     expect(screen.getByText(/ventilé par écran/)).not.toBeNull();
   });
 });
