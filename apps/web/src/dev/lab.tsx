@@ -18,13 +18,16 @@
 // This whole directory dies at L.8, with the decision it exists to inform.
 import { useState } from 'react';
 
+import { ShopGrid, ShopRows, ShopWorn } from './shop-variants.js';
 import { VariantDense, VariantFlat, VariantQuiet } from './variants.js';
 import { useCopy } from './copy.js';
 import type { Theme } from './tone.js';
 
-type Which = 'quiet' | 'flat' | 'dense';
+type Page = 'home' | 'shop';
+type Which = 'quiet' | 'flat' | 'dense' | 'rows' | 'grid' | 'worn';
 
 interface Option {
+  readonly page: Page;
   readonly id: Which;
   readonly name: string;
   readonly nav: string;
@@ -35,6 +38,7 @@ interface Option {
 /** The bench's own chrome is English: it is not the product. */
 const OPTIONS: readonly Option[] = [
   {
+    page: 'home',
     id: 'quiet',
     name: 'J1 — hairlines, deep green',
     nav: 'the one you saw',
@@ -42,18 +46,44 @@ const OPTIONS: readonly Option[] = [
     risk: 'Quiet enough to be forgettable, which is the complaint that started this track.',
   },
   {
+    page: 'home',
     id: 'flat',
-    name: 'J2 — no edges, flat blue, larger figures',
+    name: 'J2 — chosen',
     nav: 'the tiles are the structure',
-    bet: 'No hairline anywhere: a tile is separated by being a different surface. Bigger numbers, more air, more confident.',
-    risk: 'Without edges the grid can read as soft, and soft is where the last direction died.',
+    bet: 'No hairline anywhere: a tile is separated by being a different surface. Bigger numbers, more air.',
+    risk: 'Without edges the grid can read as soft.',
   },
   {
+    page: 'home',
     id: 'dense',
     name: 'J3 — tight radius, warm ink, red',
     nav: 'more on one screen',
-    bet: 'Small radius, small type, tiles on the page rather than raised above it. A red that is never shaded. The most information per screen.',
-    risk: 'Dense is a taste, and the red competes with the accent a wrong answer will need.',
+    bet: 'Small radius, small type, tiles on the page rather than raised above it.',
+    risk: 'The red competes with the colour a wrong answer will need.',
+  },
+  {
+    page: 'shop',
+    id: 'rows',
+    name: 'S1 — a row per slot',
+    nav: 'the shape the dashboard implies',
+    bet: 'One section per slot, items side by side. A player shopping for a marker never reads the frames.',
+    risk: 'Three sections of four is a lot of scrolling on a phone for ten objects.',
+  },
+  {
+    page: 'shop',
+    id: 'grid',
+    name: 'S2 — one grid, slot as a label',
+    nav: 'everything comparable at once',
+    bet: 'Ten cards, one rhythm, the price on every one. You see what your coins reach without choosing a slot first.',
+    risk: 'It flattens three kinds of thing that are not comparable — a colour is not a border.',
+  },
+  {
+    page: 'shop',
+    id: 'worn',
+    name: 'S3 — what you wear, first',
+    nav: 'the wardrobe before the till',
+    bet: 'A shop you return to answers "what am I wearing" before "what can I buy". That panel leads, the catalogue follows as lists.',
+    risk: 'It buries the prices, which is what brings somebody back to spend.',
   },
 ];
 
@@ -87,7 +117,8 @@ function Switch({
 }
 
 export function Lab() {
-  const [which, setWhich] = useState<Which>('quiet');
+  const [page, setPage] = useState<Page>('home');
+  const [which, setWhich] = useState<Which>('flat');
   const [theme, setTheme] = useState<Theme>('dark');
   const [signedIn, setSignedIn] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -111,20 +142,41 @@ export function Lab() {
         signedIn={signedIn}
         onAdminPage={onAdminPage}
       />
-    ) : (
+    ) : which === 'dense' ? (
       <VariantDense
         copy={copy}
         theme={theme}
         signedIn={signedIn}
         onAdminPage={onAdminPage}
       />
+    ) : which === 'rows' ? (
+      <ShopRows copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : which === 'grid' ? (
+      <ShopGrid copy={copy} theme={theme} onAdminPage={onAdminPage} />
+    ) : (
+      <ShopWorn copy={copy} theme={theme} onAdminPage={onAdminPage} />
     );
 
   return (
     <div className="min-h-dvh bg-neutral-100 text-neutral-900">
       <div className="border-b border-neutral-300 bg-neutral-50 px-4 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          {OPTIONS.map((one) => (
+          {/* Which page is being drawn. The direction is settled, so the
+              bench moves on to the screens one at a time. */}
+          {(['home', 'shop'] as const).map((one) => (
+            <button
+              key={one}
+              type="button"
+              onClick={() => {
+                setPage(one);
+                setWhich(one === 'home' ? 'flat' : 'rows');
+              }}
+              className={`${one === page ? ON : OFF} mr-1`}
+            >
+              {one}
+            </button>
+          ))}
+          {OPTIONS.filter((one) => one.page === page).map((one) => (
             <button
               key={one.id}
               type="button"

@@ -49,7 +49,7 @@ const QUIET: Palette = {
 };
 
 /** J2 — no hairlines, flat blue, bigger figures. The tiles are the structure. */
-const FLAT: Palette = {
+export const J2: Palette = {
   light: {
     bg: '#EEF1F6',
     surface: '#FFFFFF',
@@ -139,8 +139,10 @@ export function VariantQuiet(props: VariantProps) {
   );
 }
 
+export const FLAT_SKIN = SKINS.flat;
+
 export function VariantFlat(props: VariantProps) {
-  return <Bento {...props} tone={FLAT[props.theme]} skin={SKINS.flat} menuId="j2-menu" />;
+  return <Bento {...props} tone={J2[props.theme]} skin={SKINS.flat} menuId="j2-menu" />;
 }
 
 export function VariantDense(props: VariantProps) {

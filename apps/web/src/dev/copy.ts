@@ -49,6 +49,19 @@ export interface Copy {
   readonly keepLead: string;
   readonly keepCta: string;
   readonly guest: string;
+  /** The shop, for the page mockups. */
+  readonly shopTitle: string;
+  readonly shopLead: string;
+  readonly buy: string;
+  readonly wear: string;
+  readonly worn: string;
+  readonly takeOff: string;
+  readonly tooDear: string;
+  readonly earn: string;
+  readonly price: (count: number) => string;
+  readonly slot: (id: string) => string;
+  readonly slotLead: (id: string) => string;
+  readonly itemName: (id: string) => string;
 }
 
 export function useCopy(isAdmin: boolean): Copy {
@@ -97,6 +110,18 @@ export function useCopy(isAdmin: boolean): Copy {
     keepLead: account('keepRound.lead'),
     keepCta: account('keepRound.cta'),
     guest: account('playAsGuest'),
+    shopTitle: shop('title'),
+    shopLead: shop('lead'),
+    buy: shop('buy'),
+    wear: shop('wear'),
+    worn: shop('worn'),
+    takeOff: shop('takeOff'),
+    tooDear: shop('tooDear'),
+    earn: shop('earn'),
+    price: (count: number) => shop('price', { count }),
+    slot: (id: string) => shop(`slots.${id}` as 'slots.marker'),
+    slotLead: (id: string) => shop(`slotLead.${id}` as 'slotLead.marker'),
+    itemName: (id: string) => shop(`names.${id}` as 'names.MARKER_AMBER'),
     menu: home('nav.menu'),
     close: home('nav.close'),
     backToGame: home('nav.backToGame'),

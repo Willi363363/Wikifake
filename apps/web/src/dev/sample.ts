@@ -48,3 +48,48 @@ export const SAMPLE = {
   /** Seven days of rounds played, oldest first. */
   week: [2, 0, 5, 3, 1, 4, 6] as readonly number[],
 };
+
+export interface Item {
+  /** The catalogue key under `shop.names`. */
+  readonly id: string;
+  readonly price: number;
+  readonly owned: boolean;
+  readonly worn: boolean;
+  /** A swatch, for the slots where the item is a colour. */
+  readonly swatch?: string;
+}
+
+export interface Slot {
+  /** The catalogue key under `shop.slots` and `shop.slotLead`. */
+  readonly id: 'marker' | 'markStyle' | 'frame';
+  readonly items: readonly Item[];
+}
+
+/** The shop as a signed-in player sees it: three slots, ten items, one worn. */
+export const SHOP: readonly Slot[] = [
+  {
+    id: 'marker',
+    items: [
+      { id: 'MARKER_CRIMSON', price: 120, owned: true, worn: true, swatch: '#C0362B' },
+      { id: 'MARKER_AMBER', price: 120, owned: false, worn: false, swatch: '#D98324' },
+      { id: 'MARKER_VIOLET', price: 200, owned: false, worn: false, swatch: '#6D51C7' },
+      { id: 'MARKER_SLATE', price: 80, owned: true, worn: false, swatch: '#5A6B7A' },
+    ],
+  },
+  {
+    id: 'markStyle',
+    items: [
+      { id: 'MARK_STYLE_UNDERLINE', price: 150, owned: false, worn: false },
+      { id: 'MARK_STYLE_BRACKET', price: 150, owned: false, worn: false },
+      { id: 'MARK_STYLE_CORNER', price: 300, owned: false, worn: false },
+    ],
+  },
+  {
+    id: 'frame',
+    items: [
+      { id: 'FRAME_HAIRLINE', price: 90, owned: true, worn: false },
+      { id: 'FRAME_DOUBLE', price: 220, owned: false, worn: false },
+      { id: 'FRAME_NOTCHED', price: 400, owned: false, worn: false },
+    ],
+  },
+];
