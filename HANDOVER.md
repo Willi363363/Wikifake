@@ -1,98 +1,90 @@
-# Session handover — 2026-09-13
+# Session handover — 2026-09-14
 
 > Written in English, like everything else here (`CLAUDE.md`). Replaces the
-> handover of 2026-09-11; everything it left open is restated below.
+> handover of 2026-09-13; everything it left open is restated below.
 
 ## Context
 
-The product effort was finished and the panel was the thing nobody liked: seven
-sections on one page. This session designed its replacement the slow way —
-eleven rounds of three candidates each, built in the real stack rather than
-described — and started integrating the result.
-
-**Everything is on `feat/dev-rail-lab`, pull request #265, open against
-`staging`.** Nothing is merged yet.
+Yesterday chose the panel's shapes the slow way — eleven rounds of three
+candidates, built in the real stack rather than described — and stopped at K.1.
+This session wrote them. **Track K is finished**: eight pages on the chosen
+shapes, the period rebuilt, the lab deleted.
 
 ## State at the pause
 
-- **The choices are made, and they are recorded in two places**: the table at
-  the top of `plans/product/12-admin-pages.md`, and the working code they came
-  from in `apps/web/src/dev/`. Both are pushed.
-- **K.1 is done.** The panel is eight routes. The seven sections keep the body
-  track I gave them; the chosen shapes arrive in K.3 to K.10.
-- Working tree clean apart from `apps/web/AGENTS.md` and `apps/web/CLAUDE.md`,
-  which `next dev` regenerates and which nobody has ever committed.
+- **Everything is on `feat/dev-rail-lab`, pull request #265, against
+  `staging`.** Four commits on top of yesterday's two.
+- `plans/README.md` marks track K done. `plans/product/12-admin-pages.md`
+  carries the step table, and **K.9b is the one row no commit can tick** — see
+  *Outstanding*.
+- `apps/web/src/dev/` and `/dev/admin` are gone, with the `/dev` prefix that
+  kept crawlers out of them.
 
-## What was chosen
+## The two decisions the track was waiting on
 
-| Page | Chosen |
-|---|---|
-| The rail | Boxed groups — Audience, The game, System |
-| Overview | Digest |
-| Players | Digest |
-| Activation | Funnel |
-| Arrivals | Digest **plus** the one-step funnel from the candidate beside it |
-| Rounds | Two modes |
-| Content | Digest |
-| Cost | Digest |
-| Health | Status board |
+Both were put to the owner before a line was written, and both are recorded in
+`12-admin-pages.md` beside the code that came out of them.
 
-## The lab, and why it is still there
+**The presets are calendar periods** — `24 h · this week · this month · this
+year · all`. I.8 shipped rolling windows and the two are not the same question:
+*this month* on the 2nd is two days of data and *30 days* never is. The cost is
+that two periods are uneven, so the bar prints the days it covers, and
+`range.test.ts` asserts the short month rather than regretting it. Weeks are
+`periodWindowOf`'s weeks — Monday, UTC — so a panel's week and a quest's week
+are one week. Months and years are computed in `range.ts`, because
+`@wikifake/domain` forbids itself `new Date(`.
 
-`/dev/admin` holds every candidate, working, switchable, on the real tokens.
-It is scratch and K.12 deletes it — **do not delete it before K.10**, because
-each page step lifts its component from `src/dev/` and the two have to be
-compared side by side while that happens.
+**The custom period is real.** A `GET` form with two native date inputs and a
+hidden `range=custom`, submitting to the page it is on: the browser navigates,
+the address is bookmarkable, and nothing calls a router or a server action. Both
+ends count, a backwards pair cannot be applied, a future end is clamped to
+today, and anything a hand-typed link can carry falls back to a month.
 
-It is ungated on purpose: it reads nothing and renders a constant. `/dev` is a
-prefix in `CRAWLERS_KEPT_OUT`, so nothing under it is crawled.
+## What the pages gained that the mockups could not carry
 
-## Two things it taught, the hard way
+- **The chassis names the open page.** The sections lost their `h2` when they
+  became routes, and a document whose only heading is the product's name says
+  nothing about where it is. `page-heading.tsx` reads `sections.ts`, so the rail
+  and the heading cannot say different words.
+- **A list of rows is a `<table>`.** The lab drew grids of `div`s because it was
+  comparing arrangements. The roster, the articles, the days and the kinds are
+  tables now, with the digest's look on top.
+- **Each row of the cost table carries what it cost**, computed by `spendOf` in
+  the reader. A screen multiplying tokens by a rate itself would be a second
+  implementation of the only arithmetic this panel does, and a table whose rows
+  did not add up to the total is the failure that looks like a bug in the data.
+- **One figure was dropped rather than invented.** The Players mockup drew new
+  accounts per day; `readPlayers` counts a cohort and does not bucket it, and
+  the track's own rule is that a field with no reader is a field to drop.
 
-**A layout that needs JavaScript is unreadable when JavaScript is what broke.**
-The lab was dead on a phone — not slow, dead, every button inert — because the
-dev server's HMR socket cannot complete its handshake when the page is reached
-on anything but `localhost`, so hydration never finished. The first fix made
-the layout depend on `matchMedia` in an effect, which is exactly the thing that
-had broken. The narrow layout is CSS now, and K.1's rail was built that way
-from the start.
+## Two things this session had to fix to be green
 
-**To look at anything from a phone, build it.** `next dev` over a LAN address
-does not hydrate. `pnpm --filter @wikifake/web build` then
-`pnpm --filter @wikifake/web exec next start -H 0.0.0.0`, and reach it on the
-machine's LAN address — this laptop tethers to a phone, so it is
-`172.20.10.7:3000`, with `100.77.153.4` over Tailscale as the fallback.
+- **`cost.test.ts`'s time bomb is defused.** Its `game` rows took the column
+  default `now()` while the read window ended at `NOW + 1 day`, so from
+  12 September the fixtures fell outside the window they were read through.
+  Pinned to the test's clock, like every other fixture. Three cases.
+- **`sections.test.ts` did not exist.** `sections.ts` has claimed since K.1 that
+  a test held the rail and the routes to being one list. K.4 leaned on that
+  claim — the heading now reads the section off the list — so the file was
+  written rather than the comment softened.
 
-## Next session: the plan is written
+## Outstanding
 
-`plans/product/12-admin-pages.md` carries it, step by step, with the lab file
-each one lifts from and the four moves each one is made of. Start at **K.2**,
-which is the step the other eight lean on.
-
-**K.2 has a decision in it that nobody has taken yet.** The presets asked for
-are calendar periods — *this week*, *this month*, *this year* — and `range.ts`
-is rolling: 7, 30, 90 days. "This month" on the 2nd is two days of data, and
-"30 days" never is. They are different questions and the answer changes
-`rangeFrom`, `PRESETS` and `range.test.ts`. Ask before writing.
-
-The custom-range dialog in the lab is a mockup: its two dates are fixed and
-Apply selects one hard-coded range. K.2 either makes it real or cuts it.
-
-## Outstanding, and none of it is code
-
-Unchanged from the last handover except where marked.
-
-1. **Grant the panel to `admin.wikifake@gmail.com`** — still not done. The
-   `admin` table is empty, so `/admin` answers 404 to everybody. Two statements
-   in the Neon console; `plans/product/09-admin-role.md` carries them and says
-   why `.env.local` cannot do it.
-2. C.7's device measurement — `plans/product/03-landing-budget.md`, steps 1–6.
-3. Read the French catalogue as a French reader (`phase-11-i18n.md`).
-4. Have `/privacy` and `/terms` read by somebody legal.
-5. **Set the two cost rates in Vercel** — new, and K.9 wants them:
-   `MODEL_INPUT_COST_PER_MTOK=0.215` and `MODEL_OUTPUT_COST_PER_MTOK=1.29`.
-   That is `gemini-3.1-flash-lite` at $0.25/$1.50 per million, converted at
-   0.861 USD→EUR on 13 September 2026. No rate belongs in the repository.
+1. **Grant the panel to `admin.wikifake@gmail.com`** — still not done, and it
+   is what stands between this work and anybody seeing it. The `admin` table is
+   empty, so `/admin` answers 404 to everybody. Two statements in the Neon
+   console; `plans/product/09-admin-role.md` carries them and says why
+   `.env.local` cannot do it.
+2. **Set the two cost rates in Vercel** — `MODEL_INPUT_COST_PER_MTOK=0.215` and
+   `MODEL_OUTPUT_COST_PER_MTOK=1.29`. That is `gemini-3.1-flash-lite` at
+   $0.25/$1.50 per million, converted at 0.861 USD→EUR on 13 September 2026 —
+   **read the date before trusting the number**. Until both are set the cost
+   page reports tokens and says why, which is the state it was designed for.
+   `12-admin-pages.md` carries this as K.9b.
+3. C.7's device measurement — `plans/product/03-landing-budget.md`, steps 1–6.
+4. Read the French catalogue as a French reader (`phase-11-i18n.md`). Track K
+   added about forty messages to `admin.json`, so there is more of it now.
+5. Have `/privacy` and `/terms` read by somebody legal.
 
 **The day a domain is bought**, in this order: remove it from Render first, add
 it to Vercel, point the registrar at what Vercel asks for; add
@@ -118,23 +110,21 @@ retired in #150 and `gh` has no `workflow` scope; and a rollback needing
 
 ## Read this before trusting a green
 
-- **`src/admin/cost.test.ts` fails three cases, and it is not your diff.**
-  `NOW` is pinned to 11 September 2026 and the read window ends at `NOW + 1
-  day`; the `llm_call` fixtures pin their own `createdAt` but the `game` and
-  `participant` rows take the column default, which is `now()`. From **12
-  September 2026, 12:00 UTC** every game the test inserts falls outside the
-  window it then reads. A time bomb that went off on its own, recorded rather
-  than fixed — it wants its own branch.
 - **The suites skip ~250 cases without Postgres and Redis** and still report
   success. A real run says `0 skipped`.
 - **A green suite can still fail the job**: Vitest exits non-zero on an
   unhandled error with no failing case. Read the `Errors` line.
 - **`pnpm format:check` is its own gate** — `pnpm check` and `turbo run lint`
   do not run Prettier, and CI does.
+- **Turborepo replays greens it never ran**: `pnpm exec turbo run <task>
+  --force`.
 - **`pnpm e2e` leaves keys in Redis**: `redis-cli FLUSHALL` between it and
   `pnpm test`.
 - **A pull request title becomes a squash commit's subject**, and the hook
   refuses one over 72 characters once ` (#NNN)` is added.
+- **`Human review` is red on every pull request and always will be** until
+  somebody with a `workflow` token edits `.github/workflows/rules.yml`. It is
+  not a gate anybody is failing.
 
 ## Commands to resume
 
@@ -147,16 +137,17 @@ pnpm migrate
 
 pnpm exec turbo run typecheck lint test --force   # a real run says 0 skipped
 pnpm format:check
+pnpm --filter @wikifake/web build                 # the panel is eight routes now
 ```
 
 Read first, in this order:
 
 ```
-plans/product/12-admin-pages.md   # the track under way, and the plan
 plans/README.md                   # where every track stands
+plans/product/12-admin-pages.md   # the track this session finished
+plans/product/09-admin-role.md    # the grant, and why it is a human action
 plans/method/01-git-flow.md       # the promotion, and the migrations before it
-plans/current-state/10-test-debt.md
 ```
 
 ---
-*Written by Claude Code, from a session that built the candidates instead of describing them.*
+*Written by Claude Code, from a session that coded the mockups it had been handed.*
