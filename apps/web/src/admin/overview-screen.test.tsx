@@ -83,6 +83,7 @@ function cost(over: Partial<CostView> = {}): CostView {
     days: [],
     byKind: [],
     totals: TOTALS,
+    rate: { inputPerMTok: 0.215, outputPerMTok: 1.29 },
     spend: 4.17,
     perGame: 0.0081,
     perPlayer: 0.0139,
@@ -155,7 +156,7 @@ describe('K.3 — a summary that does not invent', () => {
     // The ordinary state of a deployment: `spendOf` answers null unless both
     // halves of the rate are set, and a digest that showed a zero there would
     // read as an unusually cheap month rather than a variable nobody set.
-    paint({ cost: cost({ spend: null, perGame: null, perPlayer: null }) });
+    paint({ cost: cost({ rate: null, spend: null, perGame: null, perPlayer: null }) });
 
     expect(screen.queryByText('4.17')).toBeNull();
     // Tokens per game, compact — the one cost figure that needs no rate, so it

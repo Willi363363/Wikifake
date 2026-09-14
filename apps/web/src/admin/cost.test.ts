@@ -223,6 +223,49 @@ describe.skipIf(url === null)('I.6 — what the model has cost', () => {
     expect(view.perPlayer).toBeCloseTo(1, 9);
   });
 
+  it('prices each row through the same function as the total', async () => {
+    // K.9 put a cost column on the table, and the one thing that column must
+    // never be is a second implementation: a table whose rows do not add up to
+    // the total above them looks like a bug in the data rather than in the
+    // arithmetic. `spendOf` is applied to a row here, not repeated.
+    await round();
+    await call({ kind: 'topic_choice', inputTokens: 1_000_000, outputTokens: 0 });
+    await call({ kind: 'falsification', inputTokens: 0, outputTokens: 1_000_000 });
+
+    const view = await read({ input: 1, output: 2 });
+
+    const summed = view.byKind.reduce((total, kind) => total + (kind.spend ?? 0), 0);
+    expect(summed).toBeCloseTo(view.spend ?? 0, 9);
+    expect(view.byKind.find((kind) => kind.kind === 'falsification')?.spend).toBeCloseTo(
+      2,
+      9,
+    );
+  });
+
+  it('leaves every row unpriced when the total is, rather than inventing a zero', async () => {
+    await round();
+    await call({});
+
+    const view = await read();
+
+    expect(view.spend).toBeNull();
+    expect(view.rate).toBeNull();
+    for (const kind of view.byKind) expect(kind.spend).toBeNull();
+    for (const day of view.days) expect(day.spend).toBeNull();
+  });
+
+  it('echoes the rate it priced with, so the page can print it', async () => {
+    // A number whose rate is not on the screen beside it is a number nobody
+    // can check, and this one changes whenever a provider's price list does.
+    await round();
+    await call({});
+
+    expect((await read({ input: 0.215, output: 1.29 })).rate).toEqual({
+      inputPerMTok: 0.215,
+      outputPerMTok: 1.29,
+    });
+  });
+
   it('groups by kind, so the expensive half of a round is visible', async () => {
     await round();
     await call({ kind: 'topic_choice', inputTokens: 100, outputTokens: 10 });

@@ -64,11 +64,37 @@ lift it from, so no step starts by deciding anything.
 | K.5 | Activation — funnel | `page-activation.tsx` | ✅ |
 | K.6 | Arrivals — digest and the one-step funnel | `page-arrivals.tsx` | ✅ |
 | K.7 | Rounds — two modes | `page-rounds.tsx`, `RoundsModes` | ✅ |
-| K.8 | Content — digest | `page-content.tsx`, `ContentDigest` | ⬜ |
-| K.9 | Cost — digest, and the two rate variables in Vercel | `page-cost.tsx`, `CostDigest` | ⬜ |
-| K.10 | Health — status board | `page-health.tsx`, `HealthBoard` | ⬜ |
-| K.11 | The catalogue: every new string in both locales | — | ⬜ |
-| K.12 | Retire `/dev/admin`, `src/dev/` and the `/dev` prefix | — | ⬜ |
+| K.8 | Content — digest | `page-content.tsx`, `ContentDigest` | ✅ |
+| K.9 | Cost — digest | `page-cost.tsx`, `CostDigest` | ✅ |
+| K.9b | The two rate variables, set in Vercel | — | 🔶 owner |
+| K.10 | Health — status board | `page-health.tsx`, `HealthBoard` | ✅ |
+| K.11 | The catalogue: every new string in both locales | — | ✅ |
+| K.12 | Retire `/dev/admin`, `src/dev/` and the `/dev` prefix | — | ✅ |
+
+**K.9b is the one row nothing in this repository can tick.** `MODEL_INPUT_COST_PER_MTOK`
+and `MODEL_OUTPUT_COST_PER_MTOK` are set in Vercel, by somebody with the
+project, and until they are the cost page reports tokens and says why — which
+is the state it was designed for, not a failure. The values the handover
+carries are `0.215` and `1.29`, and they are a conversion of a published price
+on a date, so read the date before trusting them.
+
+## What the track added that the lab did not have
+
+Three things the mockups could not carry, and each is a promise rather than a
+look:
+
+- **The chassis names the open page.** The sections lost their `h2` when they
+  became routes, and a document whose only heading is the product's name says
+  nothing about where it is. `page-heading.tsx` reads `sections.ts`, so the rail
+  and the heading cannot say different words.
+- **A list of rows is a `<table>`.** The lab drew grids of `div`s because it was
+  comparing arrangements; rows and columns with a heading each are what a screen
+  reader navigates, so the roster, the articles, the days and the kinds are
+  tables with the digest's look on top.
+- **Each row of the cost table carries what it cost**, computed by `spendOf` in
+  the reader. The screen multiplying tokens by a rate itself would be a second
+  implementation, and a table whose rows did not add up to the total above them
+  is the failure that looks like a bug in the data.
 
 ## How a page step runs
 

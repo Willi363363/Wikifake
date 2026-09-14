@@ -150,6 +150,17 @@ export function OverviewSection({
       </div>
 
       <HealthStrip health={health} />
+
+      {/* Said on the page that is about all eight, rather than on each of them:
+          what this panel is, and the promise it keeps by construction. */}
+      <div className="flex flex-col gap-1.5">
+        <p className="m-0 max-w-prose text-[12px] leading-relaxed text-ink-2">
+          {t('lead')}
+        </p>
+        <p className="m-0 max-w-prose text-[11.5px] leading-relaxed text-muted">
+          {t('readOnly')}
+        </p>
+      </div>
     </div>
   );
 }

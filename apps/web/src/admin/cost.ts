@@ -30,10 +30,41 @@ export interface CostContext {
 /** A million, spelled once. The unit every provider publishes its rate in. */
 const PER = 1_000_000;
 
+/**
+ * A row with what it cost beside what it spent — step K.9.
+ *
+ * The multiplication is `spendOf`, the same function the total uses, applied to
+ * a row instead of to a sum. **Not a second implementation**, which is the
+ * track's exit gate: a screen that multiplied tokens by a rate itself would be
+ * a second place for the arithmetic to be wrong, and a table whose rows did not
+ * add up to the total above them is the exact failure that looks like a bug in
+ * the data.
+ */
+export interface Priced {
+  readonly spend: number | null;
+}
+
+export type KindSpend = KindUsage & Priced;
+export type DaySpend = DayUsage & Priced;
+
+/** The two halves of a rate, when a deployment set both. */
+export interface Rate {
+  readonly inputPerMTok: number;
+  readonly outputPerMTok: number;
+}
+
 export interface CostView {
-  readonly days: readonly DayUsage[];
-  readonly byKind: readonly KindUsage[];
+  readonly days: readonly DaySpend[];
+  readonly byKind: readonly KindSpend[];
   readonly totals: CostTotals;
+  /**
+   * The rate the figures were priced at, or **null when there is none**.
+   *
+   * Echoed back so the page can print it: a number whose rate is not on the
+   * screen beside it is a number nobody can check, and this one changes
+   * whenever a provider's price list does.
+   */
+  readonly rate: Rate | null;
   /**
    * What it all cost, or **null when no rate is configured**.
    *
@@ -98,12 +129,20 @@ export async function readCost(context: CostContext, range: Range): Promise<Cost
     selectCostTotals(context.db, window),
   ]);
 
-  const spend = spendOf(totals, context.inputCostPerMTok, context.outputCostPerMTok);
+  const input = context.inputCostPerMTok;
+  const output = context.outputCostPerMTok;
+  const spend = spendOf(totals, input, output);
+  const priced = <Row extends { inputTokens: number; outputTokens: number }>(row: Row) =>
+    ({ ...row, spend: spendOf(row, input, output) }) as Row & Priced;
 
   return {
-    days,
-    byKind,
+    days: days.map(priced),
+    byKind: byKind.map(priced),
     totals,
+    rate:
+      input === undefined || output === undefined
+        ? null
+        : { inputPerMTok: input, outputPerMTok: output },
     spend,
     perGame: per(spend, totals.gamesGenerated),
     perPlayer: per(spend, totals.players),

@@ -1,5 +1,14 @@
 /** @vitest-environment jsdom */
 
+// The probes — step K.10, on the screen.
+//
+// Amended when the table became a status board. Every claim I.2 made survives
+// it — three states told apart by words and not by hue, a commit shortened the
+// way git does, the time a failure took — and one moved: the model and its key
+// are a figure on the build strip now rather than a line of prose.
+//
+// The original header follows, because it is still what the page is for.
+//
 // The health section — step I.2.
 //
 // It renders readings and decides one thing: which of three sentences the commit
@@ -65,14 +74,17 @@ describe('I.2 — the readings', () => {
     );
 
     expect(screen.getByText('Down')).not.toBeNull();
-    expect(screen.getByText('2,000 ms')).not.toBeNull();
-    expect(screen.getByText('answered 503')).not.toBeNull();
+    // The time it took to fail is the difference between refused and timed out.
+    expect(screen.getByText('answered in 2,000 ms')).not.toBeNull();
+    expect(screen.getByText(/answered 503/)).not.toBeNull();
   });
 
   it('shortens a commit to seven characters, as every git log does', () => {
     render(<HealthSection health={view()} />);
 
     expect(screen.getAllByText('1.2.3 · aaaaaaa')).toHaveLength(2);
+    // And the one that is this process, which answered by rendering the page.
+    expect(screen.getByText('answering — this page')).not.toBeNull();
   });
 
   it('shows the detail alone when there is no commit', () => {
@@ -84,17 +96,37 @@ describe('I.2 — the readings', () => {
   it('says which model, and whether its key is configured', () => {
     render(<HealthSection health={view()} />);
 
-    expect(screen.getByText('Model a-model · key configured: yes')).not.toBeNull();
+    const build = screen.getByRole('region', { name: 'This build' }).textContent ?? '';
+    expect(build).toContain('a-model');
+    expect(build).toContain('key configured');
+    expect(build).toContain('1.2.3');
+    expect(build).toContain('aaaaaaa');
   });
 
   it('says so when the key is missing', () => {
+    // "Key configured" says a variable exists, not that the key works — only
+    // playing a round says that — so the absent case has to be as plain as the
+    // present one rather than an empty space.
     render(
       <HealthSection
         health={view({ identity: { ...IDENTITY, llmConfigured: false } })}
       />,
     );
 
-    expect(screen.getByText('Model a-model · key configured: no')).not.toBeNull();
+    expect(screen.getByRole('region', { name: 'This build' }).textContent).toContain(
+      'no key configured',
+    );
+  });
+
+  it('gives every service a region of its own, named', () => {
+    // The board is three cards, and a screen reader gets the same split a
+    // sighted reader gets from the gap between them.
+    render(<HealthSection health={view()} />);
+
+    const named = screen
+      .getAllByRole('region')
+      .map((region) => region.getAttribute('aria-label'));
+    expect(named).toEqual(['Web app', 'Realtime service', 'Database', 'This build']);
   });
 });
 

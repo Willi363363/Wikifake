@@ -98,12 +98,20 @@ describe('11.6 — French is translated, not copied', () => {
     'admin.activation.noWhole',
     'admin.activation.title',
     'admin.content.columns.topic',
+    // K.8's figure for the call that writes the article. French spells the
+    // word the same, and the section is named around it the way `Activation`
+    // above is — the figure beside it, `topicEmpty`, is translated.
+    'admin.content.falsification',
     'admin.content.nothing',
     'admin.cost.noRate',
     'admin.games.columns.mode',
     'admin.games.modes.solo',
     'admin.games.noRounds',
-    'admin.health.columns.service',
+    // K.10's build strip. `Version` and `Commit` are the same word in French,
+    // and the second is the name of a git object rather than a noun anybody
+    // translates — `noCommit` and `modelLabel` beside them are translated.
+    'admin.health.commit',
+    'admin.health.version',
     // K.1's rail. `Audience` is a French word with the same spelling and the
     // same meaning, and `Sections` is the plural of one — the label a screen
     // reader is given for the navigation itself. `nav.groups.game` and
