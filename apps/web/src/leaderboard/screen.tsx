@@ -1,4 +1,14 @@
-// The board screen, world and regional — step G.5.
+// The board screen, world and regional — step G.5, rearranged into B2 at L.6.
+//
+// **B2 — your own rank pinned on top.** The board answers *where am I* before it
+// answers *who is winning*, and it used to answer the second by default: the
+// rank was a caption on a block below the table, shown only when the viewer was
+// off the page. Somebody in the top ten had to find their own coloured row to
+// learn their number.
+//
+// So the rank is a block above everything, in the accent, whenever the board
+// knows it — and the row is still coloured in place, because the two say
+// different things: the block is the answer, the row is where the answer sits.
 //
 // **A server component with no client component in it at all**, which is worth
 // saying because a board looks like something that wants tabs and state. It
@@ -85,15 +95,30 @@ export function BoardScreen({ board }: BoardScreenProps) {
   const format = useFormatter();
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-2xl flex-col justify-center px-4 py-10">
-      <h1 className="text-center text-3xl text-ink">{t('title')}</h1>
-      {/* Said on the screen rather than left to be inferred from an empty
-          board: the boards rank room rounds, and why. */}
-      <p className="mx-auto mt-2 max-w-prose text-center text-sm text-muted">
-        {t('lead')}
-      </p>
+    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-8 sm:px-8">
+      <header className="flex flex-col gap-2">
+        <h1 className="m-0 text-3xl text-ink">{t('title')}</h1>
+        {/* Said on the screen rather than left to be inferred from an empty
+            board: the boards rank room rounds, and why. */}
+        <p className="m-0 max-w-prose text-sm text-muted">{t('lead')}</p>
+      </header>
 
-      <div className="mt-8 space-y-3">
+      {/* The answer first — B2. Null for a guest, for a player with no
+          qualifying round, and for a closed board, and each of those is a
+          different reason for having no rank rather than a rank of nothing. So
+          the block is absent rather than empty. */}
+      {board.own === null ? null : (
+        <section className="flex flex-wrap items-baseline justify-between gap-3 rounded-xl bg-accent px-5 py-4 text-on-fill">
+          <span className="text-[15px] font-semibold">
+            {t('yourRank', { rank: board.own.rank })}
+          </span>
+          <span className="font-mono text-2xl leading-none font-bold tabular-nums">
+            {format.number(board.own.score)}
+          </span>
+        </section>
+      )}
+
+      <div className="flex flex-col gap-3">
         <Chooser
           label={t('periodLabel')}
           options={BOARD_PERIOD_IDS.map((period) => ({
@@ -129,7 +154,7 @@ export function BoardScreen({ board }: BoardScreenProps) {
          * over. Hiding them in the markup would be a promise; not having them is
          * a fact.
          */
-        <div className="mt-8 rounded-xl bg-surface p-6 text-center">
+        <div className="rounded-xl bg-surface p-6 text-center">
           {board.players === 0 ? (
             <p className="text-base text-ink">{t('empty')}</p>
           ) : (
@@ -162,7 +187,7 @@ export function BoardScreen({ board }: BoardScreenProps) {
           </p>
         </div>
       ) : (
-        <div className="mt-8 overflow-x-auto rounded-xl bg-surface">
+        <div className="overflow-x-auto rounded-xl bg-surface">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line-strong">
@@ -222,9 +247,12 @@ export function BoardScreen({ board }: BoardScreenProps) {
           Nothing at all when they are on it: their row is marked above, and a
           second block repeating it would say the same thing twice. */}
       {board.around.length === 0 ? null : (
-        <div className="mt-4 rounded-xl bg-surface">
+        <div className="rounded-xl bg-surface">
+          {/* Not the rank again — that is pinned at the top since L.6. What
+              this block is for is the two players either side of it, which is
+              the thing a number on its own cannot say. */}
           <p className="border-b border-line-strong px-3 py-2 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
-            {t('yourRank', { rank: board.own?.rank ?? 0 })}
+            {t('neighbours')}
           </p>
           <table className="w-full text-sm">
             <tbody>
@@ -251,7 +279,7 @@ export function BoardScreen({ board }: BoardScreenProps) {
         </div>
       )}
 
-      <p className="mt-6 text-center text-sm text-muted">{t('soloNote')}</p>
+      <p className="m-0 text-sm text-muted">{t('soloNote')}</p>
     </main>
   );
 }

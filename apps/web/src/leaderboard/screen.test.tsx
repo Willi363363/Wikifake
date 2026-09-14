@@ -280,9 +280,21 @@ describe('G.7 — where the viewer stands', () => {
     expect(marked[0]?.textContent).toContain('Bob');
   });
 
-  it('says nothing twice when the viewer is already on the page', () => {
-    // `around` is empty for a player inside the page, so there is no second
-    // block. A screen repeating their row would say the same thing twice.
+  /*
+   * This read: *says nothing twice when the viewer is already on the page*, and
+   * asserted that no rank appeared for somebody inside the top ten. That was
+   * true of the arrangement it was written for, where the rank was a caption on
+   * the neighbours block — so a player in second place was told their number
+   * only by finding their own coloured row.
+   *
+   * L.6 pinned the rank on top, which is the owner's B2, so the rank is now
+   * expected rather than forbidden. What the test still holds is the half that
+   * was never about the arrangement: **one table**. The neighbours block exists
+   * to show the two players either side of somebody off the page, and repeating
+   * their row underneath the row it is already in is the duplication this
+   * always guarded against.
+   */
+  it('pins the rank, and still shows one table for a viewer on the page', () => {
     render(
       <BoardScreen
         board={board({
@@ -293,8 +305,18 @@ describe('G.7 — where the viewer stands', () => {
       />,
     );
 
-    expect(screen.queryByText(/Your rank/)).toBeNull();
+    expect(screen.getByText('Your rank: 2')).not.toBeNull();
+    expect(screen.queryByText('Either side of you')).toBeNull();
     expect(screen.getAllByRole('table')).toHaveLength(1);
+  });
+
+  it('pins no rank for somebody the board has none for', () => {
+    // A guest, a player with no qualifying round, and a closed board all arrive
+    // here as `own: null` — three reasons for having no rank, and none of them
+    // is a rank of nothing. The block is absent rather than empty.
+    render(<BoardScreen board={board({ rows, own: null, around: [] })} />);
+
+    expect(screen.queryByText(/Your rank/)).toBeNull();
   });
 
   it('shows a block with the neighbours when the viewer is off the page', () => {
