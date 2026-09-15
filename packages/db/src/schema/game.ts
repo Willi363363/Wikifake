@@ -25,6 +25,7 @@ import {
 import { sql } from 'drizzle-orm';
 
 import { user } from './auth.js';
+import { dailyArticle } from './daily.js';
 
 /** The room phases of `@wikifake/domain`. A room cannot be in two at once. */
 export const roomPhase = pgEnum('room_phase', ['lobby', 'voting', 'generating', 'round']);
@@ -78,12 +79,32 @@ export const game = pgTable(
      * and averaging it in would make generation look cheaper than it is.
      */
     fromCache: boolean('from_cache').notNull().default(false),
+    /**
+     * N.5 — the day this round is the article of, or null for an ordinary one.
+     *
+     * **A column rather than a join through `source_url`.** Two rounds can share
+     * an article without sharing a day: the same page may come up again months
+     * later, and the day's board would then rank a stranger's ordinary round.
+     * The link has to be the thing that is true, not the thing that correlates.
+     *
+     * It carries two rules at once, which is why it is worth its own column —
+     * N.5 refuses a second attempt at the same day, and N.6 ranks a day by it.
+     */
+    dailyDay: integer('daily_day').references(() => dailyArticle.day, {
+      onDelete: 'set null',
+    }),
     startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
     /** Null while the round is still running. */
     endedAt: timestamp('ended_at', { withTimezone: true }),
   },
   (table) => [
     index('game_room_code_idx').on(table.roomCode),
+    /*
+     * N.5 asks "has this player played today" and N.6 asks "who played today",
+     * and both are this column narrowed. Without it each is a scan of every
+     * round the game has ever had, on the page a player opens first.
+     */
+    index('game_daily_day_idx').on(table.dailyDay),
     check('game_total_fakes_positive', sql`${table.totalFakes} > 0`),
   ],
 );

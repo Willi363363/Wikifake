@@ -47,6 +47,8 @@ rather than on prose (C5.1).
 - `coins_not_accepted`
 - `cosmetic_not_owned`
 - `cosmetic_not_found`
+- `daily_already_played`
+- `daily_not_ready`
 
 ## Item identifiers
 

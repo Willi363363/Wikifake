@@ -9,6 +9,7 @@ import { and, eq, isNull, lt, sql } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
 import { dailyArticle } from '../schema/daily.js';
+import { game, participant } from '../schema/game.js';
 
 // The same pair every query module uses: a connection or a transaction, so a
 // caller can run the claim and the fill inside one.
@@ -135,6 +136,37 @@ export async function releaseClaim(db: Db, day: number): Promise<boolean> {
     .returning({ day: dailyArticle.day });
 
   return rows.length > 0;
+}
+
+/**
+ * Whether this player has already had a round on this day — step N.5.
+ *
+ * **One attempt, and that is what makes the board mean anything.** A player who
+ * may replay until the score is good is not ranked against the others; they are
+ * ranked against their own patience, and everybody at the top of the list is
+ * whoever retried most.
+ *
+ * Keyed on the round's `daily_day` rather than on a date range over
+ * `started_at`: a round begun at 23:59 belongs to the day whose article it is,
+ * not to the day the clock said — and the column is the only thing that knows
+ * which article a round was.
+ *
+ * A guest has no `user_id` and therefore no attempt to have used. That is a real
+ * hole and it is N.5's, not this function's: it answers what it is asked.
+ */
+export async function hasPlayedDay(
+  db: Db,
+  userId: string,
+  day: number,
+): Promise<boolean> {
+  const [row] = await db
+    .select({ id: participant.id })
+    .from(participant)
+    .innerJoin(game, eq(participant.gameId, game.id))
+    .where(and(eq(participant.userId, userId), eq(game.dailyDay, day)))
+    .limit(1);
+
+  return row !== undefined;
 }
 
 /** Claims taken before `before` and never filled — a generation that died. */

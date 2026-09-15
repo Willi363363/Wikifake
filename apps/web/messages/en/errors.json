@@ -36,6 +36,8 @@
     "coins_not_accepted": "Hints are not bought with coins in a room — a ranked round is played, not paid for.",
     "cosmetic_not_owned": "That is not yours to wear.",
     "cosmetic_not_found": "The shop has nothing by that name.",
+    "daily_already_played": "You have already played today’s article. The next one arrives tomorrow.",
+    "daily_not_ready": "Today’s article is still being prepared. Try again in a moment.",
     "unknown": "The server refused that, and said something this version does not know how to explain."
   }
 }
