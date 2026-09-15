@@ -50,6 +50,8 @@ export interface NewGame {
   readonly timeLimit: number;
   /** C4.6 — whether the article was reused rather than generated. */
   readonly fromCache: boolean;
+  /** N.5 — the day this round is the article of, or absent for an ordinary one. */
+  readonly dailyDay?: number | null;
   readonly solution: readonly NewPosition[];
   readonly players: readonly NewParticipant[];
 }
@@ -89,6 +91,7 @@ export async function createGame(db: Db, input: NewGame): Promise<StartedGame> {
         totalFakes: input.solution.length,
         timeLimit: input.timeLimit,
         fromCache: input.fromCache,
+        dailyDay: input.dailyDay ?? null,
       })
       // `startedAt` comes back rather than being read from a clock here: the
       // stats row's `firstSeen` has to be the same instant the game says it

@@ -36,6 +36,8 @@
     "coins_not_accepted": "Les indices ne s’achètent pas en pièces dans un salon : une manche classée se joue, elle ne se paie pas.",
     "cosmetic_not_owned": "Celui-ci ne vous appartient pas.",
     "cosmetic_not_found": "La boutique n’a rien à ce nom.",
+    "daily_already_played": "Vous avez déjà joué l’article du jour. Le prochain arrive demain.",
+    "daily_not_ready": "L’article du jour est encore en préparation. Réessayez dans un instant.",
     "unknown": "Le serveur a refusé, avec une raison que cette version ne sait pas expliquer."
   }
 }

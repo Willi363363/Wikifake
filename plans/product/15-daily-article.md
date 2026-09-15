@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 N.1 to N.3 done — the table, the subject, and the read path |
+| **State** | 🔶 N.1 to N.3 and N.5 done — it is playable; the cron and the board are left |
 | **Branch** | one per step |
 | **Depends on** | tracks E and G — it stores a round and ranks it |
 | **Delivers** | one article a day, the same for everybody, with its own board |
@@ -98,7 +98,7 @@ no article is not a broken row, it is a claim.**
 | N.2 | A topic chosen by Wikipedia, not by a model | ✅ |
 | N.3 | The read path: the day's article, on demand | ✅ |
 | N.4 | The cron, and the sweep for a claim that died | ⬜ |
-| N.5 | A round on the day's article | ⬜ |
+| N.5 | A round on the day's article | ✅ |
 | N.6 | The day's board | ⬜ |
 | N.7 | The entry point on the home dashboard | ⬜ |
 
@@ -111,66 +111,8 @@ and none of it changes what a player gets. The second of
 `../method/00-dev-cycle.md`'s overflow cases: a step badly cut, re-cut rather
 than crammed.
 
-### N.1 — the table
-
-Keyed by `periodIndexOf('daily')`, the **same calendar as the quests**. Not a
-`date` column: a date needs a timezone to mean a day, quests already decided that
-question, and two calendars in one product is one of them being wrong somewhere.
-
-The article columns are nullable, which is the claim above. `claimed_at` is not:
-a row exists because somebody claimed it, and when is what says whether a claim
-has been abandoned — a generation that crashed leaves a row nobody will ever
-fill, and N.3 needs to be able to see that rather than serve an empty day for
-ever.
-
-### N.2 — the subject, and the filter that is the work
-
-**A title is a candidate, not an article.** `generateArticle` needs three usable
-paragraphs, and a disambiguation page, a stub about a village and a list of
-episodes all fail it. So candidates are fetched and counted **before anything is
-sent to a model**: a rejection costs one Wikipedia request and nothing else,
-which is what makes asking for twenty candidates affordable.
-
-**The page comes back, not the title.** The caller is about to falsify it, and
-returning a title would mean fetching the same page twice — once to learn it was
-usable and once to use it.
-
-**Two bounds, because they bound different things.** `candidates` bounds the
-list; `attempts` bounds the *requests*. Without the second, a bad day fetches
-fifty pages to find nothing, at the moment somebody is waiting for a round.
-
-**The list ceilings are ours, not the API's.** Asked for 600 on 2026-09-15 both
-lists warned *"must be between 1 and 500"* and answered with 500 anyway — so the
-clamps prevent asking for five hundred candidates to fetch two, not a refusal.
-Checked against the live wiki rather than assumed, after a first draft of this
-step asserted a limit that does not exist.
-
-### N.3 — the read path, which is the guarantee
-
-Three answers, and the third is the one that is easy to get wrong:
-
-1. the day has an article → serve it, which is every request but the first;
-2. nobody has claimed it → claim it and generate;
-3. **somebody else holds the claim → say so, and generate nothing.**
-
-**Three is not a failure.** Calling it one is the mistake this step exists to
-avoid: fifty players arriving at midnight would each read *no article today* and,
-if the caller retried, each buy one.
-
-**A failed generation gives the claim back at once.** `reopenStaleClaim` needs a
-deadline because nothing can tell a crash from work in progress except time; a
-generation that failed and knows it has no such doubt, so `releaseClaim` was
-added beside it. The difference is a bad minute instead of a bad day.
-
-**The row is read back rather than assembled from what was just written.**
-`fillDay` can answer false — a claim released and retaken between the two — and a
-caller handed the article it generated would then be reading one nobody else can
-see.
-
-**Every model call is recorded on both paths**, C4.5's rule: a generation that
-bought nothing was still billed, and dropping the record is what makes the cost
-of failure invisible. Against no game, because there is none — the day's article
-is not a round until somebody plays it.
+**What each step decided is in `15-daily-article-steps.md`.** The table above is
+the only place that says where a step stands.
 
 ## Exit gate
 

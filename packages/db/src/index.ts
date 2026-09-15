@@ -123,6 +123,7 @@ export type { FinishedRound, PerfectRound, PlayerStats } from './queries/stats.j
 export {
   claimDay,
   fillDay,
+  hasPlayedDay,
   openClaimsBefore,
   releaseClaim,
   reopenStaleClaim,
