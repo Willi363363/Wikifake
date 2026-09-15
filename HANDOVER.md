@@ -21,11 +21,16 @@ and the second is the one to read first if you are about to merge anything.
   is the only place that says so.
 - No pull request is open.
 
-**Check this before opening a promotion**, because it is what went wrong:
+**Check this before opening a promotion** — and ask the promotion itself, not
+the graph:
 
 ```bash
-git merge-base --is-ancestor origin/main origin/staging || echo 'realign first'
+git merge-tree --write-tree origin/main origin/staging >/dev/null || echo 'realign first'
 ```
+
+`merge-base --is-ancestor origin/main origin/staging` is the wrong question. It
+is false after **every** promotion, merged ones included, until step 3's realign
+has run — and step 3 is the push the guard refuses.
 
 ## Track L — the interface, again
 

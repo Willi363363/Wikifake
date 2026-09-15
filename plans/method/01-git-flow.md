@@ -151,10 +151,10 @@ git switch staging && git merge --ff-only origin/main && git push
 
 Five times now. **So merge both merge-commit rows from the command line** —
 `gh pr merge <n> --merge --admin` — because the button remembers the last method
-used per repository and drifts back to squash. The diagnosis is one line:
+used per repository and drifts back to squash. Ask the promotion itself:
 
 ```bash
-git merge-base --is-ancestor origin/main origin/staging || echo 'realign first'
+git merge-tree --write-tree origin/main origin/staging >/dev/null || echo 'realign first'
 ```
 
 The repair is a branch that merges `main` into `staging` and a pull request back

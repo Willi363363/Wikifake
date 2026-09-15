@@ -140,3 +140,60 @@ the procedure in `../method/01-git-flow.md` says so beside the table.
 promotion — five files on 2026-09-14, measured — and a realign that then has to
 survive the same button. The entry above is what that looks like from the
 inside.
+
+
+## The diagnosis this register recommended cries wolf
+
+Written on 2026-09-15, within hours of recommending it — which is the only
+reason it was caught before somebody acted on it.
+
+`01-git-flow.md` and the entry above both offered one line to run before opening
+a promotion:
+
+```bash
+git merge-base --is-ancestor origin/main origin/staging || echo 'realign first'
+```
+
+**It says `realign first` after every promotion, including the ones that were
+merged correctly.** Run against a perfectly healthy graph four commits after
+#281 — itself a merge commit, the repair this register exists to describe — it
+printed the alarm.
+
+**The question it asks is not the one that matters.** `main` becomes an ancestor
+of `staging` only when step 3 of the promotion procedure has run:
+
+```bash
+git switch staging && git merge --ff-only origin/main && git push
+```
+
+And step 3 **is the push the guard refuses** — the entry above this one. So the
+line was asking whether a step nobody can run had been run, and reporting a
+squash whenever the answer was no, which is always.
+
+**Ask the promotion instead.** The symptom that matters is a promotion that
+conflicts, so test exactly that, and no assumption about the graph comes into it:
+
+```bash
+git merge-tree --write-tree origin/main origin/staging >/dev/null || echo 'realign first'
+```
+
+**Both were run against both graphs before the swap**, which is what the old
+line never was:
+
+| Graph | `is-ancestor` | `merge-tree` |
+|---|---|---|
+| healthy, after merged #281 | `realign first` — **wrong** | silent — right |
+| broken, `112e86c` vs `42f25fd` | `realign first` — right | `realign first` — right |
+
+**The pattern is the one #277 already paid for**, one day apart and in the other
+register: *a rule that rests on a condition nobody maintains is a rule that
+misfires wherever it is not maintained.* There it was a ref `actions/checkout`
+does not fetch and the check silently stopped applying; here it is a step the
+guard refuses and the check never stops firing. Silent or deafening, the cause
+is the same — the check was written against the world the procedure describes
+rather than the world the procedure produces.
+
+**What it would have cost**: a realign opened against a healthy graph. Its diff
+would have been empty and its merge a no-op, so nothing would have broken — it
+would simply have taught the next reader that the alarm means nothing, which is
+how a real one gets ignored.
