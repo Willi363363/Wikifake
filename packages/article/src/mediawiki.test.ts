@@ -7,7 +7,13 @@
 // that is to look at where the request went.
 import { describe, expect, it } from 'vitest';
 
-import { fetchRenderedPage, searchTitles, type WikiRequest } from './mediawiki.js';
+import {
+  fetchRenderedPage,
+  mostViewedTitles,
+  randomTitles,
+  searchTitles,
+  type WikiRequest,
+} from './mediawiki.js';
 
 const FR: WikiRequest = { language: 'fr', userAgent: 'WikiFake/2.0 (test)' };
 const EN: WikiRequest = { language: 'en', userAgent: 'WikiFake/2.0 (test)' };
@@ -252,5 +258,59 @@ describe('3.2 — search', () => {
     ]);
     const result = await searchTitles('chat', FR, transport);
     expect(result.ok && result.value).toEqual(['Chat']);
+  });
+});
+
+describe('N.2 — the two lists a day is chosen from', () => {
+  it('asks the most-viewed list for pageviews, in the right wiki', async () => {
+    const { transport, urls } = recorder([
+      { query: { mostviewed: [{ ns: 0, title: 'Chat' }] } },
+    ]);
+
+    const titles = await mostViewedTitles(20, FR, transport);
+
+    expect(titles.ok && titles.value).toEqual(['Chat']);
+    expect(urls[0]).toContain('fr.wikipedia.org');
+    expect(urls[0]).toContain('list=mostviewed');
+    expect(urls[0]).toContain('pvimmetric=pageviews');
+  });
+
+  /*
+   * The ceilings are ours, not the API's — checked against the live wiki on
+   * 2026-09-15 rather than assumed. Asked for 600, both lists answer
+   * "must be between 1 and 500" as a *warning* and serve 500, so nothing here
+   * prevents a refusal. What it prevents is asking for five hundred candidates
+   * to fetch two of them.
+   */
+  it('clamps what it asks each list for', async () => {
+    const { transport, urls } = recorder([
+      { query: { mostviewed: [{ ns: 0, title: 'Chat' }] } },
+      { query: { random: [{ ns: 0, title: 'Chat' }] } },
+    ]);
+
+    await mostViewedTitles(5000, FR, transport);
+    await randomTitles(5000, FR, transport);
+
+    expect(urls[0]).toContain('pvimlimit=100');
+    expect(urls[1]).toContain('rnlimit=20');
+  });
+
+  it('asks the random list for articles and nothing else', async () => {
+    const { transport, urls } = recorder([
+      { query: { random: [{ ns: 0, title: 'Chat' }] } },
+    ]);
+
+    await randomTitles(4, EN, transport);
+
+    expect(urls[0]).toContain('en.wikipedia.org');
+    expect(urls[0]).toContain('rnnamespace=0');
+  });
+
+  // An empty list is a failure rather than an empty array, like `searchTitles`:
+  // a caller that cannot tell them apart serves a day with no article.
+  it('treats an empty list as a failure', async () => {
+    const { transport } = recorder([{ query: { mostviewed: [] } }]);
+
+    expect((await mostViewedTitles(20, FR, transport)).ok).toBe(false);
   });
 });

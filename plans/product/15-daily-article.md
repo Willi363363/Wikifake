@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 N.1 done — the table and the claim |
+| **State** | 🔶 N.1 and N.2 done — the table, the claim, and the subject |
 | **Branch** | one per step |
 | **Depends on** | tracks E and G — it stores a round and ranks it |
 | **Delivers** | one article a day, the same for everybody, with its own board |
@@ -49,8 +49,15 @@ endpoint** costs nothing, cannot invent an article that does not exist, and is
 varied by construction. `list=random` with `rnnamespace=0`, beside
 `searchTitles` and through the same transport.
 
-Which is N.2, with the filtering a random article needs: an article with three
-usable paragraphs, in a namespace that is an article at all.
+N.2 did that and found random was the wrong list. Measured against the live wiki
+on 2026-09-15, one draw of four gave `Rajaz`, `Église Saint-Pierre de
+Vievy-le-Rayé` and a disambiguation page. **An article nobody has heard of makes
+a poor shared subject, which is the one thing this track exists to be.**
+
+So `list=mostviewed` is the primary list — the same draw gave `Cookie
+(informatique)` and `Julia (film, 1977)` — with random as the fallback, because
+most-viewed is an extension rather than core MediaWiki and a day's list can be
+all main pages once the namespace filter has run.
 
 ### Determinism is storage, not a seed
 
@@ -88,7 +95,7 @@ no article is not a broken row, it is a claim.**
 | # | Step | State |
 |---|---|---|
 | N.1 | The table, and the claim that wins | ✅ |
-| N.2 | A topic chosen by Wikipedia, not by a model | ⬜ |
+| N.2 | A topic chosen by Wikipedia, not by a model | ✅ |
 | N.3 | The read path and the cron | ⬜ |
 | N.4 | A round on the day's article | ⬜ |
 | N.5 | The day's board | ⬜ |
@@ -105,6 +112,28 @@ a row exists because somebody claimed it, and when is what says whether a claim
 has been abandoned — a generation that crashed leaves a row nobody will ever
 fill, and N.3 needs to be able to see that rather than serve an empty day for
 ever.
+
+### N.2 — the subject, and the filter that is the work
+
+**A title is a candidate, not an article.** `generateArticle` needs three usable
+paragraphs, and a disambiguation page, a stub about a village and a list of
+episodes all fail it. So candidates are fetched and counted **before anything is
+sent to a model**: a rejection costs one Wikipedia request and nothing else,
+which is what makes asking for twenty candidates affordable.
+
+**The page comes back, not the title.** The caller is about to falsify it, and
+returning a title would mean fetching the same page twice — once to learn it was
+usable and once to use it.
+
+**Two bounds, because they bound different things.** `candidates` bounds the
+list; `attempts` bounds the *requests*. Without the second, a bad day fetches
+fifty pages to find nothing, at the moment somebody is waiting for a round.
+
+**The list ceilings are ours, not the API's.** Asked for 600 on 2026-09-15 both
+lists warned *"must be between 1 and 500"* and answered with 500 anyway — so the
+clamps prevent asking for five hundred candidates to fetch two, not a refusal.
+Checked against the live wiki rather than assumed, after a first draft of this
+step asserted a limit that does not exist.
 
 ## Exit gate
 
