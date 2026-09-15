@@ -11,6 +11,7 @@ import {
   claimDay,
   fillDay,
   openClaimsBefore,
+  releaseClaim,
   reopenStaleClaim,
   selectDay,
 } from './daily.js';
@@ -219,5 +220,44 @@ describe.skipIf(url === null)('N.1 — a claim that died', () => {
     await claimDay(store.db, DAY, AT);
 
     expect(await reopenStaleClaim(store.db, DAY, AT)).toBe(false);
+  });
+});
+
+describe.skipIf(url === null)('N.3 — giving the day back at once', () => {
+  let store: TestDatabase;
+
+  beforeAll(async () => {
+    store = await openTestDatabase(url as string);
+  });
+  beforeEach(async () => {
+    await store.truncate();
+  });
+  afterAll(async () => {
+    await store.close();
+  });
+
+  /*
+   * A generation that failed and knows it — Wikipedia unreachable, the model
+   * refusing — must not wait for a sweep. `reopenStaleClaim` needs a deadline
+   * because nothing can tell a crash from work in progress except time; this one
+   * has no such doubt.
+   */
+  it('lets the next caller claim it immediately', async () => {
+    await claimDay(store.db, DAY, AT);
+
+    expect(await releaseClaim(store.db, DAY)).toBe(true);
+    expect(await claimDay(store.db, DAY, AT)).toBe(true);
+  });
+
+  it('cannot take back a day that has an article', async () => {
+    await claimDay(store.db, DAY, AT);
+    await fillDay(store.db, DAY, ARTICLE, AT);
+
+    expect(await releaseClaim(store.db, DAY)).toBe(false);
+    expect(await selectDay(store.db, DAY)).not.toBeNull();
+  });
+
+  it('says so for a day nobody claimed', async () => {
+    expect(await releaseClaim(store.db, DAY)).toBe(false);
   });
 });

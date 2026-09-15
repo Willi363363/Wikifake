@@ -124,6 +124,7 @@ export {
   claimDay,
   fillDay,
   openClaimsBefore,
+  releaseClaim,
   reopenStaleClaim,
   selectDay,
 } from './queries/daily.js';

@@ -116,6 +116,27 @@ export async function selectDay(db: Db, day: number): Promise<DailyArticle | nul
   };
 }
 
+/**
+ * Give the day back, now — step N.3.
+ *
+ * `reopenStaleClaim` is for a generation that **died**: it takes a deadline
+ * because nothing can tell a crash from work in progress except time. This one
+ * is for a generation that failed and knows it — Wikipedia unreachable, the
+ * model refusing — where waiting an hour for a sweep would leave the day empty
+ * for no reason.
+ *
+ * Scoped to a row with no article, like everything else that deletes here. A
+ * caller cannot release a day players are reading even by asking.
+ */
+export async function releaseClaim(db: Db, day: number): Promise<boolean> {
+  const rows = await db
+    .delete(dailyArticle)
+    .where(and(eq(dailyArticle.day, day), isNull(dailyArticle.generatedAt)))
+    .returning({ day: dailyArticle.day });
+
+  return rows.length > 0;
+}
+
 /** Claims taken before `before` and never filled — a generation that died. */
 export async function openClaimsBefore(
   db: Db,
