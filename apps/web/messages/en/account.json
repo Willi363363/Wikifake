@@ -71,5 +71,31 @@
     "deleteBusy": "Deleting…",
     "cancel": "Keep my account",
     "deleteFailed": "The account could not be deleted. Nothing has changed."
+  },
+  "badges": {
+    "title": "Badges",
+    "held": "{held} of {total}",
+    "empty": "Finish a round and the first one is yours.",
+    "next": "Next",
+    "complete": "Every rung is yours.",
+    "progress": "{current} / {target}",
+    "floorProgress": "{current} / {target} rounds",
+    "names": {
+      "FINISHED_1": "First round",
+      "FINISHED_10": "Ten rounds",
+      "FINISHED_50": "Fifty rounds",
+      "FINISHED_200": "Two hundred rounds",
+      "FOUND_25": "Twenty-five caught",
+      "FOUND_100": "A hundred caught",
+      "FOUND_500": "Five hundred caught",
+      "STREAK_3": "Three in a row",
+      "STREAK_10": "Ten in a row",
+      "STREAK_25": "Twenty-five in a row",
+      "SCORE_300": "Three hundred in one round",
+      "SCORE_500": "Five hundred in one round",
+      "SCORE_700": "Seven hundred in one round",
+      "ACCURACY_75": "Three in four",
+      "ACCURACY_90": "Nine in ten"
+    }
   }
 }

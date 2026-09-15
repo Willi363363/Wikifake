@@ -99,6 +99,7 @@ export {
   BADGES,
   holdsBadge,
   isBadgeId,
+  metricValueOf,
   nextBadgeIn,
   RATIO_METRICS,
 } from './badges.js';

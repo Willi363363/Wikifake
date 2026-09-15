@@ -124,6 +124,14 @@ describe('11.6 — French is translated, not copied', () => {
     'home.nav.menu',
     'admin.nav.groups.audience',
     'admin.nav.label',
+    // M.2 — `Badges` is the word French borrowed and kept, and the section is
+    // headed with it in both. The fifteen names under it are translated, which
+    // is what says this is a shared spelling rather than an untranslated block.
+    'account.badges.title',
+    // The figure and its target, separated by a slash. There is no prose in it
+    // to translate — `account.badges.floorProgress` beside it adds the word
+    // "rounds" and *is* translated, which is what makes this one deliberate.
+    'account.badges.progress',
     // K.4's rank column. `#` is a symbol, and a symbol is the same in every
     // language — `admin.traffic.none` below is the same argument for an em
     // dash. Every other column heading on that table is translated.

@@ -172,8 +172,15 @@ export interface BadgeStats {
   readonly accuracy: number | null;
 }
 
-/** The figure a metric reads, or null where there is nothing to read yet. */
-function valueOf(metric: BadgeMetric, stats: BadgeStats): number | null {
+/**
+ * The figure a metric reads, or null where there is nothing to read yet.
+ *
+ * Exported at M.2, for the screen that shows how far off the next rung is. It
+ * is the same fact `holdsBadge` compares against, and a screen reaching into
+ * `BadgeStats` by field would be a second mapping from metric to figure — one
+ * that a new metric would leave behind without a type error.
+ */
+export function metricValueOf(metric: BadgeMetric, stats: BadgeStats): number | null {
   switch (metric) {
     case 'gamesFinished':
       return stats.gamesFinished;
@@ -192,7 +199,7 @@ function valueOf(metric: BadgeMetric, stats: BadgeStats): number | null {
 export function holdsBadge(badge: Badge, stats: BadgeStats): boolean {
   if (stats.gamesFinished < badge.minFinished) return false;
 
-  const value = valueOf(badge.metric, stats);
+  const value = metricValueOf(badge.metric, stats);
 
   return value !== null && value >= badge.threshold;
 }
