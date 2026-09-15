@@ -8,6 +8,7 @@ green run can be wrong, and why a red one can mean nothing.
 | `05-known-debt.md` | defects and gaps with a `file:line` |
 | `06-structural-debt.md` | the shape of the repository and its code |
 | `08-toolchain-debt.md` | the commands you run, and what they do not tell you |
+| `11-promotion-debt.md` | the promotion: its merge method, its graph, its last step |
 | `09-query-debt.md` | query plans: what is slow, at what size |
 | this file | the suites: what a run is worth, and when it is worth nothing |
 

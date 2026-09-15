@@ -184,8 +184,8 @@ language. Until then a French interface will show them in English.
 The entries above are defects and gaps with a `file:line`. Four neighbours hold
 the rest, because a register that reaches 200 lines stops being read:
 `06-structural-debt.md` the shape of the repository and its code,
-`08-toolchain-debt.md` the commands you run, `09-query-debt.md` query plans, and
-`10-test-debt.md` the suites — why a green run can be wrong.
+`08-toolchain-debt.md` the commands you run, `09-query-debt.md` query plans,
+`10-test-debt.md` the suites, and `11-promotion-debt.md` the promotion.
 
 The fourth arrived in H.2 and the fifth at J.9, each time because the file a
 finding belonged in had reached the cap while the finding was still being
