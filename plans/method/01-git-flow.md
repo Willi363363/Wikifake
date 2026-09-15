@@ -68,7 +68,7 @@ gh pr create --base main --head staging --title 'Promote staging: <what is in it
 
 # 3 — after the merge, realign, which is a fast-forward since main descends
 #     from staging. The push needs --no-verify, and that is a defect:
-#     ../current-state/08-toolchain-debt.md says why, and whether step 3 is
+#     ../current-state/11-promotion-debt.md says why, and whether step 3 is
 #     needed at all when the promotion was merged rather than squashed.
 git switch staging && git merge --ff-only origin/main && git push --no-verify
 ```
@@ -139,9 +139,9 @@ history breaks them all. `staging` is merged into it
 | step → umbrella or `staging` | **squash** | one step = one commit in the history |
 | umbrella → `staging` | **merge commit** | keep one commit per step, not an opaque block |
 | `staging` → `main` | **merge commit** | `staging` stays an ancestor of `main` |
+| realign `main` → `staging` | **merge commit** | its diff is empty; the parent *is* the payload |
 
-After a promotion to `main`, `staging` realigns effortlessly, since `main`
-descends from it:
+After a promotion, `staging` realigns by fast-forward since `main` descends:
 
 ```bash
 git switch staging && git merge --ff-only origin/main && git push
@@ -149,20 +149,20 @@ git switch staging && git merge --ff-only origin/main && git push
 
 ### When a promotion was squashed anyway
 
-Four times now, because GitHub's button remembers the last method you used and
-squash is the right one for every other kind of branch. The diagnosis is one
-line, and it is worth running before opening the next promotion:
+Five times now. **So merge both merge-commit rows from the command line** —
+`gh pr merge <n> --merge --admin` — because the button remembers the last method
+used per repository and drifts back to squash. The diagnosis is one line:
 
 ```bash
 git merge-base --is-ancestor origin/main origin/staging || echo 'realign first'
 ```
 
 The repair is a branch that merges `main` into `staging` and a pull request back
-to `staging`. **That one has to be merged with a merge commit too** — a realign
-carries no content by construction (`git diff origin/staging` is empty
-afterwards, which is how you check it), so squashing it keeps the nothing and
-discards the second parent that was the entire point. It has been done twice in
-one day for that reason.
+to `staging`, **merged with a merge commit too** — a realign carries no content
+by construction (`git diff origin/staging` is empty afterwards, which is how you
+check it), so squashing it keeps the nothing and discards the second parent that
+was the entire point. The count, and the repository setting that would end it,
+are in `../current-state/11-promotion-debt.md`.
 
 ## Naming
 
