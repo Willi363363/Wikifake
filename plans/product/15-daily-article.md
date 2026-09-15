@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 N.1 to N.3 and N.5 to N.7 done — reachable, played and ranked; only the cron is left |
+| **State** | ✅ done — seven steps: made, reached, played, ranked, and prepared unattended |
 | **Branch** | one per step |
 | **Depends on** | tracks E and G — it stores a round and ranks it |
 | **Delivers** | one article a day, the same for everybody, with its own board |
@@ -97,7 +97,7 @@ no article is not a broken row, it is a claim.**
 | N.1 | The table, and the claim that wins | ✅ |
 | N.2 | A topic chosen by Wikipedia, not by a model | ✅ |
 | N.3 | The read path: the day's article, on demand | ✅ |
-| N.4 | The cron, and the sweep for a claim that died | ⬜ |
+| N.4 | The cron, and the sweep for a claim that died | ✅ |
 | N.5 | A round on the day's article | ✅ |
 | N.6 | The day's board | ✅ |
 | N.7 | The entry point: the tile, the endpoint, and the way in | ✅ |
@@ -111,7 +111,8 @@ and none of it changes what a player gets. The second of
 `../method/00-dev-cycle.md`'s overflow cases: a step badly cut, re-cut rather
 than crammed.
 
-**What each step decided is in `15-daily-article-steps.md`.** The table above is
+**What each step decided is in `15-daily-article-steps.md` — how a day is made
+— and `15-daily-article-playing.md` — how it is played.** The table above is
 the only place that says where a step stands.
 
 ## Exit gate

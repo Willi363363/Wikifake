@@ -7,7 +7,11 @@ import { claimDay, llmCall, selectDay } from '@wikifake/db';
 import { HTML, falsifier, refuser } from '@wikifake/article/testing';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
-import { ensureDailyArticle, type DailyDependencies } from './article.js';
+import {
+  ensureDailyArticle,
+  CLAIM_STALE_AFTER_MS,
+  type DailyDependencies,
+} from './article.js';
 import { openWebTestDatabase, webTestDatabaseUrl } from '../testing/database.js';
 import type { TestDatabase } from '@wikifake/db/testing';
 
@@ -168,5 +172,54 @@ describe.skipIf(url === null)('N.3 — when the day cannot be made', () => {
     await ensureDailyArticle(deps([viewed('Chat'), page('Chat', HTML)], refuser()), AT);
 
     expect(await selectDay(store.db, DAY)).toBeNull();
+  });
+});
+
+describe.skipIf(url === null)('N.4 — a claim that died, on the read path', () => {
+  let store: TestDatabase;
+
+  const deps = (answers: readonly unknown[], model = falsifier()): DailyDependencies => ({
+    db: store.db,
+    model,
+    wiki: { language: 'fr', userAgent: 'WikiFake/2.0 (test)' },
+    transport: wiki(answers),
+    seed: () => 7,
+  });
+
+  const GOOD = [viewed('Chat'), page('Chat', HTML)];
+
+  beforeAll(async () => {
+    store = await openWebTestDatabase();
+  });
+  beforeEach(async () => {
+    await store.truncate();
+  });
+  afterAll(async () => {
+    await store.close();
+  });
+
+  /*
+   * The recovery is on the read path and not only in the cron, which is F.5's
+   * rule one step further: the cron is the optimisation and the read path is the
+   * guarantee, so a recovery only the cron performed would be a guarantee that
+   * runs once a day. A claim that died at 00:06 would hold the day until
+   * tomorrow.
+   */
+  it('takes the day back once the claim is past its deadline', async () => {
+    await claimDay(store.db, DAY, new Date(AT - CLAIM_STALE_AFTER_MS - 1000));
+
+    const outcome = await ensureDailyArticle(deps(GOOD), AT);
+
+    expect(outcome.status).toBe('ready');
+    expect(outcome.status === 'ready' && outcome.article.topic).toBe('Chat');
+  });
+
+  // The deadline cannot take the day from work still in progress: a generation
+  // that has not finished in ten minutes has not finished at all, and one that
+  // started a minute ago is simply slow.
+  it('leaves a claim younger than the deadline alone', async () => {
+    await claimDay(store.db, DAY, new Date(AT - 60_000));
+
+    expect((await ensureDailyArticle(deps(GOOD), AT)).status).toBe('generating');
   });
 });

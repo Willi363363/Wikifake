@@ -20,6 +20,7 @@ import {
   fillDay,
   recordLlmCalls,
   releaseClaim,
+  reopenStaleClaim,
   selectDay,
   type DailyArticle,
   type Database,
@@ -52,6 +53,22 @@ export interface DailyDependencies {
 export const DAILY_CANDIDATES = 40;
 export const DAILY_ATTEMPTS = 6;
 
+/**
+ * How long a claim may be held before it is presumed dead — step N.4.
+ *
+ * **Ten minutes, and the number is chosen from both sides.** A generation is a
+ * handful of Wikipedia requests and one model call: one that has not finished in
+ * ten minutes has not finished at all, so this cannot take the day away from
+ * work still in progress. And a claim that *did* die costs the day ten minutes
+ * rather than until the next cron — which, on a daily schedule, would be
+ * tomorrow.
+ *
+ * The sweep is here and not only in the cron for F.5's reason, one step further:
+ * the cron is the optimisation and the read path is the guarantee, so a recovery
+ * only the cron performed would be a guarantee that runs once a day.
+ */
+export const CLAIM_STALE_AFTER_MS = 10 * 60_000;
+
 export type DailyOutcome =
   | { readonly status: 'ready'; readonly article: DailyArticle }
   /** Somebody else holds the claim. Not an error: ask again in a moment. */
@@ -78,17 +95,29 @@ export async function ensureDailyArticle(
   if (existing !== null) return { status: 'ready', article: existing };
 
   const at = new Date(atMs);
-  if (!(await claimDay(dependencies.db, day, at))) {
-    // Either somebody is generating it right now, or they finished between the
-    // read above and this line. Re-reading covers the second, and costs one
-    // query on the rarest path there is.
-    const settled = await selectDay(dependencies.db, day);
-    return settled === null
-      ? { status: 'generating' }
-      : { status: 'ready', article: settled };
+  if (await claimDay(dependencies.db, day, at)) return generateFor(dependencies, day, at);
+
+  // Either somebody is generating it right now, or they finished between the
+  // read above and this line. Re-reading covers the second, and costs one query
+  // on the rarest path there is.
+  const settled = await selectDay(dependencies.db, day);
+  if (settled !== null) return { status: 'ready', article: settled };
+
+  // N.4 — somebody holds the claim. If they have held it past the deadline they
+  // are not working, they are gone: take it back and generate. **Once**, not in
+  // a loop — a second caller arriving in the same instant loses the retaken
+  // claim and answers `generating`, which is true.
+  const reopened = await reopenStaleClaim(
+    dependencies.db,
+    day,
+    new Date(atMs - CLAIM_STALE_AFTER_MS),
+  );
+
+  if (reopened && (await claimDay(dependencies.db, day, at))) {
+    return generateFor(dependencies, day, at);
   }
 
-  return generateFor(dependencies, day, at);
+  return { status: 'generating' };
 }
 
 /** The claim is held on entry, and released on every path that does not fill it. */
