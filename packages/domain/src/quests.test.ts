@@ -98,7 +98,7 @@ describe('F.1 — the two sets, and nothing outside them', () => {
    * numbers themselves are a judgement, but *weekly above daily* is the shape
    * that judgement has to keep.
    */
-  it.each(['rounds', 'falsificationsFound', 'points'] as const)(
+  it.each(['rounds', 'falsificationsFound', 'points', 'distinctArticles'] as const)(
     'asks more of a week than of a day, in %s',
     (tally: QuestTally) => {
       const lowest = (period: 'daily' | 'weekly'): number =>
@@ -112,6 +112,41 @@ describe('F.1 — the two sets, and nothing outside them', () => {
       expect(lowest('weekly')).toBeGreaterThan(lowest('daily'));
     },
   );
+
+  /*
+   * The list above is spelled out rather than derived, and F.9 is why that
+   * matters. It used to be *every* tally, which happened to be true and was
+   * never a rule anybody stated — `itemsCast` is weekly-only, because a room is
+   * what affords an item and a solo game has none. Deriving the list would have
+   * turned that into `Math.min()` of nothing, which is `Infinity`, and the
+   * assertion would have failed for a catalogue that is correct.
+   *
+   * So the weekly-only tallies are named here instead, and the pair is held both
+   * ways: a tally in neither list is a tally nobody decided about.
+   */
+  const WEEKLY_ONLY: readonly QuestTally[] = ['itemsCast'];
+  const BOTH_PERIODS: readonly QuestTally[] = [
+    'rounds',
+    'falsificationsFound',
+    'points',
+    'distinctArticles',
+  ];
+
+  it.each(WEEKLY_ONLY)('has no daily rule tallying %s', (tally: QuestTally) => {
+    expect(questRulesFor('daily').filter((rule) => rule.tally === tally)).toEqual([]);
+    expect(questRulesFor('weekly').some((rule) => rule.tally === tally)).toBe(true);
+  });
+
+  it.each(BOTH_PERIODS)('has a rule tallying %s at both periods', (tally: QuestTally) => {
+    expect(questRulesFor('daily').some((rule) => rule.tally === tally)).toBe(true);
+    expect(questRulesFor('weekly').some((rule) => rule.tally === tally)).toBe(true);
+  });
+
+  it('decides about every tally, one way or the other', () => {
+    expect([...BOTH_PERIODS, ...WEEKLY_ONLY].sort()).toEqual(
+      [...new Set(QUEST_RULES.map((rule) => rule.tally))].sort(),
+    );
+  });
 });
 
 describe('F.1 — no member of a union that nothing counts', () => {
@@ -131,12 +166,15 @@ describe('F.1 — no member of a union that nothing counts', () => {
     },
   );
 
-  it.each(['rounds', 'falsificationsFound', 'points'] as const)(
-    'has a rule that tallies %s',
-    (tally: QuestTally) => {
-      expect(QUEST_RULES.some((rule) => rule.tally === tally)).toBe(true);
-    },
-  );
+  it.each([
+    'rounds',
+    'falsificationsFound',
+    'points',
+    'distinctArticles',
+    'itemsCast',
+  ] as const)('has a rule that tallies %s', (tally: QuestTally) => {
+    expect(QUEST_RULES.some((rule) => rule.tally === tally)).toBe(true);
+  });
 
   // The other direction: a rule using a name the unions do not carry would be a
   // rule F.4 falls through the switch on. The types stop it at compile time in
@@ -149,7 +187,13 @@ describe('F.1 — no member of a union that nothing counts', () => {
       'nothingWronglyMarked',
       'multiplayer',
     ]);
-    const tallies = new Set(['rounds', 'falsificationsFound', 'points']);
+    const tallies = new Set([
+      'rounds',
+      'falsificationsFound',
+      'points',
+      'distinctArticles',
+      'itemsCast',
+    ]);
 
     for (const rule of QUEST_RULES) {
       expect(qualifiers.has(rule.qualifier)).toBe(true);

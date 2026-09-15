@@ -27,6 +27,7 @@
     "DAILY_PERFECT_ROUND": "Terminer {target} manches parfaites",
     "DAILY_UNAIDED_FALSIFICATIONS": "Trouver {target} falsifications sans indice",
     "DAILY_CLEAN_POINTS": "Marquer {target} points sans marquer de vrai paragraphe",
+    "DAILY_DISTINCT_ARTICLES": "Jouer sur {target} articles différents",
     "WEEKLY_FINISH_ROUNDS": "Terminer {target} manches",
     "WEEKLY_FIND_FALSIFICATIONS": "Trouver {target} falsifications",
     "WEEKLY_SCORE_POINTS": "Marquer {target} points",
@@ -34,6 +35,8 @@
     "WEEKLY_MULTIPLAYER_ROUNDS": "Terminer {target} manches en salon",
     "WEEKLY_UNAIDED_ROUNDS": "Terminer {target} manches sans indice",
     "WEEKLY_CLEAN_ROUNDS": "Terminer {target} manches sans marquer de vrai paragraphe",
-    "WEEKLY_PERFECT_POINTS": "Marquer {target} points en manches parfaites"
+    "WEEKLY_PERFECT_POINTS": "Marquer {target} points en manches parfaites",
+    "WEEKLY_DISTINCT_ARTICLES": "Jouer sur {target} articles différents",
+    "WEEKLY_CAST_ITEMS": "Lancer {target} objets en salon"
   }
 }

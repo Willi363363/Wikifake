@@ -23,6 +23,7 @@ import {
 } from './quests.js';
 import { connect } from '../client.js';
 import { user } from '../schema/auth.js';
+import { itemUse } from '../schema/audit.js';
 import { game, participant } from '../schema/game.js';
 import { questAssignment } from '../schema/quests.js';
 import { openTestDatabase, rejectionCode, testDatabaseUrl } from '../testing/database.js';
@@ -272,13 +273,16 @@ describe.skipIf(url === null)('F.4 — the rounds a period is measured over', ()
     readonly falsePositives?: number;
     readonly hintsUsed?: number;
     readonly score?: number;
+    readonly sourceUrl?: string;
+    /** F.9 — items this participant cast in this round. */
+    readonly itemsCast?: number;
   }): Promise<void> => {
     const [row] = await store.db
       .insert(game)
       .values({
         mode: options.mode ?? 'solo',
         topic: 'Chat',
-        sourceUrl: 'https://fr.wikipedia.org/wiki/Chat',
+        sourceUrl: options.sourceUrl ?? 'https://fr.wikipedia.org/wiki/Chat',
         paragraphs: ['un paragraphe'],
         totalFakes: options.totalFakes ?? 3,
         timeLimit: 300,
@@ -290,19 +294,29 @@ describe.skipIf(url === null)('F.4 — the rounds a period is measured over', ()
     // The schema ties `submitted_at` and `score` together, so an unfinished
     // round carries neither — which is exactly the row the window must skip.
     const finished = options.submittedAt !== null;
-    await store.db.insert(participant).values({
-      gameId: row.id,
-      userId: options.userId,
-      colour: '#1f574d',
-      submittedAt: options.submittedAt,
-      score: finished ? (options.score ?? 400) : null,
-      truePositives: finished ? (options.truePositives ?? 3) : null,
-      falsePositives: finished ? (options.falsePositives ?? 0) : null,
-      hintsUsed: finished ? (options.hintsUsed ?? 0) : null,
-      hintPenalty: finished ? 0 : null,
-      scoreStolen: finished ? 0 : null,
-      timeBonus: finished ? 0 : null,
-    });
+    const [who] = await store.db
+      .insert(participant)
+      .values({
+        gameId: row.id,
+        userId: options.userId,
+        colour: '#1f574d',
+        submittedAt: options.submittedAt,
+        score: finished ? (options.score ?? 400) : null,
+        truePositives: finished ? (options.truePositives ?? 3) : null,
+        falsePositives: finished ? (options.falsePositives ?? 0) : null,
+        hintsUsed: finished ? (options.hintsUsed ?? 0) : null,
+        hintPenalty: finished ? 0 : null,
+        scoreStolen: finished ? 0 : null,
+        timeBonus: finished ? 0 : null,
+      })
+      .returning({ id: participant.id });
+    if (who === undefined) throw new Error('no participant');
+
+    for (let cast = 0; cast < (options.itemsCast ?? 0); cast += 1) {
+      await store.db
+        .insert(itemUse)
+        .values({ gameId: row.id, casterId: who.id, itemId: 'SCANNER' });
+    }
   };
 
   /** 2026-09-10, the day whose index is 20706. */
@@ -334,6 +348,79 @@ describe.skipIf(url === null)('F.4 — the rounds a period is measured over', ()
       score: 260,
       mode: 'multiplayer',
     });
+  });
+
+  /*
+   * F.9 — the two columns the window gained, and the subquery is why this case
+   * exists rather than a unit test over the reader.
+   *
+   * `itemsCast` is a correlated count and not a join, deliberately: joining
+   * `item_use` would multiply the participant row once per item and take every
+   * other figure with it — the score counted three times for three casts. That
+   * failure is invisible in TypeScript and obvious here.
+   */
+  it('counts the items a player cast without multiplying the round', async () => {
+    await addUser('ada');
+    await played({
+      userId: 'ada',
+      submittedAt: new Date(FROM + 3_600_000),
+      mode: 'multiplayer',
+      score: 260,
+      itemsCast: 3,
+    });
+
+    const rounds = await selectRoundsInWindow(store.db, 'ada', FROM, TO);
+
+    // One row, not three: the join that would have been wrong is not there.
+    expect(rounds).toHaveLength(1);
+    expect(rounds[0]?.itemsCast).toBe(3);
+    expect(rounds[0]?.score).toBe(260);
+  });
+
+  it('counts no cast for a round where nothing was cast', async () => {
+    await addUser('ada');
+    await played({ userId: 'ada', submittedAt: new Date(FROM + 3_600_000) });
+
+    const rounds = await selectRoundsInWindow(store.db, 'ada', FROM, TO);
+
+    expect(rounds[0]?.itemsCast).toBe(0);
+  });
+
+  // Somebody else's casts are somebody else's. The subquery keys on
+  // `caster_id`, so this is the case that proves it is not keyed on the game.
+  it("counts this player's casts and not the room's", async () => {
+    await addUser('ada');
+    await addUser('grace');
+    await played({
+      userId: 'ada',
+      submittedAt: new Date(FROM + 3_600_000),
+      mode: 'multiplayer',
+      itemsCast: 1,
+    });
+    await played({
+      userId: 'grace',
+      submittedAt: new Date(FROM + 3_600_000),
+      mode: 'multiplayer',
+      itemsCast: 4,
+    });
+
+    const rounds = await selectRoundsInWindow(store.db, 'ada', FROM, TO);
+
+    expect(rounds).toHaveLength(1);
+    expect(rounds[0]?.itemsCast).toBe(1);
+  });
+
+  it('returns the article as a page, so two titles cannot be one round', async () => {
+    await addUser('ada');
+    await played({
+      userId: 'ada',
+      submittedAt: new Date(FROM + 3_600_000),
+      sourceUrl: 'https://fr.wikipedia.org/wiki/Lyon',
+    });
+
+    const rounds = await selectRoundsInWindow(store.db, 'ada', FROM, TO);
+
+    expect(rounds[0]?.sourceUrl).toBe('https://fr.wikipedia.org/wiki/Lyon');
   });
 
   it('is half-open: the first instant counts and the last does not', async () => {

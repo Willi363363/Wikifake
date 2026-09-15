@@ -56,7 +56,28 @@ export type QuestPeriod = CalendarPeriod;
  * back tomorrow feel worthwhile. F.4 implements the floor; it does not choose
  * it.
  */
-export type QuestTally = 'rounds' | 'falsificationsFound' | 'points';
+export type QuestTally =
+  'rounds' | 'falsificationsFound' | 'points' | 'distinctArticles' | 'itemsCast';
+
+/*
+ * The last two arrived at F.9, from columns the schema had carried all along.
+ *
+ * **`distinctArticles` counts `source_url`, not `topic`.** Both would work —
+ * `topic` is the *resolved* Wikipedia title and not what a player typed, which
+ * `article/src/source.ts` says where it sets it — but a URL is one page by
+ * construction where a title is one page by convention. (`admin-content.ts`
+ * describes `topic` as "what a player typed or a room voted for". That is stale,
+ * and it is the reason this comment names its source rather than its column.)
+ *
+ * It is also the one tally that is **not a sum**: two rounds on the same article
+ * are one article. `progressFor` says so in a case of its own, and nothing about
+ * the rest of the reader changes.
+ *
+ * **`itemsCast` is weekly-only, for F.1's reason about multiplayer.** `with_items`
+ * belongs to `room` and a solo game has no room, so casting is a thing only a
+ * room affords — a daily quest asking for it would expire for anybody playing
+ * alone.
+ */
 
 /**
  * Which finished rounds count towards a rule.
@@ -112,6 +133,9 @@ export const QUEST_RULE_IDS = [
   'WEEKLY_UNAIDED_ROUNDS',
   'WEEKLY_CLEAN_ROUNDS',
   'WEEKLY_PERFECT_POINTS',
+  'DAILY_DISTINCT_ARTICLES',
+  'WEEKLY_DISTINCT_ARTICLES',
+  'WEEKLY_CAST_ITEMS',
 ] as const;
 
 export type QuestRuleId = (typeof QUEST_RULE_IDS)[number];
@@ -310,6 +334,35 @@ export const QUEST_CATALOGUE: Readonly<Record<QuestRuleId, QuestRule>> = {
     qualifier: 'perfect',
     target: { min: 1200, max: 2200 },
     reward: 130,
+  },
+  // F.9 — two or three articles is a day that went somewhere, and the ceiling
+  // is deliberately low: the quest is meant to move a player off one subject,
+  // not to make them abandon a run they were enjoying.
+  DAILY_DISTINCT_ARTICLES: {
+    id: 'DAILY_DISTINCT_ARTICLES',
+    period: 'daily',
+    tally: 'distinctArticles',
+    qualifier: 'any',
+    target: { min: 2, max: 3 },
+    reward: 30,
+  },
+  WEEKLY_DISTINCT_ARTICLES: {
+    id: 'WEEKLY_DISTINCT_ARTICLES',
+    period: 'weekly',
+    tally: 'distinctArticles',
+    qualifier: 'any',
+    target: { min: 8, max: 14 },
+    reward: 100,
+  },
+  // Weekly only — a room is what affords an item at all. Beside
+  // WEEKLY_MULTIPLAYER_ROUNDS and for the same reason.
+  WEEKLY_CAST_ITEMS: {
+    id: 'WEEKLY_CAST_ITEMS',
+    period: 'weekly',
+    tally: 'itemsCast',
+    qualifier: 'any',
+    target: { min: 10, max: 20 },
+    reward: 100,
   },
 };
 
