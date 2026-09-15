@@ -50,6 +50,18 @@ const STATUS: Readonly<Partial<Record<ErrorCode, number>>> = {
   cosmetic_not_owned: 403,
   /** H.7 — nothing by that name is for sale. */
   cosmetic_not_found: 404,
+  /**
+   * N.5 — one attempt a day, and it is spent. A conflict, and a lasting one:
+   * nothing the caller can do resolves it before tomorrow.
+   */
+  daily_already_played: 409,
+  /**
+   * N.5 — today has no article yet. **503 and not 502**: nothing upstream
+   * failed, the day is being made — by whoever asked first, or by the next
+   * request after a generation that gave its claim back. It is temporary and
+   * the caller should retry, which is what 503 says and 502 does not.
+   */
+  daily_not_ready: 503,
 };
 
 export function statusFor(code: ErrorCode): number {

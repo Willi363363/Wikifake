@@ -17,7 +17,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-import { startRound, submitRound, unlockHint } from './api.js';
+import { startDaily, startRound, submitRound, unlockHint } from './api.js';
 import { useOutfit } from '../account/use-outfit.js';
 import { GenerationScreen } from '../lobby/generation.js';
 import { useCaptures } from '../flags/flags.js';
@@ -40,12 +40,25 @@ function validTopic(topic: string | null): string | null {
 export interface SoloGameProps {
   /** What the entry screen collected. Absent or malformed sends the player back. */
   readonly topic: string | null;
+  /**
+   * N.7 — the article of the day, whose subject nobody chose.
+   *
+   * A flag rather than a second journey. Everything after the first request is
+   * identical — the same round, the same hints, the same debrief — so a copy of
+   * this file would be two hundred lines kept in step by hand, and the first
+   * divergence would be a bug only one of them had.
+   */
+  readonly daily?: boolean;
 }
 
-export function SoloGame({ topic }: SoloGameProps) {
+export function SoloGame({ topic, daily = false }: SoloGameProps) {
   const t = useTranslations('small.solo');
+  const day = useTranslations('lobby.home');
   const router = useRouter();
-  const valid = validTopic(topic);
+  // The day has no topic to validate: the server chose it, and there is nothing
+  // in the URL for a player to have got wrong.
+  const valid = daily ? null : validTopic(topic);
+  const asking = daily || valid !== null;
 
   const [round, setRound] = useState<gameApi.StartGameResponse | null>(null);
   const [result, setResult] = useState<gameApi.SubmitResponse | null>(null);
@@ -66,17 +79,18 @@ export function SoloGame({ topic }: SoloGameProps) {
   const worn = useOutfit(round !== null);
 
   useEffect(() => {
-    if (valid === null || asked.current) return;
+    if (!asking || asked.current) return;
     asked.current = true;
 
     void (async () => {
-      const answered = await startRound({ topic: valid });
+      const answered =
+        valid === null ? await startDaily({}) : await startRound({ topic: valid });
       if (answered.ok) setRound(answered.value);
       else setRefusal(answered.message);
     })();
-  }, [valid]);
+  }, [asking, valid]);
 
-  if (valid === null) {
+  if (!asking) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-4 px-4 text-center">
         <h1 className="text-2xl text-ink">{t('title')}</h1>
@@ -113,7 +127,10 @@ export function SoloGame({ topic }: SoloGameProps) {
     return (
       <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-4 py-10">
         <GenerationScreen
-          topic={valid}
+          // The day's subject is not known here until the answer arrives — the
+          // server chose it — so the screen names what is being made instead of
+          // an empty line where a title goes.
+          topic={valid ?? round?.topic ?? day('todayGenerating')}
           proposer={null}
           ready={round !== null}
           onEnter={() => {

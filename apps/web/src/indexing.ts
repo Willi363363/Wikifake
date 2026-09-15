@@ -37,7 +37,8 @@ export const TRAINING_CRAWLERS = [
  *
  * `/api/` and `/ws/` are the contract's own two, and they are the ones that
  * serve falsified content. The three that follow are the routes that *render*
- * it — a room, a solo game, and the component gallery, which is a development
+ * it — a room, a solo game, the article of the day, and the component gallery,
+ * which is a development
  * surface that happens to ship. Crawling any of them yields a shell, since the
  * article arrives over the socket, but a shell in an index is still a page
  * claiming to be about a Wikipedia subject.
@@ -47,6 +48,10 @@ export const CRAWLERS_KEPT_OUT = [
   '/ws/',
   '/room/',
   '/solo',
+  // N.7 — the article of the day renders the same falsified article as `/solo`,
+  // and is the one screen where every crawler would see the *same* one. A shell
+  // in an index is still a page claiming to be about a Wikipedia subject.
+  '/today',
   '/gallery',
   // `/dev` was here for track L, kept out as a prefix so that a second bench
   // under it inherited the decision. L.8 deleted the bench, and the prefix went

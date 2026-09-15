@@ -3,7 +3,7 @@
 
 # REST — the round
 
-9 routes a browser calls while a round is being
+10 routes a browser calls while a round is being
 played. A `GET` takes no body. The account and the shop are in
 `rest-account.md`; the probes and the cron in `rest-operations.md`.
 
@@ -22,6 +22,21 @@ played. A `GET` takes no body. The account and the shop are in
 **Request**
 
 - `topic` — string (1–120 chars)
+- `timeLimit` — integer (30–600) — optional
+
+**Response**
+
+- `sessionId` — string (16–64 chars, matching `^[A-Za-z0-9_-]+$`)
+- `timeLimit` — integer (30–600)
+- `topic` — string (1–120 chars)
+- `paragraphs` — non-empty array of string
+- `totalFakes` — integer (≥ 1)
+- `wikipediaUrl` — string
+
+## `POST /api/daily/start`
+
+**Request**
+
 - `timeLimit` — integer (30–600) — optional
 
 **Response**

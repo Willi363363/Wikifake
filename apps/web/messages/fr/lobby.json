@@ -103,6 +103,15 @@
     "keepTitle": "Gardez ce que vous jouez",
     "keepLead": "Un compte conserve vos scores, votre série et les quêtes que vous avez terminées. Les manches déjà jouées vous suivent.",
     "keepCta": "Créer un compte, ou se connecter",
-    "profile": "Votre profil"
+    "profile": "Votre profil",
+    "todayTitle": "Article du jour",
+    "todayPending": "L’article du jour est en préparation. Lancez une partie et il sera prêt.",
+    "todayPlay": "Jouer l’article du jour",
+    "todayDone": "Joué. Le prochain arrive demain.",
+    "todayRank": "{rank} sur {players}",
+    "todayUnranked": "Commencé mais pas terminé — pas de rang aujourd’hui.",
+    "todayPlayers": "{count, plural, =0 {Personne ne l’a encore terminé} one {# joueur l’a terminé} other {# joueurs l’ont terminé}}",
+    "todayBoard": "Le classement du jour",
+    "todayGenerating": "L’article du jour"
   }
 }
