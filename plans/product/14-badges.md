@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 M.1 done — the catalogue and the reader |
+| **State** | ✅ done — two steps: the catalogue, and the profile |
 | **Branch** | one per step |
 | **Depends on** | track E — it reads `player_stats` and adds no column |
 | **Delivers** | a ladder that survives the weekly reset |
@@ -64,7 +64,7 @@ is a ratio must carry a floor.**
 | # | Step | State |
 |---|---|---|
 | M.1 | The badge catalogue and the reader, as pure data in `domain` | ✅ |
-| M.2 | The badges on the profile, with the next rung | ⬜ |
+| M.2 | The badges on the profile, with the next rung | ✅ |
 
 ### M.1 — the catalogue
 
@@ -78,6 +78,35 @@ the time bonus — which is what the score ladder's rungs are.
 null at the top of a ladder. The second is what makes the screen a ladder rather
 than a list, and it belongs here because *which badge is next* is a fact about
 the catalogue.
+
+### M.2 — the section, and the one row that would have lied
+
+Two questions in this order: *what do I hold*, then *what is next*. A list of
+things already true is a trophy case; the rung underneath is what makes it a
+ladder, which is the whole track.
+
+**A next row names the rung, not the metric.** The first draft labelled each row
+with its counter — *Rounds finished*, *Best streak* — and the full suite caught
+what that meant: those words were already on the screen, on the stat tile three
+inches above, saying a different number. One label, two meanings. Naming the
+badge being climbed towards says something the tile does not, and the duplicate
+goes with it. A finished ladder then has no row at all, because every row names
+a rung and one with nothing above it has nothing to say.
+
+**A floored rung shows the floor, not the metric.** A player at 80% accuracy over
+five rounds does not hold `ACCURACY_75` — the floor is twenty finished rounds —
+and a row reading `80% / 75%` would tell them they had earned something they had
+not. `gapTo` shows the blocking condition instead, and that case is the reason
+the function exists rather than an inline subtraction.
+
+**The chips are `ink` on `accent-soft`**, which `contrast.ts` already measures
+and names *"the accent badge"*. Nothing new was invented to colour them, so they
+pass in both palettes by the audit that already runs.
+
+**The copy has the guard F.8 earned.** `t(`names.${badge.id}`)` and
+`t(`metrics.${metric}`)` are keys composed at runtime, which is exactly the shape
+no existing gate can see — `badge-copy.test.ts` holds the catalogue and both
+locales together, in both directions, reading data alone so it never skips.
 
 ## Exit gate
 
