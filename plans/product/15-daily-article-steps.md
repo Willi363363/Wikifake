@@ -69,113 +69,50 @@ bought nothing was still billed, and dropping the record is what makes the cost
 of failure invisible. Against no game, because there is none — the day's article
 is not a round until somebody plays it.
 
-### N.5 — the round, and the rule that makes a board mean anything
+### N.4 — the cron, and the claim that died
 
-**It generates nothing.** `startRound` sources an article for a topic a player
-typed; this reads the day's, which N.3 already made. So no model call and no
-second `recordLlmCalls`: the day was billed once, and recording it again per
-round would multiply one generation by however many people played it.
+**It makes nothing the read path could not make on demand**, which is F.5's rule
+inherited whole: `ensureDailyArticle` generates the day for whoever asks first,
+so this run is a pre-warm and never a prerequisite. Stop it for a week and every
+day still has its article; what players lose is the wait on the first request of
+each morning.
 
-`fromCache` is `true`, and that is not a white lie — C4.6 defines it as *the
-article was reused rather than generated*, which is what happened. A daily round
-counted as a generation would make the cost per game look higher than it is,
-every day, once per player.
+Both properties are free rather than engineered. **Idempotent**, because the
+claim is a primary key. **Self-healing**, because the guarantee was never here.
 
-**One attempt per account.** A player free to replay until the score is good is
-ranked against their own patience rather than against the others, and the top of
-the board becomes whoever retried most.
+**`generated` is asked before, not read from the outcome.** A second run also
+ends `ready`, so reading the outcome alone would report every run as the one that
+made the day — and the idempotence this step promises would be invisible in
+exactly the log meant to show it. The question is not *is there an article*, it
+is *did this run make one*. A first draft got that wrong and its expression
+simplified to "the day is ready".
 
-**A guest is not stopped, because a guest has no identity to stop.** Written down
-rather than left implicit: it is a hole, and a hole nobody records is one
-somebody rediscovers as a bug. The day's board is `user_id`'s, so anonymous play
-is outside it in both directions — no attempt spent, no rank taken.
+**The sweep is on the read path too, and that is the finding.** N.3 answered
+`generating` for a claim whose generation had died, for ever — so a claim that
+died at 00:06 would hold the day until tomorrow's cron. The read path now takes a
+claim back once it is past the deadline, **once and not in a loop**: a second
+caller arriving in the same instant loses the retaken claim and answers
+`generating`, which is true.
 
-**The link is a column, not a join through `source_url`.** Two rounds can share
-an article without sharing a day: the same page may come up again months later,
-and the board would then rank a stranger's ordinary round. `game.daily_day`
-carries both rules — the one attempt, and the day's board.
+**Ten minutes, chosen from both sides.** A generation is a handful of Wikipedia
+requests and one model call: one that has not finished in ten minutes has not
+finished at all, so the deadline cannot take the day from work in progress. And a
+claim that did die costs the day ten minutes rather than until tomorrow.
 
-**`paragraphs` and `solution` are parsed, not cast.** They are `jsonb`, so
-reading them is parsing them: a row written by a hand edit, or by a generator
-whose shape has since changed, is refused here rather than discovered at the
-insert.
+**It shipped as a `POST` and would never have run.** Vercel's scheduler issues a
+`GET` — `cron/quests` says so in the comment beside its own method — so the
+schedule would have fired every morning at 00:10 against a route that answers
+405, and nothing would have said a word: the read path covers every day anyway,
+so the only symptom would have been a first player waiting, for ever, with no
+failure anywhere. `route-parity.test.ts` caught it, because a route served under
+a method the catalogue does not describe is exactly what it refuses.
 
-**Two error codes, and neither is `generation_failed`.** `daily_already_played`
-says *already played* rather than *not allowed*, because the two read very
-differently to somebody who has forgotten they played at breakfast; and
-`daily_not_ready` is not a failure of the request — the day is being generated,
-or the next request will retry. The protocol's enum is closed and the catalogue
-is typed, so both needed a message in both locales before anything compiled.
+**What the cron still does that the read path cannot**: yesterday's dead claims.
+Nobody asks for yesterday's article, so the read path's recovery never fires on
+it, and the row would sit there as a claim nobody can fill.
 
-### N.6 — the day's board
+---
 
-**No new table and no migration.** A daily round is a graded round like any
-other, so it is already in `leaderboard_entry`; what makes it the day's is
-`game.daily_day`, which N.5 put there. The board is that column narrowed.
-
-**And no `distinct on (user_id)`**, which is the whole difference from G.4's
-boards and is stated rather than left as an absence. Those rank *each player's
-best round in a period*, because a player can play a period fifty times — G.7
-found the board listing entries instead, so one player took five of fifty rows
-and *your own rank* meant nothing. Here N.5 refuses a second attempt, so a player
-already has one round: the machinery would answer a question the day cannot ask.
-
-It is one rule read twice, so the test asserts the single row rather than
-trusting the paragraph above.
-
-**The filters are shared and the joins are not**, which is G.4's shape rather
-than a compromise. `boardFilters` exists because G.7 found three copies of the
-same *clauses* disagreeing about which period they meant; the joins were never
-the risk. A first draft here shared the joins instead, through a generic select
-whose rows had to be cast back to their own type — and a cast in a query layer
-hides exactly the mistake no test catches. Rewritten without one.
-
-**A round that was not the day's is not on it**, even on the same article. That
-is why N.5 put a column on `game` rather than matching `source_url`: the same
-page can come up again months later, and the board would rank a stranger's
-ordinary round. There is a case for exactly that.
-
-**Null is not last.** A player who has not played today is not on this board, and
-a screen says so rather than printing a number.
-
-### N.7 — the entry point
-
-**The tile reads and never generates**, which is the decision this step turns on.
-`ensureDailyArticle` claims the day and calls a model; putting that behind a
-dashboard render would mean the home page of a quiet morning buys an article, and
-a crawler or a preflight request buys one too. The tile asks `selectDay`, which
-answers null for a day nobody has made, and the generation happens where somebody
-actually asked for a round. There is a case asserting the day is still claimable
-after a tile render.
-
-The consequence, stated rather than discovered: on a day whose cron did not run,
-the first player sees *being prepared* and gets the article by pressing Play.
-That is the read path doing its job, one screen further out.
-
-**`played` and `rank` answer different questions.** A round started and walked out
-of spends the attempt and earns no rank, so a player can be `played` with no rank
-— and a tile reading that as *not played yet* would invite them to start one the
-server refuses.
-
-**One journey, not two.** `/today` renders `SoloGame` with a flag rather than a
-copy: everything after the first request — the round, the hints, the debrief — is
-identical, so a second file would be two hundred lines kept in step by hand and
-the first divergence would be a bug only one of them had. What the flag changes
-is one request and one validation: the day has no topic in the URL for a player
-to have got wrong.
-
-**Its own endpoint rather than a flag on `startGameRequest`.** `topic` is required
-there, and making it optional would weaken the ordinary round's contract to
-describe a request that is not one. `POST /api/daily/start` takes a time limit and
-nothing else.
-
-**J.9's gate caught the screen before a crawler did.** `indexing.test.ts` walks
-`app/[locale]` and refuses a page route with no crawler decision — it exists
-because `/leaderboard` once shipped without one, eight pages having made the call
-and the ninth having forgotten. `/today` renders the same falsified article as
-`/solo`, and is the one screen where every crawler would see the *same* one, so
-it joins `CRAWLERS_KEPT_OUT`. The test failed before the route was ever visited.
-
-**`daily_not_ready` is 503 and not 502.** Nothing upstream failed: the day is
-being made, by whoever asked first or by the next request after a claim was given
-back. It is temporary and the caller should retry, which is what 503 says.
+**The steps that make a day playable — N.5, N.6 and N.7 — are in
+`15-daily-article-playing.md`.** Split out on 2026-09-15, when this file reached
+the 200-line rule with N.4 still to write.

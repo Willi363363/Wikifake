@@ -14,7 +14,14 @@ import { networkTransport, wikiRequest } from '../game/wikipedia.js';
 
 let dependencies: DailyStartContext['daily'] | undefined;
 
-export function dailyStartContext(): DailyStartContext {
+/**
+ * The collaborators the day's article needs, built once.
+ *
+ * Exported since N.4: the cron needs exactly these and no `auth` — a scheduler
+ * has no session — so a second builder would be this function with one field
+ * dropped.
+ */
+export function dailyDependencies(): DailyStartContext['daily'] {
   if (dependencies === undefined) {
     const env = loadEnv();
     dependencies = {
@@ -28,7 +35,11 @@ export function dailyStartContext(): DailyStartContext {
     };
   }
 
-  return { auth: auth(), daily: dependencies, now: () => Date.now() };
+  return dependencies;
+}
+
+export function dailyStartContext(): DailyStartContext {
+  return { auth: auth(), daily: dailyDependencies(), now: () => Date.now() };
 }
 
 /** The route's one line, so the route file imports one thing rather than two. */

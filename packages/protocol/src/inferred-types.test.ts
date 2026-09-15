@@ -56,6 +56,7 @@ describe('contract types are inferred, never redeclared', () => {
       'primitives.ts',
       'regions.ts',
       'rest/account.ts',
+      'rest/daily.ts',
       'rest/flags.ts',
       'rest/game.ts',
       'rest/health.ts',

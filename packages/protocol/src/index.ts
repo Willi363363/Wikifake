@@ -30,6 +30,7 @@ export * as gameApi from './rest/game.js';
 export * as healthApi from './rest/health.js';
 export * as roomsApi from './rest/rooms.js';
 export * as flagsApi from './rest/flags.js';
+export * as dailyApi from './rest/daily.js';
 export * as questsApi from './rest/quests.js';
 export * as ticketsApi from './rest/tickets.js';
 export * as themeApi from './rest/theme.js';

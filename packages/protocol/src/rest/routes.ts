@@ -36,6 +36,7 @@ import {
   wearCosmeticRequest,
   wearCosmeticResponse,
 } from './account.js';
+import { dailyCronResponse } from './daily.js';
 import { flagReportRequest, flagReportResponse } from './flags.js';
 import { recordViewRequest, recordViewResponse } from './traffic.js';
 import { healthResponse, pingResponse, usageResponse } from './health.js';
@@ -191,6 +192,14 @@ export const ROUTES: readonly Route[] = [
     method: 'GET',
     path: '/api/cron/quests',
     response: questCronResponse,
+  },
+  {
+    // Step N.4. A `GET` for the same reason as the one above — the scheduler
+    // issues one — and no `request` for the same reason: the only input is the
+    // bearer token, and a token is not a body.
+    method: 'GET',
+    path: '/api/cron/daily',
+    response: dailyCronResponse,
   },
 ];
 
