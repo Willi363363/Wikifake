@@ -42,6 +42,10 @@ export interface CountableRound {
   readonly hintsUsed: number;
   readonly score: number;
   readonly mode: 'solo' | 'multiplayer';
+  /** F.9 — `game.source_url`: the article, as one page rather than one title. */
+  readonly sourceUrl: string;
+  /** F.9 — items this player cast in this round. Zero in solo: there is no room. */
+  readonly itemsCast: number;
 }
 
 /** Whether a round counts towards a rule carrying this qualifier. */
@@ -87,6 +91,12 @@ export function progressFor(rule: QuestRule, rounds: readonly CountableRound[]):
       return counted.reduce((total, round) => total + round.truePositives, 0);
     case 'points':
       return counted.reduce((total, round) => total + Math.max(0, round.score), 0);
+    // The one tally that is not a sum: two rounds on the same article are one
+    // article, so a player cannot finish this by replaying their favourite page.
+    case 'distinctArticles':
+      return new Set(counted.map((round) => round.sourceUrl)).size;
+    case 'itemsCast':
+      return counted.reduce((total, round) => total + round.itemsCast, 0);
   }
 }
 

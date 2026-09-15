@@ -29,6 +29,11 @@ function round(over: Partial<CountableRound> = {}): CountableRound {
     hintsUsed: 0,
     score: 400,
     mode: 'solo',
+    // A distinct article per default round would hide the one thing
+    // `distinctArticles` has to get right, so the default repeats and each case
+    // varies it deliberately.
+    sourceUrl: 'https://fr.wikipedia.org/wiki/Tour_Eiffel',
+    itemsCast: 0,
     ...over,
   };
 }
@@ -231,5 +236,51 @@ describe('F.4 — the window a period covers', () => {
         );
       }
     }
+  });
+});
+
+describe('F.9 — the two tallies the schema already carried', () => {
+  it('counts one article however many rounds were played on it', () => {
+    const same = [round(), round(), round()];
+
+    expect(progressFor(rule({ tally: 'distinctArticles' }), same)).toBe(1);
+  });
+
+  it('counts an article once per page and not once per title', () => {
+    const rounds = [
+      round({ sourceUrl: 'https://fr.wikipedia.org/wiki/Tour_Eiffel' }),
+      round({ sourceUrl: 'https://fr.wikipedia.org/wiki/Lyon' }),
+      round({ sourceUrl: 'https://fr.wikipedia.org/wiki/Lyon' }),
+    ];
+
+    expect(progressFor(rule({ tally: 'distinctArticles' }), rounds)).toBe(2);
+  });
+
+  // The tally that is not a sum still has to respect the qualifier: a rule
+  // filtering to perfect rounds counts the articles of those rounds only.
+  it('counts articles of qualifying rounds only', () => {
+    const rounds = [
+      round({ sourceUrl: 'https://fr.wikipedia.org/wiki/Lyon', falsePositives: 1 }),
+      round({ sourceUrl: 'https://fr.wikipedia.org/wiki/Nantes' }),
+    ];
+
+    expect(
+      progressFor(rule({ tally: 'distinctArticles', qualifier: 'perfect' }), rounds),
+    ).toBe(1);
+  });
+
+  it('sums the items a player cast', () => {
+    const rounds = [round({ itemsCast: 3 }), round({ itemsCast: 2 }), round()];
+
+    expect(progressFor(rule({ tally: 'itemsCast' }), rounds)).toBe(5);
+  });
+
+  // A solo round has no room, so it can carry no cast. The reader does not
+  // enforce that — the query cannot produce it — but a quest asking for casts
+  // must not be advanced by a day of solo play.
+  it('counts nothing for a player who only played alone', () => {
+    const rounds = [round({ mode: 'solo' }), round({ mode: 'solo' })];
+
+    expect(progressFor(rule({ tally: 'itemsCast' }), rounds)).toBe(0);
   });
 });

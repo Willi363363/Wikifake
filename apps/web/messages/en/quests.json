@@ -27,6 +27,7 @@
     "DAILY_PERFECT_ROUND": "Finish {target} perfect rounds",
     "DAILY_UNAIDED_FALSIFICATIONS": "Find {target} falsifications without a hint",
     "DAILY_CLEAN_POINTS": "Score {target} points marking nothing true",
+    "DAILY_DISTINCT_ARTICLES": "Play on {target} different articles",
     "WEEKLY_FINISH_ROUNDS": "Finish {target} rounds",
     "WEEKLY_FIND_FALSIFICATIONS": "Find {target} falsifications",
     "WEEKLY_SCORE_POINTS": "Score {target} points",
@@ -34,6 +35,8 @@
     "WEEKLY_MULTIPLAYER_ROUNDS": "Finish {target} rounds in a room",
     "WEEKLY_UNAIDED_ROUNDS": "Finish {target} rounds without a hint",
     "WEEKLY_CLEAN_ROUNDS": "Finish {target} rounds marking nothing true",
-    "WEEKLY_PERFECT_POINTS": "Score {target} points in perfect rounds"
+    "WEEKLY_PERFECT_POINTS": "Score {target} points in perfect rounds",
+    "WEEKLY_DISTINCT_ARTICLES": "Play on {target} different articles",
+    "WEEKLY_CAST_ITEMS": "Cast {target} items in a room"
   }
 }
