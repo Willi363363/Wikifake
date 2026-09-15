@@ -3,6 +3,8 @@ export { account, session, user, verification } from './auth.js';
 export { admin } from './admin.js';
 export { profile } from './profile.js';
 export { playerStats } from './stats.js';
+// Track N — the article of the day, one row per day.
+export { dailyArticle } from './daily.js';
 export {
   answer,
   game,
