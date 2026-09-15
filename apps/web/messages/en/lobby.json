@@ -103,6 +103,15 @@
     "keepTitle": "Keep what you play",
     "keepLead": "An account keeps your scores, your streak and the quests you have finished. The rounds you have already played come with you.",
     "keepCta": "Create an account, or sign in",
-    "profile": "Your profile"
+    "profile": "Your profile",
+    "todayTitle": "Article of the day",
+    "todayPending": "Today’s article is being prepared. Press play and it will be ready.",
+    "todayPlay": "Play today’s article",
+    "todayDone": "Played. The next one arrives tomorrow.",
+    "todayRank": "{rank} of {players}",
+    "todayUnranked": "Started but not finished — no rank today.",
+    "todayPlayers": "{count, plural, =0 {Nobody has finished it yet} one {# player has finished it} other {# players have finished it}}",
+    "todayBoard": "The day’s board",
+    "todayGenerating": "The article of the day"
   }
 }

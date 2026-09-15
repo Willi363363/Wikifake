@@ -29,9 +29,30 @@ afterEach(() => {
 
 const AT = new Date('2026-09-10T12:00:00.000Z');
 
-const EMPTY: HomeView = { stats: null, daily: null, board: [], recent: [] };
+/** N.7 — a day nobody has made yet: the tile says so rather than inviting a round. */
+const NO_DAY = {
+  day: 20_706,
+  topic: null,
+  played: false,
+  rank: null,
+  score: null,
+  players: 0,
+};
+
+const EMPTY: HomeView = {
+  stats: null,
+  daily: null,
+  board: [],
+  recent: [],
+  today: NO_DAY,
+};
 
 const PLAYED: HomeView = {
+  // Not 'Chat', which the recent rounds below already use: the same title in
+  // two sections is fine on a real dashboard — today's article and a round
+  // somebody played are both article titles — but a fixture that collides makes
+  // every `getByText` in this file ambiguous.
+  today: { ...NO_DAY, topic: 'Tour Eiffel', players: 41 },
   stats: { gamesFinished: 12, averageScore: 74, currentStreak: 3 },
   daily: {
     questId: 'q1',

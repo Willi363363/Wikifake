@@ -28,6 +28,25 @@ export async function startRound(
     : { ok: false, message: UNREADABLE, code: null };
 }
 
+/**
+ * N.7 — the same response, for a round nobody chose the subject of.
+ *
+ * Its own call rather than `startRound` with an empty topic: the endpoints take
+ * different requests because they *are* different requests, and a caller that
+ * could pass a topic to this one would be a caller believing it was read.
+ */
+export async function startDaily(
+  request: gameApi.StartDailyRequest,
+): Promise<Answer<gameApi.StartGameResponse>> {
+  const answered = await post('/api/daily/start', request);
+  if (!answered.ok) return answered;
+
+  const read = decode(gameApi.startGameResponse, answered.value);
+  return read.ok
+    ? { ok: true, value: read.value }
+    : { ok: false, message: UNREADABLE, code: null };
+}
+
 /** C1.2 — the marked paragraphs go up, the score and the solution come back. */
 export async function submitRound(
   request: gameApi.SubmitRequest,

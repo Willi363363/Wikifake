@@ -137,3 +137,45 @@ ordinary round. There is a case for exactly that.
 
 **Null is not last.** A player who has not played today is not on this board, and
 a screen says so rather than printing a number.
+
+### N.7 — the entry point
+
+**The tile reads and never generates**, which is the decision this step turns on.
+`ensureDailyArticle` claims the day and calls a model; putting that behind a
+dashboard render would mean the home page of a quiet morning buys an article, and
+a crawler or a preflight request buys one too. The tile asks `selectDay`, which
+answers null for a day nobody has made, and the generation happens where somebody
+actually asked for a round. There is a case asserting the day is still claimable
+after a tile render.
+
+The consequence, stated rather than discovered: on a day whose cron did not run,
+the first player sees *being prepared* and gets the article by pressing Play.
+That is the read path doing its job, one screen further out.
+
+**`played` and `rank` answer different questions.** A round started and walked out
+of spends the attempt and earns no rank, so a player can be `played` with no rank
+— and a tile reading that as *not played yet* would invite them to start one the
+server refuses.
+
+**One journey, not two.** `/today` renders `SoloGame` with a flag rather than a
+copy: everything after the first request — the round, the hints, the debrief — is
+identical, so a second file would be two hundred lines kept in step by hand and
+the first divergence would be a bug only one of them had. What the flag changes
+is one request and one validation: the day has no topic in the URL for a player
+to have got wrong.
+
+**Its own endpoint rather than a flag on `startGameRequest`.** `topic` is required
+there, and making it optional would weaken the ordinary round's contract to
+describe a request that is not one. `POST /api/daily/start` takes a time limit and
+nothing else.
+
+**J.9's gate caught the screen before a crawler did.** `indexing.test.ts` walks
+`app/[locale]` and refuses a page route with no crawler decision — it exists
+because `/leaderboard` once shipped without one, eight pages having made the call
+and the ninth having forgotten. `/today` renders the same falsified article as
+`/solo`, and is the one screen where every crawler would see the *same* one, so
+it joins `CRAWLERS_KEPT_OUT`. The test failed before the route was ever visited.
+
+**`daily_not_ready` is 503 and not 502.** Nothing upstream failed: the day is
+being made, by whoever asked first or by the next request after a claim was given
+back. It is temporary and the caller should retry, which is what 503 says.

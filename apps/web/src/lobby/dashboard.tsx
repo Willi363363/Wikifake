@@ -51,7 +51,7 @@ export function Dashboard({ home, signedIn, pseudonym }: DashboardProps) {
   const t = useTranslations('lobby.home');
   const quests = useTranslations('quests');
   const format = useFormatter();
-  const { stats, daily, board, recent } = home;
+  const { stats, daily, board, recent, today } = home;
 
   /** A figure, or a dash: no rounds means no average, not an average of nought. */
   const shown = (value: number | null): string =>
@@ -63,6 +63,54 @@ export function Dashboard({ home, signedIn, pseudonym }: DashboardProps) {
 
       <div className="grid gap-4 sm:grid-cols-4">
         <LobbyEntry {...(pseudonym === undefined ? {} : { pseudonym })} />
+
+        {/* N.7 — the shared subject, first among the tiles that are not Play.
+            It is the only thing on this page that is the same for everybody
+            today, which is what a player comes back for; the quest beside it is
+            theirs alone. Placed before it for that reason rather than by
+            size. */}
+        <section className={`${TILE} sm:col-span-2`}>
+          <h2 className="m-0 font-mono text-[10px] tracking-[0.12em] text-muted uppercase">
+            {t('todayTitle')}
+          </h2>
+
+          {today.topic === null ? (
+            <p className="m-0 mt-2 text-sm text-ink-2">{t('todayPending')}</p>
+          ) : (
+            <>
+              <p className="m-0 mt-2 text-xl leading-tight font-semibold text-ink">
+                {today.topic}
+              </p>
+              <p className="m-0 mt-1 text-sm text-ink-2">
+                {t('todayPlayers', { count: today.players })}
+              </p>
+            </>
+          )}
+
+          <div className="mt-auto flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 pt-3">
+            {/* `played` and `rank` answer different questions: a round started
+                and abandoned spends the attempt and earns no rank, so a player
+                can be played with no rank — and inviting them to play again
+                would be offering something the server refuses. */}
+            {today.played ? (
+              <p className="m-0 text-sm text-ink-2">
+                {today.rank === null ? t('todayUnranked') : t('todayDone')}
+              </p>
+            ) : (
+              <p className="m-0 text-sm">
+                <Link href="/today" className="text-accent underline">
+                  {t('todayPlay')}
+                </Link>
+              </p>
+            )}
+
+            {today.rank === null ? null : (
+              <p className="m-0 font-mono text-sm font-semibold tabular-nums text-ink">
+                {t('todayRank', { rank: today.rank, players: today.players })}
+              </p>
+            )}
+          </div>
+        </section>
 
         {/* Second cell, top row: the thing with a deadline for a player, and
             what the game is for somebody who has just arrived. */}

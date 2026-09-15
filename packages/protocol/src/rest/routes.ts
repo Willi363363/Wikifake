@@ -16,6 +16,7 @@ import {
   hintResponse,
   scanRequest,
   scanResponse,
+  startDailyRequest,
   startGameRequest,
   startGameResponse,
   submitRequest,
@@ -65,6 +66,12 @@ export const ROUTES: readonly Route[] = [
     method: 'POST',
     path: '/api/game/start',
     request: startGameRequest,
+    response: startGameResponse,
+  },
+  {
+    method: 'POST',
+    path: '/api/daily/start',
+    request: startDailyRequest,
     response: startGameResponse,
   },
   {

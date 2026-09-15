@@ -17,6 +17,7 @@
 // they are bad at the game rather than that they have not played it.
 import { selectGameHistory, selectPlayerStats, type Database } from '@wikifake/db';
 
+import { readDailyTile, type DailyTile } from '../daily/tile.js';
 import { readBoard } from '../leaderboard/board.js';
 import { readLiveQuests, type LiveQuest } from '../quests/sets.js';
 
@@ -47,14 +48,27 @@ export interface HomeView {
   readonly daily: LiveQuest | null;
   readonly board: readonly { readonly displayName: string; readonly score: number }[];
   readonly recent: readonly HomeRound[];
+  /** N.7 — today's shared article, and where this viewer stands on it. */
+  readonly today: DailyTile;
 }
 
 export interface HomeContext {
   readonly db: Database['db'];
 }
 
-/** Nothing to show, which is what a guest and a first visit both look like. */
-const NOTHING: HomeView = { stats: null, daily: null, board: [], recent: [] };
+/**
+ * Nothing to show, which is what a guest and a first visit both look like.
+ *
+ * `Omit<…, 'today'>` since N.7: the day's tile is never nothing — a guest sees
+ * the article like everybody else, they just take no rank on it — so a constant
+ * claiming to be a whole view would be one field that is always overridden.
+ */
+const NOTHING: Omit<HomeView, 'today'> = {
+  stats: null,
+  daily: null,
+  board: [],
+  recent: [],
+};
 
 /**
  * The one quest a tile has room for.
@@ -90,12 +104,15 @@ export async function readHome(
     score: row.score,
   }));
 
-  if (viewerId === null) return { ...NOTHING, board: top };
+  if (viewerId === null) {
+    return { ...NOTHING, board: top, today: await readDailyTile(context, null, atMs) };
+  }
 
-  const [stats, quests, history] = await Promise.all([
+  const [stats, quests, history, today] = await Promise.all([
     selectPlayerStats(context.db, viewerId),
     readLiveQuests(context, viewerId, atMs),
     selectGameHistory(context.db, viewerId),
+    readDailyTile(context, viewerId, atMs),
   ]);
 
   return {
@@ -109,6 +126,7 @@ export async function readHome(
           },
     daily: dailyWorthShowing(quests),
     board: top,
+    today,
     // Finished rounds only, and `endedAt` is what says so: a round somebody
     // walked out of has no score worth listing under "what you played".
     recent: history

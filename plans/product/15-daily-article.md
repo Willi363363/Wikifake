@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 N.1 to N.3, N.5 and N.6 done — played and ranked; the cron and the entry point are left |
+| **State** | 🔶 N.1 to N.3 and N.5 to N.7 done — reachable, played and ranked; only the cron is left |
 | **Branch** | one per step |
 | **Depends on** | tracks E and G — it stores a round and ranks it |
 | **Delivers** | one article a day, the same for everybody, with its own board |
@@ -100,7 +100,7 @@ no article is not a broken row, it is a claim.**
 | N.4 | The cron, and the sweep for a claim that died | ⬜ |
 | N.5 | A round on the day's article | ✅ |
 | N.6 | The day's board | ✅ |
-| N.7 | The entry point on the home dashboard | ⬜ |
+| N.7 | The entry point: the tile, the endpoint, and the way in | ✅ |
 
 **N.3 was re-cut and the cron moved out.** It was written as "the read path and
 the cron", and the two are not one step: F.5's own rule says the read path is the

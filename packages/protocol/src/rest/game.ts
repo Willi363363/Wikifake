@@ -37,6 +37,23 @@ export const startGameRequest = z.object({
 export type StartGameRequest = z.infer<typeof startGameRequest>;
 
 /**
+ * N.7 — `POST /api/daily/start` — request.
+ *
+ * **No topic, and that is the whole difference.** An ordinary round is a subject
+ * a player chose; the article of the day is chosen by the server, once, for
+ * everybody. A schema that took a topic and ignored it would invite a caller to
+ * believe it was read.
+ *
+ * Its own endpoint rather than a flag on `startGameRequest`, for the same
+ * reason: `topic` is required there, and making it optional would weaken the
+ * ordinary round's contract to describe a request that is not one.
+ */
+export const startDailyRequest = z.object({
+  timeLimit: timeLimitSeconds.optional(),
+});
+export type StartDailyRequest = z.infer<typeof startDailyRequest>;
+
+/**
  * C1.1 — `POST /api/game/start` — response.
  *
  * The article, the count of falsifications, and a session handle. The shape is
