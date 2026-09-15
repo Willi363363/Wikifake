@@ -38,6 +38,7 @@ them are answers to a sentence on that page.
 | K | The admin panel, page by page | I | `12-admin-pages.md` |
 | L | The interface, again | — | `13-ui-overhaul.md` |
 | M | Badges | E | `14-badges.md` |
+| N | The article of the day | E, G | `15-daily-article.md` |
 
 `plans/README.md` carries the state of this table. It is not duplicated here —
 this file describes the tracks, that one says where they stand.

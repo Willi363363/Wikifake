@@ -117,6 +117,17 @@ export {
   selectPlayersWithStats,
 } from './queries/stats.js';
 export type { FinishedRound, PerfectRound, PlayerStats } from './queries/stats.js';
+
+// Track N — the article of the day. Claim, fill, read, and the sweep for a
+// generation that died holding a claim.
+export {
+  claimDay,
+  fillDay,
+  openClaimsBefore,
+  reopenStaleClaim,
+  selectDay,
+} from './queries/daily.js';
+export type { DailyArticle, OpenClaim } from './queries/daily.js';
 export {
   assignQuests,
   claimQuest,
