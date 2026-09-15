@@ -24,10 +24,16 @@
     "DAILY_SCORE_POINTS": "Score {target} points",
     "DAILY_UNAIDED_ROUND": "Finish {target} rounds without a hint",
     "DAILY_NOTHING_WRONGLY_MARKED": "Finish {target} rounds marking nothing true",
+    "DAILY_PERFECT_ROUND": "Finish {target} perfect rounds",
+    "DAILY_UNAIDED_FALSIFICATIONS": "Find {target} falsifications without a hint",
+    "DAILY_CLEAN_POINTS": "Score {target} points marking nothing true",
     "WEEKLY_FINISH_ROUNDS": "Finish {target} rounds",
     "WEEKLY_FIND_FALSIFICATIONS": "Find {target} falsifications",
     "WEEKLY_SCORE_POINTS": "Score {target} points",
     "WEEKLY_PERFECT_ROUNDS": "Finish {target} perfect rounds",
-    "WEEKLY_MULTIPLAYER_ROUNDS": "Finish {target} rounds in a room"
+    "WEEKLY_MULTIPLAYER_ROUNDS": "Finish {target} rounds in a room",
+    "WEEKLY_UNAIDED_ROUNDS": "Finish {target} rounds without a hint",
+    "WEEKLY_CLEAN_ROUNDS": "Finish {target} rounds marking nothing true",
+    "WEEKLY_PERFECT_POINTS": "Score {target} points in perfect rounds"
   }
 }
