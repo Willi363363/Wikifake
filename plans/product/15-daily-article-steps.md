@@ -106,3 +106,34 @@ differently to somebody who has forgotten they played at breakfast; and
 `daily_not_ready` is not a failure of the request — the day is being generated,
 or the next request will retry. The protocol's enum is closed and the catalogue
 is typed, so both needed a message in both locales before anything compiled.
+
+### N.6 — the day's board
+
+**No new table and no migration.** A daily round is a graded round like any
+other, so it is already in `leaderboard_entry`; what makes it the day's is
+`game.daily_day`, which N.5 put there. The board is that column narrowed.
+
+**And no `distinct on (user_id)`**, which is the whole difference from G.4's
+boards and is stated rather than left as an absence. Those rank *each player's
+best round in a period*, because a player can play a period fifty times — G.7
+found the board listing entries instead, so one player took five of fifty rows
+and *your own rank* meant nothing. Here N.5 refuses a second attempt, so a player
+already has one round: the machinery would answer a question the day cannot ask.
+
+It is one rule read twice, so the test asserts the single row rather than
+trusting the paragraph above.
+
+**The filters are shared and the joins are not**, which is G.4's shape rather
+than a compromise. `boardFilters` exists because G.7 found three copies of the
+same *clauses* disagreeing about which period they meant; the joins were never
+the risk. A first draft here shared the joins instead, through a generic select
+whose rows had to be cast back to their own type — and a cast in a query layer
+hides exactly the mistake no test catches. Rewritten without one.
+
+**A round that was not the day's is not on it**, even on the same article. That
+is why N.5 put a column on `game` rather than matching `source_url`: the same
+page can come up again months later, and the board would rank a stranger's
+ordinary round. There is a case for exactly that.
+
+**Null is not last.** A player who has not played today is not on this board, and
+a screen says so rather than printing a number.

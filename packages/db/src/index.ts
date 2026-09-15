@@ -131,6 +131,12 @@ export {
 } from './queries/daily.js';
 export type { DailyArticle, OpenClaim } from './queries/daily.js';
 export {
+  countDailyPlayers,
+  selectDailyBoard,
+  selectOwnDailyRank,
+} from './queries/daily-board.js';
+export type { DailyBoardRow, DailyRank } from './queries/daily-board.js';
+export {
   assignQuests,
   claimQuest,
   claimStatement,
