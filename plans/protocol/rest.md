@@ -3,7 +3,7 @@
 
 # REST — the round
 
-10 routes a browser calls while a round is being
+11 routes a browser calls while a round is being
 played. A `GET` takes no body. The account and the shop are in
 `rest-account.md`; the probes and the cron in `rest-operations.md`.
 
@@ -162,3 +162,12 @@ played. A `GET` takes no body. The account and the shop are in
 **Response**
 
 - unknown
+
+## `GET /api/cron/daily`
+
+**Response**
+
+- `day` — integer
+- `status` — `"ready"` | `"generating"` | `"unavailable"`
+- `generated` — boolean
+- `reopened` — integer (≥ 0)

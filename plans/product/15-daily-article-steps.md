@@ -99,6 +99,14 @@ requests and one model call: one that has not finished in ten minutes has not
 finished at all, so the deadline cannot take the day from work in progress. And a
 claim that did die costs the day ten minutes rather than until tomorrow.
 
+**It shipped as a `POST` and would never have run.** Vercel's scheduler issues a
+`GET` — `cron/quests` says so in the comment beside its own method — so the
+schedule would have fired every morning at 00:10 against a route that answers
+405, and nothing would have said a word: the read path covers every day anyway,
+so the only symptom would have been a first player waiting, for ever, with no
+failure anywhere. `route-parity.test.ts` caught it, because a route served under
+a method the catalogue does not describe is exactly what it refuses.
+
 **What the cron still does that the read path cannot**: yesterday's dead claims.
 Nobody asks for yesterday's article, so the read path's recovery never fires on
 it, and the row would sit there as a claim nobody can fill.
