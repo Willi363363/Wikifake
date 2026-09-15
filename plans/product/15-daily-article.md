@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 N.1 to N.3 and N.5 done — it is playable; the cron and the board are left |
+| **State** | 🔶 N.1 to N.3, N.5 and N.6 done — played and ranked; the cron and the entry point are left |
 | **Branch** | one per step |
 | **Depends on** | tracks E and G — it stores a round and ranks it |
 | **Delivers** | one article a day, the same for everybody, with its own board |
@@ -99,7 +99,7 @@ no article is not a broken row, it is a claim.**
 | N.3 | The read path: the day's article, on demand | ✅ |
 | N.4 | The cron, and the sweep for a claim that died | ⬜ |
 | N.5 | A round on the day's article | ✅ |
-| N.6 | The day's board | ⬜ |
+| N.6 | The day's board | ✅ |
 | N.7 | The entry point on the home dashboard | ⬜ |
 
 **N.3 was re-cut and the cron moved out.** It was written as "the read path and
