@@ -161,15 +161,16 @@ staging"* — and nothing said the same about the same commits travelling back.
 That night's way out was the bypass `03-infrastructure.md` names: `gh pr merge
 --admin` on a pull request whose diff is empty.
 
-**A third time on 2026-09-14**, when #271 was squashed: same realign, same
-refusal, same bypass.
+**A third time on 2026-09-14**, when #271 was squashed — and a fourth when the
+realign that repaired it was squashed too, which keeps its empty diff and throws
+away the parent that was the whole point.
 
-**The second fix is in, and not the one predicted** — "treat `main → staging` as
-documented" keys on a head ref a realign branch has not got. `check_commit_range`
-excludes commits already reachable from `main` instead: one in production is not
-this pull request's. It narrowed that realign from four commits to one.
-
-**The first is still free and unapplied**: *merge a promotion, never squash it*.
+**The second fix is in, and not the one predicted.** "Treat `main → staging` as
+documented" keys on a head ref a realign branch has not got, so
+`check_commit_range` reads `--first-parent` — what the branch wrote on its own
+line. `--not origin/main` was tried and did nothing in CI, which leaves no such
+ref. **The first is still free and unapplied**: *merge a promotion, never squash
+it*.
 
 ## The promotion's last step is a push the guard refuses
 
@@ -194,7 +195,6 @@ agent at all.
 **Three ways out, and the last may be the right one.** Teach `checks.sh push` to
 allow a push to `staging` whose sha is `origin/main` and is a fast-forward — the
 realign and nothing else. Or write `--no-verify` into the procedure, which is
-honest and teaches the wrong habit. Or drop the step: a promotion that is
-*merged* rather than squashed leaves `staging` an ancestor of `main` already, so
-the next one merges cleanly without it. The realign only ever repaired what a
-squash broke, which is the entry above.
+honest and teaches the wrong habit. Or drop the step: a *merged* promotion
+leaves `staging` an ancestor of `main` already. The realign only ever repaired
+what a squash broke, which is the entry above.
