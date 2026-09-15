@@ -90,6 +90,20 @@ export {
 } from './cosmetics.js';
 export type { Cosmetic, CosmeticId, CosmeticSlot, Outfit } from './cosmetics.js';
 
+// Track M — the badges. Derived from `player_stats` and never stored, so this
+// is the whole of them: there is no query and no table to go with it.
+export {
+  badgesEarned,
+  BADGE_CATALOGUE,
+  BADGE_IDS,
+  BADGES,
+  holdsBadge,
+  isBadgeId,
+  nextBadgeIn,
+  RATIO_METRICS,
+} from './badges.js';
+export type { Badge, BadgeId, BadgeMetric, BadgeStats } from './badges.js';
+
 export { asRegion, effectiveRegion, regionForCountry } from './regions.js';
 export type { PlayerRegion } from './regions.js';
 
