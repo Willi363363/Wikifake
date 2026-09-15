@@ -12,9 +12,10 @@
 // `workspace-graph.test.ts` enforces it: data does not depend on rules. So the
 // caller — which may depend on both — maps one onto the other, exactly as
 // `recordSubmission` is handed `isPerfectRound` instead of reaching for it.
-import { and, asc, eq, gte, isNotNull, isNull, lt } from 'drizzle-orm';
+import { and, asc, eq, gte, isNotNull, isNull, lt, sql } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
+import { itemUse } from '../schema/audit.js';
 import { game, participant } from '../schema/game.js';
 import { questAssignment } from '../schema/quests.js';
 
@@ -151,6 +152,10 @@ export interface RoundInWindow {
   readonly hintsUsed: number;
   readonly score: number;
   readonly mode: 'solo' | 'multiplayer';
+  /** F.9 — the article, as a page rather than as a title. */
+  readonly sourceUrl: string;
+  /** F.9 — items this player cast in this round. */
+  readonly itemsCast: number;
   readonly at: Date;
 }
 
@@ -182,6 +187,14 @@ export async function selectRoundsInWindow(
       hintsUsed: participant.hintsUsed,
       score: participant.score,
       mode: game.mode,
+      sourceUrl: game.sourceUrl,
+      // Counted here rather than joined and grouped: a join to `item_use` would
+      // multiply this row per item and every other figure with it, and the
+      // window is a handful of rounds. Still no rule in this module — it counts
+      // casts, it does not know what an item is worth.
+      itemsCast: sql<number>`(
+        select count(*) from ${itemUse} where ${itemUse.casterId} = ${participant.id}
+      )::int`,
       at: participant.submittedAt,
     })
     .from(participant)
@@ -207,6 +220,8 @@ export async function selectRoundsInWindow(
     hintsUsed: row.hintsUsed ?? 0,
     score: row.score ?? 0,
     mode: row.mode,
+    sourceUrl: row.sourceUrl,
+    itemsCast: row.itemsCast,
     at: row.at as Date,
   }));
 }
