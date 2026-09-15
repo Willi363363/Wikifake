@@ -32,6 +32,7 @@ import { useFormatter, useTranslations } from 'next-intl';
 import Link from 'next/link';
 
 import { AccountData } from './account-data.js';
+import { Badges } from './badges.js';
 import { SignOutButton } from './sign-out-button.js';
 
 export interface ProfileProps {
@@ -139,6 +140,11 @@ export function Profile({ pseudonym, email, stats }: ProfileProps) {
               })}
             </p>
           </section>
+
+          {/* M.2 — after the figures rather than among them. A badge is what a
+              counter adds up to, so it reads as a conclusion; above the grid it
+              would have been an ornament over the numbers it summarises. */}
+          <Badges stats={stats} />
         </>
       )}
 

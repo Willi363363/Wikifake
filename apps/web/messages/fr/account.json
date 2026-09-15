@@ -71,5 +71,31 @@
     "deleteBusy": "Suppression…",
     "cancel": "Garder mon compte",
     "deleteFailed": "Le compte n’a pas pu être supprimé. Rien n’a changé."
+  },
+  "badges": {
+    "title": "Badges",
+    "held": "{held} sur {total}",
+    "empty": "Terminez une manche et le premier est à vous.",
+    "next": "Suivant",
+    "complete": "Tous les échelons sont à vous.",
+    "progress": "{current} / {target}",
+    "floorProgress": "{current} / {target} manches",
+    "names": {
+      "FINISHED_1": "Première manche",
+      "FINISHED_10": "Dix manches",
+      "FINISHED_50": "Cinquante manches",
+      "FINISHED_200": "Deux cents manches",
+      "FOUND_25": "Vingt-cinq démasquées",
+      "FOUND_100": "Cent démasquées",
+      "FOUND_500": "Cinq cents démasquées",
+      "STREAK_3": "Trois d’affilée",
+      "STREAK_10": "Dix d’affilée",
+      "STREAK_25": "Vingt-cinq d’affilée",
+      "SCORE_300": "Trois cents en une manche",
+      "SCORE_500": "Cinq cents en une manche",
+      "SCORE_700": "Sept cents en une manche",
+      "ACCURACY_75": "Trois sur quatre",
+      "ACCURACY_90": "Neuf sur dix"
+    }
   }
 }
