@@ -8,8 +8,17 @@ export {
   MIN_CONTENT_CHARS,
 } from './paragraphs.js';
 export type { CollectedArticle } from './paragraphs.js';
-export { fetchRenderedPage, searchTitles, WIKI_LANGUAGE } from './mediawiki.js';
+export {
+  fetchRenderedPage,
+  mostViewedTitles,
+  randomTitles,
+  searchTitles,
+  WIKI_LANGUAGE,
+} from './mediawiki.js';
 export type { RenderedPage, WikiRequest, WikiTransport } from './mediawiki.js';
+// Track N — the day's subject, chosen by Wikipedia rather than by a model.
+export { chooseDailyArticle } from './daily-topic.js';
+export type { ChooseDependencies, ChooseOptions, ChosenArticle } from './daily-topic.js';
 export { failed, ok } from './result.js';
 export type { FailureReason, Result } from './result.js';
 export {

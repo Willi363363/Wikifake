@@ -154,6 +154,105 @@ export async function searchTitles(
     : ok(titles);
 }
 
+/**
+ * The main namespace, and the only one that is an article.
+ *
+ * `list=mostviewed` answers across namespaces — a live call on 2026-09-15
+ * returned `Wikipédia:Accueil principal` and `Spécial:Recherche` among its first
+ * five — and neither is a page anybody can be graded on. `list=random` takes the
+ * namespace as a parameter and this is passed to it; `mostviewed` does not, so
+ * it is filtered from the answer instead.
+ */
+const ARTICLE_NAMESPACE = 0;
+
+interface TitleListBody {
+  readonly query?: Readonly<
+    Record<string, readonly { readonly title?: unknown; readonly ns?: unknown }[]>
+  >;
+}
+
+/** The titles in one `list=` answer that are articles, in the order given. */
+function articleTitles(body: unknown, list: string): readonly string[] {
+  const rows = (body as TitleListBody).query?.[list];
+  if (rows === undefined) return [];
+
+  return rows
+    .filter((row) => row.ns === ARTICLE_NAMESPACE)
+    .map((row) => row.title)
+    .filter((title): title is string => typeof title === 'string');
+}
+
+/**
+ * The most read articles of the last day, most read first — step N.2.
+ *
+ * **Why this and not `list=random`.** A random article is usually a stub about a
+ * village or a species: measured on 2026-09-15, one draw of four gave `Rajaz`,
+ * `Église Saint-Pierre de Vievy-le-Rayé` and a disambiguation page. An article
+ * nobody has heard of makes a poor shared subject, which is the one thing the
+ * article of the day exists to be. The same draw from this list gave `Cookie
+ * (informatique)` and `Julia (film, 1977)`.
+ *
+ * It is the PageViewInfo extension, deployed on every Wikimedia wiki, so it
+ * needs no endpoint the rest of this module does not already use. A wiki without
+ * it answers with no list rather than an error — which reads here as an empty
+ * result, and `randomTitles` is what a caller falls back to.
+ */
+export async function mostViewedTitles(
+  limit: number,
+  request: WikiRequest,
+  transport: WikiTransport,
+): Promise<Result<readonly string[]>> {
+  const body = await callApi(
+    {
+      action: 'query',
+      list: 'mostviewed',
+      pvimmetric: 'pageviews',
+      // Wide, because the namespace filter and the paragraph filter above both
+      // throw candidates away. The ceiling is ours rather than the API's: asked
+      // for 600 on 2026-09-15 it warned "must be between 1 and 500" and answered
+      // with 500 anyway, so this bounds what we ask for and not what it accepts.
+      pvimlimit: String(Math.max(1, Math.min(limit, 100))),
+    },
+    request,
+    transport,
+  );
+  if (!body.ok) return body;
+
+  const titles = articleTitles(body.value, 'mostviewed');
+
+  return titles.length === 0
+    ? failed('no_results', 'the wiki returned no most-viewed articles')
+    : ok(titles);
+}
+
+/** Random articles, for a wiki or a day where the most-viewed list is no help. */
+export async function randomTitles(
+  limit: number,
+  request: WikiRequest,
+  transport: WikiTransport,
+): Promise<Result<readonly string[]>> {
+  const body = await callApi(
+    {
+      action: 'query',
+      list: 'random',
+      rnnamespace: String(ARTICLE_NAMESPACE),
+      // Tighter than the most-viewed list on purpose: this is the fallback, and
+      // a caller only ever fetches `attempts` of them. The API's own ceiling is
+      // 500 and it warns rather than refuses past it — measured, not assumed.
+      rnlimit: String(Math.max(1, Math.min(limit, 20))),
+    },
+    request,
+    transport,
+  );
+  if (!body.ok) return body;
+
+  const titles = articleTitles(body.value, 'random');
+
+  return titles.length === 0
+    ? failed('no_results', 'the wiki returned no random articles')
+    : ok(titles);
+}
+
 interface ParseBody {
   readonly error?: { readonly code?: unknown };
   readonly parse?: {
