@@ -187,8 +187,29 @@ check_commit_range() {
     return 0
   fi
 
+  # The commits this branch wrote on its own line, not everything reachable.
+  #
+  # It matters for one shape of branch: the realign that follows a **squashed**
+  # promotion. `main` stops being a descendant of `staging`, and the branch that
+  # merges it back drags `main`'s own promotion commit into the range — a
+  # subject the merge button wrote from a pull request title, which the
+  # promotion itself is exempt from and this was not. Three bypasses so far, all
+  # in `plans/current-state/08-toolchain-debt.md`.
+  #
+  # **`--first-parent`, and not `--not origin/main`.** That was tried first and
+  # is the more obvious statement of the same idea; it worked locally and did
+  # nothing in CI, where `actions/checkout` leaves no reliable remote-tracking
+  # ref for a branch it did not check out. A rule that depends on a ref being
+  # there is a rule that silently stops applying where it is not, which is worse
+  # than the defect. The first-parent line needs nothing fetched — it is the
+  # branch's own history by definition.
+  #
+  # What it gives up: a branch that merges *another branch* in stops showing
+  # that branch's commits here. They are still read by the pre-commit hook as
+  # they are written, and by the pull request that branch opens.
   local revs sha status=0
-  revs=$(git rev-list "$1..$2") || { err "cannot list commits in range $1..$2"; return; }
+  revs=$(git rev-list --first-parent "$1..$2") \
+    || { err "cannot list commits in range $1..$2"; return; }
   for sha in $revs; do
     git log -1 --format=%B "$sha" > /tmp/msg
     printf '\n%s %s\n' "$sha" "$(head -1 /tmp/msg)"

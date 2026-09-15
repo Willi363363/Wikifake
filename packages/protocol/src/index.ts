@@ -32,6 +32,7 @@ export * as roomsApi from './rest/rooms.js';
 export * as flagsApi from './rest/flags.js';
 export * as questsApi from './rest/quests.js';
 export * as ticketsApi from './rest/tickets.js';
+export * as themeApi from './rest/theme.js';
 export { recordViewRequest, recordViewResponse, viewedPage } from './rest/traffic.js';
 export type {
   RecordViewRequest,

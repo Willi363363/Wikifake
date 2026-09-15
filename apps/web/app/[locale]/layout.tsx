@@ -14,17 +14,21 @@
 // interface speaks, and the one thing that stays French whatever the locale is
 // the article itself, which carries its own `lang` in `round/article.tsx`. The
 // clause and its tests were amended together, as phase 11 requires.
+import { cn } from '@wikifake/ui';
 import type { Metadata, Viewport } from 'next';
 import { Archivo, JetBrains_Mono } from 'next/font/google';
 import { hasLocale, NextIntlClientProvider } from 'next-intl';
 import { notFound } from 'next/navigation';
 import type { ReactNode } from 'react';
 
+import { cookies } from 'next/headers';
 import { adminHere } from '../../src/admin/gate.js';
 import { messagesFor } from '../../src/i18n/catalogue.js';
 import { LocaleSwitch } from '../../src/i18n/locale-switch.js';
 import { LegalLinks } from '../../src/legal/links.js';
 import { SiteNav } from '../../src/nav/site-nav.js';
+import { classFor, THEME_COOKIE, themeFrom } from '../../src/theme/choice.js';
+import { ThemeSwitch } from '../../src/theme/theme-switch.js';
 import { LOCALES, type Locale } from '../../src/i18n/locales.js';
 import { absolute, localePath, siteOrigin } from '../../src/indexing.js';
 
@@ -173,9 +177,19 @@ export default async function RootLayout({
   // somebody who cannot open it, and `hidden` announces it to anybody who reads
   // the source.
   const isAdmin = await adminHere();
+  // Step L.9 — read here, so the class is on `<html>` in the first byte of the
+  // response. A palette applied after hydration is a page that flashes the
+  // wrong one at everybody who chose the other, and the flash is worst in the
+  // dark: a white rectangle for a frame, at night, is what the choice was made
+  // to avoid. No class at all is *system*, which is what lets the media query
+  // in `theme.css` answer.
+  const theme = themeFrom((await cookies()).get(THEME_COOKIE)?.value);
 
   return (
-    <html lang={locale} className={`${archivo.variable} ${jetbrainsMono.variable}`}>
+    <html
+      lang={locale}
+      className={cn(archivo.variable, jetbrainsMono.variable, classFor(theme))}
+    >
       <body className="bg-bg text-ink">
         {/* Step 11.1: every screen below reads its copy through `next-intl`.
             No props on purpose — rendered in a server component, the provider
@@ -194,6 +208,10 @@ export default async function RootLayout({
               policy that answers nobody. */}
           <footer className="flex flex-col items-center gap-2 pb-6">
             <LocaleSwitch />
+            {/* Step L.9 — the other half of "how this page is presented",
+                beside the language rather than in the bar above: a palette is
+                not a destination, and the bar is for the ten screens. */}
+            <ThemeSwitch theme={theme} />
             <LegalLinks />
           </footer>
         </NextIntlClientProvider>

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | ✅ L.1 to L.8 done — the direction is shipped |
+| **State** | ✅ L.1 to L.9 done — the direction is shipped, in both palettes |
 | **Branch** | `feat/ui-overhaul-lab`, then one per step |
 | **Depends on** | nothing. It replaces track A's output |
 | **Delivers** | an art direction the owner likes, and a navigation that exists |
@@ -105,6 +105,20 @@ marketing about them.
 | L.6 | Every screen onto the new direction — the game surface | ✅ |
 | L.7 | The admin panel **re-tokened**: the palette only, not one control moved | ✅ |
 | L.8 | Retire the lab, and the `/dev` prefix with it | ✅ |
+| L.9 | The dark palette, reachable: a switch, and the system's answer by default | ✅ |
+
+**L.9 was not in the plan, and that is the finding rather than the excuse.** L.3
+wrote twenty-two dark tokens and measured twenty-one pairs across them, and
+nothing ever applied `.dark` outside `/gallery` — the whole second palette
+shipped where no player could see it. Track A had the same gap for eight months.
+Found by reading the built page: no test asks *is this stylesheet reachable*.
+
+Three states, not two — *system* is a reader asking the machine, and most
+machines change their answer at dusk. The choice is a cookie read on the server,
+so the class is on `<html>` in the first byte; applied after hydration it would
+flash the wrong palette, worst in the dark. The switch is a form with three
+submit buttons, so it works with JavaScript off — a link would have been a `GET`
+that changes state, which Next's prefetching fires by itself.
 
 **L.7 has a test that proves it rather than a promise.** If nothing but the
 palette changes, `players-screen.test.tsx` and its seven siblings keep passing

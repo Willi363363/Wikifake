@@ -38,6 +38,7 @@ are defined in `product/`, and their state is the table below.
 | I | Admin panel | ✅ done — read-only, six sections, one range | `product/09-admin.md` |
 | J | SEO, legal and polish | ✅ done — eleven steps, and a legal text nobody has read as a lawyer | `product/10-seo-and-legal.md` |
 | K | The admin panel, page by page | ✅ done — eight pages on the chosen shapes, the lab retired | `product/12-admin-pages.md` |
+| L | The interface, again | ✅ done — a second art direction, the site's first navigation, and both palettes reachable | `product/13-ui-overhaul.md` |
 
 What was deliberately left out of it, with the reasons, is in
 `product/11-deferred.md`.
