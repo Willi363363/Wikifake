@@ -39,6 +39,7 @@ are defined in `product/`, and their state is the table below.
 | J | SEO, legal and polish | ✅ done — eleven steps, and a legal text nobody has read as a lawyer | `product/10-seo-and-legal.md` |
 | K | The admin panel, page by page | ✅ done — eight pages on the chosen shapes, the lab retired | `product/12-admin-pages.md` |
 | L | The interface, again | ✅ done — a second art direction, the site's first navigation, and both palettes reachable | `product/13-ui-overhaul.md` |
+| M | Badges | 🔶 M.1 done — the catalogue and the reader; the profile is M.2 | `product/14-badges.md` |
 
 What was deliberately left out of it, with the reasons, is in
 `product/11-deferred.md`.
