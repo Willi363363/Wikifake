@@ -101,11 +101,17 @@ export const QUEST_RULE_IDS = [
   'DAILY_SCORE_POINTS',
   'DAILY_UNAIDED_ROUND',
   'DAILY_NOTHING_WRONGLY_MARKED',
+  'DAILY_PERFECT_ROUND',
+  'DAILY_UNAIDED_FALSIFICATIONS',
+  'DAILY_CLEAN_POINTS',
   'WEEKLY_FINISH_ROUNDS',
   'WEEKLY_FIND_FALSIFICATIONS',
   'WEEKLY_SCORE_POINTS',
   'WEEKLY_PERFECT_ROUNDS',
   'WEEKLY_MULTIPLAYER_ROUNDS',
+  'WEEKLY_UNAIDED_ROUNDS',
+  'WEEKLY_CLEAN_ROUNDS',
+  'WEEKLY_PERFECT_POINTS',
 ] as const;
 
 export type QuestRuleId = (typeof QUEST_RULE_IDS)[number];
@@ -196,6 +202,42 @@ export const QUEST_CATALOGUE: Readonly<Record<QuestRuleId, QuestRule>> = {
     target: { min: 1, max: 2 },
     reward: 30,
   },
+  // F.8 — the three pairs below were computable the day F.4 shipped. Written
+  // now because the generator draws 3 of 5, so five rules is ten possible days.
+  //
+  // Perfect is every falsification found and nothing true marked, so one is a
+  // day's work and the reward is the highest a day pays.
+  DAILY_PERFECT_ROUND: {
+    id: 'DAILY_PERFECT_ROUND',
+    period: 'daily',
+    tally: 'rounds',
+    qualifier: 'perfect',
+    target: { min: 1, max: 2 },
+    reward: 40,
+  },
+  // Lower than DAILY_FIND_FALSIFICATIONS' 6–12 rather than equal to it: the
+  // same count without the hints on offer is a harder day, not the same one.
+  // This is the rule that lowers the daily floor for this tally to 4, which is
+  // what the weekly side has to clear.
+  DAILY_UNAIDED_FALSIFICATIONS: {
+    id: 'DAILY_UNAIDED_FALSIFICATIONS',
+    period: 'daily',
+    tally: 'falsificationsFound',
+    qualifier: 'noHints',
+    target: { min: 4, max: 8 },
+    reward: 30,
+  },
+  // Points, but only from rounds where nothing true was marked. Well under
+  // DAILY_SCORE_POINTS' 400–900 for the same reason, and it moves that tally's
+  // daily floor to 250.
+  DAILY_CLEAN_POINTS: {
+    id: 'DAILY_CLEAN_POINTS',
+    period: 'daily',
+    tally: 'points',
+    qualifier: 'nothingWronglyMarked',
+    target: { min: 250, max: 500 },
+    reward: 30,
+  },
   WEEKLY_FINISH_ROUNDS: {
     id: 'WEEKLY_FINISH_ROUNDS',
     period: 'weekly',
@@ -239,6 +281,35 @@ export const QUEST_CATALOGUE: Readonly<Record<QuestRuleId, QuestRule>> = {
     qualifier: 'multiplayer',
     target: { min: 3, max: 6 },
     reward: 110,
+  },
+  // Roughly one unaided round most days, rather than seven — a weekly that
+  // needs every day is a weekly a player abandons on the day they miss.
+  WEEKLY_UNAIDED_ROUNDS: {
+    id: 'WEEKLY_UNAIDED_ROUNDS',
+    period: 'weekly',
+    tally: 'rounds',
+    qualifier: 'noHints',
+    target: { min: 5, max: 9 },
+    reward: 110,
+  },
+  WEEKLY_CLEAN_ROUNDS: {
+    id: 'WEEKLY_CLEAN_ROUNDS',
+    period: 'weekly',
+    tally: 'rounds',
+    qualifier: 'nothingWronglyMarked',
+    target: { min: 6, max: 10 },
+    reward: 110,
+  },
+  // The hardest rule in the catalogue, and the best paid: points, counted only
+  // from rounds that were perfect. Its floor clears the daily floor for this
+  // tally, which DAILY_CLEAN_POINTS just moved to 250.
+  WEEKLY_PERFECT_POINTS: {
+    id: 'WEEKLY_PERFECT_POINTS',
+    period: 'weekly',
+    tally: 'points',
+    qualifier: 'perfect',
+    target: { min: 1200, max: 2200 },
+    reward: 130,
   },
 };
 
