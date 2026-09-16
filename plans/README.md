@@ -41,7 +41,7 @@ are defined in `product/`, and their state is the table below.
 | L | The interface, again | ✅ done — a second art direction, the site's first navigation, and both palettes reachable | `product/13-ui-overhaul.md` |
 | M | Badges | ✅ done — fifteen rungs derived from `player_stats`, on the profile | `product/14-badges.md` |
 | N | The article of the day | ✅ done — one article a day, the same for everybody, with its own board | `product/15-daily-article.md` |
-| O | Hardening — the service survives | ⬜ not started — six steps, out of the review of 2026-09-16 | `product/16-hardening.md` |
+| O | Hardening — the service survives | ✅ done — six repairs out of the review of 2026-09-16, each with a test that fails without it | `product/16-hardening.md` |
 
 What was deliberately left out of it, with the reasons, is in
 `product/11-deferred.md`.
