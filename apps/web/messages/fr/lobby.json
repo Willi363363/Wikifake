@@ -14,15 +14,15 @@
     "topicPlaceholder": "Chat",
     "playSolo": "Jouer en solo",
     "opening": "Ouverture…",
-    "openRoom": "Ouvrir une salle",
-    "roomCodeLabel": "Code de la salle",
+    "openRoom": "Ouvrir un salon",
+    "roomCodeLabel": "Code du salon",
     "joinSubmit": "Rejoindre",
     "serverAuthoritative": "le serveur fait foi",
     "errors": {
       "notAllowed": "ce n’est pas autorisé",
       "nickname": "ce pseudo n’est pas autorisé",
-      "roomNotOpened": "la salle n’a pas pu être ouverte",
-      "unreadableRoom": "le serveur a ouvert une salle que nous ne pouvons pas lire",
+      "roomNotOpened": "le salon n’a pas pu être ouvert",
+      "unreadableRoom": "le serveur a ouvert un salon que nous ne pouvons pas lire",
       "unreachable": "le serveur est injoignable"
     },
     "account": "Créer un compte, ou se connecter",
@@ -30,7 +30,7 @@
     "leaderboard": "Classements"
   },
   "room": {
-    "eyebrow": "Salle",
+    "eyebrow": "Salon",
     "connection": {
       "idle": "en attente",
       "connecting": "connexion en cours",
@@ -42,7 +42,7 @@
     "imReady": "Je suis prêt",
     "startRound": "Lancer la manche",
     "startWithoutWaiting": "Lancer sans attendre",
-    "backToRoom": "Retour à la salle"
+    "backToRoom": "Retour au salon"
   },
   "vote": {
     "title": "Choisissez un sujet",
