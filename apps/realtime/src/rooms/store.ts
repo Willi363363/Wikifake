@@ -19,7 +19,7 @@ import {
 } from '@wikifake/domain';
 import { ROOM_IDLE_LIMIT_SECONDS } from '@wikifake/domain';
 
-import { CLOSE_SCRIPT, SWAP_SCRIPT } from './scripts.js';
+import { CLOSE_SCRIPT, SWAP_SCRIPT, TOUCH_SCRIPT } from './scripts.js';
 import type { RedisCommands } from '../redis.js';
 
 /** Keys are namespaced so two deployments on one Redis do not share rooms. */
@@ -136,13 +136,40 @@ export function createRoomStore(options: StoreOptions): RoomStore {
         // a room that is being forgotten.
         const closing = decided.effects.some((effect) => effect.kind === 'close_room');
 
+        // Step O.5 — an event that changed nothing writes nothing.
+        //
+        // `cursor`, `live_score`, `chat_message`, `get_lobby` and every refusal
+        // hand back the state they were given: `emit(state, …)` keeps the
+        // reference, so the reducer says so itself and nothing here has to
+        // compare two object graphs to find out.
+        //
+        // Writing them anyway was not free and not harmless. A room in a round
+        // holds the whole article and the whole solution — **20.3 KiB
+        // measured** — and `cursor` alone rewrote all of it sixteen times a
+        // second per player, read and written, changing nothing. Worse than the
+        // bytes: each one took the revision, so a `submit_answer` or a
+        // `use_item` racing four moving mice lost the compare-and-swap it had no
+        // reason to lose, and ten of those became "the room could not be
+        // reached" said to somebody looking at the room.
+        //
+        // The TTL still has to be refreshed, because the swap used to do it as a
+        // side effect of committing — a room whose only traffic is cursors and
+        // chat must not expire underneath the players making it. That is one
+        // `PEXPIRE` against a whole state.
+        const unchanged = decided.state === held.state && !closing;
+
         const outcome = readOutcome(
-          await options.redis.eval(closing ? CLOSE_SCRIPT : SWAP_SCRIPT, {
-            keys: [key],
-            arguments: closing
-              ? [String(held.revision)]
-              : [String(held.revision), JSON.stringify(decided.state), idleMs],
-          }),
+          await options.redis.eval(
+            closing ? CLOSE_SCRIPT : unchanged ? TOUCH_SCRIPT : SWAP_SCRIPT,
+            {
+              keys: [key],
+              arguments: closing
+                ? [String(held.revision)]
+                : unchanged
+                  ? [String(held.revision), idleMs]
+                  : [String(held.revision), JSON.stringify(decided.state), idleMs],
+            },
+          ),
         );
 
         if (outcome.committed) {

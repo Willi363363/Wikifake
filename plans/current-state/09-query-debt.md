@@ -67,7 +67,7 @@ Part of that 45 ms is the ordering mismatch above — 19 ms of it, probed. The
 rest is inherent to the deduplication. The two ways out, and why forcing a
 nested loop measures nothing, are in `../product/07-leaderboards-queries.md`.
 
-## A mouse move rewrites the whole round, and changes nothing
+## A mouse move rewrote the whole round — closed by O.5
 
 `actions.ts:175` — `cursor` returns `state` **unchanged**, and emits one `send`
 effect per other player. `store.ts:127` — `apply` serialises and writes the
@@ -88,9 +88,17 @@ per recipient, then BullMQ's `remove` + `add` to re-arm `room_idle` — which
 `arming.ts:85` does on **every** event. Seven or so round trips, times sixteen a
 second, times the players in the room.
 
-`live_score` and `chat_message` take the same path for the same reason.
+`live_score` and `chat_message` took the same path for the same reason.
 
-## Every signed-in page reads the session three times
+**Closed by step O.5** (`../product/16-hardening-cost.md`): the store skips the
+write when the reducer hands back the state it was given, which it says by
+returning the same reference. Re-measured with the same probe — 260 revisions
+and 5.15 MiB written in four seconds became **0 and 0**. Kept here rather than
+deleted because the number is what a future change to `RoomState` should be
+weighed against: the article and the solution are still in it, and the next
+event that *does* change something still writes all 20.3 KiB.
+
+## Every signed-in page read the session three times — closed by O.6
 
 Measured on a local Postgres with `log_statement = all`, one request per page,
 signed in, everything already compiled:
@@ -122,9 +130,16 @@ On a loopback that is about a millisecond each and invisible. Against Neon from
 a Vercel function it is four avoidable round trips on the critical path of every
 signed-in page, before the page's own data.
 
-`gate.ts:40` already carries the sentence that names the cost — *"Track I's exit
+`gate.ts:40` already carried the sentence that names the cost — *"Track I's exit
 gate counts the lookups a page load costs, and this is one"* — so the lookup was
 counted and the duplication was not.
+
+**Closed by step O.6**, with React's `cache` and not with `cookieCache`: six
+session-and-user reads a page became two, which is the floor. Why the second
+half was refused is in `../product/16-hardening-cost.md`. Kept here because the
+table above is what any later change to the layout should be measured against —
+`adminHere()` still runs on every page, and it is one query that a page which
+renders no admin entry does not need.
 
 Two fixes, and they are not exclusive: wrap the session read in React's
 `cache()`, which dedupes within one render; and turn on `cookieCache`, which

@@ -63,3 +63,32 @@ end
 redis.call('DEL', KEYS[1])
 return {1, '0'}
 `;
+
+/**
+ * Step O.5 — keeps a room alive without rewriting it.
+ *
+ * `KEYS[1]` the room's hash, `ARGV[1]` the revision the caller read, `ARGV[2]`
+ * how long a silent room lives, in milliseconds.
+ *
+ * The swap above refreshes the TTL as a side effect of committing, which was
+ * fine while every event committed. Since an event that changes nothing no
+ * longer writes, the refresh has to exist on its own — otherwise a room whose
+ * only traffic is cursors and chat would expire underneath the players making
+ * it.
+ *
+ * Guarded by the same revision as the other two, so a room that was closed and
+ * rebuilt under the same code is not kept alive by a caller looking at the old
+ * one. Returns the same `{committed, revision}` shape, so `readOutcome` reads
+ * all three.
+ */
+export const TOUCH_SCRIPT = `
+local held = redis.call('HGET', KEYS[1], 'revision')
+if held == false then held = '0' end
+
+if held ~= ARGV[1] then
+  return {0, held}
+end
+
+redis.call('PEXPIRE', KEYS[1], ARGV[2])
+return {1, held}
+`;

@@ -4,7 +4,7 @@ The three remaining steps of `16-hardening.md`, which keeps the frame and the
 step table. O.4 is a deadline nothing has; O.5 and O.6 are the two measurements
 of `../current-state/09-query-debt.md`, which is where their numbers live.
 
-O.4 and O.6 are done. O.5 is not started.
+All three are done.
 
 ### O.4 — a generation that ends
 
@@ -62,25 +62,42 @@ bumps the revision. Four players at the clients' own pacing move ~2.6 MB/s
 through Redis, none of which changes anything — and the revisions they burn are
 what make a real event lose its ten retries and tell the player the room is gone.
 
-The narrow fix is the honest one: **when the reducer returns the state it was
-given, publish the effects and skip the write.** It is an identity check on the
-value the reducer already returns, it changes no rule, and it removes the write,
-the revision bump and the contention together.
+**The narrow fix was the honest one: when the reducer returns the state it was
+given, publish the effects and skip the write.** It changes no rule, and it
+removes the write, the revision bump and the contention in one line.
 
-Two things it must not break, and both need a test:
+The check is **reference identity**, and that is not a shortcut — it is the
+reducer saying so itself. `emit(state, …)` in `reducer.ts` hands back the state
+it was given, so `cursor`, `live_score`, `chat_message`, `get_lobby` and every
+refusal return the same object; `set_ready` does not. Probed before relying on
+it. Identity can only ever skip a write the reducer literally declined to make:
+a change returned as a new object is still written, and a change made by
+mutating in place would be a bug in a package whose purity has its own test.
 
-- **The idle clock.** `armFor` re-arms `room_idle` on every event, so a room
-  where the only traffic is cursors must still not be reaped. The alarm is the
-  scheduler's, not the store's, so skipping the *write* need not skip the arm —
-  but it is the trap, and it is worth an explicit case.
-- **The TTL.** The swap script refreshes the key's expiry. A room whose only
-  traffic is chat for an hour must not expire out from under itself, so the
-  step either touches the expiry without rewriting the value, or states why it
-  does not have to.
+Measured with the probe that found it, four players at the clients' own 60 ms
+pacing, four seconds, on a room in a round holding 20.3 KiB:
+
+| | applies | revisions burnt | state written |
+|---|---|---|---|
+| before | 260 | 260 | **5.15 MiB** |
+| after | 256 | **0** | **0** |
+
+And read back again each time, so the traffic saved is twice that.
+
+**The two traps the sheet named, both real, both held by a case:**
+
+- **The TTL.** The swap refreshed the key's expiry as a side effect of
+  committing, so an event that no longer commits would no longer refresh it and
+  a room whose only traffic is cursors and chat would expire underneath the
+  players making it. `TOUCH_SCRIPT` is one `PEXPIRE` under the same revision
+  guard as the other two — a whole state's worth of write replaced by a command.
+- **The idle clock** is the scheduler's, not the store's: `armFor` re-arms
+  `room_idle` from `server.ts` on every event, so skipping the write never
+  touched it. Stated rather than discovered.
 
 Re-arming BullMQ twice per event is the other half of the per-frame cost, and it
 is **left for later on purpose**: it is a change to what an alarm means, not to
-what a write costs, and this step is already the largest here.
+what a write costs, and this step was already the largest here.
 
 ### O.6 — the session, read once a request
 
