@@ -15,10 +15,9 @@
 // `gate.test.ts` reads the route files and fails if a page under `admin/` does
 // not begin with it.
 import { isAdmin } from '@wikifake/db';
-import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 
-import { auth } from '../auth/auth.js';
+import { currentSession } from '../auth/session.js';
 import { db } from '../game/wiring.js';
 
 export interface Admin {
@@ -47,7 +46,9 @@ export interface Admin {
  * lookups a page load costs, and this is one.
  */
 async function adminBehind(): Promise<Admin | null> {
-  const session = await auth().api.getSession({ headers: await headers() });
+  // Step O.6 — this runs on every page, for the bar. It is the one that made
+  // the duplication a cost rather than a curiosity.
+  const session = await currentSession();
 
   if (session === null) return null;
   if (session.user.isAnonymous === true) return null;

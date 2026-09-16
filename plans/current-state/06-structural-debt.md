@@ -11,6 +11,7 @@ not cover what it looks like it covers.
 | `08-toolchain-debt.md` | the commands you run, and what they do not tell you |
 | `11-promotion-debt.md` | the promotion: its merge method, its graph, its last step |
 | `10-test-debt.md` | the suites: why a green run can be wrong |
+| `12-realtime-debt.md` | `apps/realtime`: what stops it serving a room |
 
 It split on 2026-09-06, at 190 lines with two findings waiting for room. The
 axis is the one that was already there: half these entries were about code

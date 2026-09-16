@@ -221,6 +221,19 @@ export function createService(options: ServiceOptions): Service {
   let server: ServerType | undefined;
 
   sockets.on('connection', (socket: WebSocket, request: IncomingMessage) => {
+    // Step O.1 — `ws` emits `error` on the **WebSocket**, not only on the TCP
+    // socket beneath it, and an `error` event with no listener is what Node's
+    // `EventEmitter` throws. Without this line a frame carrying an invalid
+    // UTF-8 sequence — two bytes, from any client, before any rule is asked —
+    // ends the process and every room it is holding.
+    //
+    // Swallowed rather than logged, which is the shape `redis.ts`, `bus.ts` and
+    // `queue.ts` all use and for the same reason: this file takes every
+    // collaborator as a parameter and owns no logger, and `ws` follows the
+    // error with a `close` that the handler below already acts on. What is lost
+    // is the diagnosis, and `12-realtime-debt.md` says so rather than pretending
+    // otherwise.
+    socket.on('error', () => undefined);
     void accept(socket, request);
   });
 
@@ -301,6 +314,57 @@ export function createService(options: ServiceOptions): Service {
       return queued;
     };
 
+    /**
+     * Step O.2 — the departure, registered before anything is awaited.
+     *
+     * `close` used to be registered at the **end** of this function, after four
+     * round trips and the settled join. A socket that closed inside that window
+     * — a tab shut the moment it opened, against a Redis that answers in tens of
+     * milliseconds — fired its `close` before anything was listening, and the
+     * connection stayed in the registry for the life of the process: the
+     * nickname locked against its own owner, and a roster holding a player who
+     * would never be ready, so the round never started.
+     *
+     * Registered here instead. Nothing between `connections.add` above and this
+     * line is awaited, so the event cannot be missed.
+     *
+     * **What it does is deferred, and that is the delicate half**: a `leave`
+     * must not reach the room before the `join` it undoes, and at this point the
+     * join is not on the chain yet. So the two booleans below carry the
+     * ordering, and `depart` runs from whichever comes second — this handler, or
+     * the join at the end. Neither can run it twice, because no `await`
+     * separates either flag from the check beside it.
+     */
+    let joined = false;
+    let departed = false;
+
+    const depart = (): void => {
+      // D5 — a dropped socket is not a departure. The player is marked away and
+      // keeps everything; the window is what decides whether they were gone.
+      //
+      // The subscription goes last, so this instance is still listening when
+      // the departure it caused comes back round — a room it still holds other
+      // sockets for keeps hearing.
+      void enqueue({ kind: 'leave', player: playerName })
+        .then(() =>
+          scheduler.arm(
+            { roomCode, kind: 'grace', player: playerName },
+            graceSeconds * 1000,
+          ),
+        )
+        .finally(() => void subscriptions.stopListening(roomCode));
+    };
+
+    socket.on('close', () => {
+      // The registry first, and unconditionally: a `leave` that broadcasts must
+      // not try to send to the socket that has just gone, and a socket that
+      // closed before its join must not keep its slot either way. This is the
+      // half that was leaking.
+      connections.remove(connection);
+      departed = true;
+      if (joined) depart();
+    });
+
     socket.on('message', (data: Buffer) => {
       const frame = readFrame(data.toString('utf8'));
 
@@ -362,23 +426,11 @@ export function createService(options: ServiceOptions): Service {
 
     await enqueue({ kind: 'join', player: playerName, userId });
 
-    socket.on('close', () => {
-      // The registry first: a `leave` that broadcasts must not try to send to
-      // the socket that has just gone. The subscription goes last, so this
-      // instance is still listening when the departure it caused comes back
-      // round — a room it still holds other sockets for keeps hearing.
-      connections.remove(connection);
-      // D5 — a dropped socket is not a departure. The player is marked away and
-      // keeps everything; the window is what decides whether they were gone.
-      void enqueue({ kind: 'leave', player: playerName })
-        .then(() =>
-          scheduler.arm(
-            { roomCode, kind: 'grace', player: playerName },
-            graceSeconds * 1000,
-          ),
-        )
-        .finally(() => void subscriptions.stopListening(roomCode));
-    });
+    // Step O.2 — the join is on the chain, so a departure may now run behind it.
+    // A socket that closed while the join was settling departs here; one that
+    // closes later departs from the handler above.
+    joined = true;
+    if (departed) depart();
   }
 
   return {

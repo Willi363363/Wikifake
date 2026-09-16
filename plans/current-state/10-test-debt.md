@@ -10,6 +10,7 @@ green run can be wrong, and why a red one can mean nothing.
 | `08-toolchain-debt.md` | the commands you run, and what they do not tell you |
 | `11-promotion-debt.md` | the promotion: its merge method, its graph, its last step |
 | `09-query-debt.md` | query plans: what is slow, at what size |
+| `12-realtime-debt.md` | `apps/realtime`: what stops it serving a room |
 | this file | the suites: what a run is worth, and when it is worth nothing |
 
 It was split out of `08-toolchain-debt.md` at step J.9, which is the moment that
@@ -92,6 +93,10 @@ the cause of *these* failures. A key collision produces a wrong answer; what
 happens here is a slow one. `until`'s deadline is now eight seconds and
 `testTimeout` twenty, on C.7's argument: a threshold on a shared runner measures
 the runner, and nothing in this suite asserts how fast the server answered.
+
+**Eight seconds is still reached**: 2026-09-16, `reconnect.test.ts` at 8.02s on
+a `theme_selected`. That commit passed the file five times locally, three pinned
+under load, and passed on a re-run unchanged. A higher ceiling only moves it.
 
 **What stays open** is the shape rather than the symptom: three packages read
 `REDIS_URL` and turbo runs them at once, so a key collision remains *possible*

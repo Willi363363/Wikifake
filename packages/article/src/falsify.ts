@@ -114,6 +114,16 @@ export interface FalsifyOptions {
   readonly candidates: readonly Candidate[];
   /** From `MAX_OUTPUT_TOKENS`: a truncated answer used to lose the whole batch. */
   readonly maxOutputTokens?: number;
+  /**
+   * Step O.4 — the round's deadline, shared with the Wikipedia calls.
+   *
+   * Without it a model that answers slowly and never finishes is not a failure
+   * anybody can see: `generateText` waits, `sourceArticle` waits, and the room
+   * stays in `generating` until its idle alarm an hour later. An expired
+   * deadline throws, which the `catch` below already turns into a failure the
+   * callers handle — and into a `callFailed`, because the tokens were spent.
+   */
+  readonly signal?: AbortSignal;
 }
 
 export interface FalsifyOutcome {
@@ -168,6 +178,7 @@ export async function falsify(options: FalsifyOptions): Promise<FalsifyReport> {
       ...(options.maxOutputTokens === undefined
         ? {}
         : { maxOutputTokens: options.maxOutputTokens }),
+      ...(options.signal === undefined ? {} : { abortSignal: options.signal }),
     });
   } catch (error) {
     // A schema the answer does not satisfy lands here, and that is the point:

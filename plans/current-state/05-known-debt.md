@@ -179,18 +179,18 @@ not the client's to key — whoever owns the server messages must decide whether
 they become error *codes* the client translates, or stay sentences in one
 language. Until then a French interface will show them in English.
 
-## The register is five files
+## The register is six files
 
-The entries above are defects and gaps with a `file:line`. Four neighbours hold
+The entries above are defects and gaps with a `file:line`. Five neighbours hold
 the rest, because a register that reaches 200 lines stops being read:
-`06-structural-debt.md` the shape of the repository and its code,
-`08-toolchain-debt.md` the commands you run, `09-query-debt.md` query plans,
-`10-test-debt.md` the suites, and `11-promotion-debt.md` the promotion.
+`06-structural-debt.md` the shape of the code, `08-toolchain-debt.md` the
+commands you run, `09-query-debt.md` what is slow, `10-test-debt.md` the suites,
+`11-promotion-debt.md` the promotion, and `12-realtime-debt.md` what stops the
+socket service serving a room.
 
-The fourth arrived in H.2 and the fifth at J.9, each time because the file a
-finding belonged in had reached the cap while the finding was still being
-written — which is the reason to split rather than squeeze. All five are the
-register.
+Each arrived because the file a finding belonged in had reached the cap while
+the finding was still being written — H.2, then J.9, then this file. That is the
+reason to split rather than squeeze. All six are the register.
 
 ## The chat rail sits on the room card at 360 px
 

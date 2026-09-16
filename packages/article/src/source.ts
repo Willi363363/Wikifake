@@ -19,6 +19,28 @@ import { generateArticle } from './generate.js';
 import type { ArticleCache, CachedArticle } from './cache/cache.js';
 import type { WikiRequest, WikiTransport } from './mediawiki.js';
 
+/**
+ * Step O.4 — how long a round may spend being made, in milliseconds.
+ *
+ * **One deadline for the whole chain, not one per call.** What a player
+ * experiences is the wait, and three bounded steps still add up to three times
+ * the bound; a shared signal makes the arithmetic the same as the promise.
+ *
+ * Forty-five seconds is generous on purpose. A search and a page are a fraction
+ * of a second each when Wikipedia is well, and the falsification of four
+ * paragraphs of a French article is the part that varies — so the number has to
+ * clear a slow model rather than a typical one, because cutting a legitimate
+ * generation short costs the round and waiting costs a spinner. It is long as a
+ * spinner and short as an hour, which is what a room in `generating` used to
+ * wait.
+ *
+ * It lives here rather than in `@wikifake/domain` beside `GRACE_SECONDS`, which
+ * is what `16-hardening-cost.md` first proposed: `domain` is a **devDependency**
+ * of this package, and importing it at runtime would add an edge to the
+ * workspace graph for one number that nothing outside this chain reads.
+ */
+export const GENERATION_DEADLINE_MS = 45_000;
+
 export interface SourceDependencies {
   /** Null when this deployment runs without a cache: every round is generated. */
   readonly cache: ArticleCache | null;
@@ -30,6 +52,11 @@ export interface SourceDependencies {
    * same reason `generateArticle` takes it rather than calling `Math.random`.
    */
   readonly seed: () => number;
+  /**
+   * How long the whole chain may take. Shortened by the tests, which is the
+   * only reason it is a parameter: no deployment sets it.
+   */
+  readonly deadlineMs?: number;
 }
 
 /** A round's article, however it was obtained, and whether it cost anything. */
@@ -80,6 +107,10 @@ export async function sourceArticle(
   dependencies: SourceDependencies,
   topic: string,
 ): Promise<SourceOutcome> {
+  // Step O.4 — started here so the cache lookup is outside it: a hit costs no
+  // network and should not be able to expire.
+  const deadline = AbortSignal.timeout(dependencies.deadlineMs ?? GENERATION_DEADLINE_MS);
+
   if (dependencies.cache !== null) {
     const lookup = await dependencies.cache.get(topic);
     if (lookup.kind === 'hit') {
@@ -87,8 +118,30 @@ export async function sourceArticle(
     }
   }
 
-  const titles = await searchTitles(topic, dependencies.wiki, dependencies.transport);
-  if (!titles.ok) return { ok: false, reason: 'topic_not_found', calls: [] };
+  const titles = await searchTitles(
+    topic,
+    dependencies.wiki,
+    dependencies.transport,
+    deadline,
+  );
+  if (!titles.ok) {
+    // Step O.4 — a search that could not be *reached* is not a topic that does
+    // not exist, and the difference is what the caller acts on: a missing topic
+    // means try the next candidate, and an unreachable Wikipedia means the next
+    // candidate will meet the same silence. Reported as `topic_not_found`
+    // before this step, so a timeout told a player their subject was not on
+    // Wikipedia — and told a room to spend its whole deadline again, per
+    // candidate, proving the same thing.
+    //
+    // The distinction already existed below, for the page: it only had to be
+    // asked here too.
+    return {
+      ok: false,
+      reason:
+        titles.reason === 'unreachable' ? 'wikipedia_unreachable' : 'topic_not_found',
+      calls: [],
+    };
+  }
 
   // The first hit, and no auto-suggestion beyond it. `fetchRenderedPage` resolves
   // the exact title: the Python asked for `results[0]` without disabling the
@@ -99,6 +152,7 @@ export async function sourceArticle(
     best ?? topic,
     dependencies.wiki,
     dependencies.transport,
+    deadline,
   );
   if (!page.ok) {
     return {
@@ -116,6 +170,7 @@ export async function sourceArticle(
     sourceUrl: page.value.url,
     model: dependencies.model,
     seed: dependencies.seed(),
+    signal: deadline,
   });
 
   if (!report.result.ok) {
