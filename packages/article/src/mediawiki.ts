@@ -81,6 +81,7 @@ async function callApi(
   parameters: Readonly<Record<string, string>>,
   request: WikiRequest,
   transport: WikiTransport,
+  signal?: AbortSignal,
 ): Promise<Result<unknown>> {
   const base = endpoint(request);
   if (!base.ok) return base;
@@ -98,10 +99,20 @@ async function callApi(
   try {
     response = await transport.fetch(url, {
       headers: { 'User-Agent': request.userAgent, Accept: 'application/json' },
+      // Step O.4 — without this there is no upper bound on a round. `fetch`
+      // waits as long as the other end keeps the socket open, so Wikipedia
+      // answering slowly and never finishing held a solo request until the
+      // platform's own timeout and left a multiplayer room in `generating`
+      // until its idle alarm, an hour later.
+      ...(signal === undefined ? {} : { signal }),
     });
   } catch (error) {
     // A network failure is not a missing page, and a caller that cannot tell
     // them apart will keep asking for other topics while Wikipedia is down.
+    //
+    // Step O.4 — an expired deadline arrives here too, as an `AbortError`, and
+    // `unreachable` is the honest name for it: what the caller needs to know is
+    // that no page is coming, not which of the two reasons applied.
     return failed('unreachable', error instanceof Error ? error.message : String(error));
   }
 
@@ -130,6 +141,8 @@ export async function searchTitles(
   query: string,
   request: WikiRequest,
   transport: WikiTransport,
+  /** Step O.4 — the round's deadline, shared by every call the chain makes. */
+  signal?: AbortSignal,
 ): Promise<Result<readonly string[]>> {
   const trimmed = query.trim();
   if (trimmed === '') return failed('no_results', 'an empty query matches nothing');
@@ -138,6 +151,7 @@ export async function searchTitles(
     { action: 'query', list: 'search', srsearch: trimmed, srlimit: '3' },
     request,
     transport,
+    signal,
   );
   if (!body.ok) return body;
 
@@ -278,6 +292,8 @@ export async function fetchRenderedPage(
   title: string,
   request: WikiRequest,
   transport: WikiTransport,
+  /** Step O.4 — the round's deadline, shared by every call the chain makes. */
+  signal?: AbortSignal,
 ): Promise<Result<RenderedPage>> {
   const trimmed = title.trim();
   if (trimmed === '') return failed('not_found', 'an empty title is not a page');
@@ -286,6 +302,7 @@ export async function fetchRenderedPage(
     { action: 'parse', page: trimmed, prop: 'text|revid', redirects: '1' },
     request,
     transport,
+    signal,
   );
   if (!body.ok) return body;
 

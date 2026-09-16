@@ -4,7 +4,7 @@ The three remaining steps of `16-hardening.md`, which keeps the frame and the
 step table. O.4 is a deadline nothing has; O.5 and O.6 are the two measurements
 of `../current-state/09-query-debt.md`, which is where their numbers live.
 
-O.6 is done. O.4 and O.5 are not started.
+O.4 and O.6 are done. O.5 is not started.
 
 ### O.4 — a generation that ends
 
@@ -15,14 +15,43 @@ No `AbortSignal` on the Wikipedia calls, none on the model call, no
 rejection**, so the guard never runs and the room waits for the idle alarm, an
 hour later. Solo holds the request open instead.
 
-One deadline, in `@wikifake/domain` beside the other numbers the game agrees on,
-carried by `AbortSignal.timeout` into `fetchRenderedPage`, `searchTitles` and
-`falsify`. A timed-out generation then *is* a rejection, which is what every
-caller already handles.
+**One deadline for the whole chain**, not one per call: what a player
+experiences is the wait, and three bounded steps still add up to three times the
+bound. `sourceArticle` creates it with `AbortSignal.timeout` and hands the same
+signal to `searchTitles`, `fetchRenderedPage` and `falsify`. A timed-out
+generation then *is* a rejection, which is what every caller already handles —
+`callApi`'s catch turns it into `unreachable` and `falsify`'s into a failure
+that is still billed, because the tokens were spent.
 
-The number is a decision the step has to make and defend: long enough for a slow
-model on a real article, short enough that a player is told rather than left. It
-belongs beside `ROOM_IDLE_LIMIT_SECONDS`, not in three files.
+Started **after** the cache lookup, so a hit costs no network and cannot expire.
+
+`GENERATION_DEADLINE_MS` is forty-five seconds, and the number is the part to
+argue with. A search and a page are a fraction of a second each when Wikipedia
+is well; the falsification of four paragraphs is what varies. So it has to clear
+a *slow* model rather than a typical one — cutting a legitimate generation short
+costs the round, and waiting only costs a spinner. Long as a spinner, short as
+the hour a room in `generating` used to wait.
+
+**It lives in `@wikifake/article`, not in `@wikifake/domain`** as this sheet
+first proposed. `domain` is a devDependency of that package, so importing it at
+runtime would add an edge to the workspace graph — which `workspace-graph.test.ts`
+holds — for one number nothing outside the chain reads.
+
+`maxDuration = 60` on the three routes that can generate is the backstop under
+it: the chain's own deadline is the one that should fire, because it ends in a
+refusal the player can read.
+
+**One thing it fixed that was not on the list.** A search that could not be
+*reached* was reported as `topic_not_found` — so a timeout told a player their
+subject was not on Wikipedia, and told a room to try the next candidate against
+the same silence, spending the whole deadline again per candidate. The
+distinction already existed for the page fetch; it only had to be asked for the
+search too.
+
+**The test is the hang.** Two of its five cases do not fail without the fix —
+they never finish, which is the defect exactly. Run against a 50 ms deadline
+rather than forty-five seconds, with a transport and a model that honour a
+signal and answer nothing otherwise.
 
 ### O.5 — an event that changes nothing writes nothing
 

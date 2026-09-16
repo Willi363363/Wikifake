@@ -40,6 +40,8 @@ export interface GenerateOptions {
   readonly seed: number;
   readonly falsificationCount?: number;
   readonly maxOutputTokens?: number;
+  /** Step O.4 — the round's deadline, handed on to the model call. */
+  readonly signal?: AbortSignal;
 }
 
 export interface GeneratedArticle {
@@ -153,6 +155,7 @@ export async function generateArticle(
     ...(options.maxOutputTokens === undefined
       ? {}
       : { maxOutputTokens: options.maxOutputTokens }),
+    ...(options.signal === undefined ? {} : { signal: options.signal }),
   });
 
   // Assembled once, before the first path that can leave: every return below

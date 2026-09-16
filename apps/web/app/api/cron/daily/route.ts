@@ -12,6 +12,17 @@ import { dailyCronContext, handleDailyCron } from '../../../../src/daily/cron-ha
 /** Reads a secret, writes rows, may call a model. Nothing is prerenderable. */
 export const dynamic = 'force-dynamic';
 
+/**
+ * Step O.4 — the ceiling the platform enforces, above the chain's own deadline.
+ *
+ * `GENERATION_DEADLINE_MS` is forty-five seconds and it is the one that should
+ * fire: it ends in a refusal the player can read, and the model call it aborts
+ * is still billed and still recorded. This is the backstop under it — a request
+ * that somehow outlives its own deadline is cut by the platform rather than
+ * held to its default, which is five minutes.
+ */
+export const maxDuration = 60;
+
 export function GET(request: Request): Promise<Response> {
   return handleDailyCron(dailyCronContext(), request);
 }

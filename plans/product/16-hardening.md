@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — O.1 to O.3 and O.6 done; O.4 and O.5 remain |
+| **State** | in progress — O.1 to O.4 and O.6 done; O.5 remains |
 | **Branch** | one per step |
 | **Depends on** | nothing. Every step repairs code that is already in production |
 | **Delivers** | a socket service that outlives a bad frame, a dropped Redis and a slow model; and two round trips per page instead of six |
@@ -48,7 +48,7 @@ test is this track happening again in six months.
 | O.1 | The socket's own `error`, which nobody is listening for | ✅ |
 | O.2 | The `close` handler, registered before anything can be awaited | ✅ |
 | O.3 | A Redis connection that actually comes back | ✅ |
-| O.4 | A generation that ends, one way or the other | ⬜ |
+| O.4 | A generation that ends, one way or the other | ✅ |
 | O.5 | An event that changes nothing writes nothing | ⬜ |
 | O.6 | The session, read once a request | ✅ |
 
