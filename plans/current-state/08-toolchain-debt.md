@@ -12,6 +12,7 @@ that is reused when you meant it to be rebuilt.
 | `09-query-debt.md` | query plans: what is slow, at what size |
 | `10-test-debt.md` | **the suites themselves** — why a green run can be wrong |
 | `11-promotion-debt.md` | the promotion: its merge method, its graph, its last step |
+| `12-realtime-debt.md` | `apps/realtime`: what stops it serving a room |
 
 These are not defects in the product and they are not the repository's shape.
 They are the reasons a command can mislead you, and every one of them below was

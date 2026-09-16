@@ -10,6 +10,7 @@ green run can be wrong, and why a red one can mean nothing.
 | `08-toolchain-debt.md` | the commands you run, and what they do not tell you |
 | `11-promotion-debt.md` | the promotion: its merge method, its graph, its last step |
 | `09-query-debt.md` | query plans: what is slow, at what size |
+| `12-realtime-debt.md` | `apps/realtime`: what stops it serving a room |
 | this file | the suites: what a run is worth, and when it is worth nothing |
 
 It was split out of `08-toolchain-debt.md` at step J.9, which is the moment that

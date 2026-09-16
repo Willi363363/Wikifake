@@ -11,6 +11,7 @@ documented procedure that cannot be run as written.
 | `08-toolchain-debt.md` | the commands you run, and what they do not tell you |
 | `09-query-debt.md` | query plans: what is slow, at what size |
 | `10-test-debt.md` | the suites themselves — why a green run can be wrong |
+| `12-realtime-debt.md` | `apps/realtime`: what stops it serving a room |
 | this file | the promotion: its merge method, its graph, its last step |
 
 **Split out of `08-toolchain-debt.md` on 2026-09-15**, which had reached the
