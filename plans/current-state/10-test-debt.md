@@ -94,9 +94,9 @@ happens here is a slow one. `until`'s deadline is now eight seconds and
 `testTimeout` twenty, on C.7's argument: a threshold on a shared runner measures
 the runner, and nothing in this suite asserts how fast the server answered.
 
-**Eight seconds is still reached**: 2026-09-16, `reconnect.test.ts` at 8.02s on
-a `theme_selected`. That commit passed the file five times locally, three pinned
-under load, and passed on a re-run unchanged. A higher ceiling only moves it.
+**Eight seconds is still reached**: twice on 2026-09-16, `reconnect.test.ts` at
+8.02s on a `theme_selected`. The second was a **markdown-only** commit whose two
+CI runs, on one SHA, disagreed. A higher ceiling would only move the number.
 
 **What stays open** is the shape rather than the symptom: three packages read
 `REDIS_URL` and turbo runs them at once, so a key collision remains *possible*
