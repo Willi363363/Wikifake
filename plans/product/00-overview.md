@@ -39,6 +39,7 @@ them are answers to a sentence on that page.
 | L | The interface, again | — | `13-ui-overhaul.md` |
 | M | Badges | E | `14-badges.md` |
 | N | The article of the day | E, G | `15-daily-article.md` |
+| O | Hardening — the service survives | — | `16-hardening.md` |
 
 `plans/README.md` carries the state of this table. It is not duplicated here —
 this file describes the tracks, that one says where they stand.
