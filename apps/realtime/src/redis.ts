@@ -58,17 +58,41 @@ async function withinTimeout<T>(work: Promise<T>): Promise<T> {
 /**
  * A connection opened on first use, and reopened after a failure.
  *
- * Lazy so importing this module does not require a reachable Redis, and reset on
- * rejection because a memoised failed promise keeps the service down for the
- * lifetime of the process, long after Redis came back.
+ * Lazy so importing this module does not require a reachable Redis, and dropped
+ * on failure because a memoised one keeps the service down for the lifetime of
+ * the process, long after Redis came back.
+ *
+ * **Failure means two things and used to mean one.** A first `connect` that
+ * rejects was always handled. A connection that *succeeds and then drops* — an
+ * idle reaper, a Key Value restart, a network blip — was not: with
+ * `reconnectStrategy: false` node-redis opens no new socket of its own, so the
+ * memoised client stayed closed for ever and every call rejected with *the
+ * client is closed*. On the socket service that is an instance answering "the
+ * room could not be reached" to players sitting in a room, until it restarts.
+ * Step O.3, from `12-realtime-debt.md`.
+ *
+ * **`isOpen` is what says so**, and it is measured rather than assumed: with no
+ * reconnection strategy this client emits `error` twice and never emits `end`,
+ * so there is no event to hang the recovery on. The flag is read on the way in
+ * instead, which costs nothing and cannot be missed.
  */
 export function lazyRedis(url: string): RedisCommands {
   let pending: Promise<RedisCommands> | undefined;
+  /** The resolved client, while there is one. Read only to ask if it is open. */
+  let opened: { isOpen: boolean } | undefined;
 
   const connect = (): Promise<RedisCommands> => {
+    // A client that closed under us is not a client. Dropped here so the next
+    // call opens a fresh one — which is what this function has always said it
+    // does, and now does.
+    if (opened !== undefined && !opened.isOpen) {
+      pending = undefined;
+      opened = undefined;
+    }
+
     if (pending !== undefined) return pending;
 
-    const attempt: Promise<RedisCommands> = createClient({
+    const client = createClient({
       url,
       socket: {
         connectTimeout: REDIS_TIMEOUT_MS,
@@ -80,14 +104,23 @@ export function lazyRedis(url: string): RedisCommands {
     })
       // node-redis throws on an `error` event with no listener, and the errors it
       // emits are the ones a caller already sees as a rejected promise.
-      .on('error', () => undefined)
-      .connect()
-      .catch((error: unknown) => {
-        if (pending === attempt) pending = undefined;
-        throw error;
-      });
+      .on('error', () => undefined);
+
+    const attempt: Promise<RedisCommands> = client.connect().catch((error: unknown) => {
+      if (pending === attempt) pending = undefined;
+      throw error;
+    });
 
     pending = attempt;
+    // Recorded only once it has connected and only while it is still this
+    // memo's client, so a connection superseded while it was opening does not
+    // decide whether the current one is alive.
+    void attempt.then(
+      () => {
+        if (pending === attempt) opened = client;
+      },
+      () => undefined,
+    );
     return attempt;
   };
 
