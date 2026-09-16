@@ -15,10 +15,9 @@
 import type { Metadata } from 'next';
 
 import { robotsFor } from '../../../src/indexing.js';
-import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { auth } from '../../../src/auth/auth.js';
+import { currentSession } from '../../../src/auth/session.js';
 import { CHOOSE_A_NAME, readViewer } from '../../../src/account/gate.js';
 import { db } from '../../../src/game/wiring.js';
 import { ShopScreen } from '../../../src/shop/screen.js';
@@ -31,7 +30,7 @@ export const metadata: Metadata = { robots: robotsFor('/shop') };
 export const dynamic = 'force-dynamic';
 
 export default async function ShopPage() {
-  const session = await auth().api.getSession({ headers: await headers() });
+  const session = await currentSession();
 
   if (session === null) redirect('/sign-in');
   if (session.user.isAnonymous === true) redirect('/sign-up');

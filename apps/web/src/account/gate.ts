@@ -18,10 +18,9 @@
 // what a stale copy buys is a player who is shown somebody else's name after a
 // claim lost a race, and what it saves is one indexed read on a primary key.
 import { selectPseudonym } from '@wikifake/db';
-import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { auth } from '../auth/auth.js';
+import { currentSession } from '../auth/session.js';
 import { db } from '../game/wiring.js';
 
 /** Where an account with no pseudonym is sent, named once. */
@@ -37,7 +36,8 @@ export interface Viewer {
 
 /** Who is behind this request, and what they are called. */
 export async function readViewer(): Promise<Viewer> {
-  const session = await auth().api.getSession({ headers: await headers() });
+  // Step O.6 — the same answer the layout and the page get, asked for once.
+  const session = await currentSession();
 
   if (session === null) return { kind: 'anonymous' };
   if (session.user.isAnonymous === true) {

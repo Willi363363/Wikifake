@@ -4,7 +4,7 @@ The three remaining steps of `16-hardening.md`, which keeps the frame and the
 step table. O.4 is a deadline nothing has; O.5 and O.6 are the two measurements
 of `../current-state/09-query-debt.md`, which is where their numbers live.
 
-None of them is started.
+O.6 is done. O.4 and O.5 are not started.
 
 ### O.4 — a generation that ends
 
@@ -61,14 +61,40 @@ and `user` rows, read three times with identical parameters. `/fr/shop` eleven,
 `adminHere()` in the layout — on every page since L.5 — the page itself, and
 `readViewer()`.
 
-Two fixes, not exclusive, and the step should take both:
+**React's `cache()` was taken, and `cookieCache` was not.** The first is what
+the finding is about: three callers asking the same question in one render pass,
+none of them wrong to want the answer. `currentSession` in `src/auth/session.ts`
+is the memo, and the Next 16 documentation names `React.cache` as the way —
+checked in `node_modules/next/dist/docs/` rather than remembered, because this
+version's conventions are not the ones training data holds.
 
-- **React's `cache()`** around the session read, which dedupes within one render
-  pass. There is none anywhere in `apps/web/src` today.
-- **`session.cookieCache`** in the Better Auth options, which removes the read
-  entirely for most requests.
+Measured the same way as the finding, on the same pages:
+
+| Page | Queries before | after | session + user before | after |
+|---|---|---|---|---|
+| `/fr/profile` | 9 | 5 | 6 | **2** |
+| `/fr/shop` | 11 | 7 | 6 | **2** |
+| `/fr/quests` | 16 | 8 | 6 | **2** |
+| `/fr/leaderboard` | 8 | 6 | 4 | **2** |
+
+Two is the floor for "who is asking": one `session` row and one `user` row.
+
+**`cookieCache` would take it to nought, and this step refuses it** — which is a
+decision rather than an omission. It puts the session in a signed cookie for a
+window, and `gate.ts` opens with this project's own position on exactly that:
+*"Read on the server, every time, and never cached into a cookie … what a stale
+copy buys is a player who is shown somebody else's name after a claim lost a
+race."* That sentence was written about the pseudonym and the argument carries.
+The anonymous plugin is the aggravating detail: a guest signing up has their
+`profile` row deleted and their records re-attached, so the one identity this
+application rewrites underneath itself is the one a cached copy would be stale
+about. Worth revisiting against a measurement from production rather than
+against two round trips on a loopback.
 
 **The test is a count, not a stopwatch.** A timing assertion measures the runner
-— the argument `10-test-debt.md` already makes about `until` — so what this
-locks is *how many times the session was asked for*, with a counting fake in
-front of the auth instance.
+— the argument `10-test-debt.md` makes about `until` — so what is locked is *who
+may ask*: `session.test.ts` reads every server source under `app/`, `account/`,
+`admin/` and `auth/` and fails on any that reads the session from its own
+headers. It is the shape `admin/gate.test.ts` already uses, and for the same
+reason: a page that asks for itself is wrong in no way a type can see, and puts
+back exactly the six reads this step measured away.

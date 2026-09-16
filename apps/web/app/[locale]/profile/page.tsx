@@ -22,10 +22,9 @@ import { selectPlayerStats } from '@wikifake/db';
 import type { Metadata } from 'next';
 
 import { robotsFor } from '../../../src/indexing.js';
-import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { auth } from '../../../src/auth/auth.js';
+import { currentSession } from '../../../src/auth/session.js';
 import { CHOOSE_A_NAME, readViewer } from '../../../src/account/gate.js';
 import { db } from '../../../src/game/wiring.js';
 import { Profile } from '../../../src/account/profile.js';
@@ -37,15 +36,19 @@ export const metadata: Metadata = { robots: robotsFor('/profile') };
 export const dynamic = 'force-dynamic';
 
 export default async function ProfilePage() {
-  const session = await auth().api.getSession({ headers: await headers() });
+  const session = await currentSession();
 
   if (session === null) redirect('/sign-in');
   if (session.user.isAnonymous === true) redirect('/sign-up');
 
-  // The session is read here as well as inside `readViewer`, and that is one
-  // query rather than a duplication worth removing: the email is on this screen
-  // and no other, so the viewer — which every game screen builds — has no
-  // business carrying an address around.
+  // The session is read here as well as inside `readViewer`, and the reason
+  // stands: the email is on this screen and no other, so the viewer — which
+  // every game screen builds — has no business carrying an address around.
+  //
+  // **What was wrong was the price.** This used to say "that is one query": it
+  // was two, the `session` row and the `user` row, and the layout's own
+  // `adminHere()` made three of each on one page load. Step O.6 made the claim
+  // true by memoising the question rather than by making anybody ask less.
   const viewer = await readViewer();
   if (viewer.pseudonym === undefined) redirect(CHOOSE_A_NAME);
 
