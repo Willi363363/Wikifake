@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | in progress — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales; 11.3 + 11.4 done: detection, the persistent switch, localised routing under `/fr`, no legacy URL 404s; 11.5 done: `lang` and the SEO metadata follow the locale, C6.3 amended with its tests; 11.6 done: the French catalogue, real translations held to the English keys by the build itself; 11.8 done: the 404 and error surfaces exist, and speak both locales |
+| **State** | ✅ done — 11.1 done: `next-intl` chosen, wired, proven on the front door in both locales; 11.3 + 11.4 done: detection, the persistent switch, localised routing under `/fr`, no legacy URL 404s; 11.5 done: `lang` and the SEO metadata follow the locale, C6.3 amended with its tests; 11.6 done: the French catalogue, real translations held to the English keys by the build itself; 11.8 done: the 404 and error surfaces exist, and speak both locales; 11.10 done: the catalogue read as prose, one defect found and one glossary test left behind |
 | **Branch** | `feat/rewrite-phase-11` |
 | **Depends on** | phase 8 |
 | **Delivers** | an interface in English and French: catalogues, switch, localised routing, per-locale SEO |
@@ -46,6 +46,50 @@ only place that says where a step stands.**
 | 11.7 | CC BY-SA attribution in every locale | ✅ | — |
 | 11.8 | The pages that do not exist yet speak no language | ✅ | — |
 | 11.9 | The sentences the packages author | ✅ | `phase-11-refusals.md` |
+| 11.10 | The French catalogue, read as a French reader | ✅ | — |
+
+### 11.10 — the catalogue read as a French reader
+
+The one thing left open when the phase was otherwise done, and the one nothing
+could automate: the catalogue was *complete* — the build holds every French key
+to its English one — and nobody had read it as prose.
+
+**827 messages, and one defect.** That is the headline, and it is a result about
+the translation rather than about the reader: the copy is idiomatic French
+rather than a calque, the register is `vous` in all 117 messages that address
+the player with no exception, the apostrophes are curly and the quotations are
+guillemets, and there are **zero** placeholder or rich-text-tag mismatches
+against the English.
+
+What was wrong: **a room was a `salle` in twelve messages and a `salon` in
+eighteen**, and the two met within seconds of each other. A player pressed
+*"Ouvrir une salle"*, arrived on a screen headed *"Salle"*, and was answered by
+the server with *"Ce salon n'est pas ouvert."* The lobby and the chat said one
+word; every refusal, the leaderboard, the quests, the shop and the FAQ said the
+other.
+
+`salon` won, on three grounds: it is the majority, it is the word in
+`errors.json` — the sentences that translate a protocol code, and therefore the
+ones a player meets at the worst moment — and it is the idiomatic French for a
+multiplayer lobby, where `salle` reads physical.
+
+**Four other suspicions were checked and dismissed**, and they are recorded
+because the next reader will have them too:
+
+| Looked like drift | Actually |
+|---|---|
+| `pièce` / `jeton` / `crédit` | three concepts: the game's coin, the model's tokens, an attribution credit |
+| `manche` / `partie` | the English distinction, kept: `round` → manche, `game` → partie |
+| `objet` / `item` | `objet` throughout; the hits on `item` were English keys |
+| `tour` | a substring of `retour` and `autour`. No occurrence |
+
+**A glossary test holds the result**, in the shape `admin/gate.test.ts` uses for
+its own rule: a habit somebody remembers is a habit, and one a case enforces is
+a rule. It carries the dismissals too, so this reading is not repeated.
+
+What this step does **not** cover is `legal.json` — 2039 words of privacy policy
+and terms. Those want a lawyer rather than a French reader, and that is the
+outstanding item they have always been.
 
 ## Exit gate
 
@@ -57,6 +101,8 @@ only place that says where a step stands.**
   covers both values.
 - The CC BY-SA attribution is correct and tested in every locale.
 - The decision on the i18n library is recorded with its reasons.
+- The French catalogue has been read as prose, not only held to its keys, and
+  one word per concept is enforced rather than remembered.
 
 ## Invariants involved
 

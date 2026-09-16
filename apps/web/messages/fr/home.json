@@ -3,7 +3,7 @@
   "question": "Qui ment ?",
   "description": "Un article de Wikipédia, une poignée de faits réécrits par un modèle, et vous. Trouvez-les seul ou contre d’autres joueurs — un jeu gratuit de lecture critique et de vérification des faits.",
   "play": "Jouer",
-  "noAccount": "Sans compte, sans installation. Jouez seul, ou ouvrez une salle et laissez entrer d’autres joueurs.",
+  "noAccount": "Sans compte, sans installation. Jouez seul, ou ouvrez un salon et laissez entrer d’autres joueurs.",
   "beats": {
     "source": {
       "title": "Tout commence par un vrai article",
