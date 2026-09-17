@@ -43,6 +43,7 @@ are defined in `product/`, and their state is the table below.
 | N | The article of the day | ✅ done — one article a day, the same for everybody, with its own board | `product/15-daily-article.md` |
 | O | Hardening — the service survives | ✅ done — six repairs out of the review of 2026-09-16, each with a test that fails without it | `product/16-hardening.md` |
 | P | Recovery — the two ways out | ✅ done — the retry is bounded, the room gives way to a card, and a cold link asks for a name | `product/17-recovery.md` |
+| Q | Resilience — the unheld promise, and a budget off the wrong host | 🔶 planned — five steps out of the review of 2026-09-17; Q.1 repairs what P.1 broke | `product/18-resilience.md` |
 
 What was deliberately left out of it, with the reasons, is in
 `product/11-deferred.md`.

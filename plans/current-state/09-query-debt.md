@@ -157,3 +157,34 @@ So a warm instance holds up to twenty connections rather than ten. Not measured
 against Neon's ceiling, and recorded rather than acted on for that reason — but
 Fluid Compute keeps instances alive, so the pools are held for as long as the
 instance is, and the arithmetic is per instance.
+
+## The home reads a whole history to show four rows
+
+`queries/history.ts:24` — `selectGameHistory` has **no `LIMIT`**. `lobby/home.ts:134`
+takes what it wants with `.slice(0, RECENT_ROUNDS)`, in Node, after the rows
+have crossed the wire.
+
+Two costs, and the second is the one that grows. The rows are wasted, and the
+**sort cannot use an index**: the predicate is `participant.userId`, which
+`participant_user_id_idx` covers, but the order is `game.startedAt` on the
+joined table. So Postgres fetches every participation a player has, joins, and
+sorts — per home page load, for the players who play most.
+
+The fix is a `limit` parameter rather than a second query. `exportAccount`
+(`queries/account.ts:322`) is the only other caller and wants all of them,
+which is exactly what an optional limit leaves it.
+
+Found by reading, on 2026-09-17, and **not measured**: `09` usually carries a
+timing beside a claim and this one has none, because the machine that would
+produce it has four rounds in it. The shape is the finding; the number wants a
+seeded history, the way `H.2` seeded five thousand movements.
+
+## The home's board is read before the four reads it does not depend on
+
+`lobby/home.ts:101` awaits `readBoard` and only then opens the `Promise.all` on
+line 111. Nothing in that group feeds the board and the board feeds none of
+them — they take the same `viewerId` and the same clock.
+
+One avoidable round trip on every signed-in home page load, which is the same
+arithmetic O.6 did for the session: not a slow query, a query waiting its turn
+for no reason. Moving it into the group is the whole change.

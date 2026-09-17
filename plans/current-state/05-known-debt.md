@@ -44,6 +44,12 @@ was rendering. Step 9.5's first browser run found it in a minute; the effect is
 now keyed on the room code, and `realtime/room-gate.test.tsx` locks it at the
 cheap level too.
 
+**It bit the same file again on 2026-09-17.** P.3 found that the same effect,
+keyed on the room code *alone*, never asked again when there was no nickname at
+all — and P.3's first implementation then flashed a prompt at players who had
+one, caught by the case 9.5 left behind. Two defects and a near-miss in one
+`useEffect`.
+
 ## A green test run can be an incomplete one
 
 Roughly 250 of the suite's cases — the database queries, the Redis cache, the
@@ -135,62 +141,56 @@ time over it.
 The fix needs a decision this note will not make: one version for the
 repository, or a version per deployable with a test that says so on purpose.
 Found while pre-flighting the Fly image, out of that step's scope, recorded.
+## What the free tier costs moved out
 
-## Round timers do not survive a restart on the free Redis
+**On 2026-09-17**, to `04-deployment.md`: *Round timers do not survive a
+restart on the free Redis* and *There is no socket heartbeat, and the host
+sleeps*. Neither is a defect with a `file:line`, both are consequences of a
+hosting plan, and the second had just been read too late by a step that changed
+the client's retry loop (track Q, Q.1).
 
-`main.ts` chose BullMQ delayed jobs over in-process timeouts for a stated
-reason: *"a timeout dies with its process, and a redeployment would forget every
-round in flight"*. The socket service now runs on Render's free tier, whose Key
-Value instance **has no persistence**, so a redeployment forgets them anyway.
+## Half of the server's refusals are still in the server's language
 
-The guarantee is not lost in the abstract — the code is still correct, and a
-persisted Redis restores it by changing one connection string. It is lost on this
-plan, which is the plan the project can afford. Recorded because the reasoning in
-`main.ts` now overstates what the deployment delivers, and somebody reading that
-comment would believe a round in flight is safe across a deploy.
+**Rewritten on 2026-09-17**: the entry described one defect, there were two,
+and the one it named by file is the one that got fixed. Step 11.9 settled the
+question it left open — *the server authors codes, the client authors
+sentences* — and `realtime/refusal.ts` does it. The **socket** path took it:
+`lobby/room.tsx:64` translates `room.refusal?.code`, so `round.tsx` renders
+catalogue prose.
 
-What it costs in practice: a deploy during a live round leaves that round without
-its end-of-round alarm. `ROOM_IDLE_LIMIT_SECONDS` still reaps the room after an
-hour, so nothing leaks — the players just see a round that never ends.
+**The REST path did not.** `solo/solo.tsx:89`, `:155` and `:175` all do
+`setRefusal(answered.message)` — the server's English under a French interface,
+and line 115's comment says so: *"shown as received."*
 
-## There is no socket heartbeat, and the host sleeps
-
-`ROOM_IDLE_LIMIT_SECONDS` lets a room live an hour with nothing happening in it.
-Render's free tier spins the service down after **fifteen minutes** without
-inbound traffic. Nothing on the socket fills that gap: `/ping` is an HTTP route
-for the platform's health check, not a client heartbeat.
-
-So a room whose players are idle in a lobby loses its sockets, and gets them back
-about a minute later when someone acts. `REALTIME_GRACE_SECONDS = 90` is what
-stops that costing anybody their seat, and the client's one-second retry loop is
-what reconnects. It works, and it is a workaround for a missing message.
-
-The honest fix is a client heartbeat — which means a new message in
-`packages/protocol`, regenerated `plans/protocol/` pages, and a snapshot test to
-update. That is its own step, not an aside in a deployment change, so it is
-recorded here rather than smuggled in.
-
-## Server refusals reach the round in the server's language
-
-`round.tsx` renders two strings it never wrote: `refusal` and `items.refusal`
-arrive from the server as protocol error messages and go on screen verbatim.
-Step 11.2 moved every client-authored string into the catalogue, but these are
-not the client's to key — whoever owns the server messages must decide whether
-they become error *codes* the client translates, or stay sentences in one
-language. Until then a French interface will show them in English.
+Nothing is missing, which is what makes it cheap: `restError.code` is the same
+`errorCode` enum `useRefusal()` translates (`protocol/src/errors.ts:182`) and
+`solo/api.ts` already carries it back. The screen has the code and prefers the
+sentence.
 
 ## The register is six files
 
-The entries above are defects and gaps with a `file:line`. Five neighbours hold
-the rest, because a register that reaches 200 lines stops being read:
-`06-structural-debt.md` the shape of the code, `08-toolchain-debt.md` the
-commands you run, `09-query-debt.md` what is slow, `10-test-debt.md` the suites,
-`11-promotion-debt.md` the promotion, and `12-realtime-debt.md` what stops the
-socket service serving a room.
+The entries above are defects and gaps with a `file:line`; the table at the top
+names the five neighbours that hold the rest. Each of them exists because the
+file a finding belonged in had reached 200 lines while the finding was still
+being written — H.2, then J.9, then this file, and twice again on 2026-09-17.
+Splitting rather than squeezing is the rule.
 
-Each arrived because the file a finding belonged in had reached the cap while
-the finding was still being written — H.2, then J.9, then this file. That is the
-reason to split rather than squeeze. All six are the register.
+## Two routes call a paid model, and nothing limits who
+
+`game/start.ts` and `game/flags.ts:63` both reach a language model and neither
+asks who is calling: `handleStart` mints a guest through `identify()`, and
+`handleFlagReport` accepts `session?.user.id ?? null`. So there is no account
+to refuse in one and no account at all in the other.
+
+Nothing bounds the spend either: the cache is keyed on the topic, so a caller
+sending a different one each time misses every time — `MAX_CATEGORIES` bounds
+its memory, not the bill — and there is no per-player or per-IP counter, nor a
+firewall or BotID in `vercel.json`. **Track K measures what the model costs and
+nothing caps it**, which shows up on an invoice rather than on a screen. Beside
+it: `flag-report/route.ts` is the one model-calling route with no
+`maxDuration`, where the other three cap at 60. Recorded rather than fixed,
+because a limit is a policy — who may have how much, and what a refused player
+is shown.
 
 ## The chat rail sits on the room card at 360 px
 
