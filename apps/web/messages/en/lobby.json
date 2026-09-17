@@ -35,7 +35,8 @@
       "idle": "idle",
       "connecting": "connecting",
       "reconnecting": "reconnecting",
-      "closed": "closed"
+      "closed": "closed",
+      "lost": "lost"
     },
     "waitingForHost": "Waiting for the host to start the round.",
     "readyCancel": "Ready — cancel",

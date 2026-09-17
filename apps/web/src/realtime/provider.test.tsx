@@ -40,6 +40,16 @@ function Status() {
   );
 }
 
+/** P.1 — the status, and the one action a `lost` connection offers. */
+function Recover() {
+  const { status, reconnect } = useRealtime();
+  return (
+    <button type="button" onClick={reconnect}>
+      again {status}
+    </button>
+  );
+}
+
 function Heard({ onHeard }: { onHeard: (message: OutgoingMessage) => void }) {
   useRealtimeMessages(onHeard);
   return null;
@@ -239,6 +249,108 @@ describe('7.1 — the room connection', () => {
       expect(
         screen.getByText(/refusal:the nickname ada is already in use/),
       ).not.toBeNull();
+    });
+  });
+
+  // P.1 — the loop used to ask once a second for ever, from every open tab.
+  // What bounds it is not a number chosen here: it is the domain's grace
+  // window, past which a socket that opens is a new player joining rather than
+  // a seat being given back.
+  describe('when it cannot get back', () => {
+    /** 1s, 2s, 4s, 8s, then the 15s left of the window: 1, 3, 7, 15, 30. */
+    const DELAYS = [1000, 2000, 4000, 8000, 15_000];
+
+    const dropLast = () => {
+      act(() => {
+        (opened[opened.length - 1] as FakeSocket).drop(1006);
+      });
+    };
+
+    it('doubles the delay, and lands the last attempt on the grace deadline', () => {
+      mount();
+      act(() => {
+        (opened[0] as FakeSocket).accept();
+      });
+
+      DELAYS.forEach((delay, index) => {
+        dropLast();
+        // Nothing a millisecond early: a delay that has not grown is the defect
+        // this step exists for, and it would pass an `advanceTimersByTime` that
+        // only ever went forwards.
+        act(() => {
+          vi.advanceTimersByTime(delay - 1);
+        });
+        expect(opened).toHaveLength(index + 1);
+
+        act(() => {
+          vi.advanceTimersByTime(1);
+        });
+        expect(opened).toHaveLength(index + 2);
+      });
+
+      expect(DELAYS.reduce((total, delay) => total + delay, 0)).toBe(30_000);
+    });
+
+    it('stops, and says so, rather than asking for ever', () => {
+      mount();
+      for (const delay of DELAYS) {
+        dropLast();
+        act(() => {
+          vi.advanceTimersByTime(delay);
+        });
+      }
+
+      // The sixth drop is the one the window has no room for.
+      dropLast();
+      expect(screen.getByText(/status:lost/)).not.toBeNull();
+      // Nothing refused anything, so there is nothing to explain — only an
+      // action to offer, which is P.2's screen.
+      expect(screen.getByText(/refusal:-/)).not.toBeNull();
+
+      act(() => {
+        vi.advanceTimersByTime(60 * 60 * 1000);
+      });
+      expect(opened).toHaveLength(DELAYS.length + 1);
+    });
+
+    it('buys the whole window back when a socket opens', () => {
+      mount();
+      dropLast();
+      act(() => {
+        vi.advanceTimersByTime(1000);
+        (opened[1] as FakeSocket).accept();
+      });
+
+      // A connection that came back is not the one that dropped: the next
+      // outage starts from the first delay again, not from the second.
+      dropLast();
+      act(() => {
+        vi.advanceTimersByTime(999);
+      });
+      expect(opened).toHaveLength(2);
+      act(() => {
+        vi.advanceTimersByTime(1);
+      });
+      expect(opened).toHaveLength(3);
+    });
+
+    it('starts again when the player asks', () => {
+      mount(<Recover />);
+      for (const delay of DELAYS) {
+        dropLast();
+        act(() => {
+          vi.advanceTimersByTime(delay);
+        });
+      }
+      dropLast();
+      expect(screen.getByRole('button').textContent).toContain('lost');
+
+      act(() => {
+        screen.getByRole('button').click();
+      });
+
+      expect(opened).toHaveLength(DELAYS.length + 2);
+      expect(screen.getByRole('button').textContent).toContain('connecting');
     });
   });
 
