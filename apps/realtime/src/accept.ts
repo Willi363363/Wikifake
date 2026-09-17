@@ -164,6 +164,20 @@ export function createAcceptor(
       // The subscription goes last, so this instance is still listening when
       // the departure it caused comes back round — a room it still holds other
       // sockets for keeps hearing.
+      //
+      // **Step Q.3 — the `catch`, and where it sits.** `enqueue` hands back a
+      // tracked promise, so the first link was held; the promise `.then`
+      // returns was not, and `arm` reaches Redis through BullMQ. Every player
+      // leaving during an outage therefore produced an unhandled rejection —
+      // the same escape as Q.2, one chain further on.
+      //
+      // Before the `.finally`, so a failed alarm still releases the
+      // subscription: the room this instance stops serving must stop being
+      // listened to whether or not the eviction could be scheduled.
+      //
+      // What is lost when it fails is the eviction. The player stays away in
+      // the roster until `room_idle` reaps the room — a room that empties late
+      // rather than an instance that is gone.
       void enqueue({ kind: 'leave', player: playerName })
         .then(() =>
           scheduler.arm(
@@ -171,6 +185,7 @@ export function createAcceptor(
             graceSeconds * 1000,
           ),
         )
+        .catch(() => undefined)
         .finally(() => void subscriptions.stopListening(roomCode));
     };
 

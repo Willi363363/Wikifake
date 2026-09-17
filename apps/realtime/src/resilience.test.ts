@@ -114,6 +114,42 @@ describe('Q.2 — a handshake that cannot reach the database', () => {
   });
 });
 
+describe('Q.3 — a departure whose grace alarm cannot be armed', () => {
+  it('still departs, and nothing escapes', async () => {
+    let failArm = false;
+    const port = await start({
+      scheduler: (onAlarm) => {
+        const real = createLocalScheduler(onAlarm);
+        return {
+          ...real,
+          arm: (alarm, delayMs) =>
+            failArm && alarm.kind === 'grace'
+              ? Promise.reject(new Error('redis is not answering'))
+              : real.arm(alarm, delayMs),
+        };
+      },
+    });
+
+    const client = await open(port, `/ws/${ROOM}/Ada`, { origin: APP });
+    await until(
+      () => service?.connections.holds(ROOM, 'Ada') === true,
+      'the socket to be registered',
+    );
+
+    const escaped = await escaping(async () => {
+      failArm = true;
+      client.close();
+      await until(
+        () => service?.connections.holds(ROOM, 'Ada') === false,
+        'the departing socket to leave the registry',
+      );
+    });
+
+    // Every player leaving during a Redis outage used to make one of these.
+    expect(escaped).toEqual([]);
+  });
+});
+
 describe('Q.5 — a socket that throws between the registry and the join', () => {
   /**
    * O.2 made a socket that **closed** before its join depart properly. Neither
