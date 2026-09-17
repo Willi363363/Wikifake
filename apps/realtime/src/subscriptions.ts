@@ -35,7 +35,29 @@ export interface Subscriptions {
  * instance may still be serving it.
  */
 export function createSubscriptions(options: SubscriptionOptions): Subscriptions {
-  const held = new Map<string, { readonly stop: Unsubscribe; holders: number }>();
+  /**
+   * The subscription each room is holding, as a **promise** — step Q.4.
+   *
+   * It used to be the resolved `Unsubscribe`, with a no-op placeholder written
+   * into the map before the await so that two sockets arriving together did
+   * not both subscribe. That defence is right and the placeholder was the
+   * wrong shape for it: a `bus.subscribe` that **rejected** left the
+   * placeholder behind, and every later `listen` for that room found it,
+   * incremented `holders` and subscribed nothing. The instance went deaf for
+   * that room — no roster, no chat, no start — for the life of the process,
+   * whether or not Redis came back. The listener's own reconnection does not
+   * help: it restores the channels the driver holds, and this one was never
+   * subscribed.
+   *
+   * Holding the promise keeps the defence and loses the trap. Concurrent
+   * callers await the same attempt, so they all subscribe once; when that
+   * attempt fails they all fail together, the entry is removed, and the next
+   * socket to arrive tries again.
+   */
+  const held = new Map<
+    string,
+    { readonly stop: Promise<Unsubscribe>; holders: number }
+  >();
 
   const budget =
     options.budgetBytes === undefined ? {} : { budgetBytes: options.budgetBytes };
@@ -45,15 +67,16 @@ export function createSubscriptions(options: SubscriptionOptions): Subscriptions
       const already = held.get(roomCode);
       if (already !== undefined) {
         already.holders += 1;
+        // Awaited, so a caller that arrived during a failing attempt hears
+        // about the failure rather than believing it is listening.
+        await already.stop;
         return;
       }
 
       // Claimed before the await, so two sockets arriving together do not both
-      // open a subscription.
-      const placeholder = { stop: async (): Promise<void> => undefined, holders: 1 };
-      held.set(roomCode, placeholder);
-
-      const stop = await options.bus.subscribe(
+      // open a subscription — and claimed as the *attempt*, so a failure is
+      // something the next caller can retry past.
+      const attempt = options.bus.subscribe(
         channelFor(options.namespace, roomCode),
         (payload) => {
           const envelope = readEnvelope(payload);
@@ -69,8 +92,16 @@ export function createSubscriptions(options: SubscriptionOptions): Subscriptions
           }
         },
       );
+      held.set(roomCode, { stop: attempt, holders: 1 });
 
-      held.set(roomCode, { stop, holders: placeholder.holders });
+      try {
+        await attempt;
+      } catch (error) {
+        // Only if it is still ours: a later `listen` may already have replaced
+        // a failed attempt, and dropping that one would strand its channel.
+        if (held.get(roomCode)?.stop === attempt) held.delete(roomCode);
+        throw error;
+      }
     },
 
     async stopListening(roomCode) {
@@ -81,11 +112,14 @@ export function createSubscriptions(options: SubscriptionOptions): Subscriptions
       if (already.holders > 0) return;
 
       held.delete(roomCode);
-      await already.stop();
+      // A subscription that never opened has nothing to undo, and its failure
+      // has already been reported to whoever asked for it.
+      await already.stop.then(async (stop) => stop()).catch(() => undefined);
     },
 
     async closeAll() {
-      for (const [, one] of held) await one.stop();
+      for (const [, one] of held)
+        await one.stop.then(async (stop) => stop()).catch(() => undefined);
       held.clear();
     },
   };

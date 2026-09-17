@@ -17,10 +17,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { createLocalBus } from './bus.js';
+import { createRegistry } from './connections.js';
 import { createOriginPolicy } from './origins.js';
 import { createRoomStore } from './rooms/store.js';
 import { createLocalTokens } from './rooms/tokens.js';
 import { createService, type Service, type ServiceOptions } from './server.js';
+import { createSubscriptions } from './subscriptions.js';
 import { stubArticles } from './testing/articles.js';
 import { createLocalScheduler } from './timers/local.js';
 import { open, until } from './testing/client.js';
@@ -147,6 +149,65 @@ describe('Q.3 — a departure whose grace alarm cannot be armed', () => {
 
     // Every player leaving during a Redis outage used to make one of these.
     expect(escaped).toEqual([]);
+  });
+});
+
+describe('Q.4 — a subscription that failed once', () => {
+  it('can be made again, rather than leaving the room deaf', async () => {
+    const real = createLocalBus();
+    let attempts = 0;
+
+    const subscriptions = createSubscriptions({
+      bus: {
+        publish: (channel: string, payload: string) => real.publish(channel, payload),
+        subscribe: (channel: string, onMessage: (payload: string) => void) => {
+          attempts += 1;
+          return attempts === 1
+            ? Promise.reject(new Error('redis is not answering'))
+            : real.subscribe(channel, onMessage);
+        },
+        close: () => real.close(),
+      },
+      namespace: 'resilience',
+      connections: createRegistry(),
+    });
+
+    // The first socket for the room arrives while Redis is down.
+    await expect(subscriptions.listen(ROOM)).rejects.toThrow('redis');
+    // Redis is back, and the next socket arrives. Before Q.4 the claim the
+    // failed attempt had staked was still in the map, so this call incremented
+    // a counter and subscribed nothing — for the life of the process.
+    await subscriptions.listen(ROOM);
+
+    expect(attempts).toBe(2);
+    await subscriptions.closeAll();
+  });
+
+  it('lets two sockets arriving together share one subscription', () => {
+    // The property the placeholder existed to protect, kept: the fix must not
+    // trade a permanent deafness for a double delivery.
+    const real = createLocalBus();
+    let attempts = 0;
+
+    const subscriptions = createSubscriptions({
+      bus: {
+        publish: (channel: string, payload: string) => real.publish(channel, payload),
+        subscribe: (channel: string, onMessage: (payload: string) => void) => {
+          attempts += 1;
+          return real.subscribe(channel, onMessage);
+        },
+        close: () => real.close(),
+      },
+      namespace: 'resilience',
+      connections: createRegistry(),
+    });
+
+    return Promise.all([subscriptions.listen(ROOM), subscriptions.listen(ROOM)]).then(
+      async () => {
+        expect(attempts).toBe(1);
+        await subscriptions.closeAll();
+      },
+    );
   });
 });
 

@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 in progress — Q.1 done; the three unheld promises and the orphan remain |
+| **State** | ✅ done — five steps, and `12-realtime-debt.md` is empty again |
 | **Branch** | one per step |
 | **Depends on** | nothing. Every step repairs code that is already in `staging` |
 | **Delivers** | a service that survives a collaborator saying no, and a client that waits as long as *this* deployment needs |
@@ -95,10 +95,10 @@ flags need a third state, or the whole body needs a `try`.
 | # | Step | State |
 |---|---|---|
 | Q.1 | The client waits as long as this host needs, not as long as the domain says | ✅ |
-| Q.2 | A handshake that cannot reach the database refuses, and does not throw | ⬜ |
-| Q.3 | A departure that cannot arm its alarm still departs | ⬜ |
-| Q.4 | A subscription that failed once can be made again | ⬜ |
-| Q.5 | A socket that throws mid-join leaves the room like one that closed | ⬜ |
+| Q.2 | A handshake that cannot reach the database refuses, and does not throw | ✅ |
+| Q.3 | A departure that cannot arm its alarm still departs | ✅ |
+| Q.4 | A subscription that failed once can be made again | ✅ |
+| Q.5 | A socket that throws mid-join leaves the room like one that closed | ✅ |
 
 ## Exit gate
 
@@ -117,6 +117,15 @@ flags need a third state, or the whole body needs a `try`.
   requests that close them — and `05-known-debt.md`'s *There is no socket
   heartbeat* is rewritten by Q.1 rather than left describing a retry loop that
   no longer behaves that way.
+
+## One thing the doing added
+
+**Q.5 moved `accept` into `accept.ts`.** `server.ts` was at its 500-line cap
+with Q.3 and Q.5 still to write, so the choice was a split or squeezing the
+prose out of a file — and the second is what this repository's rules call a
+defect. The step that needed a `try` around a 190-line function is the step
+that should own moving it somewhere it can be read: `server.ts` 500 → 321,
+`accept.ts` 301. Q.3 landed after it, comfortably.
 
 ## What is deliberately not here
 
