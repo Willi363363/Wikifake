@@ -36,97 +36,33 @@ these files — so these are listed and not described.
 | the client retried once a second, for ever, with no backoff | P.1's backoff, P.2's screen |
 | a tab with no nickname waited for ever on *en attente* | P.3 |
 | the client then gave up before this host could wake | Q.1, which un-did P.1's ceiling |
+| the handshake's rejection ended the process | Q.2 |
+| the departure's rejection escaped | Q.3 |
+| a failed `subscribe` left the room deaf for ever | Q.4 |
+| a socket that threw mid-join stayed in the roster | Q.5 |
 
-The argument each one turned on is in `../product/16-hardening-availability.md`
-and `../product/17-recovery.md` rather than repeated here.
+The argument each one turned on is in `../product/16-hardening-availability.md`,
+`../product/17-recovery.md` and `../product/18-resilience.md` rather than
+repeated here.
 
-## It was empty for four hours
+## It was empty for four hours, and then for a day
 
-Written on 2026-09-17, the same day the file first said *nothing is open* and
-the same day a full-repository review reopened it with four entries, one of
-which was closed the same evening. That is
-not an embarrassment to hide: **an empty register was a claim about how hard
-anybody had looked**, and the section that said so said exactly that — *"seven
-entries were found in one afternoon of looking"*. Four more were found in one
-afternoon of looking somewhere else.
+Written on 2026-09-17. The file said *nothing is open* in the morning, a
+full-repository review reopened it with four entries in the afternoon, and
+track Q closed all four the same evening. **That is the entry, not an
+embarrassment to hide**: an empty register was never a claim about the service,
+it was a claim about how hard anybody had looked — and the section that said so
+said exactly that, *"seven entries were found in one afternoon of looking"*.
+Four more were found in one afternoon of looking somewhere else.
 
-All four belong to **track P's successor, track Q** (`../product/18-resilience.md`).
+So read the emptiness below for what it is. Eleven defects have been found in
+this service in two days by two people sitting down to look for them, and every
+one was a failure the comment directly above the code said was handled. The
+next four are found the same way.
 
-## Three promises nobody is holding
+## Nothing is open
 
-One shape, three call sites, and it is O.1's shape one turn out. O.1 fixed the
-`error` **event** nobody listened for; these are the `Promise` nobody holds —
-the other half of Node's error model, and in one case two lines below the fix.
-
-**Reproduced, each with a probe run against the real service**, and the
-assertion each one printed is below.
-
-### The handshake — `server.ts:237`
-
-```js
-socket.on('error', () => undefined);   // O.1
-void accept(socket, request);          // ← no catch
-```
-
-`accept` awaits `roomExists`, which `main.ts:51` implements as a **Postgres**
-query. A probe with `roomExists: () => Promise.reject(...)`:
-
-```
-expected [] to deeply equal [ "Error: the database is not answering" ]
-```
-
-With no `SENTRY_DSN` — CI, and any deployment that has not set one — Node's
-default for an unhandled rejection ends the process, and with it every room the
-instance holds. Sentry installs a handler when a DSN is present, which means
-**the failure is worse where it is least observed.**
-
-### The departure — `server.ts:348`
-
-```js
-void enqueue({ kind: 'leave', ... })
-  .then(() => scheduler.arm({ kind: 'grace', ... }))
-  .finally(() => void subscriptions.stopListening(roomCode));
-```
-
-`enqueue` returns a tracked promise and `track` attaches a `catch`, so the
-first link is held. The promise `.then` returns is not. `scheduler.arm` reaches
-Redis through BullMQ, so **every player leaving during a Redis outage** makes
-one. A probe with a rejecting `arm`:
-
-```
-expected [ 'Error: redis is not answering' ] to deeply equal []
-```
-
-### The subscription that cannot be retried — `subscriptions.ts:53`
-
-```js
-const placeholder = { stop: async () => undefined, holders: 1 };
-held.set(roomCode, placeholder);          // claimed before the await, deliberately
-const stop = await options.bus.subscribe(...);   // ← if this rejects, the claim stays
-```
-
-Claiming before the await is **right** for two sockets arriving together, which
-is what the comment beside it defends. It is wrong for a subscribe that
-rejects: the placeholder survives with a no-op `stop`, and every later `listen`
-for that room finds it, increments `holders` and subscribes nothing. A probe
-counting calls to `bus.subscribe` across a failed then a healthy attempt:
-
-```
-expected 1 to be 2
-```
-
-So the instance is **deaf for that room until it restarts** — no roster, no
-chat, no start — whether or not Redis came back. The listener's own reconnection
-(`bus.ts`) does not help: it restores the channels the driver holds, and this
-one was never subscribed.
-
-## A socket that throws mid-join is an orphan
-
-**Deduced from the three above, not reproduced**, and recorded as such.
-
-If anything between `connections.add` and `joined = true` throws, `close` runs
-with `joined` still false and `depart()` never runs: no `leave`, no grace
-alarm, the subscription never released, and the roster keeps a player who never
-readies so the round never starts. That is O.2's symptom, reached by an
-exception rather than by an early close — and O.2's two ordering booleans
-cannot see it, because neither is set on the throwing path.
+Written plainly rather than by deleting the file. `05-known-debt.md`,
+`09-query-debt.md` and the three others name this register in their own tables,
+and a reader who follows one of those pointers into nothing learns less than a
+reader who arrives here and is told.
