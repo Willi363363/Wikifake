@@ -1,17 +1,17 @@
-# Session handover — 2026-09-16
+# Session handover — 2026-09-17
 
 > Written in English, like everything else here (`CLAUDE.md`). Replaces the
-> handover of 2026-09-15; everything it left open is restated below.
+> handover of 2026-09-16; everything it left open is restated below.
 
 ## Read this first
 
-**The promotion is still pending, and it now carries 28 commits and the same two
-migrations.** Nothing in the deploy path applies a migration —
-`method/01-git-flow.md` checked that rather than assumed it — so merging
-`staging` into `main` without applying them first is a 500 on the home dashboard
-for everybody, because that is the screen that reads the new tables.
+**The promotion is still pending, and it now carries 34 commits and the same
+two migrations.** Nothing in the deploy path applies a migration —
+`08-toolchain-debt.md` checked that rather than assumed it — so merging
+`staging` into `main` without applying them first is a 500 on the home
+dashboard for everybody, because that is the screen that reads the new tables.
 
-What the two actually do, so the order is obvious rather than trusted:
+What the two do, so the order is obvious rather than trusted:
 
 - **`0021`** creates `daily_article` — the table track N's article of the day
   claims a row in each morning.
@@ -28,48 +28,48 @@ Then the promotion, **merged and never squashed** — see *The merge method*.
 
 ## What this session did
 
-It began as a review, asked for after the multiplayer was reported as buggy and
-the API as slow, and it turned into track O. **Every finding was reproduced
-rather than argued about**, and every fix carries a test that fails without it —
-checked by removing the fix, not by assuming.
+It read the handover, found it three tracks stale, and then closed the two
+findings track O had deliberately left. **Track P, three steps, all merged**
+(#304 the sheet, #305, #306, #307), plus #303 and #308.
 
-**Six defects, and they shared a property worth remembering: each was a failure
-the comment directly above the code said was handled.** `redis.ts` promised a
-connection "reopened after a failure" and reopened nothing. `server.ts` guarded a
-generation against a failure a hang never produces. And the suite was green — all
-1935 cases — while all six were true.
-
-| | What it did to a player |
+| | What a player gets |
 |---|---|
-| O.1 | two bytes of invalid UTF-8, from any client, killed the process and every room on it |
-| O.2 | a tab closed during the join locked the nickname against its own owner and left a phantom who never readies, so the round never started |
-| O.3 | one dropped Redis and the instance answered *"Ce salon n'est pas ouvert"* to players sitting in the room, until it restarted |
-| O.4 | a hang is not a rejection: the room waited in `generating` for its idle alarm, an hour later |
-| O.5 | a mouse move rewrote 20.3 KiB that the reducer had not touched, and burnt a revision a real event could lose |
-| O.6 | six `session`+`user` reads on one page load |
+| P.1 | a reconnection loop that stops when stopping is the truth, instead of asking once a second for ever from every open tab |
+| P.2 | a card, with the room code and two ways out, instead of a badge over a roster that froze ten minutes ago |
+| P.3 | a room link opened cold asks for a nickname, instead of waiting for ever on *en attente* |
 
-Measured before and after, four players at the clients' own pacing, four seconds:
-**260 revisions and 5.15 MiB written became 0 and 0.** Session reads per
-signed-in page: **6 → 2**, which is the floor.
+**`12-realtime-debt.md` is empty.** All seven entries found on 16 September are
+closed — five by track O, two by track P — each with a test that fails without
+its fix, checked by removing the fix. The file says it is empty rather than
+being deleted: five other registers name it in their tables.
 
-**Step 11.10 — the French catalogue, read as prose.** 827 messages, one defect: a
-room was a `salle` in twelve messages and a `salon` in eighteen, and the two met
-within seconds. Three other suspicions were artefacts of counting words instead
-of reading them, and `i18n/glossary.test.ts` carries the dismissals so nobody
-repeats the afternoon.
+**Three things went wrong in the doing, and they are the useful part:**
+
+- P.3's first implementation flashed the nickname prompt at a player who had
+  just typed one. Caught by 9.5's own `reads the nickname the entry screen
+  wrote on its way out` — the test was already there, waiting for exactly that
+  mistake. The state now carries *which room* the name was read for.
+- One of P.2's five tests passed without the fix: it asserted the room code was
+  on screen *anywhere*, which the room's own header satisfied while the card
+  was missing entirely. A test that agreed with the defect. **Check each test
+  against the absence of the piece it covers, not against the whole change.**
+- P.1 and P.2 each owed `12-realtime-debt.md` the removal of an entry and
+  neither paid it. P.3 paid both.
 
 ## Three decisions open to a veto
 
-Each is one line to reverse, and each is argued in its step sheet rather than
-here:
+Each is one line to reverse, and each is argued in `product/17-recovery.md`:
 
-1. **`cookieCache` refused**, though it would take those last two queries to
-   nought — `gate.ts`'s own position on never caching identity into a cookie, and
-   the anonymous plugin makes it worse.
-2. **The socket error is swallowed, not logged.** `server.ts` owns no logger by
-   design. The diagnosis lost is recorded rather than pretended away.
-3. **The generation deadline is 45 seconds**, in `@wikifake/article` rather than
-   `@wikifake/domain` — the workspace graph would refuse that edge.
+1. **The retry budget is `GRACE_SECONDS`**, not a number chosen for the
+   occasion: 1, 2, 4, 8 and a clamped 15 seconds, five attempts, the last
+   landing on the deadline. Past it the seat is gone, so a socket that opens is
+   a new player joining rather than a reconnection.
+2. **`lost` takes the whole screen, including mid-round.** That is where a
+   stale screen is most convincing and least true, which is the argument — but
+   it does mean a player loses sight of the article they were reading.
+3. **A tab with no nickname is asked, not redirected.** `/play` would throw the
+   room code away, which is the one thing a player who followed a link cannot
+   get back.
 
 ## Outstanding
 
@@ -79,11 +79,12 @@ here:
 2. **The merge-method setting** — `Settings → General → Pull Requests`, merge
    commits only, or squash disallowed where the base is `main` or `staging`.
    Until then every promotion is one click from a broken graph.
-3. **Grant the panel to `admin.wikifake@gmail.com`.** The `admin` table is empty,
-   so `/admin` answers 404 to everybody, the owner included.
+3. **Grant the panel to `admin.wikifake@gmail.com`.** The `admin` table is
+   empty, so `/admin` answers 404 to everybody, the owner included.
    `product/09-admin-role.md` carries the order: **sign in through Google
-   first**, because until the account exists the insert matches nothing and says
-   so by inserting nothing. No redeploy — `isAdmin` is a lookup per page load.
+   first**, because until the account exists the insert matches nothing and
+   says so by inserting nothing. No redeploy — `isAdmin` is a lookup per page
+   load.
 4. **Set the two cost rates in Vercel** — `MODEL_INPUT_COST_PER_MTOK=0.215` and
    `MODEL_OUTPUT_COST_PER_MTOK=1.29`. Converted at 0.861 USD→EUR **on
    13 September 2026 — read the date before trusting the number.**
@@ -92,27 +93,25 @@ here:
 
 5. C.7's device measurement — `product/03-landing-budget.md`, steps 1–6.
 6. Have `/privacy` and `/terms` read by somebody legal. 11.10 deliberately did
-   not touch `legal.json`: 2039 words of policy want a lawyer, not a French
-   reader.
-7. **Two findings recorded and deliberately not fixed**, both in
-   `current-state/12-realtime-debt.md`: the client reconnects once a second for
-   ever with no backoff, and a tab with no nickname waits on a badge reading
-   *en attente*. Each needs a **screen** rather than a constant, which is a
-   product decision track O refused to make in passing.
+   not touch `legal.json`: 2039 words of policy want a lawyer.
+7. **Make `until` say what it timed out *in*** — `10-test-debt.md`'s newest
+   entry. The deadline has been raised once already and the failure came back
+   at the higher number; a third raise moves it again.
 8. At leisure: the chat rail covering a card border at 360 px, and the
    per-package Redis index (`10-test-debt.md`).
 
 **The day a domain is bought**, in this order: remove it from Render first, add
 it to Vercel, point the registrar at what Vercel asks for; add
 `https://<domain>/api/auth/callback/google` to the Google console and change
-`BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL`; set `NEXT_PUBLIC_REALTIME_URL` and
-**redeploy**, since it is inlined at build time; add the origin to
+`BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL`; set `NEXT_PUBLIC_REALTIME_URL`
+and **redeploy**, since it is inlined at build time; add the origin to
 `REALTIME_ALLOWED_ORIGINS` on Render; set `WEB_DEPLOY_URL` and
-`REALTIME_DEPLOY_URL` in GitHub and delete `DEPLOY_URL` and `STAGING_DEPLOY_URL`.
+`REALTIME_DEPLOY_URL` in GitHub and delete `DEPLOY_URL` and
+`STAGING_DEPLOY_URL`.
 
 **Three a session cannot fix:** the `rules.yml` concurrency defect; `Human
-review` failing on every pull request because the label it waits for was retired
-in #150; and a rollback needing `DEPLOY_URL` recreated.
+review` failing on every pull request because the label it waits for was
+retired in #150; and a rollback needing `DEPLOY_URL` recreated.
 
 ## The merge method, which is still one click from repeating
 
@@ -133,16 +132,22 @@ git merge-tree --write-tree origin/main origin/staging >/dev/null || echo 'reali
 
 - **The suites skip ~250 cases without Postgres and Redis** and still report
   success. A real run says `0 skipped`.
-- **A green suite can still fail the job**: Vitest exits non-zero on an unhandled
-  error with no failing case. Read the `Errors` line — and note that step O.1's
-  test asserts on `uncaughtException` for exactly that reason.
-- **`pnpm format:check` is its own gate** — `pnpm check` and `turbo run lint` do
-  not run Prettier, and CI does.
-- **Turborepo replays greens it never ran**: `pnpm exec turbo run <task> --force`.
-- **`until` reached its eight-second ceiling again** on this session's own pull
-  request, on a commit that passed the same file five times locally. Recorded in
-  `10-test-debt.md`. Re-run before believing it; raising the ceiling a third time
-  would only move the number.
+- **A green suite can still fail the job**: Vitest exits non-zero on an
+  unhandled error with no failing case. Read the `Errors` line.
+- **`until` timed out again on 2026-09-17**, at its raised eight-second
+  ceiling, on #305 — a diff touching only `apps/web` and `plans/`. That is the
+  fifth time and the second at eight seconds; the count is now in
+  `10-test-debt.md`. **Re-run before believing it**, and do not raise it again.
+- **`pnpm format:check` is its own gate** — `pnpm check` and `turbo run lint`
+  do not run Prettier, and CI does. It caught a straight apostrophe in French
+  copy this session: the catalogue wants `l’accueil`, never `l'accueil`.
+- **Turborepo replays greens it never ran**: `pnpm exec turbo run <task>
+  --force`.
+- **One browser journey can be run on its own**, which is worth knowing before
+  running all of them: `pnpm --filter @wikifake/e2e exec playwright test
+  specs/<file>` — about 1.4 minutes, most of it the Next build.
+- **`pnpm e2e` leaves keys in Redis**: `redis-cli FLUSHALL` between it and
+  `pnpm test`.
 - **`next dev` needs `--webpack`** — Turbopack chokes on this codebase's
   `.js`-suffixed TypeScript imports — and it writes an untracked
   `apps/web/AGENTS.md` and `apps/web/CLAUDE.md` each time. Delete them; the
@@ -169,9 +174,9 @@ Read first, in this order:
 ```
 plans/README.md                           # where every track stands
 plans/current-state/11-promotion-debt.md  # before merging to main or staging
-plans/product/16-hardening.md             # the track that shipped last
+plans/product/17-recovery.md              # the track that shipped last
 plans/product/09-admin-role.md            # the grant, and why it is a human action
 ```
 
 ---
-*Written by Claude Code, from a session that was asked to look for bugs and found six.*
+*Written by Claude Code, from a session that emptied a register.*
