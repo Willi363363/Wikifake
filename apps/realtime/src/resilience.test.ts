@@ -23,7 +23,7 @@ import { createLocalTokens } from './rooms/tokens.js';
 import { createService, type Service, type ServiceOptions } from './server.js';
 import { stubArticles } from './testing/articles.js';
 import { createLocalScheduler } from './timers/local.js';
-import { open } from './testing/client.js';
+import { open, until } from './testing/client.js';
 
 const ROOM = 'A1B2C3';
 const APP = 'https://wikifake.example';
@@ -111,5 +111,54 @@ describe('Q.2 — a handshake that cannot reach the database', () => {
     // 1008, the same refusal a room that really is not there gets: from where
     // the player sits the two are one room.
     expect(closedWith).toBe(1008);
+  });
+});
+
+describe('Q.5 — a socket that throws between the registry and the join', () => {
+  /**
+   * O.2 made a socket that **closed** before its join depart properly. Neither
+   * of its two ordering booleans is set when one of the four awaits **throws**,
+   * so `close` ran with `joined` false, `depart` never ran, and the room kept a
+   * player who never readies — O.2's symptom, by the other door.
+   *
+   * `scheduler.cancel` is the throw here because it sits between the
+   * subscription and the join, so the case exercises the release of something
+   * already taken as well as the registry.
+   */
+  it('leaves no phantom in the room, and frees the nickname', async () => {
+    let failCancel = true;
+    const port = await start({
+      scheduler: (onAlarm) => {
+        const real = createLocalScheduler(onAlarm);
+        return {
+          ...real,
+          cancel: (roomCode, kind, player) =>
+            failCancel
+              ? Promise.reject(new Error('redis is not answering'))
+              : real.cancel(roomCode, kind, player),
+        };
+      },
+    });
+
+    const escaped = await escaping(async () => {
+      const doomed = await open(port, `/ws/${ROOM}/Ada`, { origin: APP });
+      await doomed.closed();
+    });
+
+    // Q.2's catch owns the refusal, so nothing escapes here either.
+    expect(escaped).toEqual([]);
+    // The registry is clean: before Q.5 the connection stayed for the life of
+    // the process, holding the nickname against its own owner.
+    expect(service?.connections.holds(ROOM, 'Ada')).toBe(false);
+
+    // And the player can come back under the same name — which they could not
+    // while the slot was still claimed by a socket that never joined.
+    failCancel = false;
+    const second = await open(port, `/ws/${ROOM}/Ada`, { origin: APP });
+    await until(
+      () => service?.connections.holds(ROOM, 'Ada') === true,
+      'the second socket to take the nickname back',
+    );
+    second.close();
   });
 });
