@@ -50,6 +50,13 @@
     "retry": "Réessayer",
     "home": "Retour à l’accueil"
   },
+  "name": {
+    "eyebrow": "Vous rejoignez",
+    "body": "Cet onglet n’a pas encore de pseudo — un pseudo est conservé par onglet, et celui-ci n’est pas passé par l’écran d’entrée.",
+    "label": "Pseudo",
+    "submit": "Rejoindre le salon",
+    "error": "ce pseudo n’est pas autorisé"
+  },
   "vote": {
     "title": "Choisissez un sujet",
     "subtitle": "Chacun en propose un. Le serveur tire celui de la manche.",

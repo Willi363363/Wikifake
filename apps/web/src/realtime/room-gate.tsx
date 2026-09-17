@@ -13,6 +13,7 @@
 import { useParams } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 
+import { NamePrompt } from '../lobby/name-prompt.js';
 import { RealtimeProvider } from './provider.js';
 import { fetchIdentity, type Identity } from './ticket.js';
 
@@ -74,8 +75,46 @@ export function RoomGate({ children }: { children: ReactNode }) {
   // stops that name following somebody into every room they join afterwards.
   const [identity, setIdentity] = useState<Identity | null>(null);
 
+  /**
+   * What this tab is called, **and which room we read it for** — step P.3.
+   *
+   * It used to be read inside the effect below and thrown away, which is the
+   * defect: `readNickname()` answering null set the identity to null, and
+   * since `code` had not changed **the effect never ran again**. The provider
+   * stayed idle on a `playerName` of null, the socket never opened, and
+   * `room.tsx` rendered a badge reading *en attente* with nothing to act on.
+   *
+   * Holding it in state fixes both halves: a null is a state the gate can
+   * render a prompt for, and the name the player then types is a
+   * **dependency**, so the effect runs again rather than waiting on a room
+   * code that is never going to change.
+   *
+   * The room it was read for is carried with it, and that is not bookkeeping.
+   * Without it, the render between a navigation and the effect that follows it
+   * sees the *previous* room's answer — and for the journey this gate exists
+   * to serve, entry screen into a room, the previous answer is "no name",
+   * which flashes the prompt at a player who typed one a moment ago. Found by
+   * `reads the nickname the entry screen wrote on its way out`, which is the
+   * test 9.5 left behind for exactly this shape of mistake.
+   */
+  const [naming, setNaming] = useState<{
+    readonly code: string | null;
+    readonly name: string | null;
+  } | null>(null);
+
+  // Keyed on the room for the same reason the identity is: the gate mounts
+  // before the entry screen has written anything, and a navigation into a
+  // second room must look again. A name typed at the prompt survives it, since
+  // the prompt stores it before announcing it and this re-read finds it there.
   useEffect(() => {
-    const name = readNickname();
+    setNaming({ code, name: readNickname() });
+  }, [code]);
+
+  /** The answer for *this* room, or null while we are still looking. */
+  const named = naming !== null && naming.code === code ? naming : null;
+
+  useEffect(() => {
+    const name = named?.name ?? null;
     if (code === null || name === null) {
       setIdentity(null);
       return undefined;
@@ -94,7 +133,25 @@ export function RoomGate({ children }: { children: ReactNode }) {
     return () => {
       live = false;
     };
-  }, [code]);
+  }, [code, named?.name]);
+
+  // The prompt replaces the children rather than sitting above them, and that
+  // is load-bearing: `RoomScreen` is one of those children and reads the same
+  // `sessionStorage` on mount. Rendered now, it would read the nothing that is
+  // there and keep it. Mounted after the name is stored, it reads the name.
+  if (code !== null && named !== null && named.name === null) {
+    return (
+      <NamePrompt
+        roomCode={code}
+        onChosen={(name) => {
+          // Stored first, then announced: `RoomScreen` reads the storage, not
+          // this state, and the order is what makes the two agree.
+          rememberNickname(name);
+          setNaming({ code, name });
+        }}
+      />
+    );
+  }
 
   return (
     <RealtimeProvider

@@ -10,9 +10,10 @@
 // It survived every unit suite because every one of them passes the nickname in
 // as a prop. The gate is the one piece that reads it, and the one piece nothing
 // was rendering.
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { render as renderTranslated } from '../i18n/testing.js';
 import { rememberNickname, RoomGate } from './room-gate.js';
 import { useRealtime } from './provider.js';
 import { installFakeSocket, opened } from './testing.js';
@@ -195,5 +196,88 @@ describe('9.5 — the gate, after a navigation', () => {
     await resolved();
 
     expect(opened.at(-1)?.url).toContain('/ws/Z9Y8X7/ada');
+  });
+});
+
+// P.3 — the effect above was keyed on `[code]` alone, so a tab that answered
+// null once answered null for ever: the socket never opened and the room
+// rendered a badge reading *en attente* with nothing to act on.
+describe('P.3 — a tab that arrived without a nickname', () => {
+  const openRoomDirectly = () => {
+    route = { code: 'A1B2C3' };
+    return renderTranslated(
+      <RoomGate>
+        <Probe />
+      </RoomGate>,
+    );
+  };
+
+  it('asks for one instead of waiting for ever', async () => {
+    openRoomDirectly();
+    await resolved();
+
+    expect(screen.getByLabelText('Nickname')).not.toBeNull();
+    // And nothing was opened on the way: a socket with no name is the refusal
+    // this prompt exists to avoid.
+    expect(opened).toHaveLength(0);
+  });
+
+  it('keeps the code, which a redirect to /play would throw away', async () => {
+    openRoomDirectly();
+    await resolved();
+
+    expect(screen.getByText('A1B2C3')).not.toBeNull();
+  });
+
+  it('opens the socket once the player has answered', async () => {
+    openRoomDirectly();
+    await resolved();
+
+    fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'bob' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Join the room' }));
+    await resolved();
+
+    expect(opened).toHaveLength(1);
+    expect(opened[0]?.url).toContain('/ws/A1B2C3/bob');
+  });
+
+  it('remembers it, so the screens below read the same name', async () => {
+    openRoomDirectly();
+    await resolved();
+
+    fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: 'bob' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Join the room' }));
+    await resolved();
+
+    // `RoomScreen` reads `sessionStorage` on mount rather than this gate's
+    // state, and it mounts only once the prompt is gone. Stored first is what
+    // makes the two agree.
+    expect(globalThis.sessionStorage.getItem('wikifake.nickname')).toBe('bob');
+  });
+
+  it('refuses a name the server would refuse, before opening anything', async () => {
+    openRoomDirectly();
+    await resolved();
+
+    // The same schema the socket is closed for. Waving it through here shows
+    // the player a dead connection instead of a reason.
+    fireEvent.change(screen.getByLabelText('Nickname'), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Join the room' }));
+    await resolved();
+
+    expect(opened).toHaveLength(0);
+    expect(screen.getByRole('alert')).not.toBeNull();
+  });
+
+  // A guard rather than a proof: it passes on the unfixed gate too, which is
+  // the point — five of the six above fail there, and this one says the fix
+  // did not start asking players who already answered.
+  it('does not ask a tab that has one', async () => {
+    rememberNickname('ada');
+    openRoomDirectly();
+    await resolved();
+
+    expect(screen.queryByLabelText('Nickname')).toBeNull();
+    expect(opened).toHaveLength(1);
   });
 });

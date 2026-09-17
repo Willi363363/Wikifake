@@ -50,6 +50,13 @@
     "retry": "Try again",
     "home": "Back to the home page"
   },
+  "name": {
+    "eyebrow": "Joining",
+    "body": "This tab does not have a nickname yet — a nickname is kept per tab, and this one did not come through the entry screen.",
+    "label": "Nickname",
+    "submit": "Join the room",
+    "error": "that nickname is not allowed"
+  },
   "vote": {
     "title": "Pick a topic",
     "subtitle": "Everyone proposes one. The server draws the round’s.",
