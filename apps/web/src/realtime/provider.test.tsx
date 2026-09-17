@@ -252,13 +252,14 @@ describe('7.1 — the room connection', () => {
     });
   });
 
-  // P.1 — the loop used to ask once a second for ever, from every open tab.
-  // What bounds it is not a number chosen here: it is the domain's grace
-  // window, past which a socket that opens is a new player joining rather than
-  // a seat being given back.
-  describe('when it cannot get back', () => {
-    /** 1s, 2s, 4s, 8s, then the 15s left of the window: 1, 3, 7, 15, 30. */
-    const DELAYS = [1000, 2000, 4000, 8000, 15_000];
+  // P.1 bounded the loop and Q.1 fixed which end it bounded. The defect was
+  // the **rate** — once a second, for ever, from every open tab — and P.1
+  // answered it with a thirty-second ceiling taken from the domain's grace
+  // window. This host sleeps for fifteen minutes and wakes in about one, so
+  // that ceiling gave up on a service that was coming back.
+  describe('when the room goes quiet', () => {
+    /** 1s, 2s, 4s, 8s, then a quarter of a minute, for ever. */
+    const DELAYS = [1000, 2000, 4000, 8000, ...Array<number>(7).fill(15_000)];
 
     const dropLast = () => {
       act(() => {
@@ -266,7 +267,17 @@ describe('7.1 — the room connection', () => {
       });
     };
 
-    it('doubles the delay, and lands the last attempt on the grace deadline', () => {
+    /** Drops and waits through `count` of the ladder above. */
+    const flap = (count: number) => {
+      for (const delay of DELAYS.slice(0, count)) {
+        dropLast();
+        act(() => {
+          vi.advanceTimersByTime(delay);
+        });
+      }
+    };
+
+    it('doubles the delay, then stops growing at a quarter of a minute', () => {
       mount();
       act(() => {
         (opened[0] as FakeSocket).accept();
@@ -274,9 +285,8 @@ describe('7.1 — the room connection', () => {
 
       DELAYS.forEach((delay, index) => {
         dropLast();
-        // Nothing a millisecond early: a delay that has not grown is the defect
-        // this step exists for, and it would pass an `advanceTimersByTime` that
-        // only ever went forwards.
+        // Nothing a millisecond early, which is what says the delay grew — and
+        // nothing later than the cap, which is what says it stopped growing.
         act(() => {
           vi.advanceTimersByTime(delay - 1);
         });
@@ -287,30 +297,44 @@ describe('7.1 — the room connection', () => {
         });
         expect(opened).toHaveLength(index + 2);
       });
-
-      expect(DELAYS.reduce((total, delay) => total + delay, 0)).toBe(30_000);
     });
 
-    it('stops, and says so, rather than asking for ever', () => {
+    it('keeps trying after it has said so, which is the whole of Q.1', () => {
       mount();
-      for (const delay of DELAYS) {
-        dropLast();
-        act(() => {
-          vi.advanceTimersByTime(delay);
-        });
-      }
-
-      // The sixth drop is the one the window has no room for.
+      // Two minutes of silence: 1 + 2 + 4 + 8 + seven quarters of a minute.
+      flap(11);
       dropLast();
       expect(screen.getByText(/status:lost/)).not.toBeNull();
-      // Nothing refused anything, so there is nothing to explain — only an
-      // action to offer, which is P.2's screen.
-      expect(screen.getByText(/refusal:-/)).not.toBeNull();
+
+      // A host that wakes up at two and a half minutes still gets its players
+      // back. Under P.1 there was no socket left to answer it.
+      const sofar = opened.length;
+      act(() => {
+        vi.advanceTimersByTime(15_000);
+      });
+      expect(opened).toHaveLength(sofar + 1);
 
       act(() => {
-        vi.advanceTimersByTime(60 * 60 * 1000);
+        (opened[opened.length - 1] as FakeSocket).accept();
       });
-      expect(opened).toHaveLength(DELAYS.length + 1);
+      expect(screen.getByText(/status:open/)).not.toBeNull();
+    });
+
+    it('says nothing while this host is merely waking up', () => {
+      mount();
+      // A cold start is about a minute. Ninety seconds of it, and the player
+      // is still being told the room is reconnecting rather than lost.
+      flap(9);
+      expect(screen.getByText(/status:reconnecting/)).not.toBeNull();
+      expect(screen.queryByText(/status:lost/)).toBeNull();
+    });
+
+    it('nothing refused anything, so there is nothing to explain', () => {
+      mount();
+      flap(11);
+      dropLast();
+      expect(screen.getByText(/status:lost/)).not.toBeNull();
+      expect(screen.getByText(/refusal:-/)).not.toBeNull();
     });
 
     it('buys the whole window back when a socket opens', () => {
@@ -334,22 +358,19 @@ describe('7.1 — the room connection', () => {
       expect(opened).toHaveLength(3);
     });
 
-    it('starts again when the player asks', () => {
+    it('starts again at once when the player asks', () => {
       mount(<Recover />);
-      for (const delay of DELAYS) {
-        dropLast();
-        act(() => {
-          vi.advanceTimersByTime(delay);
-        });
-      }
+      flap(11);
       dropLast();
       expect(screen.getByRole('button').textContent).toContain('lost');
 
+      const sofar = opened.length;
       act(() => {
         screen.getByRole('button').click();
       });
 
-      expect(opened).toHaveLength(DELAYS.length + 2);
+      // Now, rather than at the end of the current quarter of a minute.
+      expect(opened).toHaveLength(sofar + 1);
       expect(screen.getByRole('button').textContent).toContain('connecting');
     });
   });

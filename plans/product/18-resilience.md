@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 planned — five steps, none started |
+| **State** | 🔶 in progress — Q.1 done; the three unheld promises and the orphan remain |
 | **Branch** | one per step |
 | **Depends on** | nothing. Every step repairs code that is already in `staging` |
 | **Delivers** | a service that survives a collaborator saying no, and a client that waits as long as *this* deployment needs |
@@ -94,7 +94,7 @@ flags need a third state, or the whole body needs a `try`.
 
 | # | Step | State |
 |---|---|---|
-| Q.1 | The client waits as long as this host needs, not as long as the domain says | ⬜ |
+| Q.1 | The client waits as long as this host needs, not as long as the domain says | ✅ |
 | Q.2 | A handshake that cannot reach the database refuses, and does not throw | ⬜ |
 | Q.3 | A departure that cannot arm its alarm still departs | ⬜ |
 | Q.4 | A subscription that failed once can be made again | ⬜ |
@@ -105,10 +105,14 @@ flags need a third state, or the whole body needs a `try`.
 - **A test per step that fails without its fix**, checked by removing the fix.
   Q.2, Q.3 and Q.4 already have their probe: each printed its failure before
   this sheet was written.
-- Q.1 is the exception and needs a different gate, because no unit test can see
-  a host sleeping: the criterion is that **the number the client waits is
-  derived from the deployment**, and that `render.yaml` and the client cannot
-  disagree without something failing.
+- Q.1 was the exception and its gate changed in the doing, which is recorded
+  rather than quietly swapped. The sheet asked for **a number derived from the
+  deployment**; what it got is **no shared number at all** — the loop does not
+  stop, so nothing has to match the server's window. What `patience.test.ts`
+  guards instead is the one relationship that would make the card lie: it reads
+  `REALTIME_GRACE_SECONDS` out of `render.yaml` and refuses a threshold that
+  would tell a player their seat is gone while the server still holds it. On
+  P.1's thirty seconds it prints `expected 30000 to be greater than 90000`.
 - `12-realtime-debt.md` loses the four entries this track closes, in the pull
   requests that close them — and `05-known-debt.md`'s *There is no socket
   heartbeat* is rewritten by Q.1 rather than left describing a retry loop that

@@ -46,8 +46,8 @@
   },
   "lost": {
     "eyebrow": "Connection lost",
-    "body": "We tried for thirty seconds and could not get back. Your seat in the room has been given away — trying again joins it afresh.",
-    "retry": "Try again",
+    "body": "We have not been able to reach the room for two minutes, and we are still trying. Your seat has been given away by now — coming back joins the room afresh.",
+    "retry": "Try now",
     "home": "Back to the home page"
   },
   "name": {

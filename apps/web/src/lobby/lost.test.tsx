@@ -26,10 +26,16 @@ afterEach(() => {
   uninstall();
 });
 
-/** P.1's ladder: 1s, 2s, 4s, 8s, and the 15s left of the grace window. */
-const DELAYS = [1000, 2000, 4000, 8000, 15_000];
+/** Q.1's ladder: 1s, 2s, 4s, 8s, then a quarter of a minute, for ever. */
+const DELAYS = [1000, 2000, 4000, 8000, ...Array<number>(7).fill(15_000)];
 
-/** Drops the socket until the loop has nothing left to spend. */
+/**
+ * Drops the socket until the room has been unreachable for two minutes.
+ *
+ * Two minutes rather than P.1's thirty seconds, and that is the step: this
+ * host sleeps and wakes in about a minute, so a card shown at thirty seconds
+ * was shown to players whose service was already on its way back.
+ */
 function loseTheConnection(): void {
   for (const delay of DELAYS) {
     act(() => {
@@ -39,7 +45,7 @@ function loseTheConnection(): void {
       vi.advanceTimersByTime(delay);
     });
   }
-  // The drop the window has no room for. This is the one that gives up.
+  // The drop that lands past the threshold. The loop goes on; the card appears.
   act(() => {
     live().drop(1006);
   });
@@ -87,7 +93,7 @@ describe('P.2 — the connection that is not coming back', () => {
     const before = live();
     loseTheConnection();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Try now' }));
     expect(live()).not.toBe(before);
 
     act(() => {
