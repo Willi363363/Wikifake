@@ -203,7 +203,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
           <p className="mt-2">
             {/* A message per state, never the transport's enum value shipped
                 verbatim: the identifier is code, the badge is copy. */}
-            <Badge tone={status === 'closed' ? 'danger' : 'warn'}>
+            <Badge tone={status === 'closed' || status === 'lost' ? 'danger' : 'warn'}>
               {t(`connection.${status}`)}
             </Badge>
           </p>

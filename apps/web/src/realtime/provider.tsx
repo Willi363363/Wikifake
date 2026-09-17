@@ -12,6 +12,7 @@
 // and the socket is never reopened — which is the pitfall this phase names: a
 // provider mounted too low makes every screen reconnect, and the server sees
 // ghost reconnections it cannot tell from a flapping network.
+import { GRACE_SECONDS } from '@wikifake/domain';
 import { decode, outgoingMessage } from '@wikifake/protocol';
 import type { IncomingMessage, OutgoingMessage } from '@wikifake/protocol';
 import {
@@ -36,7 +37,16 @@ export type ConnectionStatus =
   /** Dropped, and coming back. D5's grace window is what makes this survivable. */
   | 'reconnecting'
   /** Refused, or closed on purpose. Nothing is retried. */
-  | 'closed';
+  | 'closed'
+  /**
+   * Dropped, retried until the seat could no longer be given back, and not
+   * coming back on its own — step P.1.
+   *
+   * Not `closed`: nobody refused anything and `refusal` is empty, so what the
+   * player is owed is an action rather than an explanation. `reconnect` is that
+   * action, and P.2 is the screen that offers it.
+   */
+  | 'lost';
 
 export interface Realtime {
   readonly status: ConnectionStatus;
@@ -55,18 +65,45 @@ export interface Realtime {
   send(message: IncomingMessage): void;
   /** Subscribes for as long as the caller is mounted. */
   subscribe(listener: (message: OutgoingMessage) => void): () => void;
+  /**
+   * Starts the loop again from the first delay — step P.1.
+   *
+   * Only `lost` can be left this way, and only a player can ask: an automatic
+   * restart is the loop this step exists to bound. Called in any other state it
+   * reopens the socket, which is what a player pressing *try again* on a
+   * connection that has just come back would expect anyway.
+   */
+  reconnect(): void;
 }
 
 const RealtimeContext = createContext<Realtime | null>(null);
 
 /**
- * How long before a dropped socket is retried, in milliseconds.
+ * How long before a dropped socket is retried the **first** time, and the unit
+ * the delays after it double from.
  *
  * Comfortably inside the server's thirty-second grace window, so a player who
  * loses their connection is back before their seat is given away — and long
  * enough that a server refusing every attempt is not hammered.
  */
 const RETRY_MS = 1000;
+
+/**
+ * How long the loop may go on trying, in milliseconds — step P.1.
+ *
+ * **The domain's grace window, and not a number chosen here.** Inside it the
+ * seat is still held and a reconnection gets the round back; past it
+ * `apps/realtime/src/rooms/tokens.ts` has forgotten the token, the player has
+ * been evicted, and a socket that opens is not a reconnection at all — it is a
+ * new player joining a round in progress. So the loop retries for exactly as
+ * long as retrying can restore something, and then stops and says so.
+ *
+ * `REALTIME_GRACE_SECONDS` can move the window on the server and this client
+ * cannot read it, which is written down in `plans/product/17-recovery.md`
+ * rather than left to be discovered: an operator who raises it gets a client
+ * that gives up early.
+ */
+const RETRY_BUDGET_MS = GRACE_SECONDS * 1000;
 
 /** RFC 6455: a deliberate close, and the server's "you may not". */
 const CLOSE_NORMAL = 1000;
@@ -102,8 +139,20 @@ export function RealtimeProvider({
   const retry = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [status, setStatus] = useState<ConnectionStatus>('idle');
   const [refusal, setRefusal] = useState<string | null>(null);
+  /**
+   * Bumped by `reconnect`, and a dependency of the effect below — step P.1.
+   *
+   * A counter rather than a function the effect exposes upwards: the loop, its
+   * budget and its timer all live in one closure, and the only honest way to
+   * start a fresh one is to let the effect tear the old one down first.
+   */
+  const [resumed, setResumed] = useState(0);
 
   useEffect(() => {
+    // A key rather than a value. Bumping it re-runs this effect, which is what
+    // starting the loop again means.
+    void resumed;
+
     if (roomCode === null || playerName === null) {
       setStatus('idle');
       return undefined;
@@ -114,6 +163,27 @@ export function RealtimeProvider({
     const token = sessionToken();
     let live = true;
     let attempts = 0;
+    /** Attempts since the last socket that opened, and the delay they cost. */
+    let retries = 0;
+    let waited = 0;
+
+    /**
+     * Schedules the next attempt, or answers false when the budget is spent.
+     *
+     * Delays double — 1s, 2s, 4s, 8s — and the last one is clamped to whatever
+     * is left of the window, so the final attempt lands *on* the deadline
+     * rather than after it: 1, 3, 7, 15, 30 seconds after the drop, five
+     * attempts, and no sixth.
+     */
+    const schedule = (): boolean => {
+      if (waited >= RETRY_BUDGET_MS) return false;
+
+      const delay = Math.min(RETRY_MS * 2 ** retries, RETRY_BUDGET_MS - waited);
+      waited += delay;
+      retries += 1;
+      retry.current = setTimeout(open, delay);
+      return true;
+    };
 
     const open = (): void => {
       if (!live) return;
@@ -129,6 +199,10 @@ export function RealtimeProvider({
         if (!live) return;
         setStatus('open');
         setRefusal(null);
+        // A connection that came back is not the one that dropped. The next
+        // outage gets the whole window again, from the first delay.
+        retries = 0;
+        waited = 0;
       });
 
       opened.addEventListener('message', (event: MessageEvent<string>) => {
@@ -165,8 +239,7 @@ export function RealtimeProvider({
           return;
         }
 
-        setStatus('reconnecting');
-        retry.current = setTimeout(open, RETRY_MS);
+        setStatus(schedule() ? 'reconnecting' : 'lost');
       });
     };
 
@@ -181,7 +254,7 @@ export function RealtimeProvider({
       socket.current?.close(CLOSE_NORMAL);
       socket.current = null;
     };
-  }, [roomCode, playerName, ticket]);
+  }, [roomCode, playerName, ticket, resumed]);
 
   const send = useCallback((message: IncomingMessage) => {
     const open = socket.current;
@@ -192,6 +265,10 @@ export function RealtimeProvider({
     open.send(JSON.stringify(message));
   }, []);
 
+  const reconnect = useCallback(() => {
+    setResumed((count) => count + 1);
+  }, []);
+
   const subscribe = useCallback((listener: (message: OutgoingMessage) => void) => {
     listeners.current.add(listener);
     return () => {
@@ -200,8 +277,8 @@ export function RealtimeProvider({
   }, []);
 
   const value = useMemo<Realtime>(
-    () => ({ status, refusal, me: playerName, send, subscribe }),
-    [status, refusal, playerName, send, subscribe],
+    () => ({ status, refusal, me: playerName, send, subscribe, reconnect }),
+    [status, refusal, playerName, send, subscribe, reconnect],
   );
 
   return <RealtimeContext value={value}>{children}</RealtimeContext>;

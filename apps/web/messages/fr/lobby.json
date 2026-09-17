@@ -35,7 +35,8 @@
       "idle": "en attente",
       "connecting": "connexion en cours",
       "reconnecting": "reconnexion en cours",
-      "closed": "connexion fermée"
+      "closed": "connexion fermée",
+      "lost": "connexion perdue"
     },
     "waitingForHost": "En attente que l’hôte lance la manche.",
     "readyCancel": "Prêt — annuler",
