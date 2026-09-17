@@ -234,7 +234,19 @@ export function createService(options: ServiceOptions): Service {
     // is the diagnosis, and `12-realtime-debt.md` says so rather than pretending
     // otherwise.
     socket.on('error', () => undefined);
-    void accept(socket, request);
+
+    // Step Q.2 — O.1's lesson on the other half of Node's error model, two
+    // lines below O.1's own fix. `accept` awaits `roomExists` before it has
+    // joined anybody, and that is a **Postgres** query in `main.ts`: a database
+    // that blinked rejected this promise, nothing held it, and Node ends the
+    // process over an unhandled rejection. `12-realtime-debt.md` has the probe.
+    //
+    // Refused rather than left holding a socket nobody will join, with the code
+    // `apologise` already uses: from where the player sits, a room that cannot
+    // be reached and a room that is not there are the same room.
+    void accept(socket, request).catch(() => {
+      refuse(socket, 'room_not_found', 'The room could not be reached.');
+    });
   });
 
   async function accept(socket: WebSocket, request: IncomingMessage): Promise<void> {
