@@ -104,6 +104,35 @@ even though it is not what has been happening. A distinct database index per
 package is still the obvious answer, and it is still cheap — it simply should
 not be sold as the fix for a timeout it would not have changed.
 
+### The ceiling was raised, and then reached twice more
+
+The deadline went from two seconds to eight on C.7's argument. **It has now been
+reached at eight**, twice, and the count is the finding:
+
+| | Pull request | Ceiling | Diff |
+|---|---|---|---|
+| ×3 | up to #205 | 2s | one touching no realtime code |
+| 2026-09-16 | #303 | 8s | documentation only — recorded in that day's handover |
+| 2026-09-17 | #305 | 8s | `apps/web` and `plans/` only |
+
+Both eight-second failures are the same helper, the same file and the same
+sentence — `until` in `testing/client.ts`, *"timed out waiting for the lobby to
+hold ada, bob"* in `broadcast.test.ts` — on a branch that changed nothing the
+socket service reads. Both passed on a re-run of the same commit. The run of
+2026-09-17 is `35206669698`, and the same commit locally gave 10 of 10 turbo
+tasks green and `@wikifake/realtime` **153 of 153**, sequentially.
+
+**So raising the number moved the failure rather than removing it**, which is
+what a third raise would do again. A wait that misses a two-second deadline by
+40 ms is slow; a wait that misses eight seconds is a wait that is not
+happening — and nothing in the failure says which frame never arrived, because
+the helper reports what it wanted and not what it saw.
+
+**The step that takes this is not a bigger number.** It is making the timeout
+say what state it timed out *in* — the roster it did hold, the channel it was
+subscribed to — so the next occurrence carries its own diagnosis instead of a
+fourth row in this table.
+
 ## A green suite and a failing job: Vitest's unhandled errors
 
 **Vitest exits non-zero on an unhandled error even when every test passed.**
@@ -160,41 +189,11 @@ Two things follow, and the second is the one to act on:
   rather than an outcome, read the SQL: `claimStatement(...).toSQL()`, the way
   `game.test.ts` reads C1.1 off the query rather than racing for it.
 
-## Every deploy probe on `staging` is a green job that probed nothing
+## The deploy probes moved out
 
-`deploy-check.yml` runs three jobs named *"Does X serve this commit?"*. On
-`staging` all three report **success**, and the only step that probes anything is
-skipped in all three.
-
-Verified on run `34825551878` — the merge of #268 — where each job's steps read
-`Which URL, and is there one? = success` and
-`Wait for the deployed commit to match = **skipped**`. The repository has two
-variables set, `WEB_DEPLOY_URL` and `REALTIME_DEPLOY_URL`, and neither of the
-`*_STAGING_DEPLOY_URL` names the workflow looks for on that branch exists.
-
-**The cause is `if: steps.config.outputs.configured == 'true'`.** An absent
-variable sets `configured=false`, the probe step never runs, and a job whose only
-real step was skipped is a job that passed. The workflow is not silent about it —
-it writes *"Deploy probe skipped"* and the variable's name into the step summary
-— but a summary is a page somebody opens and a check is a green tick beside a
-pull request. The tick is what gets read.
-
-**The third target is worse than unconfigured: it no longer exists.** The matrix
-row labelled *Render* reads `DEPLOY_URL`, which is set on neither branch, so that
-job has been green-and-empty on every run since the variable stopped being set.
-It is the old Python deployment's probe, kept by the matrix rather than by a
-decision.
-
-**What is actually true, measured while writing this**: on `main` both configured
-probes do run, and the realtime service answers
-`https://wikifake-realtime.onrender.com/api/health` with `commit d22970a` —
-`main`'s head. Pre-production has no such evidence either way.
-
-**Not fixed here, and it is not a one-line fix.** Two of the three are repository
-variables nobody working in this repository can set, and the third is a decision
-about whether the `Render` row should exist at all — which is a change to
-`.github/workflows/`, a path `gh` has no scope for here (`08-toolchain-debt.md`).
-The step that takes it should do all three at once: set
-`WEB_STAGING_DEPLOY_URL` and `REALTIME_STAGING_DEPLOY_URL`, drop the dead row,
-and make an unconfigured target fail rather than pass — a probe that cannot say
-*yes* should not be allowed to say nothing and look like *yes*.
+**On 2026-09-17**, when this file reached the 200-line rule with a finding still
+to write — the third time a register has been squeezed that way, and answered
+the same way each time. `Every deploy probe on staging is a green job that
+probed nothing` went to `08-toolchain-debt.md`, beside `Nothing in the deploy
+path runs a migration`: a workflow job is not a suite, and this register's own
+header says it is about the suites themselves.

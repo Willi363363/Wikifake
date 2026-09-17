@@ -136,6 +136,48 @@ one is a release step that runs `drizzle-kit migrate` against the production
 `DATABASE_URL` before the deployment is promoted, and it needs a place to hold
 that secret that is not a laptop. Recorded here until there is one.
 
+## Every deploy probe on `staging` is a green job that probed nothing
+
+`deploy-check.yml` runs three jobs named *"Does X serve this commit?"*. On
+`staging` all three report **success**, and the only step that probes anything is
+skipped in all three.
+
+Verified on run `34825551878` — the merge of #268 — where each job's steps read
+`Which URL, and is there one? = success` and
+`Wait for the deployed commit to match = **skipped**`. The repository has two
+variables set, `WEB_DEPLOY_URL` and `REALTIME_DEPLOY_URL`, and neither of the
+`*_STAGING_DEPLOY_URL` names the workflow looks for on that branch exists.
+
+**The cause is `if: steps.config.outputs.configured == 'true'`.** An absent
+variable sets `configured=false`, the probe step never runs, and a job whose only
+real step was skipped is a job that passed. The workflow is not silent about it —
+it writes *"Deploy probe skipped"* and the variable's name into the step summary
+— but a summary is a page somebody opens and a check is a green tick beside a
+pull request. The tick is what gets read.
+
+**The third target is worse than unconfigured: it no longer exists.** The matrix
+row labelled *Render* reads `DEPLOY_URL`, which is set on neither branch, so that
+job has been green-and-empty on every run since the variable stopped being set.
+It is the old Python deployment's probe, kept by the matrix rather than by a
+decision.
+
+**What is actually true, measured while writing this**: on `main` both configured
+probes do run, and the realtime service answers
+`https://wikifake-realtime.onrender.com/api/health` with `commit d22970a` —
+`main`'s head. Pre-production has no such evidence either way.
+
+**Not fixed here, and it is not a one-line fix.** Two of the three are repository
+variables nobody working in this repository can set, and the third is a decision
+about whether the `Render` row should exist at all — which is a change to
+`.github/workflows/`, a path `gh` has no scope for here (`08-toolchain-debt.md`).
+The step that takes it should do all three at once: set
+`WEB_STAGING_DEPLOY_URL` and `REALTIME_STAGING_DEPLOY_URL`, drop the dead row,
+and make an unconfigured target fail rather than pass — a probe that cannot say
+*yes* should not be allowed to say nothing and look like *yes*.
+
+*Moved here from `10-test-debt.md` on 2026-09-17, unchanged: a workflow job
+is not a suite, and that register was full.*
+
 ## The promotion moved out
 
 **On 2026-09-15**, when this file hit the 200-line rule again with a finding
