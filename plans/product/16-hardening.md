@@ -30,7 +30,8 @@ test is this track happening again in six months.
 
 ## What is deliberately not here
 
-The first two are **track P** (`17-recovery.md`), which takes the decision.
+The first two were **track P** (`17-recovery.md`), which took the decision
+and closed them.
 
 - **The client's retry loop**, which reconnects once a second for ever with no
   backoff. It is recorded, and it is a decision about what a player should see
