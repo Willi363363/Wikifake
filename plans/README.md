@@ -42,6 +42,7 @@ are defined in `product/`, and their state is the table below.
 | M | Badges | ✅ done — fifteen rungs derived from `player_stats`, on the profile | `product/14-badges.md` |
 | N | The article of the day | ✅ done — one article a day, the same for everybody, with its own board | `product/15-daily-article.md` |
 | O | Hardening — the service survives | ✅ done — six repairs out of the review of 2026-09-16, each with a test that fails without it | `product/16-hardening.md` |
+| P | Recovery — the two ways out | 🔶 planned — three steps, the screens track O refused to invent in passing | `product/17-recovery.md` |
 
 What was deliberately left out of it, with the reasons, is in
 `product/11-deferred.md`.

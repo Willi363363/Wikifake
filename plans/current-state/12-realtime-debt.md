@@ -36,6 +36,11 @@ six of these files. What went:
 
 What is left below is what is still true.
 
+**Both now belong to track P** (`../product/17-recovery.md`), which is the
+decision track O refused to take in passing: each is answered by a screen, and
+the sheet argues which screen before a line is written. They stay here until
+the pull requests that close them remove them.
+
 ## The client retries for ever, once a second, with no backoff
 
 `provider.tsx:169` — `retry.current = setTimeout(open, RETRY_MS)` with
