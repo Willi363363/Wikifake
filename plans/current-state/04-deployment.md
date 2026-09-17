@@ -109,6 +109,46 @@ reason to hold:
 Vercel's preview protection can answer 401 to the probe and to the browser
 journeys; `VERCEL_AUTOMATION_BYPASS_SECRET` is the way past it.
 
+## What the free tier costs
+
+*Moved here from `05-known-debt.md` on 2026-09-17: neither is a defect with a
+`file:line`, both are consequences of this plan, and this is the file somebody
+reads before changing a timeout.*
+
+## Round timers do not survive a restart on the free Redis
+
+`main.ts` chose BullMQ delayed jobs over in-process timeouts for a stated
+reason: *"a timeout dies with its process, and a redeployment would forget every
+round in flight"*. The socket service now runs on Render's free tier, whose Key
+Value instance **has no persistence**, so a redeployment forgets them anyway.
+
+The guarantee is not lost in the abstract — the code is still correct, and a
+persisted Redis restores it by changing one connection string. It is lost on this
+plan, which is the plan the project can afford. Recorded because the reasoning in
+`main.ts` now overstates what the deployment delivers, and somebody reading that
+comment would believe a round in flight is safe across a deploy.
+
+What it costs in practice: a deploy during a live round leaves that round without
+its end-of-round alarm. `ROOM_IDLE_LIMIT_SECONDS` still reaps the room after an
+hour, so nothing leaks — the players just see a round that never ends.
+
+## There is no socket heartbeat, and the host sleeps
+
+`ROOM_IDLE_LIMIT_SECONDS` lets a room live an hour with nothing happening in it.
+Render's free tier spins the service down after **fifteen minutes** without
+inbound traffic. Nothing on the socket fills that gap: `/ping` is an HTTP route
+for the platform's health check, not a client heartbeat.
+
+So a room whose players are idle in a lobby loses its sockets, and gets them back
+about a minute later when someone acts. `REALTIME_GRACE_SECONDS = 90` is what
+stops that costing anybody their seat, and the client's one-second retry loop is
+what reconnects. It works, and it is a workaround for a missing message.
+
+The honest fix is a client heartbeat — which means a new message in
+`packages/protocol`, regenerated `plans/protocol/` pages, and a snapshot test to
+update. That is its own step, not an aside in a deployment change, so it is
+recorded here rather than smuggled in.
+
 ## Still Render, for now
 
 The public domain is still served by Render, from the image it built before the
