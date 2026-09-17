@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 in progress — P.1 done, its bound taken from the domain |
+| **State** | 🔶 in progress — P.1 and P.2 done; the tab with no nickname remains |
 | **Branch** | one per step |
 | **Depends on** | nothing. Every step repairs code that is already in production |
 | **Delivers** | a client that stops asking when the answer cannot change, and a room a player can enter from a link |
@@ -111,7 +111,7 @@ player shown a dead connection instead of *that nickname is not allowed*.
 | # | Step | State |
 |---|---|---|
 | P.1 | The retry backs off, and stops when the seat is gone | ✅ |
-| P.2 | The screen for a connection that is not coming back | ⬜ |
+| P.2 | The screen for a connection that is not coming back | ✅ |
 | P.3 | A tab with no nickname is asked for one | ⬜ |
 
 **P.1** — `provider.tsx`. Delays double from `RETRY_MS` and clamp to the grace

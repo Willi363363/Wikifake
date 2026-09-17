@@ -18,6 +18,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 
 import { GenerationScreen } from './generation.js';
+import { LostConnection } from './lost.js';
 import { HostSettings } from './host-settings.js';
 import { PlayerList } from './player-list.js';
 import { ThemeVote } from './theme-vote.js';
@@ -54,7 +55,7 @@ export interface RoomProps {
 
 export function Room({ roomCode, nickname }: RoomProps) {
   const t = useTranslations('lobby.room');
-  const { status, refusal: transportCode } = useRealtime();
+  const { status, refusal: transportCode, reconnect } = useRealtime();
   const { send } = useRealtime();
   const room = useRoom(nickname);
 
@@ -117,6 +118,17 @@ export function Room({ roomCode, nickname }: RoomProps) {
       ...(room.isHost ? { timeLimit, withItems, ...options } : {}),
     });
   };
+
+  // P.2 — the loop has spent the grace window and stopped. Nothing under this
+  // line is working: the roster is frozen, every control sends into a socket
+  // that is gone, and the seat has been given away. So the room gives way to
+  // the card rather than wearing a badge over a screen that lies.
+  //
+  // Above the round's own return on purpose: a connection lost mid-round is
+  // the case where a stale screen is most convincing and least true.
+  if (status === 'lost') {
+    return <LostConnection roomCode={roomCode} onRetry={reconnect} />;
+  }
 
   // The round is a screen, not a card in the lobby's column: it takes the page.
   // The same round solo renders — what differs is the transport. "You have
@@ -203,7 +215,7 @@ export function Room({ roomCode, nickname }: RoomProps) {
           <p className="mt-2">
             {/* A message per state, never the transport's enum value shipped
                 verbatim: the identifier is code, the badge is copy. */}
-            <Badge tone={status === 'closed' || status === 'lost' ? 'danger' : 'warn'}>
+            <Badge tone={status === 'closed' ? 'danger' : 'warn'}>
               {t(`connection.${status}`)}
             </Badge>
           </p>
