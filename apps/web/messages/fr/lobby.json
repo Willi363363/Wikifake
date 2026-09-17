@@ -35,8 +35,7 @@
       "idle": "en attente",
       "connecting": "connexion en cours",
       "reconnecting": "reconnexion en cours",
-      "closed": "connexion fermée",
-      "lost": "connexion perdue"
+      "closed": "connexion fermée"
     },
     "waitingForHost": "En attente que l’hôte lance la manche.",
     "readyCancel": "Prêt — annuler",
@@ -44,6 +43,12 @@
     "startRound": "Lancer la manche",
     "startWithoutWaiting": "Lancer sans attendre",
     "backToRoom": "Retour au salon"
+  },
+  "lost": {
+    "eyebrow": "Connexion perdue",
+    "body": "Nous avons essayé pendant trente secondes sans y parvenir. Votre place dans le salon a été rendue — réessayer vous y fait entrer à nouveau.",
+    "retry": "Réessayer",
+    "home": "Retour à l’accueil"
   },
   "vote": {
     "title": "Choisissez un sujet",

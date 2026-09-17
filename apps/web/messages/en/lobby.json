@@ -35,8 +35,7 @@
       "idle": "idle",
       "connecting": "connecting",
       "reconnecting": "reconnecting",
-      "closed": "closed",
-      "lost": "lost"
+      "closed": "closed"
     },
     "waitingForHost": "Waiting for the host to start the round.",
     "readyCancel": "Ready — cancel",
@@ -44,6 +43,12 @@
     "startRound": "Start the round",
     "startWithoutWaiting": "Start without waiting",
     "backToRoom": "Back to the room"
+  },
+  "lost": {
+    "eyebrow": "Connection lost",
+    "body": "We tried for thirty seconds and could not get back. Your seat in the room has been given away — trying again joins it afresh.",
+    "retry": "Try again",
+    "home": "Back to the home page"
   },
   "vote": {
     "title": "Pick a topic",
