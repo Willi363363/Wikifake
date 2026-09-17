@@ -33,42 +33,18 @@ these files — so these are listed and not described.
 | a dropped Redis never came back | O.3 |
 | nothing bounded a generation | O.4 |
 | ten lost swaps told a player the room was gone | O.5 |
-| the client retried once a second, for ever, with no backoff | P.1, and P.2's screen — **but see Q.1 below**: P.1's ceiling is itself a defect |
+| the client retried once a second, for ever, with no backoff | P.1's backoff, P.2's screen |
 | a tab with no nickname waited for ever on *en attente* | P.3 |
+| the client then gave up before this host could wake | Q.1, which un-did P.1's ceiling |
 
 The argument each one turned on is in `../product/16-hardening-availability.md`
 and `../product/17-recovery.md` rather than repeated here.
 
-## The client gives up before this host can wake
-
-`render.yaml:70` sets `REALTIME_GRACE_SECONDS = 90` and says why on the line
-above: the free tier spins down after fifteen minutes idle and takes about a
-minute to come back, so *"a seat released before the player's socket can come
-back is a seat lost to the platform rather than to the player."*
-
-**P.1 bounded the client's retry loop at `GRACE_SECONDS`, the domain's 30**, and
-its sheet dismissed this in one clause — *"not worth a protocol change for a
-value nobody has ever set"*. The value has been set since the service moved to
-Render. Three places said so: that file, this register's own *There is no
-socket heartbeat* neighbour in `05-known-debt.md`, and the free tier's
-documentation.
-
-What it costs on the deployment the project runs: a lobby left alone for
-fifteen minutes used to reconnect by itself, unnoticed. It now shows every
-player *Connexion perdue* at thirty seconds, **while the server holds their
-seats for another sixty**, and offers a button the platform was about to make
-unnecessary.
-
-**The original defect was the rate, not the total** — *once a second, for ever,
-from every open tab*, which is what this register recorded and what the backoff
-fixes. The ceiling was added on top of it and is the part that broke. Whatever
-replaces it may not be read off `GRACE_SECONDS`: that constant is the room's
-seat, not the host's sleep, and P.1 conflated them.
-
 ## It was empty for four hours
 
 Written on 2026-09-17, the same day the file first said *nothing is open* and
-the same day a full-repository review reopened it with four entries. That is
+the same day a full-repository review reopened it with four entries, one of
+which was closed the same evening. That is
 not an embarrassment to hide: **an empty register was a claim about how hard
 anybody had looked**, and the section that said so said exactly that — *"seven
 entries were found in one afternoon of looking"*. Four more were found in one

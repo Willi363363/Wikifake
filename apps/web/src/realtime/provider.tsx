@@ -12,7 +12,6 @@
 // and the socket is never reopened — which is the pitfall this phase names: a
 // provider mounted too low makes every screen reconnect, and the server sees
 // ghost reconnections it cannot tell from a flapping network.
-import { GRACE_SECONDS } from '@wikifake/domain';
 import { decode, outgoingMessage } from '@wikifake/protocol';
 import type { IncomingMessage, OutgoingMessage } from '@wikifake/protocol';
 import {
@@ -39,12 +38,17 @@ export type ConnectionStatus =
   /** Refused, or closed on purpose. Nothing is retried. */
   | 'closed'
   /**
-   * Dropped, retried until the seat could no longer be given back, and not
-   * coming back on its own — step P.1.
+   * Dropped, and unreachable for long enough to be worth saying so — P.1 for
+   * the state, Q.1 for what it means.
    *
-   * Not `closed`: nobody refused anything and `refusal` is empty, so what the
-   * player is owed is an action rather than an explanation. `reconnect` is that
-   * action, and P.2 is the screen that offers it.
+   * **It is not "stopped".** The loop is still running underneath, a quarter of
+   * a minute at a time, and a socket that opens clears this without anybody
+   * pressing anything. What it says is that the room has been out of reach for
+   * `LOST_AFTER_MS`, which is longer than this host takes to wake up.
+   *
+   * Not `closed` either: nobody refused anything and `refusal` is empty, so
+   * what the player is owed is an action rather than an explanation. P.2 is the
+   * screen that offers it.
    */
   | 'lost';
 
@@ -82,28 +86,41 @@ const RealtimeContext = createContext<Realtime | null>(null);
  * How long before a dropped socket is retried the **first** time, and the unit
  * the delays after it double from.
  *
- * Comfortably inside the server's thirty-second grace window, so a player who
- * loses their connection is back before their seat is given away — and long
- * enough that a server refusing every attempt is not hammered.
+ * Short, because the common drop is a blink and the seat is still there: a
+ * player back within a second never knows they went. What stops that becoming
+ * a flood is `MAX_RETRY_MS`, not this.
  */
 const RETRY_MS = 1000;
 
 /**
- * How long the loop may go on trying, in milliseconds — step P.1.
+ * The longest a retry ever waits — step Q.1.
  *
- * **The domain's grace window, and not a number chosen here.** Inside it the
- * seat is still held and a reconnection gets the round back; past it
- * `apps/realtime/src/rooms/tokens.ts` has forgotten the token, the player has
- * been evicted, and a socket that opens is not a reconnection at all — it is a
- * new player joining a round in progress. So the loop retries for exactly as
- * long as retrying can restore something, and then stops and says so.
+ * **What the loop has to bound is its rate, not its lifetime.** The defect
+ * `12-realtime-debt.md` recorded was *once a second, for ever, from every open
+ * tab*: an instance restarting into every tab reconnecting at once. A quarter
+ * of a minute between attempts is not that, however long it goes on for.
  *
- * `REALTIME_GRACE_SECONDS` can move the window on the server and this client
- * cannot read it, which is written down in `plans/product/17-recovery.md`
- * rather than left to be discovered: an operator who raises it gets a client
- * that gives up early.
+ * P.1 bounded the lifetime instead, at the domain's `GRACE_SECONDS`, and that
+ * is the mistake this step repairs. The client's patience has nothing to do
+ * with the room's seat: `render.yaml` sets `REALTIME_GRACE_SECONDS = 90`
+ * because this host **sleeps** after fifteen minutes idle and takes about a
+ * minute to wake, so a loop that gave up at thirty seconds gave up on a
+ * service that was on its way back.
  */
-const RETRY_BUDGET_MS = GRACE_SECONDS * 1000;
+const MAX_RETRY_MS = 15_000;
+
+/**
+ * How long a room may be unreachable before the player is shown a screen.
+ *
+ * Two minutes: past this host's cold start with room to spare — about a minute,
+ * per `04-deployment.md` — so an ordinary sleep is never mentioned to anybody,
+ * and short enough that a service which is genuinely gone does not leave
+ * somebody watching a frozen roster.
+ *
+ * **Not a deadline.** The loop goes on after it; this is when the card appears,
+ * and a socket that opens at any point takes it away again.
+ */
+export const LOST_AFTER_MS = 2 * 60 * 1000;
 
 /** RFC 6455: a deliberate close, and the server's "you may not". */
 const CLOSE_NORMAL = 1000;
@@ -168,21 +185,20 @@ export function RealtimeProvider({
     let waited = 0;
 
     /**
-     * Schedules the next attempt, or answers false when the budget is spent.
+     * Schedules the next attempt, and says whether the room still looks
+     * reachable.
      *
-     * Delays double — 1s, 2s, 4s, 8s — and the last one is clamped to whatever
-     * is left of the window, so the final attempt lands *on* the deadline
-     * rather than after it: 1, 3, 7, 15, 30 seconds after the drop, five
-     * attempts, and no sixth.
+     * Delays double from `RETRY_MS` and stop growing at `MAX_RETRY_MS`: 1, 2,
+     * 4, 8, then a quarter of a minute for as long as it takes. **Nothing here
+     * decides to stop** — the answer is about what the player is shown, not
+     * about whether another attempt is made.
      */
     const schedule = (): boolean => {
-      if (waited >= RETRY_BUDGET_MS) return false;
-
-      const delay = Math.min(RETRY_MS * 2 ** retries, RETRY_BUDGET_MS - waited);
+      const delay = Math.min(RETRY_MS * 2 ** retries, MAX_RETRY_MS);
       waited += delay;
       retries += 1;
       retry.current = setTimeout(open, delay);
-      return true;
+      return waited < LOST_AFTER_MS;
     };
 
     const open = (): void => {

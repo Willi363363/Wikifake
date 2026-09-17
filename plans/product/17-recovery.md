@@ -68,6 +68,13 @@ a copy of it.
 **Delays double and the last one is clamped to land on the deadline**: 1s, 2s,
 4s, 8s, 15s — five attempts, cumulative 1, 3, 7, 15, **30**. Then it stops.
 
+**Superseded by Q.1 on 2026-09-17.** The paragraph below was right that the
+limit existed and wrong that nobody had met it: `render.yaml` has set
+`REALTIME_GRACE_SECONDS = 90` since the service moved to Render, because that
+host sleeps. The ceiling is gone — the loop now caps its *delay* and never its
+lifetime, and `18-resilience.md` carries the argument. Kept rather than edited
+away, because the reasoning below is exactly how the mistake was made.
+
 **The limit, stated rather than discovered later**: `REALTIME_GRACE_SECONDS` can
 override the window on the server, and the client cannot read it. An operator
 who raises it gets a client that gives up early. Telling the client its own

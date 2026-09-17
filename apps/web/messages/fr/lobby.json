@@ -46,8 +46,8 @@
   },
   "lost": {
     "eyebrow": "Connexion perdue",
-    "body": "Nous avons essayé pendant trente secondes sans y parvenir. Votre place dans le salon a été rendue — réessayer vous y fait entrer à nouveau.",
-    "retry": "Réessayer",
+    "body": "Nous n’arrivons plus à joindre le salon depuis deux minutes, et nous continuons d’essayer. Votre place a été rendue entre-temps — revenir vous y fait entrer à nouveau.",
+    "retry": "Réessayer maintenant",
     "home": "Retour à l’accueil"
   },
   "name": {
