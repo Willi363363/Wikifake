@@ -93,10 +93,10 @@ describe.skipIf(url === null)('5.8 — a topic becomes a round', () => {
     open(port, `/ws/${ROOM}/${encodeURIComponent(name)}`);
 
   const seen = (client: Opened, type: string, count = 1): Promise<void> =>
-    until(
-      () => of(client, type).length >= count,
-      () => `${String(count)} ${type}, got ${String(of(client, type).length)}`,
-    );
+    until(() => of(client, type).length >= count, {
+      want: `${String(count)} ${type}`,
+      saw: () => `${String(of(client, type).length)}`,
+    });
 
   /** Two players who have voted for a topic. What used to lead nowhere. */
   async function vote(): Promise<{ ada: Opened; bob: Opened }> {

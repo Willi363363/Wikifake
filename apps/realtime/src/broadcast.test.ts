@@ -100,11 +100,22 @@ describe.skipIf(url === null)('5.3 — one room, several instances', () => {
   const roster = (client: Opened): string[] =>
     (lastLobby(client)?.players ?? []).map((player) => player.name);
 
+  // Step R.1 — this wait is the one that has failed in CI, five times, and the
+  // message never said which of the two possible failures it was. So it says
+  // what it held, and how many frames arrived at all: a roster short by one is
+  // an instance that was slow, and no `lobby_update` whatsoever is a
+  // subscription that was never made.
   const rosterOf = (client: Opened, names: string[]): Promise<void> =>
     until(
       () =>
         JSON.stringify([...roster(client)].sort()) === JSON.stringify([...names].sort()),
-      `the lobby to hold ${names.join(', ')}`,
+      {
+        want: `the lobby to hold ${names.join(', ')}`,
+        saw: () =>
+          `${roster(client).join(', ') || 'an empty roster'}, after ${String(
+            client.received.length,
+          )} message(s)`,
+      },
     );
 
   // The criterion. Ada is on one instance, Bob on another, and neither is on the

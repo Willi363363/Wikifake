@@ -123,15 +123,15 @@ socket service reads. Both passed on a re-run of the same commit. The run of
 tasks green and `@wikifake/realtime` **153 of 153**, sequentially.
 
 **So raising the number moved the failure rather than removing it**, which is
-what a third raise would do again. A wait that misses a two-second deadline by
-40 ms is slow; a wait that misses eight seconds is a wait that is not
-happening — and nothing in the failure says which frame never arrived, because
-the helper reports what it wanted and not what it saw.
+what a third raise would do again — and a wait that misses eight seconds is a
+wait that is not happening rather than a slow one.
 
-**The step that takes this is not a bigger number.** It is making the timeout
-say what state it timed out *in* — the roster it did hold, the channel it was
-subscribed to — so the next occurrence carries its own diagnosis instead of a
-fourth row in this table.
+**Step R.1 took the step that is not a bigger number.** The ceiling is still
+eight; the message now carries the time that actually passed and, at the two
+sites that have failed, the roster it held. Made to fail on purpose: *"timed out
+after 8006ms waiting for the lobby to hold ada, bob, zoe; saw ada, bob, after 2
+message(s)"*. A sixth occurrence is still a row in this table, and it now says
+whether a frame was late or never sent.
 
 ## A green suite and a failing job: Vitest's unhandled errors
 

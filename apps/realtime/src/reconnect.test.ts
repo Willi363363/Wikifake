@@ -145,18 +145,28 @@ describe.skipIf(url === null)(
         connected: player.connected,
       }));
 
+    const roster = (client: Opened): string[] => {
+      const last = client.received
+        .filter((message) => (message as { type: string }).type === 'lobby_update')
+        .at(-1) as { players?: { name: string }[] } | undefined;
+      return (last?.players ?? []).map((player) => player.name);
+    };
+
+    // Step R.1 — the same describer `broadcast.test.ts` carries, for the same
+    // reason: this sentence is the other half of the five CI failures counted in
+    // `plans/current-state/10-test-debt.md`, and it said what it wanted only.
     const rosterOf = (client: Opened, names: string[]): Promise<void> =>
       until(
-        () => {
-          const last = client.received
-            .filter((message) => (message as { type: string }).type === 'lobby_update')
-            .at(-1) as { players?: { name: string }[] } | undefined;
-          return (
-            JSON.stringify((last?.players ?? []).map((player) => player.name).sort()) ===
-            JSON.stringify([...names].sort())
-          );
+        () =>
+          JSON.stringify([...roster(client)].sort()) ===
+          JSON.stringify([...names].sort()),
+        {
+          want: `the lobby to hold ${names.join(', ')}`,
+          saw: () =>
+            `${roster(client).join(', ') || 'an empty roster'}, after ${String(
+              client.received.length,
+            )} message(s)`,
         },
-        `the lobby to hold ${names.join(', ')}`,
       );
 
     /** Two players in a round, ada having bought a hint and submitted. */
