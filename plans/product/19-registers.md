@@ -36,15 +36,20 @@ reports what it wanted and not what it saw."*
 
 `testing/client.ts:82` already has the lever. `what` is typed
 `string | (() => string)` and the comment above the throw says why — *"described
-lazily, so a failure can say what the state actually was"*. **No call site uses
-it.** All 52 waits in `apps/realtime` pass a string, including the two
-`rosterOf` helpers that have produced every one of the five failures
-(`broadcast.test.ts:107`, `reconnect.test.ts:159`).
+lazily, so a failure can say what the state actually was"*.
 
-So a run that fails says the roster never became `ada, bob` and does not say
-whether it held `ada`, held nothing, or whether a single `lobby_update` ever
+**Seven of the 52 waits in `apps/realtime` use it, and the two that have failed
+do not.** `broadcast.test.ts:107` and `reconnect.test.ts:159` pass a plain
+string, so a run that fails says the roster never became `ada, bob` and does not
+say whether it held `ada`, held nothing, or whether a single `lobby_update` ever
 arrived — which is the difference between a slow instance and a subscription
 that was never made.
+
+The seven that do use it also show why the lever alone is not the fix: every one
+glues what it saw onto the end of what it wanted, in one sentence, in four
+different phrasings — *"3 round_started, got 1"*, *"both ready, saw […]"*. The
+describer is there and the shape is not, so nothing makes a site that lacks one
+look like it lacks one.
 
 ### The home reads a whole history to show four rows
 
@@ -119,8 +124,10 @@ succeeds pays nothing.
 
 The bare-string form stays, because forty-odd waits are self-evident and a
 mandatory describer on all of them is ceremony that would be filled in with
-noise. The two `rosterOf` helpers are the ones that get it, because they are the
-ones that have failed.
+noise. The two `rosterOf` helpers are the ones that gain it, because they are
+the ones that have failed; the seven ad-hoc describers move onto the same shape,
+because two ways of saying one thing in one file is the duplication
+`method/02-repository-rules.md` refuses.
 
 ### R.2 puts the filter in the query, not only the limit
 
