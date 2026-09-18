@@ -204,4 +204,100 @@ describe.skipIf(url === null)('a guest, and the account that comes after', () =>
       attachGuestRecords(store.db, 'account-1', 'account-1', perfectRound),
     ).rejects.toThrow(/same user/);
   });
+
+  /*
+   * Step R.2 — the window, and the trap in the obvious version of it.
+   *
+   * `09-query-debt.md` asked for a limit: the home shows four rounds and this
+   * query had none, so every participation an account had ever had crossed the
+   * wire to be thrown away in Node. What it did not say is that the home was
+   * *also* filtering, on `ended_at`, after the fact — so a limit alone would
+   * have been a regression rather than a saving, and the first case below is
+   * the one that catches it.
+   */
+  describe('the window a caller asks for', () => {
+    /** A round, with the two clocks the window reads. */
+    const addRound = async (
+      topic: string,
+      startedAt: Date,
+      endedAt: Date | null,
+    ): Promise<string> => {
+      const [row] = await store.db
+        .insert(game)
+        .values({
+          mode: 'solo',
+          topic,
+          sourceUrl: `https://fr.wikipedia.org/wiki/${topic}`,
+          paragraphs: ['un paragraphe'],
+          totalFakes: 2,
+          timeLimit: 300,
+          startedAt,
+          endedAt,
+        })
+        .returning({ id: game.id });
+      if (row === undefined) throw new Error('no game');
+      await store.db
+        .insert(participant)
+        .values({ gameId: row.id, userId: 'account-1', colour: '#ff0000' });
+      return row.id;
+    };
+
+    const day = (n: number): Date => new Date(Date.UTC(2026, 0, n));
+
+    beforeEach(async () => {
+      await addUser('account-1', 'Élise Dupont', false);
+    });
+
+    // The case the home would have failed. Five abandoned rounds, all newer than
+    // the one that finished: a `limit(4)` with no predicate returns four rows
+    // the home then filters down to nothing, and a player who has played all
+    // week is shown an empty list.
+    it('spends the limit on finished rounds, not on the newest ones', async () => {
+      for (const n of [2, 3, 4, 5, 6])
+        await addRound(`Abandon ${String(n)}`, day(n), null);
+      await addRound('Chocolat', day(1), day(1));
+
+      const window = await selectGameHistory(store.db, 'account-1', {
+        limit: 4,
+        finishedOnly: true,
+      });
+
+      expect(window.map((row) => row.topic)).toEqual(['Chocolat']);
+    });
+
+    it('returns the newest first, and stops at the limit', async () => {
+      await addRound('Chat', day(1), day(1));
+      await addRound('Chocolat', day(2), day(2));
+      await addRound('Café', day(3), day(3));
+
+      const window = await selectGameHistory(store.db, 'account-1', { limit: 2 });
+
+      expect(window.map((row) => row.topic)).toEqual(['Café', 'Chocolat']);
+    });
+
+    // What `exportAccount` gets, and the reason both fields default to off: an
+    // export of an account is every row of it, abandoned rounds included.
+    it('gives every row, unfinished ones too, when no window is asked for', async () => {
+      await addRound('Chat', day(1), day(1));
+      await addRound('Abandon', day(2), null);
+      await addRound('Chocolat', day(3), day(3));
+
+      const all = await selectGameHistory(store.db, 'account-1');
+
+      expect(all.map((row) => row.topic)).toEqual(['Chocolat', 'Abandon', 'Chat']);
+    });
+
+    // The predicate is on the round's clock and not the player's: somebody who
+    // left a round that ran to the end still played it.
+    it('counts a round that ended without this player submitting', async () => {
+      await addRound('Chocolat', day(1), day(1));
+
+      const window = await selectGameHistory(store.db, 'account-1', {
+        finishedOnly: true,
+      });
+
+      expect(window).toHaveLength(1);
+      expect(window[0]?.submittedAt).toBeNull();
+    });
+  });
 });

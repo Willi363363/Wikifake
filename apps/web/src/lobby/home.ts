@@ -108,10 +108,16 @@ export async function readHome(
     return { ...NOTHING, board: top, today: await readDailyTile(context, null, atMs) };
   }
 
-  const [stats, quests, history, today] = await Promise.all([
+  const [stats, quests, recent, today] = await Promise.all([
     selectPlayerStats(context.db, viewerId),
     readLiveQuests(context, viewerId, atMs),
-    selectGameHistory(context.db, viewerId),
+    // Step R.2 — four finished rounds, asked for as four finished rounds. This
+    // read every participation the account had ever had and threw all but four
+    // away in Node, which cost most for the players who play most.
+    selectGameHistory(context.db, viewerId, {
+      limit: RECENT_ROUNDS,
+      finishedOnly: true,
+    }),
     readDailyTile(context, viewerId, atMs),
   ]);
 
@@ -128,10 +134,10 @@ export async function readHome(
     board: top,
     today,
     // Finished rounds only, and `endedAt` is what says so: a round somebody
-    // walked out of has no score worth listing under "what you played".
-    recent: history
+    // walked out of has no score worth listing under "what you played". The
+    // query holds that rule now; the narrowing below is what tells TypeScript.
+    recent: recent
       .filter((row): row is typeof row & { endedAt: Date } => row.endedAt !== null)
-      .slice(0, RECENT_ROUNDS)
       .map((row) => ({
         gameId: row.gameId,
         topic: row.topic,

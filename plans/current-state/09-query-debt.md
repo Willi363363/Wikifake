@@ -158,26 +158,36 @@ against Neon's ceiling, and recorded rather than acted on for that reason — bu
 Fluid Compute keeps instances alive, so the pools are held for as long as the
 instance is, and the arithmetic is per instance.
 
-## The home reads a whole history to show four rows
+## The home read a whole history to show four rows — closed by R.2
 
-`queries/history.ts:24` — `selectGameHistory` has **no `LIMIT`**. `lobby/home.ts:134`
-takes what it wants with `.slice(0, RECENT_ROUNDS)`, in Node, after the rows
-have crossed the wire.
+`queries/history.ts:24` — `selectGameHistory` had **no `LIMIT`**, and
+`lobby/home.ts:134` sliced to `RECENT_ROUNDS` in Node, after the rows had
+crossed the wire.
 
-Two costs, and the second is the one that grows. The rows are wasted, and the
-**sort cannot use an index**: the predicate is `participant.userId`, which
-`participant_user_id_idx` covers, but the order is `game.startedAt` on the
-joined table. So Postgres fetches every participation a player has, joins, and
-sorts — per home page load, for the players who play most.
+Found by reading on 2026-09-17 and left unmeasured, because the machine that
+would produce a number had four rounds in it. **R.2 seeded one**: 2 000 rounds
+for one player among 22 000, four in five finished.
 
-The fix is a `limit` parameter rather than a second query. `exportAccount`
-(`queries/account.ts:322`) is the only other caller and wants all of them,
-which is exactly what an optional limit leaves it.
+```
+before   median 8.76 ms   2000 rows   601.7 KiB   quicksort of 2000
+after    median 4.17 ms      4 rows     1.2 KiB   top-N heapsort of 4
+```
+**The plan is barely the point, and that is the finding.** Both shapes still
+hash-join a sequential scan — no index serves a predicate on
+`participant.user_id` and an order on `game.started_at`, on the joined table —
+so the limit buys a top-N heapsort and four milliseconds. What it actually buys
+is **six hundred kilobytes that stop crossing the wire per home page load**,
+invisible on a loopback and the payload between a Vercel function and Neon. It
+grows with the account, which is the half that matters.
 
-Found by reading, on 2026-09-17, and **not measured**: `09` usually carries a
-timing beside a claim and this one has none, because the machine that would
-produce it has four rounds in it. The shape is the finding; the number wants a
-seeded history, the way `H.2` seeded five thousand movements.
+**The limit alone would have been a regression**, which the register did not
+say. The home was *also* filtering on `ended_at` after the fact: four abandoned
+rounds at the top fill the budget and leave a player who has played all week
+looking at an empty list. So `HistoryWindow` carries both, and `history.test.ts`
+has the case that fails with the limit and no predicate.
+
+`exportAccount` (`queries/account.ts:322`) passes no window and gets every row,
+unfinished included — which is what an export is.
 
 ## The home's board is read before the four reads it does not depend on
 
