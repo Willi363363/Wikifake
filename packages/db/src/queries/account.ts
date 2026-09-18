@@ -28,6 +28,7 @@ import { leaderboardEntry } from '../schema/leaderboard.js';
 import { profile } from '../schema/profile.js';
 import { questAssignment } from '../schema/quests.js';
 import { user } from '../schema/auth.js';
+import { newestClockFirst } from './coins.js';
 import { selectGameHistory } from './history.js';
 import { selectPlayerStats, type PlayerStats } from './stats.js';
 
@@ -264,7 +265,12 @@ export async function exportAccount(
       })
       .from(coinMovement)
       .where(eq(coinMovement.userId, userId))
-      .orderBy(desc(coinMovement.createdAt)),
+      // Step R.4 — `coins.ts`'s spelling, so `coin_movement_user_idx` can serve
+      // the order. An export reads every movement an account has, so this is
+      // where the sort disappears outright rather than becoming incremental:
+      // 1.2 ms and a Bitmap Heap Scan became 0.5 ms and an index scan with no
+      // sort at all.
+      .orderBy(newestClockFirst),
 
     db
       .select({

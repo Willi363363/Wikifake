@@ -13,7 +13,7 @@
 import { sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
-import { balanceQuery, selectBalance, sumBalance } from './coins.js';
+import { balanceQuery, movementsOf, selectBalance, sumBalance } from './coins.js';
 import { user } from '../schema/auth.js';
 import { openTestDatabase, testDatabaseUrl } from '../testing/database.js';
 import type { TestDatabase } from '../testing/database.js';
@@ -82,9 +82,11 @@ describe.skipIf(url === null)('H.2 — the balance of a long ledger', () => {
     await store.close();
   });
 
-  /** The plan the balance read sends, as one string. */
-  const planFor = async (): Promise<string> => {
-    const { sql: text, params } = balanceQuery(store.db, 'ada').toSQL();
+  /** The plan a query sends, as one string. */
+  const planOf = async (query: {
+    toSQL: () => { sql: string; params: unknown[] };
+  }): Promise<string> => {
+    const { sql: text, params } = query.toSQL();
     // Substituted **by index**, which the first version of this got wrong: a
     // replacement that ignored the number turned `limit $2` into `limit 'ada'`
     // and the explain failed as a syntax error rather than as an assertion.
@@ -95,6 +97,9 @@ describe.skipIf(url === null)('H.2 — the balance of a long ledger', () => {
     const rows = await store.db.execute(sql.raw(`explain (analyze) ${inlined}`));
     return [...rows].map((row) => Object.values(row)[0] as string).join('\n');
   };
+
+  /** The plan the balance read sends. */
+  const planFor = (): Promise<string> => planOf(balanceQuery(store.db, 'ada'));
 
   it('seeded the ledger it claims to have', async () => {
     // A plan measured on an empty table would pass and prove nothing.
@@ -207,5 +212,61 @@ describe.skipIf(url === null)('H.2 — the balance of a long ledger', () => {
       `H.2 — balance of ${String(MOVEMENTS)} movements: one row ${fast.toFixed(2)} ms, summed ${slow.toFixed(2)} ms`,
     );
     expect(fast).toBeGreaterThan(0);
+  });
+
+  /*
+   * Step R.4 — the other half of the same defect, on the other index.
+   *
+   * H.2 fixed `order by seq desc` where it found it and `09-query-debt.md`
+   * asked for the sweep as its own step: *"every `.desc()` in an index, against
+   * every query that orders on it"*. `coin_movement_user_idx` is
+   * `(user_id, created_at desc nulls last)`, and both readers of the ledger
+   * ordered a bare `created_at desc` — which no index can serve.
+   *
+   * Measured here, on this file's five thousand movements plus twenty thousand
+   * belonging to somebody else:
+   *
+   *     the ledger read   3.3 ms → 1.5 ms   Bitmap Heap Scan + Sort → Index Scan
+   *     the export        1.2 ms → 0.5 ms   the sort disappears entirely
+   *
+   * The two differ because the ledger also orders on `seq`, which no index
+   * carries beside `created_at`: ties still sort, so the sort becomes
+   * incremental rather than going away.
+   */
+  describe('R.4 — the ledger read, in the order its index holds', () => {
+    it('can be served by `coin_movement_user_idx`, in order', async () => {
+      // The schema's question with the cost model taken out of it, which is the
+      // shape this file and `leaderboard-volume.test.ts` both arrived at: at
+      // five thousand narrow rows the planner is right to prefer a scan, so
+      // asserting one here would assert against the planner rather than the
+      // index.
+      await store.db.execute(sql`set enable_seqscan = off`);
+      await store.db.execute(sql`set enable_bitmapscan = off`);
+      try {
+        const plan = await planOf(movementsOf(store.db, 'ada'));
+
+        expect(plan, plan).toMatch(/Index Scan.*coin_movement_user_idx/);
+        // Incremental, and never a full one: what remains to be sorted is the
+        // tie on `seq` inside one `created_at`, not the player's whole ledger.
+        expect(plan, plan).not.toMatch(/^\s*->\s*Sort$/m);
+        expect(plan, plan).toMatch(/Incremental Sort/);
+      } finally {
+        await store.db.execute(sql`set enable_seqscan = on`);
+        await store.db.execute(sql`set enable_bitmapscan = on`);
+      }
+    });
+
+    it('spells the order the way the index is written, in both readers', () => {
+      // `exportAccount` reads the same table the same way, and its ordering is
+      // `coins.ts`'s own constant rather than a second spelling of it — so this
+      // asserts the constant, which is the thing both callers share.
+      const { sql: text } = movementsOf(store.db, 'ada').toSQL();
+
+      expect(text).toContain('desc nulls last');
+      // The trap the sweep is about: `desc` alone is `nulls first` in SQL, and
+      // `.desc()` writes `desc nulls last` into an index. A bare `created_at
+      // desc` here is the mismatch coming back.
+      expect(text).not.toMatch(/"created_at" desc(?! nulls last)/);
+    });
   });
 });

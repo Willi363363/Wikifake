@@ -17,55 +17,55 @@ guess with a file name attached.
 
 ## `DESC NULLS LAST` in an index does not serve `ORDER BY … DESC`
 
-Found in H.2, and it is the kind of defect that ships in silence.
+Found in H.2, and it is the kind of defect that ships in silence. **`order by x
+desc` means `desc nulls first` in SQL**, while Drizzle's `.desc()` writes
+`DESC NULLS LAST` into an *index definition*. They do not match, so Postgres will
+not use the index for the ordering. The columns are `not null`, so **the two can
+never differ in result**, only in whether an index may be used, which is why
+nothing catches it. H.2's own numbers — a scan and a top-N sort against an index
+scan that stops at row one — are in `coins.ts`, beside the constant that spells
+the order.
 
-**`order by x desc` means `desc nulls first` in SQL.** Drizzle's `.desc()`
-produces `DESC NULLS LAST` in an *index definition* and a bare `desc` in an
-*order by*, so the two do not match — and Postgres will not use the index for
-the ordering. It reads every qualifying row and sorts them.
+### The sweep, taken as R.4 — two sites moved, two did not
 
-Measured on a ledger of five thousand movements, the same query either way:
+Four indexes are written `DESC NULLS LAST`; two of their queries already matched,
+found by H.2 and by K. The rest were probed one at a time, and only the sites
+whose plan changed were touched:
 
-```
-order by seq desc              cost 139    0.77 ms   Seq Scan + top-N sort
-order by seq desc nulls last   cost 0.35   0.08 ms   Index Scan, stops at row 1
-```
+| Site | Before | After |
+|---|---|---|
+| `coins.ts` the ledger read | 3.3 ms, Bitmap Heap Scan + Sort | **1.5 ms**, Index Scan + Incremental Sort |
+| `account.ts` the export | 1.2 ms, Bitmap Heap Scan + Sort | **0.5 ms**, Index Scan, no sort |
+| `leaderboard.ts` all-time board | 26.5 ms | 26.5 ms — *left alone* |
+| `daily-board.ts` the day's board | 6.3 ms | 6.3 ms — *left alone* |
 
-Ten times faster, and constant rather than linear. The columns involved are
-`not null`, so **the two orderings can never differ in result** — only in whether
-an index may be used, which is why nothing catches it.
-
-`queries/coins.ts` spells `desc nulls last` and says why. **What is not fixed is
-everywhere else it applies**, and at least one place it demonstrably does:
-
-- **`leaderboard_mode_score_idx` is `(mode, score DESC NULLS LAST, …)` and
-  `boardQuery` orders `desc(score)`.** Probed by changing that one ordering and
-  re-running G.4's volume test: the all-time board went from **45 ms to 26 ms**
-  at fifty thousand entries, with all fourteen cases still passing. Reverted,
-  because a performance change to a shipped step is not an aside in a step about
-  a coin ledger.
-
-Worth a sweep rather than a fix in passing: every `.desc()` in an index, against
-every query that orders on it. The fix is one clause per query and the win is
-measurable, so it deserves its own step and its own before-and-after.
+The ledger's sort becomes *incremental* rather than disappearing: it also orders
+on `seq`, which no index carries beside `created_at`. Neither board moved and
+neither could — `daily-board.ts` filters on `game.daily_day` and never on the
+entry's `mode`, and the next entry says why the ordering never cost the all-time
+board anything.
 
 ## The all-time leaderboard reads the whole mode, because it needs a name
 
-Moved here from `06-structural-debt.md`, where it was a pointer.
+Moved here from `06-structural-debt.md`, where it was a pointer. Measured in G.4
+at fifty thousand entries: the daily, weekly and regional boards
+answer in 2–3 ms with their range pushed into an index; the all-time board took
+45 ms, reading every entry in the mode, and measures **26.5 ms** since G.7.
 
-Measured in G.4 at fifty thousand entries: the daily, weekly and regional boards
-answer in 2–3 ms with their range pushed into an index; the all-time board takes
-45 ms, reading every entry in the mode.
-
-**The scan is the cause — not the index, and since G.7 not the sort either.** A
+**The scan is the cause** — not the index, and since G.7 not the sort either: a
 board is one row per player now, so `distinct on` reduces twenty-five thousand
-entries to two thousand before the ordering; but every entry is still read to
-find each player's best, and deduplicating costs more than sorting did. Its cost
-grows with the game's history where every other board's grows with its period.
+entries to two thousand before the ordering, and every entry is still read to
+find each player's best. Its cost grows with the game's history where every
+other board's grows with its period.
 
-Part of that 45 ms is the ordering mismatch above — 19 ms of it, probed. The
-rest is inherent to the deduplication. The two ways out, and why forcing a
-nested loop measures nothing, are in `../product/07-leaderboards-queries.md`.
+**The 19 ms this entry once charged to the ordering mismatch is not its.** R.4
+re-probed all four spellings — inner, outer, both, neither — on the same seed:
+26.5 to 27.1 ms, identical plans, identical again with `enable_seqscan` off.
+Since G.7 the ordering *starts* with `user_id`, and no index starts there and
+continues with `score`, so the whole of it belongs to the deduplication.
+
+The two ways out, and why forcing a nested loop measures nothing, are in
+`../product/07-leaderboards-queries.md`.
 
 ## A mouse move rewrote the whole round — closed by O.5
 
