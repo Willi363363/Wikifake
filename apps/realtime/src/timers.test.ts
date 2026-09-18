@@ -176,8 +176,11 @@ describe.skipIf(url === null)('5.4 — the server ends what nobody ends', () => 
     bob.send({ type: 'set_ready', ready: true });
     await until(
       () => roster(bob).length === 2 && of(ada, 'lobby_update').length >= 3,
-      () =>
-        `both to be ready (ada saw ${String(of(ada, 'lobby_update').length)} lobbies, bob's roster ${JSON.stringify(roster(bob))})`,
+      {
+        want: 'both to be ready',
+        saw: () =>
+          `${String(of(ada, 'lobby_update').length)} lobbies at ada, bob's roster ${JSON.stringify(roster(bob))}`,
+      },
       PATIENCE_MS,
     );
 

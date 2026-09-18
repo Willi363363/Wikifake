@@ -170,10 +170,10 @@ describe('O.2 — a socket that closes while it is still joining', () => {
     await new Promise((resolve) => socket.on('open', resolve));
     socket.close();
 
-    await until(
-      () => service?.connections.holds(ROOM, 'Ada') === false,
-      () => `the registry to forget Ada (size ${String(service?.connections.size)})`,
-    );
+    await until(() => service?.connections.holds(ROOM, 'Ada') === false, {
+      want: 'the registry to forget Ada',
+      saw: () => `a registry of ${String(service?.connections.size)}`,
+    });
     expect(service?.connections.size).toBe(0);
   });
 

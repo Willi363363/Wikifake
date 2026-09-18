@@ -117,10 +117,10 @@ describe.skipIf(url === null)('5.6 — what a client is allowed to send', () => 
     open(port, `/ws/${ROOM}/${encodeURIComponent(name)}`);
 
   const seen = (client: Opened, type: string, count = 1): Promise<void> =>
-    until(
-      () => of(client, type).length >= count,
-      () => `${String(count)} ${type}, got ${String(of(client, type).length)}`,
-    );
+    until(() => of(client, type).length >= count, {
+      want: `${String(count)} ${type}`,
+      saw: () => `${String(of(client, type).length)}`,
+    });
 
   /**
    * Two players in a round, ada hosting, on a chosen time limit.

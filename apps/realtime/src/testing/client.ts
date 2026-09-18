@@ -47,6 +47,11 @@ export interface Opened {
  * `vitest.config.ts` raises `testTimeout` with it. Otherwise Vitest's own
  * five-second default fires first and reports "Test timed out in 5000ms",
  * losing the sentence that says *what* was being waited for.
+ *
+ * **And it is not raised a third time.** It has been reached at eight, twice,
+ * and `10-test-debt.md` counts both: raising the number moved the failure
+ * rather than removing it. What R.1 changed instead is the message — see
+ * `Diagnosed` below.
  */
 const TIMEOUT_MS = 8000;
 
@@ -63,6 +68,56 @@ function raw(socket: WebSocket): { pause(): void; resume(): void } | undefined {
 }
 
 /**
+ * What a wait was for, and what was true when it gave up — step R.1.
+ *
+ * A bare string says what the condition was supposed to become and nothing
+ * about what it was. That is enough for a wait whose only failure mode is "the
+ * server never answered", and it is not enough for the waits that have actually
+ * failed here: five CI runs, three at a two-second deadline and two at eight,
+ * all of them *"timed out waiting for the lobby to hold ada, bob"* on branches
+ * that changed nothing the socket service reads
+ * (`plans/current-state/10-test-debt.md`). A roster short by one is a slow
+ * instance; an empty one is a subscription that was never made; and the message
+ * could not tell them apart.
+ *
+ * So the sites that have failed carry a describer too, and pay for it only when
+ * they fail — `saw` is called from the throw and nowhere else.
+ *
+ * **It replaces a `() => string` this file used to accept**, which three sites
+ * used and all three used the same way: gluing what they saw onto the end of
+ * what they wanted, in one sentence, in three different phrasings. Splitting the
+ * two makes every failure here read alike, and makes the describer a thing a
+ * site can be seen not to have.
+ *
+ * **Synchronous on purpose.** A describer that awaits can hang, and the one
+ * thing worse than a timeout with no diagnosis is a timeout that never finishes
+ * reporting. Read what is already in hand: the frames the client received, the
+ * state the reducer last returned.
+ */
+export interface Diagnosed {
+  /** The sentence a bare string would have been: what the wait was for. */
+  readonly want: string;
+  /** What was true at the deadline. Called once, from the failure path. */
+  readonly saw: () => string;
+}
+
+/**
+ * Describes the state at the deadline without letting the describer replace the
+ * failure.
+ *
+ * A `saw` that throws is a describer reading state that is gone — a closed
+ * socket, a truncated table — and a helper that let it propagate would report
+ * that error instead of the timeout, which is the one fact the run needed.
+ */
+function describe(what: Diagnosed): string {
+  try {
+    return what.saw();
+  } catch (error) {
+    return `<describing the state threw: ${String(error)}>`;
+  }
+}
+
+/**
  * Polls a condition rather than racing a fixed delay, which is how a suite
  * flakes.
  *
@@ -75,22 +130,30 @@ function raw(socket: WebSocket): { pause(): void; resume(): void } | undefined {
  * condition returning one would satisfy every wait immediately and the test
  * would race whatever it was waiting for.
  *
+ * The failure names the time that actually passed and not the ceiling that was
+ * set: a wait that gave up 40 ms over a two-second deadline is a slow machine,
+ * and one that sat at eight seconds is a frame that was never coming — and the
+ * two are told apart by the number, which is why it is in the message rather
+ * than inferred from the ceiling the file happens to carry that month.
+ *
  * @param timeoutMs raise it for a suite whose first request pays a warm-up:
  * BullMQ connects and loads its Lua scripts on the first alarm, which is seconds
  * once and milliseconds afterwards.
  */
 export async function until(
   condition: () => boolean | Promise<boolean>,
-  what: string | (() => string),
+  what: string | Diagnosed,
   timeoutMs = TIMEOUT_MS,
 ): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
+  const started = Date.now();
+  const deadline = started + timeoutMs;
   while (!(await condition())) {
     if (Date.now() > deadline) {
-      // Described lazily, so a failure can say what the state actually was
-      // rather than only what it was supposed to become.
+      const waited = `${String(Date.now() - started)}ms`;
       throw new Error(
-        `timed out waiting for ${typeof what === 'string' ? what : what()}`,
+        typeof what === 'string'
+          ? `timed out after ${waited} waiting for ${what}`
+          : `timed out after ${waited} waiting for ${what.want}; saw ${describe(what)}`,
       );
     }
     await new Promise((resolve) => setTimeout(resolve, 5));

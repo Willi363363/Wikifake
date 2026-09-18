@@ -121,10 +121,10 @@ describe.skipIf(url === null)('5.7 — who decides, and what ends a room', () =>
     open(port, `/ws/${ROOM}/${encodeURIComponent(name)}`);
 
   const seen = (client: Opened, type: string, count = 1): Promise<void> =>
-    until(
-      () => of(client, type).length >= count,
-      () => `${String(count)} ${type}, got ${String(of(client, type).length)}`,
-    );
+    until(() => of(client, type).length >= count, {
+      want: `${String(count)} ${type}`,
+      saw: () => `${String(of(client, type).length)}`,
+    });
 
   const held = async (): Promise<{
     phase: string;
@@ -143,7 +143,7 @@ describe.skipIf(url === null)('5.7 — who decides, and what ends a room', () =>
     bob.send({ type: 'set_ready', ready: true });
     await until(
       () => roster(bob).length === 2 && roster(bob).every((player) => player.ready),
-      () => `both ready, saw ${JSON.stringify(roster(bob))}`,
+      { want: 'both ready', saw: () => JSON.stringify(roster(bob)) },
     );
 
     return { ada, bob };
@@ -232,10 +232,10 @@ describe.skipIf(url === null)('5.7 — who decides, and what ends a room', () =>
 
       ada.close();
 
-      await until(
-        () => roster(bob).length === 1,
-        () => `ada to be evicted, saw ${JSON.stringify(roster(bob))}`,
-      );
+      await until(() => roster(bob).length === 1, {
+        want: 'ada to be evicted',
+        saw: () => JSON.stringify(roster(bob)),
+      });
       expect(roster(bob)[0]).toMatchObject({ name: 'bob', isHost: true });
 
       bob.close();
