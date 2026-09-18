@@ -18,7 +18,7 @@
 import { selectGameHistory, selectPlayerStats, type Database } from '@wikifake/db';
 
 import { readDailyTile, type DailyTile } from '../daily/tile.js';
-import { readBoard } from '../leaderboard/board.js';
+import { readBoard, type BoardView } from '../leaderboard/board.js';
 import { readLiveQuests, type LiveQuest } from '../quests/sets.js';
 
 /** How many finished rounds the home lists. Four: a tile, not a history. */
@@ -93,22 +93,43 @@ export function dailyWorthShowing(quests: readonly LiveQuest[]): LiveQuest | nul
  * `13-ui-overhaul.md`: *a dashboard that draws zeroes says the game is empty*.
  * Everything else needs an identity and is skipped without one.
  */
+/** The head of the board, which is all a tile has room for. */
+function topOf(board: BoardView): HomeView['board'] {
+  return board.rows.slice(0, HOME_BOARD_ROWS).map((row) => ({
+    displayName: row.displayName,
+    score: row.score,
+  }));
+}
+
 export async function readHome(
   context: HomeContext,
   viewerId: string | null,
   atMs: number,
 ): Promise<HomeView> {
-  const board = await readBoard(context, 'allTime', null, atMs, viewerId);
-  const top = board.rows.slice(0, HOME_BOARD_ROWS).map((row) => ({
-    displayName: row.displayName,
-    score: row.score,
-  }));
+  /*
+   * Step R.3 — started before the branch, awaited on both, floating on neither.
+   *
+   * This was `await readBoard(…)` on its own line. Nothing below feeds the board
+   * and the board feeds nothing below — they take the same `viewerId` and the
+   * same clock — so every home page load spent one round trip waiting its turn
+   * for no reason. Same arithmetic as O.6's, one query further out.
+   *
+   * A promise created before a branch is the shape track Q spent five steps on,
+   * so it is worth saying why this one is held: there is no `await` between here
+   * and the `Promise.all` that takes it, on either path, which is what makes a
+   * rejection handled rather than an unhandled one.
+   */
+  const board = readBoard(context, 'allTime', null, atMs, viewerId);
 
   if (viewerId === null) {
-    return { ...NOTHING, board: top, today: await readDailyTile(context, null, atMs) };
+    // The guest path had the same defect and one fewer read: the tile waited on
+    // the board too, and needs nothing from it.
+    const [rows, today] = await Promise.all([board, readDailyTile(context, null, atMs)]);
+    return { ...NOTHING, board: topOf(rows), today };
   }
 
-  const [stats, quests, recent, today] = await Promise.all([
+  const [rows, stats, quests, recent, today] = await Promise.all([
+    board,
     selectPlayerStats(context.db, viewerId),
     readLiveQuests(context, viewerId, atMs),
     // Step R.2 — four finished rounds, asked for as four finished rounds. This
@@ -131,7 +152,7 @@ export async function readHome(
             currentStreak: stats.currentStreak,
           },
     daily: dailyWorthShowing(quests),
-    board: top,
+    board: topOf(rows),
     today,
     // Finished rounds only, and `endedAt` is what says so: a round somebody
     // walked out of has no score worth listing under "what you played". The
