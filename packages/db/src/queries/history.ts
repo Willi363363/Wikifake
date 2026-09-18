@@ -14,15 +14,46 @@ import { recomputePlayerStats, type PerfectRound } from './stats.js';
 type Db = Database['db'];
 
 /**
+ * How much of a history a caller wants — step R.2.
+ *
+ * The default is every row, unfiltered, because that is what `exportAccount`
+ * needs and what every caller got before this existed.
+ *
+ * **The two fields go together, and that is the point of the type.**
+ * `09-query-debt.md` asked only for the limit; a limit alone would have been a
+ * regression, because the one caller that wants four rows wants four *finished*
+ * ones, and it was filtering in Node after the fact. Four unfinished rounds at
+ * the top of a player's history would have filled the budget and left the home
+ * drawing an empty list for somebody who has played all week.
+ */
+export interface HistoryWindow {
+  /** At most this many rows. Absent means every one of them. */
+  readonly limit?: number;
+  /**
+   * Only rounds that ended.
+   *
+   * `game.ended_at`, not `participant.submitted_at`: a round somebody walked out
+   * of still ended, and it belongs in a list of what they played. An export
+   * wants the unfinished ones too, which is why this is off by default.
+   */
+  readonly finishedOnly?: boolean;
+}
+
+/**
  * The games an account has played, most recent first.
  *
  * C1.1 and C1.2 — no `game_position`. A history view has no business carrying
  * solutions: it is the easiest place to leak them, because a debrief and a
  * history list look alike and one of them is about games somebody else may still
  * be playing. A test asserts this query never mentions that table.
+ *
+ * **The predicate is `participant.user_id` and the order is `game.started_at`**,
+ * on the joined table, so no index serves both: Postgres reads every
+ * participation the player has and sorts them. A window is what keeps that from
+ * growing with the account — see `HistoryWindow`.
  */
-export function selectGameHistory(db: Db, userId: string) {
-  return db
+export function selectGameHistory(db: Db, userId: string, window: HistoryWindow = {}) {
+  const rows = db
     .select({
       gameId: game.id,
       topic: game.topic,
@@ -40,8 +71,18 @@ export function selectGameHistory(db: Db, userId: string) {
     })
     .from(participant)
     .innerJoin(game, eq(participant.gameId, game.id))
-    .where(eq(participant.userId, userId))
-    .orderBy(desc(game.startedAt));
+    .where(
+      window.finishedOnly === true
+        ? and(eq(participant.userId, userId), isNotNull(game.endedAt))
+        : eq(participant.userId, userId),
+    )
+    .orderBy(desc(game.startedAt))
+    // `$dynamic` so both shapes are one type: `account.ts` reads this function's
+    // return type to describe an export, and a union of two builders would make
+    // that type depend on an argument nobody passes there.
+    .$dynamic();
+
+  return window.limit === undefined ? rows : rows.limit(window.limit);
 }
 
 /** Every read that must never touch the solution. Asserted, not trusted. */
