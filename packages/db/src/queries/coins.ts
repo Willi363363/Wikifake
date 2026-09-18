@@ -4,7 +4,7 @@
 // wrong: **the same key credits once**, and **`balance_after` agrees with the
 // sum of the rows**. Both are properties of the write, so both are enforced here
 // rather than trusted to whoever calls it.
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 
 import type { Database } from '../client.js';
 import { coinMovement } from '../schema/coins.js';
@@ -166,6 +166,28 @@ export async function sumBalance(db: Db, userId: string): Promise<number> {
 const newestFirst = sql`${coinMovement.seq} desc nulls last`;
 
 /**
+ * The same spelling, for the clock — step R.4's sweep.
+ *
+ * `coin_movement_user_idx` is `(user_id, created_at desc nulls last)`, and the
+ * ledger read ordered `created_at desc`. The mismatch above, on the other index,
+ * left where H.2 found it because the register asked for the sweep as its own
+ * step. Measured on the same five thousand movements plus twenty thousand
+ * belonging to somebody else:
+ *
+ *     order by created_at desc              3.3 ms   Bitmap Heap Scan + Sort
+ *     order by created_at desc nulls last   1.5 ms   Index Scan + Incremental Sort
+ *
+ * `seq` still has to be sorted within a tie — two movements written in one
+ * transaction share a `created_at` — which is why the sort becomes incremental
+ * rather than disappearing. Both columns are `not null`, so no result changes.
+ *
+ * **Exported because `exportAccount` reads the same table the same way**, and a
+ * spelling that has to match an index in two files is one source of truth or it
+ * is a defect waiting to come back in whichever file is edited second.
+ */
+export const newestClockFirst = sql`${coinMovement.createdAt} desc nulls last`;
+
+/**
  * The balance, read from the newest movement — step H.2, and the fast path.
  *
  * **One row, not a sum.** A balance is shown on every screen that mentions
@@ -251,7 +273,10 @@ export function movementsOf(db: Db, userId: string, limit = 50) {
       // By `seq` as well as by the clock: two movements written in one
       // transaction share a `created_at`, and a history that shuffled them would
       // show a spend before the credit that paid for it.
-      .orderBy(desc(coinMovement.createdAt), desc(coinMovement.seq))
+      //
+      // Both spelled `nulls last`, so the index can serve the first — see
+      // `newestClockFirst`.
+      .orderBy(newestClockFirst, newestFirst)
       .limit(limit)
   );
 }

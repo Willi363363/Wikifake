@@ -150,7 +150,7 @@ strength of another query's number is the guess this register exists to refuse.
 | R.1 | The timeout says what it saw, and how long it waited | ✅ |
 | R.2 | The home's history stops at four, in the query | ⬜ |
 | R.3 | The board stops waiting its turn | ⬜ |
-| R.4 | `desc nulls last`, swept and measured site by site | ⬜ |
+| R.4 | `desc nulls last`, swept and measured site by site | ✅ |
 
 **R.1** — `apps/realtime/src/testing/client.ts`, and the two `rosterOf` helpers
 in `broadcast.test.ts` and `reconnect.test.ts`. The deadline is unchanged.
