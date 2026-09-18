@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **State** | 🔶 in progress — four steps |
+| **State** | ✅ done — four steps, each with a before-and-after |
 | **Branch** | one per step |
 | **Depends on** | nothing. Every step touches code that is already in `staging` |
 | **Delivers** | a timeout that carries its own diagnosis, and three query fixes with a before-and-after each |
@@ -149,7 +149,7 @@ strength of another query's number is the guess this register exists to refuse.
 |---|---|---|
 | R.1 | The timeout says what it saw, and how long it waited | ✅ |
 | R.2 | The home's history stops at four, in the query | ✅ |
-| R.3 | The board stops waiting its turn | ⬜ |
+| R.3 | The board stops waiting its turn | ✅ |
 | R.4 | `desc nulls last`, swept and measured site by site | ✅ |
 
 **R.1** — `apps/realtime/src/testing/client.ts`, and the two `rosterOf` helpers

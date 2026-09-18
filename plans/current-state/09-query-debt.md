@@ -172,29 +172,29 @@ for one player among 22 000, four in five finished.
 before   median 8.76 ms   2000 rows   601.7 KiB   quicksort of 2000
 after    median 4.17 ms      4 rows     1.2 KiB   top-N heapsort of 4
 ```
-**The plan is barely the point, and that is the finding.** Both shapes still
-hash-join a sequential scan — no index serves a predicate on
-`participant.user_id` and an order on `game.started_at`, on the joined table —
-so the limit buys a top-N heapsort and four milliseconds. What it actually buys
-is **six hundred kilobytes that stop crossing the wire per home page load**,
-invisible on a loopback and the payload between a Vercel function and Neon. It
-grows with the account, which is the half that matters.
+**The plan is barely the point.** Both shapes still hash-join a sequential scan —
+no index serves a predicate on `participant.user_id` and an order on
+`game.started_at`, on the joined table — so the limit buys a top-N heapsort and
+four milliseconds. What it buys that matters is **six hundred kilobytes that
+stop crossing the wire per home page load**, and a cost that stops growing with
+the account.
 
 **The limit alone would have been a regression**, which the register did not
 say. The home was *also* filtering on `ended_at` after the fact: four abandoned
-rounds at the top fill the budget and leave a player who has played all week
-looking at an empty list. So `HistoryWindow` carries both, and `history.test.ts`
-has the case that fails with the limit and no predicate.
+rounds at the top fill the budget and leave a week's player looking at an empty
+list. `HistoryWindow` carries both, `history.test.ts` has the case that fails
+with the limit and no predicate, and `exportAccount` passes no window at all —
+every row, unfinished included, which is what an export is.
 
-`exportAccount` (`queries/account.ts:322`) passes no window and gets every row,
-unfinished included — which is what an export is.
+## The home's board waited its turn — closed by R.3
 
-## The home's board is read before the four reads it does not depend on
+`lobby/home.ts:101` awaited `readBoard` and only then opened the `Promise.all`
+below it; nothing in that group fed the board and the board fed none of them.
+The guest path had it twice over — the day's tile waited on the board too.
 
-`lobby/home.ts:101` awaits `readBoard` and only then opens the `Promise.all` on
-line 111. Nothing in that group feeds the board and the board feeds none of
-them — they take the same `viewerId` and the same clock.
-
-One avoidable round trip on every signed-in home page load, which is the same
-arithmetic O.6 did for the session: not a slow query, a query waiting its turn
-for no reason. Moving it into the group is the whole change.
+**On this machine it does not measure.** 40 runs of the guest home against a
+local Postgres: 4.45 ms before, 4.81 ms after — inside the noise, a loopback
+round trip being smaller than the variance. What does measure is the depth,
+with 25 ms injected per read — about a Neon round trip from a Vercel function:
+**50.8 → 25.8 ms** signed in, **50.6 → 25.4 ms** for a guest. One round trip,
+both paths, and `home.test.ts` asserts the structure rather than the timing.
